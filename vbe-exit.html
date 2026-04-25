@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<title>VBE — Secure Exit</title>
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+<meta http-equiv="X-Robots-Tag" content="noindex, nofollow">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700;800&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Noto Sans Devanagari','Segoe UI',sans-serif;
+  background:#050a14;min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  color:#e2e8f0;
+}
+.card{
+  width:100%;max-width:360px;padding:32px 24px;
+  background:#0d1526;border-radius:20px;
+  border:1px solid #1e3a5f;text-align:center;
+  box-shadow:0 20px 60px rgba(0,0,0,.6);
+}
+.icon{font-size:56px;margin-bottom:16px}
+.title{font-size:20px;font-weight:800;color:#f59e0b;margin-bottom:8px}
+.sub{font-size:12px;color:#475569;margin-bottom:28px;line-height:1.7}
+.btn{
+  display:block;width:100%;padding:14px;border-radius:12px;
+  border:none;font-size:14px;font-weight:800;cursor:pointer;
+  font-family:inherit;margin-bottom:10px;text-decoration:none;
+  transition:opacity .15s;
+}
+.btn:active{opacity:.8}
+.btn-main{background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff}
+.btn-sec{background:#1e293b;color:#94a3b8;border:1px solid #334155}
+.btn-danger{background:#450a0a;color:#fca5a5;border:1px solid #7f1d1d}
+.divider{height:1px;background:#1e293b;margin:16px 0}
+.status-row{display:flex;align-items:center;justify-content:space-between;
+  background:#0a0f1e;border-radius:10px;padding:10px 14px;margin-bottom:8px}
+.status-label{font-size:11px;color:#475569}
+.status-val{font-size:11px;font-weight:800}
+.ok{color:#10b981}.warn{color:#f59e0b}.danger{color:#ef4444}
+.checklist{text-align:left;background:#0a0f1e;border-radius:12px;padding:14px;margin-bottom:20px}
+.check-item{display:flex;align-items:center;gap:8px;padding:5px 0;
+  border-bottom:1px solid #0d1526;font-size:12px}
+.check-item:last-child{border-bottom:none}
+.check-icon{font-size:14px;flex-shrink:0}
+</style>
+</head>
+<body>
+
+<div class="card" id="main-card">
+  <div class="icon">🔐</div>
+  <div class="title">VBE — Secure Exit</div>
+  <div class="sub">Vande Bharat Enterprises<br>Order Tracker Security Panel</div>
+
+  <!-- Security Status -->
+  <div id="sec-status"></div>
+
+  <!-- Action Buttons -->
+  <button class="btn btn-main" onclick="doLogout()">🚪 Logout करें — Session Clear</button>
+  <button class="btn btn-sec" onclick="goBack()">← वापस जाएं</button>
+  <div class="divider"></div>
+  <button class="btn btn-danger" onclick="doFullClear()">🗑️ सब कुछ Clear करें (Cache + Storage)</button>
+
+  <div style="margin-top:20px;font-size:10px;color:#1e293b;line-height:1.8">
+    Vande Bharat Enterprises · Jalipa Cantt · Barmer<br>
+    v12.0 · Firebase Cloud · Secure
+  </div>
+</div>
+
+<script>
+// ── Security Status Check ──
+function checkStatus(){
+  const hasSession  = !!sessionStorage.getItem('vbe_auth');
+  const hasLockout  = !!localStorage.getItem('vbe_lockout_until');
+  const attempts    = parseInt(localStorage.getItem('vbe_attempts')||'0');
+  const lockRem     = parseInt(localStorage.getItem('vbe_lockout_until')||'0') - Date.now();
+
+  const rows = [
+    {
+      label: '🔑 Login Session',
+      val:   hasSession ? 'Active ✓' : 'नहीं है',
+      cls:   hasSession ? 'ok' : 'warn'
+    },
+    {
+      label: '🛡️ Lockout Status',
+      val:   hasLockout && lockRem>0
+               ? `🔒 ${Math.ceil(lockRem/60000)} मिनट बाकी`
+               : 'Clear ✓',
+      cls:   hasLockout && lockRem>0 ? 'warn' : 'ok'
+    },
+    {
+      label: '⚠️ Failed Attempts',
+      val:   attempts > 0 ? `${attempts} बार` : '0 — Safe',
+      cls:   attempts > 0 ? 'warn' : 'ok'
+    },
+    {
+      label: '🌐 Browser',
+      val:   navigator.onLine ? 'Online ✓' : 'Offline',
+      cls:   navigator.onLine ? 'ok' : 'danger'
+    },
+  ];
+
+  document.getElementById('sec-status').innerHTML =
+    `<div class="checklist">${rows.map(r=>`
+      <div class="check-item">
+        <span class="check-icon">📋</span>
+        <span class="status-label" style="flex:1">${r.label}</span>
+        <span class="status-val ${r.cls}">${r.val}</span>
+      </div>`).join('')}
+    </div>`;
+}
+
+// ── Logout ──
+function doLogout(){
+  sessionStorage.removeItem('vbe_auth');
+  sessionStorage.clear();
+  showDone('🚪 Logout हो गए!','Session clear हो गई। अब कोई दूसरा access नहीं कर सकता।','ok');
+}
+
+// ── Full Clear ──
+function doFullClear(){
+  if(!confirm('⚠️ सारा local data, cache, और session clear होगा। Continue?')) return;
+  sessionStorage.clear();
+  localStorage.removeItem('vbe_auth');
+  localStorage.removeItem('vbe_lockout_until');
+  localStorage.removeItem('vbe_attempts');
+  // Cache clear (if supported)
+  if('caches' in window){
+    caches.keys().then(names=> names.forEach(n=> caches.delete(n)));
+  }
+  showDone('🗑️ सब Clear हो गया!','Session + Local Storage + Cache — सब साफ। Fresh शुरुआत।','warn');
+}
+
+function goBack(){
+  if(document.referrer){ window.history.back(); }
+  else { window.location.href = './'; }
+}
+
+function showDone(title, msg, type){
+  const colors = {ok:'#10b981', warn:'#f59e0b', danger:'#ef4444'};
+  document.getElementById('main-card').innerHTML = `
+    <div class="icon">${type==='ok'?'✅':'⚠️'}</div>
+    <div class="title" style="color:${colors[type]}">${title}</div>
+    <div class="sub">${msg}</div>
+    <a href="./" class="btn btn-main" style="display:block;text-align:center;margin-top:20px">
+      🏠 Main App पर जाएं
+    </a>
+    <button class="btn btn-sec" onclick="location.reload()">🔄 Status Check करें</button>
+  `;
+}
+
+// Run on load
+checkStatus();
+</script>
+</body>
+</html>

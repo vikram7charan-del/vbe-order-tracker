@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<title>VBE — Contact Directory</title>
+<meta name="robots" content="noindex,nofollow">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700;800&display=swap" rel="stylesheet"/>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, getDocs, setDoc, deleteDoc }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, signInAnonymously, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey:            "AIzaSyBCe5DKNKcthOl4umprfRm2QBfbVaFORg8",
+  authDomain:        "vbe-order-tracker-60324.firebaseapp.com",
+  projectId:         "vbe-order-tracker-60324",
+  storageBucket:     "vbe-order-tracker-60324.firebasestorage.app",
+  messagingSenderId: "894023456122",
+  appId:             "1:894023456122:web:6ee548f0913c887c67f2c3"
+};
+
+const app  = initializeApp(firebaseConfig);
+const db   = getFirestore(app);
+const auth = getAuth(app);
+
+window._db         = db;
+window._collection = collection;
+window._doc        = doc;
+window._getDocs    = getDocs;
+window._setDoc     = setDoc;
+window._deleteDoc  = deleteDoc;
+
+signInAnonymously(auth).catch(e=>console.warn(e));
+
+onAuthStateChanged(auth, user => {
+  if(user){
+    window._uid = user.uid;
+    document.getElementById('auth-dot').style.background='#10b981';
+    loadContacts();
+  }
+});
+</script>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Noto Sans Devanagari','Segoe UI',sans-serif;background:#050a14;color:#e2e8f0;min-height:100vh;max-width:480px;margin:0 auto}
+
+/* Header */
+.hdr{background:linear-gradient(135deg,#0f1e47,#1a0a3a);padding:14px 16px;position:sticky;top:0;z-index:50;border-bottom:1px solid #1e3a5f}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.hdr-title{font-size:16px;font-weight:800;color:#818cf8}
+.hdr-sub{font-size:10px;color:#475569;display:flex;align-items:center;gap:5px;margin-top:2px}
+.back-btn{background:#1e293b;border:1px solid #334155;color:#94a3b8;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:4px}
+.search-box{background:#0d1526;border:1px solid #1e3a5f;border-radius:9px;padding:8px 12px;font-size:13px;color:#e2e8f0;font-family:inherit;outline:none;width:100%}
+.search-box::placeholder{color:#334155}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;padding:10px 12px}
+.stat{background:#0d1526;border-radius:9px;padding:7px 4px;text-align:center}
+.stat-v{font-size:17px;font-weight:800}
+.stat-l{font-size:9px;color:#475569;margin-top:2px}
+
+/* Sort label */
+.sort-label{font-size:9px;color:#475569;text-align:center;padding:0 12px 8px;letter-spacing:.5px}
+
+/* Unit cards */
+.body{padding:8px 12px 80px}
+.unit-card{background:#0d1526;border-radius:12px;margin-bottom:8px;border:1px solid #1e3a5f;overflow:hidden}
+.unit-card.has-overdue{border-color:#7f1d1d}
+.unit-card.has-active{border-color:#312e81}
+.unit-hdr{display:flex;align-items:center;justify-content:space-between;padding:11px 12px;cursor:pointer}
+.unit-name{font-size:13px;font-weight:800;color:#c7d2fe}
+.unit-addr{font-size:10px;color:#475569;margin-top:2px}
+.unit-badges{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap}
+.b-over{background:#7f1d1d;color:#fca5a5;border-radius:4px;padding:2px 7px;font-size:9px;font-weight:800}
+.b-act{background:#312e81;color:#a5b4fc;border-radius:4px;padding:2px 7px;font-size:9px;font-weight:800}
+.b-ct{background:#1e293b;color:#6366f1;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:800;white-space:nowrap}
+.arrow{color:#334155;font-size:11px;transition:transform .3s;display:inline-block;flex-shrink:0}
+.arrow.open{transform:rotate(90deg)}
+
+/* Contacts inside unit */
+.unit-body{display:none;padding:0 12px 10px;border-top:1px solid #0a0f1e}
+.unit-body.open{display:block}
+.ct-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #0a0f1e}
+.ct-row:last-of-type{border-bottom:none}
+.ct-name{font-size:13px;font-weight:700;color:#e2e8f0}
+.ct-role{font-size:10px;color:#6366f1;margin-top:1px}
+.ct-phone{font-size:11px;color:#10b981;margin-top:2px}
+.ct-actions{display:flex;gap:5px;flex-shrink:0}
+.btn-wa{background:#128c7e;color:#fff;border:none;border-radius:7px;padding:6px 10px;font-size:11px;font-weight:800;cursor:pointer}
+.btn-call{background:#1e3a5f;color:#93c5fd;border:none;border-radius:7px;padding:6px 10px;font-size:11px;font-weight:800;cursor:pointer}
+.btn-edit{background:#1e293b;color:#a5b4fc;border:1px solid #334155;border-radius:7px;padding:6px 8px;font-size:11px;cursor:pointer}
+.btn-del{background:transparent;color:#ef4444;border:1px solid #450a0a;border-radius:7px;padding:6px 8px;font-size:11px;cursor:pointer}
+.btn-add{width:100%;padding:7px;border-radius:8px;border:1px dashed #334155;background:transparent;color:#475569;font-size:11px;font-weight:700;cursor:pointer;margin-top:6px;font-family:inherit}
+.empty-ct{font-size:11px;color:#334155;padding:8px 0;font-style:italic}
+
+/* Add/Edit Modal */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;align-items:flex-end;justify-content:center}
+.modal-bg.open{display:flex}
+.modal-box{background:#0d1526;border-radius:18px 18px 0 0;width:100%;max-width:480px;padding:18px 16px 36px;border:1px solid #1e3a5f}
+.modal-title{font-size:14px;font-weight:800;color:#c7d2fe;margin-bottom:16px}
+.inp-row{margin-bottom:11px}
+.inp-lbl{font-size:10px;color:#475569;font-weight:700;display:block;margin-bottom:3px;letter-spacing:.4px}
+.inp{width:100%;padding:10px 12px;border-radius:9px;border:1px solid #1e3a5f;background:#0a0f1e;color:#e2e8f0;font-size:13px;font-family:inherit;outline:none}
+.inp::placeholder{color:#334155}
+.modal-btns{display:flex;gap:8px;margin-top:14px}
+.btn-save{flex:1;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit}
+.btn-cancel{padding:12px 16px;border-radius:10px;border:1px solid #334155;background:#1e293b;color:#94a3b8;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+
+/* FAB */
+.fab{position:fixed;bottom:22px;right:18px;width:52px;height:52px;border-radius:50%;border:none;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:100;box-shadow:0 4px 20px rgba(99,102,241,.5)}
+
+/* Loading */
+.loading{text-align:center;padding:60px 20px;color:#334155;font-size:13px}
+.spin{width:32px;height:32px;border:3px solid #1e293b;border-top-color:#6366f1;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Notif */
+.notif-wrap{position:fixed;top:8px;left:50%;transform:translateX(-50%);width:calc(100% - 24px);max-width:440px;z-index:999;pointer-events:none}
+.notif{border-radius:10px;padding:9px 13px;font-size:12px;font-weight:700;color:#fff;margin-bottom:5px;display:none}
+.notif.show{display:block}
+.notif.ok{background:#15803d}
+.notif.err{background:#b91c1c}
+.notif.info{background:#1e40af}
+</style>
+</head>
+<body>
+
+<!-- Notif -->
+<div class="notif-wrap">
+  <div class="notif" id="notif"></div>
+</div>
+
+<!-- Header -->
+<div class="hdr">
+  <div class="hdr-top">
+    <div>
+      <div class="hdr-title">📋 Contact Directory</div>
+      <div class="hdr-sub">
+        <span id="auth-dot" style="width:7px;height:7px;border-radius:50%;background:#334155;display:inline-block;transition:background .4s"></span>
+        Unit-wise contacts — Firebase sync
+      </div>
+    </div>
+    <a href="./" class="back-btn">← वापस</a>
+  </div>
+  <input class="search-box" id="srch" placeholder="🔍 Unit या contact search करें..." oninput="renderAll()"/>
+</div>
+
+<!-- Stats -->
+<div class="stats" id="stats-bar"></div>
+<div class="sort-label" id="sort-label"></div>
+
+<!-- Body -->
+<div class="body" id="main-body">
+  <div class="loading">
+    <div class="spin"></div>
+    Firebase से load हो रहा है...
+  </div>
+</div>
+
+<!-- FAB: Add Contact -->
+<button class="fab" onclick="openModal('','','','',-1)" title="नया contact">+</button>
+
+<!-- Add/Edit Modal -->
+<div class="modal-bg" id="modal">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-title">Contact Add करें</div>
+    <div class="inp-row">
+      <label class="inp-lbl">UNIT</label>
+      <select class="inp" id="m-unit"></select>
+    </div>
+    <div class="inp-row">
+      <label class="inp-lbl">नाम *</label>
+      <input class="inp" id="m-name" placeholder="जैसे: Col. Sharma"/>
+    </div>
+    <div class="inp-row">
+      <label class="inp-lbl">ROLE / RANK</label>
+      <input class="inp" id="m-role" placeholder="जैसे: CO, QM, Admin"/>
+    </div>
+    <div class="inp-row">
+      <label class="inp-lbl">PHONE *</label>
+      <input class="inp" id="m-phone" type="tel" placeholder="10 digit mobile number" maxlength="10"/>
+    </div>
+    <div class="inp-row">
+      <label class="inp-lbl">NOTE</label>
+      <input class="inp" id="m-note" placeholder="कोई जरूरी बात"/>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">रद्द</button>
+      <button class="btn-save" onclick="saveContact()">💾 Save करें</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══ UNITS DATA ══
+const FV_UNITS = {
+  jalipa:[
+    {id:'j01',name:'17 Guards',    addr:'जालीपा कैंट, बाड़मेर'},
+    {id:'j02',name:'MES',          addr:'जालीपा कैंट, बाड़मेर'},
+    {id:'j03',name:'17 MAC',       addr:'जालीपा कैंट, बाड़मेर'},
+    {id:'j04',name:'177 MH',       addr:'जालीपा कैंट, बाड़मेर'},
+    {id:'j05',name:'Station HQ',   addr:'जालीपा कैंट, बाड़मेर'},
+    {id:'j06',name:'NCC',          addr:'जालीपा कैंट, बाड़मेर'},
+    {id:'j07',name:'318 Workshop', addr:'जालीपा कैंट, बाड़मेर'},
+    {id:'j08',name:'74 Armd Regt', addr:'जालीपा कैंट, बाड़मेर'},
+    {id:'j09',name:'60 Armd Regt', addr:'जालीपा कैंट, बाड़मेर'},
+    {id:'j10',name:'18 MAC',       addr:'जालीपा कैंट, बाड़मेर'},
+    {id:'j11',name:'5 MAC',        addr:'जालीपा कैंट, बाड़मेर'},
+    {id:'j12',name:'414 Engr',     addr:'जालीपा कैंट, बाड़मेर'},
+    {id:'j13',name:'6340 DBS',     addr:'जालीपा कैंट, बाड़मेर'},
+    {id:'j14',name:'6340 (74)',    addr:'जालीपा कैंट, बाड़मेर'},
+    {id:'j15',name:'32 ELent',     addr:'जालीपा कैंट, बाड़मेर'},
+    {id:'j16',name:'110 Brigade',  addr:'जालीपा कैंट, बाड़मेर'},
+    {id:'j17',name:'110 Signals',  addr:'जालीपा कैंट, बाड़मेर'},
+    {id:'j18',name:'694 Tatra',    addr:'जालीपा कैंट, बाड़मेर'},
+    {id:'j19',name:'625 Tatra',    addr:'जालीपा कैंट, बाड़मेर'},
+    {id:'j20',name:'KV Jalipa',    addr:'जालीपा कैंट, बाड़मेर'},
+    {id:'j21',name:'MCO',          addr:'जालीपा कैंट, बाड़मेर'},
+  ],
+  jaisalmer:[
+    {id:'z01',name:'747 Armd Regt',addr:'जसाई, जैसलमेर'},
+    {id:'z02',name:'2 Lancer',     addr:'जसाई, जैसलमेर'},
+    {id:'z03',name:'25 Ammo Depot',addr:'जसाई, जैसलमेर'},
+    {id:'z04',name:'496 Depot',    addr:'जसाई, जैसलमेर'},
+  ]
+};
+const ALL_UNITS = [...FV_UNITS.jalipa,...FV_UNITS.jaisalmer];
+
+// ══ STATE ══
+let _contacts = {}; // unitId → [{name,role,phone,note}]
+let _editUnit = '';
+let _editIdx  = -1;
+
+// ══ LOAD CONTACTS FROM FIREBASE ══
+async function loadContacts(){
+  try{
+    const snap = await window._getDocs(window._collection(window._db,'fvhq_contacts'));
+    snap.forEach(d=>{ _contacts[d.id] = d.data().list||[]; });
+    renderAll();
+    notif('✅ Contacts load हो गए','ok');
+  }catch(e){
+    console.error(e);
+    document.getElementById('main-body').innerHTML =
+      '<div class="loading" style="color:#ef4444">❌ Load नहीं हुआ — Internet check करें</div>';
+  }
+}
+
+// ══ RENDER ══
+function renderAll(){
+  const q   = (document.getElementById('srch').value||'').toLowerCase().trim();
+  const body = document.getElementById('main-body');
+
+  // Stats
+  let totalAct=0,totalOver=0,totalUnits=0;
+  ALL_UNITS.forEach(u=>{
+    const cts = _contacts[u.id]||[];
+    if(cts.length>0) totalUnits++;
+  });
+
+  document.getElementById('stats-bar').innerHTML =
+    `<div class="stat"><div class="stat-v" style="color:#6366f1">${ALL_UNITS.length}</div><div class="stat-l">कुल Units</div></div>`+
+    `<div class="stat"><div class="stat-v" style="color:#10b981">${totalUnits}</div><div class="stat-l">Contacts वाली</div></div>`+
+    `<div class="stat"><div class="stat-v" style="color:#f59e0b">${Object.values(_contacts).reduce((s,a)=>s+a.length,0)}</div><div class="stat-l">कुल Contacts</div></div>`;
+
+  document.getElementById('sort-label').textContent =
+    q ? '' : '⬆ Contacts वाली units सबसे ऊपर';
+
+  // Build units with scores
+  let units = ALL_UNITS.map(u=>{
+    const cts = _contacts[u.id]||[];
+    const matchUnit = u.name.toLowerCase().includes(q);
+    const matchCts  = cts.filter(c=>
+      c.name?.toLowerCase().includes(q)||
+      (c.phone||'').includes(q)||
+      (c.role||'').toLowerCase().includes(q)
+    );
+    if(q && !matchUnit && !matchCts.length) return null;
+    const showCts = (q && matchCts.length) ? matchCts : cts;
+    return {u, cts, showCts, score: cts.length};
+  }).filter(Boolean);
+
+  // Sort: contacts wali units upar
+  if(!q) units.sort((a,b)=>b.score-a.score);
+
+  if(!units.length){
+    body.innerHTML=`<div class="loading">🔍 "${q}" — कोई result नहीं</div>`;
+    return;
+  }
+
+  body.innerHTML = units.map(({u,cts,showCts})=>unitCard(u,cts,showCts,q)).join('');
+}
+
+function unitCard(u, allCts, showCts, q){
+  const hasContacts = allCts.length > 0;
+  const isOpen = hasContacts || !!q;
+
+  const ctsHtml = showCts.length===0
+    ? `<div class="empty-ct">Koi contact nahi — niche Add karein</div>`
+    : showCts.map((c,i)=>{
+        const realIdx = allCts.findIndex(x=>x.name===c.name&&x.phone===c.phone);
+        return `<div class="ct-row">
+          <div>
+            <div class="ct-name">${c.name||'—'}</div>
+            ${c.role?`<div class="ct-role">${c.role}</div>`:''}
+            ${c.phone?`<div class="ct-phone"><a href="tel:${c.phone}" style="color:#10b981;text-decoration:none">${c.phone}</a></div>`:''}
+            ${c.note?`<div style="font-size:10px;color:#475569;margin-top:1px">${c.note}</div>`:''}
+          </div>
+          <div class="ct-actions">
+            ${c.phone?`<button class="btn-wa" onclick="openWA('${c.phone}')">WA</button>`:''}
+            ${c.phone?`<button class="btn-call" onclick="window.open('tel:${c.phone}')">📞</button>`:''}
+            <button class="btn-edit" onclick="openModal('${u.id}','${(c.name||'').replace(/'/g,"\\'")}','${c.role||''}','${c.phone||''}',${realIdx})">✏</button>
+            <button class="btn-del" onclick="deleteContact('${u.id}',${realIdx})">🗑</button>
+          </div>
+        </div>`;
+      }).join('');
+
+  return `<div class="unit-card${hasContacts?' has-active':''}" id="uc-${u.id}">
+    <div class="unit-hdr" onclick="toggleUnit('${u.id}')">
+      <div style="flex:1;min-width:0">
+        <div class="unit-name">${u.name}</div>
+        <div class="unit-addr">${u.addr}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+        <span class="b-ct">👤 ${allCts.length}</span>
+        <span class="arrow${isOpen?' open':''}" id="arr-${u.id}">▶</span>
+      </div>
+    </div>
+    <div class="unit-body${isOpen?' open':''}" id="ub-${u.id}">
+      ${ctsHtml}
+      <button class="btn-add" onclick="openModal('${u.id}','','','',−1)">+ Contact Add करें</button>
+    </div>
+  </div>`;
+}
+
+function toggleUnit(id){
+  const ub  = document.getElementById('ub-'+id);
+  const arr = document.getElementById('arr-'+id);
+  if(!ub) return;
+  const open = ub.classList.toggle('open');
+  if(arr) arr.classList.toggle('open', open);
+}
+
+// ══ WHATSAPP ══
+function openWA(phone){
+  window.open('https://wa.me/91'+phone);
+}
+
+// ══ MODAL ══
+function openModal(unitId, name, role, phone, idx){
+  _editUnit = unitId;
+  _editIdx  = idx;
+  document.getElementById('modal-title').textContent = idx===-1||idx==-1 ? '+ Contact Add करें' : '✏ Contact Edit करें';
+  document.getElementById('m-name').value  = name||'';
+  document.getElementById('m-role').value  = role||'';
+  document.getElementById('m-phone').value = phone||'';
+  document.getElementById('m-note').value  = '';
+
+  // Populate unit dropdown
+  const sel = document.getElementById('m-unit');
+  sel.innerHTML = ALL_UNITS.map(u=>
+    `<option value="${u.id}"${u.id===unitId?' selected':''}>${u.name}</option>`
+  ).join('');
+
+  document.getElementById('modal').classList.add('open');
+  setTimeout(()=>document.getElementById('m-name').focus(),200);
+}
+
+function closeModal(){
+  document.getElementById('modal').classList.remove('open');
+}
+
+async function saveContact(){
+  const unitId = document.getElementById('m-unit').value;
+  const name   = document.getElementById('m-name').value.trim();
+  const role   = document.getElementById('m-role').value.trim();
+  const phone  = document.getElementById('m-phone').value.trim();
+  const note   = document.getElementById('m-note').value.trim();
+
+  if(!name){ notif('❌ नाम जरूरी है','err'); return; }
+  if(!phone||phone.length<10){ notif('❌ Phone number 10 digit होना चाहिए','err'); return; }
+
+  const list = [...(_contacts[unitId]||[])];
+  const entry = {name,role,phone,note};
+
+  if(_editIdx>=0){ list[_editIdx]=entry; }
+  else { list.push(entry); }
+
+  try{
+    await window._setDoc(window._doc(window._db,'fvhq_contacts',unitId),{list});
+    _contacts[unitId] = list;
+    closeModal();
+    renderAll();
+    notif('✅ Contact save हो गया','ok');
+  }catch(e){
+    notif('❌ Save नहीं हुआ — '+e.message,'err');
+  }
+}
+
+async function deleteContact(unitId, idx){
+  if(!confirm('यह contact delete करें?')) return;
+  const list = [...(_contacts[unitId]||[])];
+  list.splice(idx,1);
+  try{
+    await window._setDoc(window._doc(window._db,'fvhq_contacts',unitId),{list});
+    _contacts[unitId] = list;
+    renderAll();
+    notif('🗑 Contact delete हो गया','info');
+  }catch(e){
+    notif('❌ Delete नहीं हुआ','err');
+  }
+}
+
+// ══ NOTIF ══
+function notif(msg, type='info'){
+  const el = document.getElementById('notif');
+  el.textContent = msg;
+  el.className = `notif show ${type}`;
+  setTimeout(()=>el.classList.remove('show'),2500);
+}
+
+// Close modal on background click
+document.getElementById('modal').addEventListener('click',function(e){
+  if(e.target===this) closeModal();
+});
+</script>
+</body>
+</html>

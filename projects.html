@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<title>VBE — Big Projects</title>
+<meta name="robots" content="noindex,nofollow">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700;800&display=swap" rel="stylesheet"/>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore,collection,doc,getDocs,setDoc,deleteDoc,addDoc,Timestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth,signInAnonymously,onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+const cfg={apiKey:"AIzaSyBCe5DKNKcthOl4umprfRm2QBfbVaFORg8",authDomain:"vbe-order-tracker-60324.firebaseapp.com",projectId:"vbe-order-tracker-60324",storageBucket:"vbe-order-tracker-60324.firebasestorage.app",messagingSenderId:"894023456122",appId:"1:894023456122:web:6ee548f0913c887c67f2c3"};
+const app=initializeApp(cfg);const db=getFirestore(app);const auth=getAuth(app);
+window._db=db;window._col=collection;window._doc=doc;window._getDocs=getDocs;
+window._setDoc=setDoc;window._deleteDoc=deleteDoc;window._addDoc=addDoc;
+signInAnonymously(auth).catch(e=>console.warn(e));
+onAuthStateChanged(auth,user=>{if(user){document.getElementById('auth-dot').style.background='#10b981';loadProjects();}});
+</script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Noto Sans Devanagari','Segoe UI',sans-serif;background:#050a14;color:#e2e8f0;min-height:100vh;max-width:480px;margin:0 auto}
+
+/* Header */
+.hdr{background:linear-gradient(135deg,#0f1e47,#1a0a3a);padding:13px 14px;position:sticky;top:0;z-index:50;border-bottom:1px solid #1e3a5f}
+.hdr-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.hdr-title{font-size:16px;font-weight:800;background:linear-gradient(90deg,#f59e0b,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hdr-sub{font-size:10px;color:#475569;display:flex;align-items:center;gap:5px;margin-top:2px}
+.back-btn{background:#1e293b;border:1px solid #334155;color:#94a3b8;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;text-decoration:none;font-family:inherit}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;padding:0 14px 10px}
+.tab{flex:1;padding:7px;border-radius:8px;border:none;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;transition:all .2s}
+.tab.on{background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff}
+.tab.off{background:#1e293b;color:#475569}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;padding:0 14px 10px}
+.stat{background:#0d1526;border-radius:10px;padding:10px 6px;text-align:center;border:1px solid #1e3a5f}
+.sv{font-size:18px;font-weight:800}
+.sl{font-size:9px;color:#475569;margin-top:2px}
+
+/* Body */
+.body{padding:8px 14px 100px}
+
+/* Project Card */
+.pc{background:#0d1526;border-radius:14px;margin-bottom:12px;border:1px solid #1e3a5f;overflow:hidden}
+.pc.urgent{border-color:#7f1d1d}
+.pc.active{border-color:#1e40af}
+.pc.completed{border-color:#15803d;opacity:.8}
+.pc-hdr{padding:13px 14px;cursor:pointer}
+.pc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px}
+.pc-name{font-size:14px;font-weight:800;color:#e2e8f0;flex:1}
+.pc-value{font-size:13px;font-weight:800;color:#f59e0b;white-space:nowrap}
+.pc-unit{font-size:11px;color:#818cf8;margin-bottom:4px}
+.pc-desc{font-size:11px;color:#64748b;line-height:1.5}
+.pc-badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+.badge{border-radius:5px;padding:2px 8px;font-size:9px;font-weight:800}
+.b-urgent{background:#7f1d1d;color:#fca5a5}
+.b-active{background:#1e3a8a;color:#93c5fd}
+.b-done{background:#052e16;color:#4ade80}
+.b-pending{background:#1e293b;color:#64748b}
+.b-gem{background:#312e81;color:#a5b4fc}
+.b-days{background:#422006;color:#fb923c}
+
+/* Progress */
+.prog-wrap{padding:0 14px 8px}
+.prog-label{display:flex;justify-content:space-between;font-size:10px;color:#475569;margin-bottom:4px}
+.prog-bg{height:6px;background:#1e293b;border-radius:4px;overflow:hidden}
+.prog-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#f59e0b,#10b981);transition:width .5s}
+
+/* Project body (expanded) */
+.pb{display:none;border-top:1px solid #0a0f1e}
+.pb.open{display:block}
+
+/* Daily log */
+.log-section{padding:12px 14px;border-bottom:1px solid #0a0f1e}
+.sec-title{font-size:10px;font-weight:800;color:#475569;letter-spacing:.8px;margin-bottom:8px}
+.log-item{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid #050a14}
+.log-item:last-child{border-bottom:none}
+.log-date{font-size:10px;color:#475569;white-space:nowrap;padding-top:1px;min-width:50px}
+.log-text{font-size:12px;color:#e2e8f0;flex:1;line-height:1.5}
+.log-by{font-size:10px;color:#6366f1;margin-top:2px}
+.no-log{font-size:11px;color:#334155;font-style:italic;padding:6px 0}
+
+/* Docs section */
+.docs-section{padding:12px 14px;border-bottom:1px solid #0a0f1e}
+.doc-item{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid #050a14}
+.doc-item:last-child{border-bottom:none}
+.doc-name{font-size:12px;color:#e2e8f0}
+.doc-status{font-size:10px;font-weight:800}
+.doc-ok{color:#10b981}.doc-no{color:#ef4444}.doc-pen{color:#f59e0b}
+
+/* Action buttons */
+.act-section{padding:10px 14px 14px;display:flex;flex-wrap:wrap;gap:6px}
+.abtn{border:none;border-radius:8px;padding:7px 12px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:4px}
+.ab-log{background:#1e3a5f;color:#93c5fd}
+.ab-wa{background:#128c7e;color:#fff}
+.ab-edit{background:#1e293b;color:#a5b4fc;border:1px solid #334155}
+.ab-del{background:transparent;color:#ef4444;border:1px solid #450a0a}
+.ab-prog{background:#422006;color:#fb923c}
+
+/* Modal */
+.mbg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:200;align-items:flex-end;justify-content:center;overflow-y:auto}
+.mbg.open{display:flex}
+.mbox{background:#0d1526;border-radius:18px 18px 0 0;width:100%;max-width:480px;padding:18px 16px 36px;border:1px solid #1e3a5f;max-height:92vh;overflow-y:auto}
+.mtitle{font-size:15px;font-weight:800;color:#f59e0b;margin-bottom:16px}
+.irow{margin-bottom:11px}
+.ilbl{font-size:10px;color:#475569;font-weight:700;display:block;margin-bottom:3px;letter-spacing:.4px}
+.inp{width:100%;padding:10px 12px;border-radius:9px;border:1px solid #1e3a5f;background:#0a0f1e;color:#e2e8f0;font-size:13px;font-family:inherit;outline:none}
+.inp::placeholder{color:#334155}
+textarea.inp{resize:vertical;min-height:70px}
+.mbtns{display:flex;gap:8px;margin-top:14px}
+.bsave{flex:1;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit}
+.bcancel{padding:12px 16px;border-radius:10px;border:1px solid #334155;background:#1e293b;color:#94a3b8;font-size:13px;cursor:pointer;font-family:inherit}
+
+/* FAB */
+.fab{position:fixed;bottom:22px;right:18px;width:56px;height:56px;border-radius:50%;border:none;background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;font-size:24px;cursor:pointer;box-shadow:0 4px 20px rgba(245,158,11,.5);z-index:100;display:flex;align-items:center;justify-content:center}
+
+/* Notif */
+.nwrap{position:fixed;top:8px;left:50%;transform:translateX(-50%);width:calc(100% - 24px);max-width:440px;z-index:999;pointer-events:none}
+.notif{border-radius:10px;padding:9px 13px;font-size:12px;font-weight:700;color:#fff;margin-bottom:5px;display:none}
+.notif.show{display:block}
+.notif.ok{background:#15803d}.notif.err{background:#b91c1c}.notif.info{background:#1e40af}
+
+/* Loading */
+.loading{text-align:center;padding:60px 20px;color:#334155;font-size:13px}
+.spin{width:32px;height:32px;border:3px solid #1e293b;border-top-color:#f59e0b;border-radius:50%;animation:sp 1s linear infinite;margin:0 auto 12px}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* Empty */
+.empty{text-align:center;padding:50px 20px;color:#334155}
+.empty-icon{font-size:48px;margin-bottom:12px}
+</style>
+</head>
+<body>
+
+<div class="nwrap"><div class="notif" id="notif"></div></div>
+
+<!-- Header -->
+<div class="hdr">
+  <div class="hdr-row">
+    <div>
+      <div class="hdr-title">🏗️ Big Projects</div>
+      <div class="hdr-sub">
+        <span id="auth-dot" style="width:7px;height:7px;border-radius:50%;background:#334155;display:inline-block;transition:background .4s"></span>
+        Vande Bharat Enterprises · ₹1 लाख+ Projects
+      </div>
+    </div>
+    <a href="./" class="back-btn">← वापस</a>
+  </div>
+  <!-- Filter Tabs -->
+  <div class="tabs">
+    <button class="tab on" id="tab-all"   onclick="setTab('all')">सभी</button>
+    <button class="tab off" id="tab-active" onclick="setTab('active')">🔵 Active</button>
+    <button class="tab off" id="tab-urgent" onclick="setTab('urgent')">🔴 Urgent</button>
+    <button class="tab off" id="tab-done"   onclick="setTab('done')">✅ Done</button>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats" id="stats"></div>
+
+<!-- Body -->
+<div class="body" id="body">
+  <div class="loading"><div class="spin"></div>Projects load हो रहे हैं...</div>
+</div>
+
+<button class="fab" onclick="openProjectModal()">+</button>
+
+<!-- ══ ADD/EDIT PROJECT MODAL ══ -->
+<div class="mbg" id="m-project" onclick="if(event.target===this)closeProjectModal()">
+  <div class="mbox">
+    <div class="mtitle" id="m-proj-title">🏗️ नया Project Add करें</div>
+
+    <div class="irow">
+      <label class="ilbl">📍 UNIT का नाम *</label>
+      <input class="inp" id="p-unit" placeholder="जैसे: 177 MH, Station HQ..."/>
+    </div>
+    <div class="irow">
+      <label class="ilbl">📋 PROJECT का नाम *</label>
+      <input class="inp" id="p-name" placeholder="जैसे: Civil Construction, SS Fabrication..."/>
+    </div>
+    <div class="irow">
+      <label class="ilbl">💰 Project Value (₹) *</label>
+      <input class="inp" id="p-value" type="number" placeholder="जैसे: 250000"/>
+    </div>
+    <div class="irow">
+      <label class="ilbl">📝 विवरण (Description)</label>
+      <textarea class="inp" id="p-desc" placeholder="Project की पूरी जानकारी..."></textarea>
+    </div>
+    <div class="irow">
+      <label class="ilbl">🏷️ GeM / Tender Number</label>
+      <input class="inp" id="p-gem" placeholder="GEM/2026/B/... या Tender No."/>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div class="irow">
+        <label class="ilbl">📅 Start Date</label>
+        <input class="inp" type="date" id="p-start"/>
+      </div>
+      <div class="irow">
+        <label class="ilbl">📅 Deadline</label>
+        <input class="inp" type="date" id="p-deadline"/>
+      </div>
+    </div>
+    <div class="irow">
+      <label class="ilbl">🚦 Status</label>
+      <select class="inp" id="p-status">
+        <option value="pending">⏳ Pending — शुरू नहीं</option>
+        <option value="active">🔵 Active — चल रहा है</option>
+        <option value="urgent">🔴 Urgent — जरूरी</option>
+        <option value="completed">✅ Completed — पूरा</option>
+        <option value="on_hold">⏸ On Hold — रुका है</option>
+      </select>
+    </div>
+    <div class="irow">
+      <label class="ilbl">📊 Progress % (0-100)</label>
+      <input class="inp" type="number" id="p-prog" placeholder="0" min="0" max="100"/>
+    </div>
+    <div class="irow">
+      <label class="ilbl">🏪 सामान कहाँ से आएगा</label>
+      <input class="inp" id="p-source" placeholder="जैसे: Barmer Market, GeM Portal, Delhi..."/>
+    </div>
+    <div class="irow">
+      <label class="ilbl">👤 Assigned To (Staff)</label>
+      <input class="inp" id="p-staff" placeholder="जैसे: Kailash Singh, Manoj..."/>
+    </div>
+    <div class="irow">
+      <label class="ilbl">📞 Contact Person (Unit Side)</label>
+      <input class="inp" id="p-contact" placeholder="नाम और नंबर"/>
+    </div>
+
+    <div style="background:#0a0f1e;border-radius:10px;padding:10px 12px;margin-bottom:12px;border:1px solid #1e3a5f">
+      <div style="font-size:10px;color:#f59e0b;font-weight:800;margin-bottom:8px">📄 जरूरी Documents Checklist</div>
+      <div id="docs-checklist" style="display:flex;flex-direction:column;gap:6px"></div>
+    </div>
+
+    <div class="mbtns">
+      <button class="bcancel" onclick="closeProjectModal()">रद्द</button>
+      <button class="bsave" onclick="saveProject()">💾 Save करें</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ADD DAILY LOG MODAL ══ -->
+<div class="mbg" id="m-log" onclick="if(event.target===this)closeLogModal()">
+  <div class="mbox">
+    <div class="mtitle">📝 Daily Progress Log</div>
+    <input type="hidden" id="log-proj-id"/>
+    <div class="irow">
+      <label class="ilbl">📅 Date</label>
+      <input class="inp" type="date" id="log-date"/>
+    </div>
+    <div class="irow">
+      <label class="ilbl">📝 आज क्या काम हुआ? *</label>
+      <textarea class="inp" id="log-text" placeholder="जैसे: Foundation का काम शुरू हुआ, 50% complete..."></textarea>
+    </div>
+    <div class="irow">
+      <label class="ilbl">👤 किसने किया</label>
+      <input class="inp" id="log-by" placeholder="Staff का नाम"/>
+    </div>
+    <div class="irow">
+      <label class="ilbl">📊 आज के बाद Progress %</label>
+      <input class="inp" type="number" id="log-prog" placeholder="0-100" min="0" max="100"/>
+    </div>
+    <div class="mbtns">
+      <button class="bcancel" onclick="closeLogModal()">रद्द</button>
+      <button class="bsave" onclick="saveLog()">💾 Log Save करें</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══ STATE ══
+let _projects = [];
+let _editId   = null;
+let _tab      = 'all';
+
+const DOCS_LIST = [
+  'GeM/Tender Order Copy',
+  'Work Order / Quotation',
+  'GST Invoice',
+  'Challan / Delivery Note',
+  'Inspection Report',
+  'Payment Receipt',
+  'Completion Certificate',
+  'MSME Certificate',
+];
+
+const STATUS_MAP = {
+  pending:   {label:'⏳ Pending',   cls:'b-pending'},
+  active:    {label:'🔵 Active',    cls:'b-active'},
+  urgent:    {label:'🔴 Urgent',    cls:'b-urgent'},
+  completed: {label:'✅ Completed', cls:'b-done'},
+  on_hold:   {label:'⏸ On Hold',   cls:'b-pending'},
+};
+
+// ══ LOAD ══
+async function loadProjects(){
+  try{
+    const snap = await window._getDocs(window._col(window._db,'vbe_projects'));
+    _projects = [];
+    snap.forEach(d=>_projects.push({id:d.id,...d.data()}));
+    _projects.sort((a,b)=>(b.value||0)-(a.value||0));
+    render();
+    notif('✅ Projects load हो गए','ok');
+  }catch(e){
+    console.error(e);
+    document.getElementById('body').innerHTML=
+      '<div class="loading" style="color:#ef4444">❌ Load नहीं हुआ<br><br><button onclick="loadProjects()" style="background:#1e293b;color:#94a3b8;border:1px solid #334155;border-radius:8px;padding:8px 16px;cursor:pointer">🔄 Retry</button></div>';
+  }
+}
+
+// ══ TAB ══
+function setTab(t){
+  _tab=t;
+  ['all','active','urgent','done'].forEach(x=>{
+    document.getElementById('tab-'+x).className='tab '+(x===t?'on':'off');
+  });
+  render();
+}
+
+// ══ RENDER ══
+function render(){
+  let list = _projects;
+  if(_tab==='active')  list=list.filter(p=>p.status==='active');
+  if(_tab==='urgent')  list=list.filter(p=>p.status==='urgent');
+  if(_tab==='done')    list=list.filter(p=>p.status==='completed');
+
+  // Stats
+  const total    = _projects.length;
+  const totalVal = _projects.reduce((s,p)=>s+(p.value||0),0);
+  const active   = _projects.filter(p=>['active','urgent'].includes(p.status)).length;
+  document.getElementById('stats').innerHTML =
+    `<div class="stat"><div class="sv" style="color:#f59e0b">${total}</div><div class="sl">कुल Projects</div></div>`+
+    `<div class="stat"><div class="sv" style="color:#6366f1">${active}</div><div class="sl">Active</div></div>`+
+    `<div class="stat"><div class="sv" style="color:#10b981" style="font-size:13px">₹${formatVal(totalVal)}</div><div class="sl">Total Value</div></div>`;
+
+  if(!list.length){
+    document.getElementById('body').innerHTML=
+      `<div class="empty"><div class="empty-icon">🏗️</div><div style="font-size:14px;font-weight:800;color:#475569;margin-bottom:6px">कोई Project नहीं</div><div style="font-size:12px;color:#334155">नीचे + button से नया project add करें</div></div>`;
+    return;
+  }
+
+  document.getElementById('body').innerHTML = list.map(p=>projectCard(p)).join('');
+}
+
+function formatVal(v){
+  if(v>=100000) return (v/100000).toFixed(1)+'L';
+  if(v>=1000)   return (v/1000).toFixed(1)+'K';
+  return v;
+}
+
+function projectCard(p){
+  const st   = STATUS_MAP[p.status]||STATUS_MAP.pending;
+  const prog = parseInt(p.progress||0);
+  const days = p.deadline ? Math.ceil((new Date(p.deadline)-new Date())/(86400000)) : null;
+  const logs = p.logs||[];
+
+  // Badges
+  let badges = `<span class="badge ${st.cls}">${st.label}</span>`;
+  if(p.gemNo) badges+=`<span class="badge b-gem">📋 GeM</span>`;
+  if(days!==null) badges+=`<span class="badge b-days">${days>0?'⏰ '+days+' दिन बाकी':'⚠️ Overdue'}</span>`;
+
+  // Last 2 logs preview
+  const recentLogs = logs.slice(-2).reverse().map(l=>
+    `<div class="log-item">
+      <div class="log-date">${new Date(l.date).toLocaleDateString('hi-IN',{day:'numeric',month:'short'})}</div>
+      <div><div class="log-text">${l.text}</div>${l.by?`<div class="log-by">👤 ${l.by}</div>`:''}</div>
+    </div>`
+  ).join('');
+
+  // Docs status
+  const docs = p.docs||{};
+  const docsOk = Object.values(docs).filter(v=>v==='ok').length;
+  const docsTotal = DOCS_LIST.length;
+
+  return `<div class="pc ${p.status==='urgent'?'urgent':p.status==='active'?'active':p.status==='completed'?'completed':''}" id="pc-${p.id}">
+    <div class="pc-hdr" onclick="toggleProject('${p.id}')">
+      <div class="pc-top">
+        <div>
+          <div class="pc-unit">📍 ${p.unit||'Unit नहीं'}</div>
+          <div class="pc-name">${p.name||'—'}</div>
+        </div>
+        <div class="pc-value">₹${formatVal(p.value||0)}</div>
+      </div>
+      ${p.desc?`<div class="pc-desc">${p.desc.substring(0,80)}${p.desc.length>80?'...':''}</div>`:''}
+      <div class="pc-badges" style="margin-top:7px">${badges}</div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="prog-wrap">
+      <div class="prog-label"><span>Progress</span><span>${prog}%</span></div>
+      <div class="prog-bg"><div class="prog-fill" style="width:${prog}%"></div></div>
+    </div>
+
+    <!-- Expanded Body -->
+    <div class="pb" id="pb-${p.id}">
+
+      <!-- Daily Logs -->
+      <div class="log-section">
+        <div class="sec-title">📝 DAILY PROGRESS LOG ${logs.length?'('+logs.length+')':''}</div>
+        ${logs.length?recentLogs:'<div class="no-log">अभी कोई log नहीं — नीचे Add करें</div>'}
+        ${logs.length>2?`<div style="font-size:10px;color:#6366f1;margin-top:6px;cursor:pointer" onclick="showAllLogs('${p.id}')">+${logs.length-2} और logs देखें</div>`:''}
+      </div>
+
+      <!-- Documents -->
+      <div class="docs-section">
+        <div class="sec-title">📄 DOCUMENTS (${docsOk}/${docsTotal})</div>
+        ${DOCS_LIST.map(d=>{
+          const s=docs[d]||'pending';
+          return `<div class="doc-item">
+            <div class="doc-name">${d}</div>
+            <div class="doc-status ${s==='ok'?'doc-ok':s==='no'?'doc-no':'doc-pen'}">
+              ${s==='ok'?'✅ है':s==='no'?'❌ नहीं':'⏳ बाकी'}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+
+      <!-- Details -->
+      ${p.source||p.staff||p.contact||p.gemNo?`
+      <div class="docs-section">
+        <div class="sec-title">ℹ️ PROJECT DETAILS</div>
+        ${p.gemNo?`<div class="doc-item"><div class="doc-name">🏷️ GeM/Tender</div><div style="font-size:11px;color:#a5b4fc;font-weight:700">${p.gemNo}</div></div>`:''}
+        ${p.source?`<div class="doc-item"><div class="doc-name">🏪 सामान कहाँ से</div><div style="font-size:11px;color:#94a3b8">${p.source}</div></div>`:''}
+        ${p.staff?`<div class="doc-item"><div class="doc-name">👤 Staff</div><div style="font-size:11px;color:#10b981;font-weight:700">${p.staff}</div></div>`:''}
+        ${p.contact?`<div class="doc-item"><div class="doc-name">📞 Contact</div><div style="font-size:11px;color:#10b981">${p.contact}</div></div>`:''}
+        ${p.start?`<div class="doc-item"><div class="doc-name">📅 Start</div><div style="font-size:11px;color:#94a3b8">${p.start}</div></div>`:''}
+        ${p.deadline?`<div class="doc-item"><div class="doc-name">📅 Deadline</div><div style="font-size:11px;color:${days<0?'#ef4444':'#94a3b8'}">${p.deadline}</div></div>`:''}
+      </div>`:''}
+
+      <!-- Action Buttons -->
+      <div class="act-section">
+        <button class="abtn ab-log" onclick="openLogModal('${p.id}')">📝 Log Add</button>
+        <button class="abtn ab-prog" onclick="quickProgress('${p.id}')">📊 Progress</button>
+        <button class="abtn ab-wa" onclick="sendProjectWA('${p.id}')">📱 WA Summary</button>
+        <button class="abtn ab-edit" onclick="openProjectModal('${p.id}')">✏️ Edit</button>
+        <button class="abtn ab-del" onclick="deleteProject('${p.id}')">🗑️</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function toggleProject(id){
+  const pb=document.getElementById('pb-'+id);
+  if(pb) pb.classList.toggle('open');
+}
+
+// ══ PROJECT MODAL ══
+function openProjectModal(editId=null){
+  _editId=editId;
+  document.getElementById('m-proj-title').textContent = editId?'✏️ Project Edit करें':'🏗️ नया Project Add करें';
+
+  // Docs checklist
+  const p = editId?_projects.find(x=>x.id===editId):null;
+  const docs = p?.docs||{};
+  document.getElementById('docs-checklist').innerHTML = DOCS_LIST.map(d=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0">
+      <div style="font-size:11px;color:#94a3b8">${d}</div>
+      <select style="background:#0d1526;border:1px solid #1e3a5f;color:#e2e8f0;border-radius:6px;padding:3px 6px;font-size:10px;cursor:pointer" data-doc="${d}">
+        <option value="pending" ${(docs[d]||'pending')==='pending'?'selected':''}>⏳ बाकी</option>
+        <option value="ok"      ${docs[d]==='ok'?'selected':''}>✅ है</option>
+        <option value="no"      ${docs[d]==='no'?'selected':''}>❌ नहीं</option>
+      </select>
+    </div>
+  `).join('');
+
+  if(p){
+    document.getElementById('p-unit').value    = p.unit||'';
+    document.getElementById('p-name').value    = p.name||'';
+    document.getElementById('p-value').value   = p.value||'';
+    document.getElementById('p-desc').value    = p.desc||'';
+    document.getElementById('p-gem').value     = p.gemNo||'';
+    document.getElementById('p-start').value   = p.start||'';
+    document.getElementById('p-deadline').value= p.deadline||'';
+    document.getElementById('p-status').value  = p.status||'active';
+    document.getElementById('p-prog').value    = p.progress||0;
+    document.getElementById('p-source').value  = p.source||'';
+    document.getElementById('p-staff').value   = p.staff||'';
+    document.getElementById('p-contact').value = p.contact||'';
+  } else {
+    ['p-unit','p-name','p-value','p-desc','p-gem','p-start','p-deadline','p-source','p-staff','p-contact'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('p-status').value='active';
+    document.getElementById('p-prog').value=0;
+    document.getElementById('p-deadline').value='';
+  }
+
+  document.getElementById('m-project').classList.add('open');
+  setTimeout(()=>document.getElementById('p-unit').focus(),200);
+}
+function closeProjectModal(){ document.getElementById('m-project').classList.remove('open'); }
+
+async function saveProject(){
+  const unit  = document.getElementById('p-unit').value.trim();
+  const name  = document.getElementById('p-name').value.trim();
+  const value = parseInt(document.getElementById('p-value').value)||0;
+  if(!unit||!name){ notif('❌ Unit और Project नाम जरूरी है','err'); return; }
+
+  // Collect docs
+  const docs={};
+  document.querySelectorAll('#docs-checklist select').forEach(sel=>{
+    docs[sel.dataset.doc]=sel.value;
+  });
+
+  const data={
+    unit, name, value,
+    desc:     document.getElementById('p-desc').value.trim(),
+    gemNo:    document.getElementById('p-gem').value.trim(),
+    start:    document.getElementById('p-start').value,
+    deadline: document.getElementById('p-deadline').value,
+    status:   document.getElementById('p-status').value,
+    progress: parseInt(document.getElementById('p-prog').value)||0,
+    source:   document.getElementById('p-source').value.trim(),
+    staff:    document.getElementById('p-staff').value.trim(),
+    contact:  document.getElementById('p-contact').value.trim(),
+    docs,
+    updatedAt: new Date().toISOString(),
+  };
+
+  try{
+    if(_editId){
+      const existing = _projects.find(p=>p.id===_editId);
+      await window._setDoc(window._doc(window._db,'vbe_projects',_editId),{...existing,...data});
+      const idx=_projects.findIndex(p=>p.id===_editId);
+      if(idx>=0) _projects[idx]={..._projects[idx],...data};
+      notif('✅ Project update हो गया','ok');
+    } else {
+      const id='PRJ'+Date.now().toString(36).toUpperCase();
+      const newP={id,...data,logs:[],createdAt:new Date().toISOString()};
+      await window._setDoc(window._doc(window._db,'vbe_projects',id),newP);
+      _projects.unshift(newP);
+      notif('✅ नया Project add हो गया','ok');
+    }
+    closeProjectModal();
+    _projects.sort((a,b)=>(b.value||0)-(a.value||0));
+    render();
+  }catch(e){ notif('❌ Save नहीं हुआ — '+e.message,'err'); }
+}
+
+// ══ LOG MODAL ══
+function openLogModal(projId){
+  _editId=projId;
+  document.getElementById('log-proj-id').value=projId;
+  document.getElementById('log-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('log-text').value='';
+  document.getElementById('log-by').value='';
+  document.getElementById('log-prog').value='';
+  document.getElementById('m-log').classList.add('open');
+  setTimeout(()=>document.getElementById('log-text').focus(),200);
+}
+function closeLogModal(){ document.getElementById('m-log').classList.remove('open'); }
+
+async function saveLog(){
+  const projId = document.getElementById('log-proj-id').value;
+  const text   = document.getElementById('log-text').value.trim();
+  const date   = document.getElementById('log-date').value;
+  const by     = document.getElementById('log-by').value.trim();
+  const prog   = document.getElementById('log-prog').value;
+  if(!text){ notif('❌ Log text जरूरी है','err'); return; }
+
+  const p = _projects.find(x=>x.id===projId);
+  if(!p) return;
+  const logs = [...(p.logs||[]),{text,date,by,prog:parseInt(prog)||p.progress,time:new Date().toISOString()}];
+  const progress = prog?parseInt(prog):p.progress;
+
+  try{
+    await window._setDoc(window._doc(window._db,'vbe_projects',projId),{...p,logs,progress,updatedAt:new Date().toISOString()});
+    p.logs=logs; p.progress=progress;
+    closeLogModal(); render();
+    notif('✅ Log save हो गया','ok');
+  }catch(e){ notif('❌ Save नहीं हुआ','err'); }
+}
+
+// ══ QUICK PROGRESS ══
+async function quickProgress(projId){
+  const p=_projects.find(x=>x.id===projId);
+  if(!p) return;
+  const val=prompt(`"${p.name}" का Progress % डालें (अभी: ${p.progress||0}%):`,p.progress||0);
+  if(val===null) return;
+  const prog=Math.min(100,Math.max(0,parseInt(val)||0));
+  try{
+    await window._setDoc(window._doc(window._db,'vbe_projects',projId),{...p,progress:prog,updatedAt:new Date().toISOString()});
+    p.progress=prog; render();
+    notif(`✅ Progress ${prog}% update हो गई`,'ok');
+  }catch(e){ notif('❌ Update नहीं हुआ','err'); }
+}
+
+// ══ WA SUMMARY ══
+function sendProjectWA(projId){
+  const p=_projects.find(x=>x.id===projId);
+  if(!p) return;
+  const logs=(p.logs||[]).slice(-3).reverse();
+  const st=STATUS_MAP[p.status]||STATUS_MAP.pending;
+  const docs=p.docs||{};
+  const docsOk=Object.values(docs).filter(v=>v==='ok').length;
+
+  let lines=[
+    `🏗️ *Project Update — Vande Bharat Enterprises*`,
+    ``,
+    `📍 *Unit:* ${p.unit}`,
+    `📋 *Project:* ${p.name}`,
+    `💰 *Value:* ₹${(p.value||0).toLocaleString('hi-IN')}`,
+    `${st.label}`,
+    `📊 *Progress:* ${p.progress||0}%`,
+    p.deadline?`📅 *Deadline:* ${p.deadline}`:'',
+    p.gemNo?`🏷️ *GeM/Tender:* ${p.gemNo}`:'',
+    ``,
+    `📄 *Documents:* ${docsOk}/${DOCS_LIST.length} ready`,
+    ``,
+  ];
+
+  if(logs.length){
+    lines.push('📝 *Recent Progress:*');
+    logs.forEach(l=>lines.push(`• ${l.date}: ${l.text}`));
+    lines.push('');
+  }
+
+  lines.push('—');
+  lines.push('Vande Bharat Enterprises | Jalipa Cantt, Barmer');
+
+  const msg=encodeURIComponent(lines.filter(Boolean).join('\n'));
+  window.open('https://wa.me/?text='+msg);
+}
+
+// ══ DELETE ══
+async function deleteProject(projId){
+  if(!confirm('यह project delete करें? सारा data जाएगा।')) return;
+  try{
+    await window._deleteDoc(window._doc(window._db,'vbe_projects',projId));
+    _projects=_projects.filter(p=>p.id!==projId);
+    render(); notif('🗑️ Project deleted','info');
+  }catch(e){ notif('❌ Delete नहीं हुआ','err'); }
+}
+
+// ══ SHOW ALL LOGS ══
+function showAllLogs(projId){
+  const p=_projects.find(x=>x.id===projId);
+  if(!p||!p.logs) return;
+  const logs=p.logs.slice().reverse();
+  const html=logs.map(l=>`
+    <div style="padding:8px 0;border-bottom:1px solid #0a0f1e">
+      <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+        <span style="font-size:10px;color:#475569">${l.date}</span>
+        ${l.prog?`<span style="font-size:10px;color:#f59e0b;font-weight:800">${l.prog}%</span>`:''}
+      </div>
+      <div style="font-size:12px;color:#e2e8f0">${l.text}</div>
+      ${l.by?`<div style="font-size:10px;color:#6366f1;margin-top:2px">👤 ${l.by}</div>`:''}
+    </div>
+  `).join('');
+  document.getElementById('all-logs-content').innerHTML=html;
+  document.getElementById('all-logs-title').textContent=p.name+' — सभी Logs';
+  document.getElementById('m-all-logs').classList.add('open');
+}
+
+// Notif
+function notif(msg,type='info'){
+  const el=document.getElementById('notif');
+  el.textContent=msg;el.className=`notif show ${type}`;
+  setTimeout(()=>el.classList.remove('show'),2500);
+}
+</script>
+
+<!-- All Logs Modal -->
+<div class="mbg" id="m-all-logs" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="mbox">
+    <div class="mtitle" id="all-logs-title">सभी Logs</div>
+    <div id="all-logs-content"></div>
+    <button class="bcancel" style="width:100%;margin-top:14px" onclick="document.getElementById('m-all-logs').classList.remove('open')">बंद करें</button>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<title>Contact Directory — VBE</title>
+<meta name="robots" content="noindex,nofollow,noarchive">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+
+<script type="module">
+import { initializeApp }   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, signInAnonymously, onAuthStateChanged }
+                           from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp }
+                           from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey:            "AIzaSyBCe5DKNKcthOl4umprfRm2QBfbVaFORg8",
+  authDomain:        "vbe-order-tracker-60324.firebaseapp.com",
+  projectId:         "vbe-order-tracker-60324",
+  storageBucket:     "vbe-order-tracker-60324.firebasestorage.app",
+  messagingSenderId: "894023456122",
+  appId:             "1:894023456122:web:6ee548f0913c887c67f2c3"
+};
+
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+// ── UNITS LIST ────────────────────────────────────────────────────────────────
+window.UNITS = [
+  {id:'u01',name:'17 Guards',       loc:'Jalipa Cantt'},
+  {id:'u02',name:'MES',             loc:'Jalipa Cantt'},
+  {id:'u03',name:'17 MAC',          loc:'Jalipa Cantt'},
+  {id:'u04',name:'18 MAC',          loc:'Jalipa Cantt'},
+  {id:'u05',name:'177 MH',          loc:'Jalipa Cantt'},
+  {id:'u06',name:'Station HQ',      loc:'Jalipa Cantt'},
+  {id:'u07',name:'NCC',             loc:'Jalipa Cantt'},
+  {id:'u08',name:'318 Workshop',    loc:'Jalipa Cantt'},
+  {id:'u09',name:'74 Armd Regt',    loc:'Jalipa Cantt'},
+  {id:'u10',name:'60 Armd Regt',    loc:'Jalipa Cantt'},
+  {id:'u11',name:'110 Brigade',     loc:'Jalipa Cantt'},
+  {id:'u12',name:'110 Signals',     loc:'Jalipa Cantt'},
+  {id:'u13',name:'694 Tatra',       loc:'Jalipa Cantt'},
+  {id:'u14',name:'625 Tatra',       loc:'Jalipa Cantt'},
+  {id:'u15',name:'KV Jalipa',       loc:'Jalipa Cantt'},
+  {id:'u16',name:'MCO',             loc:'Jalipa Cantt'},
+  {id:'u17',name:'5 MAC',           loc:'Jalipa Cantt'},
+  {id:'u18',name:'414 Engr',        loc:'Jalipa Cantt'},
+  {id:'u19',name:'6340 DBS',        loc:'Jalipa Cantt'},
+  {id:'u20',name:'6340 (74)',        loc:'Jalipa Cantt'},
+  {id:'u21',name:'32 ELent',        loc:'Jalipa Cantt'},
+  {id:'u22',name:'177 Wet Canteen', loc:'Jalipa Cantt'},
+  {id:'u23',name:'ECHS Polyclinic', loc:'Jalipa Cantt'},
+  {id:'u30',name:'747 Armd Regt',   loc:'Jasai'},
+  {id:'u31',name:'2 Lancer',        loc:'Jasai'},
+  {id:'u32',name:'25 Ammo Depot',   loc:'Jasai'},
+  {id:'u33',name:'496 Depot',       loc:'Jasai'},
+  {id:'u34',name:'FWC 812 JASAI',   loc:'Jasai'},
+  {id:'u40',name:'MARWAR RASOI',    loc:'अन्य'},
+  {id:'u41',name:'ALFA COM',        loc:'अन्य'},
+];
+
+window.CONTACTS = [];
+window._db = db;
+
+// ── AUTH → LOAD ───────────────────────────────────────────────────────────────
+signInAnonymously(auth).catch(e => {
+  document.getElementById('load-txt').textContent = '❌ Auth Error: ' + e.message;
+});
+
+onAuthStateChanged(auth, async user => {
+  if (!user) return;
+  try {
+    document.getElementById('load-txt').textContent = '📥 Contacts लोड हो रहे हैं...';
+    const snap = await getDocs(collection(db, 'vbe_parties'));
+    const all = [];
+    snap.forEach(d => {
+      const v = d.data();
+      const mob = (v.call || v.mobile || '').replace(/\D/g,'').slice(-10);
+      // duplicate check by mobile
+      if (mob && all.find(x => x.mobile === mob)) return;
+      const name = v.name || '';
+      if (!name) return;
+      // fuzzy unit match
+      const rawUnit = v.unit || v.cat || '';
+      const matched = window.UNITS.find(u =>
+        u.name.toLowerCase() === rawUnit.toLowerCase() ||
+        u.name.toLowerCase().includes(rawUnit.toLowerCase()) ||
+        rawUnit.toLowerCase().includes(u.name.toLowerCase())
+      );
+      all.push({
+        id:    d.id,
+        fbId:  d.id,
+        name,
+        mobile: mob,
+        wa:    (v.wa || v.whatsapp || '').replace(/\D/g,'').slice(-10) || mob,
+        unit:  matched ? matched.name : (rawUnit || 'अन्य'),
+        notes: v.note || v.notes || v.addr || '',
+      });
+    });
+    window.CONTACTS = all;
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    render();
+  } catch(e) {
+    document.getElementById('load-txt').textContent = '❌ Error: ' + e.message;
+    document.getElementById('load-retry').style.display = 'inline-block';
+  }
+});
+
+// ── FIREBASE SAVE/DELETE ──────────────────────────────────────────────────────
+window.fbSave = async (form, fbId) => {
+  const p = {
+    name: form.name, call: form.mobile, wa: form.wa || form.mobile,
+    note: form.notes, unit: form.unit, cat: form.unit,
+    updatedAt: serverTimestamp()
+  };
+  if (fbId) {
+    await updateDoc(doc(db,'vbe_parties',fbId), p);
+    return fbId;
+  } else {
+    const r = await addDoc(collection(db,'vbe_parties'), {...p, createdAt: serverTimestamp()});
+    return r.id;
+  }
+};
+
+window.fbDelete = async (fbId) => {
+  if (fbId) await deleteDoc(doc(db,'vbe_parties',fbId));
+};
+</script>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Noto Sans Devanagari','Segoe UI',sans-serif;background:#050a14;color:#e2e8f0;min-height:100vh;max-width:480px;margin:0 auto}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#1e293b;border-radius:4px}
+
+/* LOADING */
+#loading{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
+.spin{width:38px;height:38px;border:3px solid #1e3a5f;border-top-color:#f59e0b;border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#app{display:none}
+
+/* HEADER */
+.header{background:linear-gradient(135deg,#0f1e47,#1a0a3a);padding:10px 13px 9px;border-bottom:1px solid #1e3a5f;position:sticky;top:0;z-index:50}
+.sub{font-size:8px;color:#4a6fa5;letter-spacing:2px;margin-bottom:2px}
+.title{font-size:16px;font-weight:800;background:linear-gradient(90deg,#f59e0b,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hbtn{background:#0d1526;border:1px solid #1e3a5f;color:#94a3b8;border-radius:7px;padding:5px 10px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:3px}
+
+/* STATS */
+.stats{display:flex;gap:5px;padding:7px 11px;overflow-x:auto}
+.stats::-webkit-scrollbar{display:none}
+.stat{background:#0d1526;border-radius:8px;padding:6px 10px;text-align:center;border-top:2px solid;flex-shrink:0;min-width:62px}
+.stat-v{font-size:17px;font-weight:800;line-height:1}
+.stat-l{font-size:8px;color:#334155;margin-top:1px}
+
+/* FILTER */
+.filter-bar{display:flex;gap:5px;padding:6px 11px;overflow-x:auto;border-bottom:1px solid #0d1526}
+.filter-bar::-webkit-scrollbar{display:none}
+.chip{border:none;border-radius:14px;padding:4px 11px;font-size:10px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap}
+.chip-on{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff}
+.chip-off{background:#0d1526;color:#475569;border:1px solid #1e293b}
+
+/* SEARCH */
+.srch-wrap{padding:7px 11px;position:relative}
+.srch{width:100%;padding:8px 11px 8px 30px;border-radius:9px;border:1px solid #1e3a5f;background:#0d1526;color:#e2e8f0;font-size:12px;font-family:inherit;outline:none}
+.srch::placeholder{color:#334155}
+.srch-icon{position:absolute;left:20px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none}
+
+/* VIEW TOGGLE */
+.vtabs{display:flex;gap:5px;padding:0 11px 7px}
+.vtab{flex:1;padding:6px;border-radius:7px;border:none;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit}
+.vtab.on{background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff}
+.vtab.off{background:#0d1526;color:#475569;border:1px solid #1e293b}
+
+/* UNIT CARDS */
+.ulist{padding:0 11px 80px}
+.ucard{background:#0d1526;border-radius:12px;margin-bottom:7px;border:1px solid #1e3a5f;overflow:hidden;cursor:pointer}
+.ucard-hdr{padding:11px 12px;display:flex;align-items:center;gap:9px}
+.uicon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.uname{font-weight:800;font-size:14px;color:#e2e8f0}
+.umeta{font-size:9px;color:#475569;margin-top:2px;display:flex;align-items:center;gap:5px}
+.lbadge{font-size:8px;font-weight:800;padding:1px 6px;border-radius:4px}
+.upreview{font-size:10px;color:#334155;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.uarrow{color:#1e3a5f;font-size:15px;margin-left:auto;flex-shrink:0;transition:transform .2s}
+.ucard.open .uarrow{transform:rotate(90deg)}
+
+/* CONTACT LIST */
+.clist-inner{background:#080e1c;border-top:1px solid #1e293b;padding:7px 9px}
+.citem{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:10px;margin-bottom:5px;background:#0d1526;border:1px solid #1e293b}
+.avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0;color:#fff}
+.cname{font-weight:800;font-size:13px;color:#e2e8f0}
+.cnum{font-size:10px;color:#475569;font-family:monospace;margin-top:1px}
+.cnote{font-size:9px;color:#334155;margin-top:1px;font-style:italic}
+
+/* ACTION BUTTONS */
+.act-btns{display:flex;flex-direction:column;gap:4px;margin-left:auto;flex-shrink:0}
+.arow{display:flex;gap:4px}
+.abtn{height:27px;border-radius:7px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;font-family:inherit;padding:0 8px;gap:3px;white-space:nowrap;text-decoration:none}
+.ab-call{background:#052e16;color:#4ade80;border:1px solid #15803d}
+.ab-wa{background:#064e3b;color:#34d399;border:1px solid #059669}
+.ab-edit{background:#1e1b4b;color:#a5b4fc;border:1px solid #312e81}
+.ab-del{background:#1a0505;color:#f87171;border:1px solid #7f1d1d}
+
+.add-here{width:100%;padding:8px;border:none;background:linear-gradient(135deg,#f59e0b18,#ef444418);color:#f59e0b;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;border-top:1px solid #1e293b;border-radius:0 0 12px 12px}
+
+/* LIST VIEW */
+.litem{display:flex;align-items:center;gap:8px;padding:10px 11px;border-radius:11px;margin-bottom:6px;background:#0d1526;border:1px solid #1e293b}
+
+/* FAB */
+.fab{position:fixed;bottom:20px;right:15px;width:52px;height:52px;border-radius:50%;border:none;background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;font-size:25px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(239,68,68,.6);animation:fabP 2s infinite;z-index:40}
+@keyframes fabP{0%,100%{box-shadow:0 6px 24px rgba(239,68,68,.5)}50%{box-shadow:0 6px 42px rgba(239,68,68,.95)}}
+
+/* MODAL */
+.mbg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:200;align-items:flex-end;justify-content:center}
+.mbg.open{display:flex}
+.mbox{background:#0d1526;border-radius:20px 20px 0 0;padding:16px 15px 34px;width:100%;max-width:480px;max-height:88vh;overflow-y:auto;border:1px solid #1e3a5f}
+.mtitle{font-size:14px;font-weight:800;color:#e2e8f0;margin-bottom:13px}
+.inp{width:100%;padding:9px 11px;border-radius:8px;border:1px solid #1e3a5f;background:#080e1c;color:#e2e8f0;font-size:13px;font-family:inherit;outline:none;margin-bottom:9px}
+.inp::placeholder{color:#334155}
+.lbl{font-size:9px;color:#475569;display:block;margin-bottom:3px;font-weight:700;letter-spacing:.4px}
+.save-btn{width:100%;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;margin-top:4px}
+.cancel-btn{width:100%;padding:9px;border-radius:8px;border:1px solid #1e293b;background:transparent;color:#475569;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:5px}
+
+/* TOAST */
+.toast{position:fixed;top:10px;left:50%;transform:translateX(-50%);background:#0d1526;border:1px solid;border-radius:9px;padding:7px 15px;font-size:11px;font-weight:700;z-index:999;animation:tIn .2s ease;white-space:nowrap;pointer-events:none}
+@keyframes tIn{from{opacity:0;transform:translateX(-50%) translateY(-6px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* EMPTY */
+.empty{text-align:center;padding:36px 20px;color:#334155}
+.empty-icon{font-size:30px;margin-bottom:8px}
+.empty-txt{font-size:12px}
+
+select option{background:#0d1526;color:#e2e8f0}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="spin"></div>
+  <div style="font-size:13px;color:#64748b" id="load-txt">🔐 Firebase से connect हो रहा है...</div>
+  <button id="load-retry" onclick="location.reload()" style="display:none;background:#1e293b;color:#94a3b8;border:1px solid #334155;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">🔄 फिर कोशिश करें</button>
+  <div style="font-size:10px;color:#1e293b">🛡️ Secure · Vande Bharat Enterprises</div>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="sub">VANDE BHARAT ENTERPRISES · CONTACT DIRECTORY · BARMER</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
+      <div class="title">📋 Contact Directory</div>
+      <div style="display:flex;gap:5px">
+        <a href="index.html" class="hbtn" style="color:#f59e0b;border-color:#f59e0b44">🏠 Back</a>
+        <button class="hbtn" onclick="openUnitMgr()">🏛️ Units</button>
+        <button class="hbtn" onclick="loadContacts()" title="Refresh">🔄</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat" style="border-color:#6366f1"><div class="stat-v" style="color:#6366f1" id="st-total">0</div><div class="stat-l">Contacts</div></div>
+    <div class="stat" style="border-color:#f59e0b"><div class="stat-v" style="color:#f59e0b" id="st-units">0</div><div class="stat-l">Units</div></div>
+    <div class="stat" style="border-color:#4ade80"><div class="stat-v" style="color:#4ade80" id="st-jalipa">0</div><div class="stat-l">Jalipa</div></div>
+    <div class="stat" style="border-color:#fb923c"><div class="stat-v" style="color:#fb923c" id="st-jasai">0</div><div class="stat-l">Jasai</div></div>
+  </div>
+
+  <!-- LOCATION FILTER -->
+  <div class="filter-bar" id="loc-bar">
+    <button class="chip chip-on"  onclick="setLoc(this,'ALL')">📍 सभी</button>
+    <button class="chip chip-off" onclick="setLoc(this,'Jalipa Cantt')" style="color:#4ade80;border-color:#15803d44">📍 Jalipa</button>
+    <button class="chip chip-off" onclick="setLoc(this,'Jasai')"        style="color:#fb923c;border-color:#c2410c44">📍 Jasai</button>
+    <button class="chip chip-off" onclick="setLoc(this,'अन्य')"         style="color:#c084fc;border-color:#7e22ce44">📍 अन्य</button>
+  </div>
+
+  <!-- SEARCH -->
+  <div class="srch-wrap">
+    <span class="srch-icon">🔍</span>
+    <input class="srch" id="srch" placeholder="नाम / नंबर / यूनिट खोजें..." oninput="render()"/>
+  </div>
+
+  <!-- VIEW TOGGLE -->
+  <div class="vtabs">
+    <button class="vtab on" id="tab-u" onclick="setView('units')">🏛️ Unit View</button>
+    <button class="vtab off" id="tab-l" onclick="setView('list')">📋 List View</button>
+  </div>
+
+  <!-- UNIT VIEW -->
+  <div class="ulist" id="view-u"></div>
+
+  <!-- LIST VIEW -->
+  <div class="ulist" id="view-l" style="display:none"></div>
+
+  <!-- FAB -->
+  <button class="fab" onclick="openAdd(null)">＋</button>
+</div>
+
+<!-- ADD/EDIT MODAL -->
+<div class="mbg" id="modal-form">
+  <div class="mbox">
+    <div class="mtitle" id="form-title">➕ नया Contact जोड़ें</div>
+    <input type="hidden" id="edit-fbid"/>
+    <input type="hidden" id="edit-cid"/>
+    <label class="lbl">पूरा नाम *</label>
+    <input class="inp" id="f-name" placeholder="जैसे: Col Ramesh Kumar"/>
+    <label class="lbl">मोबाइल नंबर *</label>
+    <input class="inp" id="f-mob" type="tel" placeholder="10 अंक" maxlength="10"/>
+    <label class="lbl">WhatsApp नंबर (खाली = mobile जैसा)</label>
+    <input class="inp" id="f-wa" type="tel" placeholder="अलग हो तभी भरें" maxlength="10"/>
+    <label class="lbl">यूनिट / संस्था *</label>
+    <select class="inp" id="f-unit"></select>
+    <label class="lbl">नोट्स / पद</label>
+    <input class="inp" id="f-note" placeholder="जैसे: CO साहब, QM, Manager"/>
+    <div id="dup-warn" style="display:none;background:#450a0a;border-radius:7px;padding:7px 10px;font-size:11px;color:#fca5a5;margin-bottom:8px;font-weight:700">⚠️ यह नंबर पहले से है: <span id="dup-name"></span></div>
+    <button class="save-btn" onclick="saveContact()">✅ Firebase में सहेजें</button>
+    <button class="cancel-btn" onclick="closeModal('modal-form')">रद्द करें</button>
+  </div>
+</div>
+
+<!-- UNIT MANAGER MODAL -->
+<div class="mbg" id="modal-units">
+  <div class="mbox">
+    <div class="mtitle">🏛️ Unit Manager</div>
+    <!-- Add unit -->
+    <div style="background:#080e1c;border-radius:10px;padding:11px;margin-bottom:12px;border:1px dashed #334155">
+      <div style="font-size:10px;font-weight:800;color:#475569;margin-bottom:7px">➕ नई यूनिट जोड़ें</div>
+      <input class="inp" id="new-uname" placeholder="यूनिट नाम..." style="margin-bottom:7px"/>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px" id="uloc-btns">
+        <button class="chip chip-on"  data-loc="Jalipa Cantt" onclick="pickULoc(this)">📍 Jalipa Cantt</button>
+        <button class="chip chip-off" data-loc="Jasai"        onclick="pickULoc(this)">📍 Jasai</button>
+        <button class="chip chip-off" data-loc="अन्य"         onclick="pickULoc(this)">📍 अन्य</button>
+      </div>
+      <button onclick="addUnit()" style="background:linear-gradient(135deg,#312e81,#1e1b4b);color:#a5b4fc;border:none;border-radius:7px;padding:7px 14px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit">✅ जोड़ें</button>
+    </div>
+    <div id="umgr-list"></div>
+    <button class="cancel-btn" onclick="closeModal('modal-units')">✅ बंद करें</button>
+  </div>
+</div>
+
+<script>
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let curLoc   = 'ALL';
+let curView  = 'units';
+let openUnit = null;
+let newULoc  = 'Jalipa Cantt';
+
+const LC = {
+  'Jalipa Cantt':{bg:'#052e16',text:'#4ade80',bdr:'#15803d'},
+  'Jasai':       {bg:'#431407',text:'#fb923c',bdr:'#c2410c'},
+  'अन्य':         {bg:'#2e1065',text:'#c084fc',bdr:'#7e22ce'},
+};
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function ava(name){
+  const ini=(name||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  const hue=[...(name||'')].reduce((a,c)=>a+c.charCodeAt(0),0)%360;
+  return `<div class="avatar" style="background:hsl(${hue},55%,30%)">${ini}</div>`;
+}
+function lbadge(loc){
+  const c=LC[loc]||LC['अन्य'];
+  return `<span class="lbadge" style="background:${c.bg};color:${c.text}">📍${loc}</span>`;
+}
+function cntOf(uname){return (window.CONTACTS||[]).filter(c=>c.unit===uname).length;}
+function toast(msg,col='#10b981'){
+  const t=document.createElement('div');
+  t.className='toast';t.style.cssText=`color:${col};border-color:${col}44`;t.textContent=msg;
+  document.body.appendChild(t);setTimeout(()=>t.remove(),2800);
+}
+
+// ── ACTION BUTTONS HTML ───────────────────────────────────────────────────────
+function actBtns(c, stopProp=''){
+  const sp = stopProp ? 'event.stopPropagation();' : '';
+  return `<div class="act-btns">
+    <div class="arow">
+      ${c.mobile?`<a href="tel:${c.mobile}" class="abtn ab-call" onclick="${sp}">📞 Call</a>`:''}
+      ${c.mobile?`<a href="https://wa.me/91${c.wa||c.mobile}" target="_blank" class="abtn ab-wa" onclick="${sp}">💬 WA</a>`:''}
+    </div>
+    <div class="arow">
+      <button class="abtn ab-edit" onclick="${sp}openEdit('${c.id}')">✏️ Edit</button>
+      <button class="abtn ab-del"  onclick="${sp}delContact('${c.id}')">🗑️</button>
+    </div>
+  </div>`;
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function render(){
+  const q=(document.getElementById('srch')?.value||'').toLowerCase().trim();
+  const contacts=window.CONTACTS||[];
+  const units=window.UNITS||[];
+
+  // stats
+  document.getElementById('st-total').textContent=contacts.length;
+  document.getElementById('st-units').textContent=units.length;
+  document.getElementById('st-jalipa').textContent=units.filter(u=>u.loc==='Jalipa Cantt').length;
+  document.getElementById('st-jasai').textContent=units.filter(u=>u.loc==='Jasai').length;
+
+  renderUnits(q,contacts,units);
+  renderList(q,contacts,units);
+}
+
+function renderUnits(q,contacts,units){
+  const el=document.getElementById('view-u');
+  const filtered=units.filter(u=>{
+    if(curLoc!=='ALL'&&u.loc!==curLoc)return false;
+    if(q){
+      const nm=u.name.toLowerCase().includes(q);
+      const cm=contacts.filter(c=>c.unit===u.name).some(c=>c.name.toLowerCase().includes(q)||(c.mobile||'').includes(q));
+      if(!nm&&!cm)return false;
+    }
+    return true;
+  });
+
+  if(!filtered.length){el.innerHTML=`<div class="empty"><div class="empty-icon">🔍</div><div class="empty-txt">कोई unit नहीं मिली</div></div>`;return;}
+
+  el.innerHTML=filtered.map(u=>{
+    const cnt=cntOf(u.name);
+    const lc=LC[u.loc]||LC['अन्य'];
+    const cts=contacts.filter(c=>c.unit===u.name);
+    const preview=cts.slice(0,3).map(c=>c.name).join(', ');
+    const isOpen=openUnit===u.id;
+
+    const innerHTML=isOpen?`<div class="clist-inner">
+      ${cts.length===0?'<div class="empty"><div class="empty-icon">👤</div><div class="empty-txt">कोई contact नहीं</div></div>':''}
+      ${cts.map(c=>`<div class="citem">
+        ${ava(c.name)}
+        <div style="flex:1;min-width:0">
+          <div class="cname">${c.name}</div>
+          ${c.mobile?`<div class="cnum">📞 ${c.mobile}</div>`:''}
+          ${c.notes?`<div class="cnote">💬 ${c.notes}</div>`:''}
+        </div>
+        ${actBtns(c,'event.stopPropagation();')}
+      </div>`).join('')}
+      <button class="add-here" onclick="event.stopPropagation();openAdd('${u.name}')">＋ इस Unit में Contact जोड़ें</button>
+    </div>`:'';
+
+    return `<div class="ucard${isOpen?' open':''}" onclick="toggleUnit('${u.id}')">
+      <div class="ucard-hdr">
+        <div class="uicon" style="background:${lc.bg}">🏛️</div>
+        <div style="flex:1;min-width:0">
+          <div class="uname">${u.name}</div>
+          <div class="umeta">
+            ${lbadge(u.loc)}
+            <span style="color:${cnt>0?lc.text:'#334155'};font-weight:700">${cnt>0?cnt+' contacts':'कोई नहीं'}</span>
+          </div>
+          ${preview?`<div class="upreview">${preview}${cnt>3?' +'+(cnt-3)+' और':''}</div>`:''}
+        </div>
+        <div class="uarrow">›</div>
+      </div>
+      ${innerHTML}
+    </div>`;
+  }).join('');
+}
+
+function renderList(q,contacts,units){
+  const el=document.getElementById('view-l');
+  const filtered=contacts.filter(c=>{
+    if(curLoc!=='ALL'){const u=units.find(u=>u.name===c.unit);if(!u||u.loc!==curLoc)return false;}
+    if(q&&!c.name.toLowerCase().includes(q)&&!(c.mobile||'').includes(q)&&!c.unit.toLowerCase().includes(q))return false;
+    return true;
+  });
+
+  if(!filtered.length){el.innerHTML=`<div class="empty"><div class="empty-icon">🔍</div><div class="empty-txt">कोई contact नहीं मिला</div></div>`;return;}
+
+  el.innerHTML=`<div style="font-size:10px;color:#334155;margin-bottom:7px;font-weight:700">${filtered.length} contacts</div>`+
+    filtered.map(c=>{
+      const u=units.find(u=>u.name===c.unit);
+      const lc=LC[u?.loc]||LC['अन्य'];
+      return `<div class="litem">
+        ${ava(c.name)}
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
+            <span class="cname">${c.name}</span>
+            ${u?lbadge(u.loc):''}
+          </div>
+          <div style="font-size:10px;color:${lc.text};font-weight:700;margin-top:1px">${c.unit}</div>
+          ${c.mobile?`<div class="cnum">📞 ${c.mobile}</div>`:''}
+          ${c.notes?`<div class="cnote">💬 ${c.notes}</div>`:''}
+        </div>
+        ${actBtns(c,'')}
+      </div>`;
+    }).join('');
+}
+
+// ── CONTROLS ──────────────────────────────────────────────────────────────────
+function setLoc(btn,loc){
+  curLoc=loc;
+  document.querySelectorAll('#loc-bar .chip').forEach(b=>b.className='chip chip-off');
+  btn.className='chip chip-on';
+  render();
+}
+function setView(v){
+  curView=v;
+  document.getElementById('view-u').style.display=v==='units'?'block':'none';
+  document.getElementById('view-l').style.display=v==='list'?'block':'none';
+  document.getElementById('tab-u').className='vtab '+(v==='units'?'on':'off');
+  document.getElementById('tab-l').className='vtab '+(v==='list'?'on':'off');
+}
+function toggleUnit(id){openUnit=openUnit===id?null:id;render();}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+// ── UNIT SELECT POPULATE ──────────────────────────────────────────────────────
+function populateUnitSel(val){
+  const sel=document.getElementById('f-unit');
+  sel.innerHTML='<option value="">— यूनिट चुनें —</option>';
+  ['Jalipa Cantt','Jasai','अन्य'].forEach(loc=>{
+    const us=(window.UNITS||[]).filter(u=>u.loc===loc);
+    if(!us.length)return;
+    const g=document.createElement('optgroup');
+    g.label='📍 '+loc;
+    us.forEach(u=>{
+      const o=document.createElement('option');
+      o.value=u.name;o.textContent=u.name;
+      if(u.name===val)o.selected=true;
+      g.appendChild(o);
+    });
+    sel.appendChild(g);
+  });
+}
+
+// ── ADD / EDIT ────────────────────────────────────────────────────────────────
+function openAdd(unitName){
+  document.getElementById('form-title').textContent='➕ नया Contact जोड़ें';
+  document.getElementById('edit-fbid').value='';
+  document.getElementById('edit-cid').value='';
+  document.getElementById('f-name').value='';
+  document.getElementById('f-mob').value='';
+  document.getElementById('f-wa').value='';
+  document.getElementById('f-note').value='';
+  document.getElementById('dup-warn').style.display='none';
+  populateUnitSel(unitName||'');
+  document.getElementById('modal-form').classList.add('open');
+}
+
+function openEdit(cid){
+  const c=(window.CONTACTS||[]).find(x=>x.id===cid);
+  if(!c)return;
+  document.getElementById('form-title').textContent='✏️ Edit: '+c.name;
+  document.getElementById('edit-fbid').value=c.fbId||c.id;
+  document.getElementById('edit-cid').value=c.id;
+  document.getElementById('f-name').value=c.name;
+  document.getElementById('f-mob').value=c.mobile||'';
+  document.getElementById('f-wa').value=c.wa||'';
+  document.getElementById('f-note').value=c.notes||'';
+  document.getElementById('dup-warn').style.display='none';
+  populateUnitSel(c.unit);
+  document.getElementById('modal-form').classList.add('open');
+}
+
+async function saveContact(){
+  const name=document.getElementById('f-name').value.trim();
+  const mob=document.getElementById('f-mob').value.trim();
+  const wa=document.getElementById('f-wa').value.trim();
+  const unit=document.getElementById('f-unit').value;
+  const notes=document.getElementById('f-note').value.trim();
+  const fbId=document.getElementById('edit-fbid').value;
+  const cid=document.getElementById('edit-cid').value;
+
+  if(!name){toast('❌ नाम लिखें','#ef4444');return;}
+  if(!unit){toast('❌ यूनिट चुनें','#ef4444');return;}
+  if(mob&&!/^\d{10}$/.test(mob)){toast('❌ 10 अंकों का नंबर चाहिए','#ef4444');return;}
+
+  // Duplicate check
+  if(mob){
+    const dup=(window.CONTACTS||[]).find(c=>c.mobile===mob&&c.id!==cid);
+    if(dup){
+      document.getElementById('dup-warn').style.display='block';
+      document.getElementById('dup-name').textContent=dup.name+' ('+dup.unit+')';
+      return;
+    }
+  }
+
+  const btn=document.querySelector('#modal-form .save-btn');
+  btn.textContent='⏳ सहेज रहे हैं...';btn.disabled=true;
+
+  try{
+    const form={name,mobile:mob,wa:wa||mob,unit,notes};
+    const newFbId=await window.fbSave(form,fbId||null);
+
+    if(cid){
+      // edit
+      const i=(window.CONTACTS||[]).findIndex(c=>c.id===cid);
+      if(i>=0)window.CONTACTS[i]={...window.CONTACTS[i],...form,fbId:newFbId};
+    } else {
+      // add
+      window.CONTACTS.push({id:newFbId,fbId:newFbId,...form});
+    }
+
+    closeModal('modal-form');
+    render();
+    toast(cid?'✏️ '+name+' अपडेट हुआ':'✅ '+name+' जोड़ा गया','#10b981');
+  }catch(e){
+    toast('❌ Error: '+e.message,'#ef4444');
+  }finally{
+    btn.textContent='✅ Firebase में सहेजें';btn.disabled=false;
+  }
+}
+
+async function delContact(cid){
+  const c=(window.CONTACTS||[]).find(x=>x.id===cid);
+  if(!c||!confirm('"'+c.name+'" को हटाएं?'))return;
+  try{
+    await window.fbDelete(c.fbId);
+    window.CONTACTS=window.CONTACTS.filter(x=>x.id!==cid);
+    render();
+    toast('🗑️ '+c.name+' हटाया गया','#f59e0b');
+  }catch(e){toast('❌ '+e.message,'#ef4444');}
+}
+
+// ── UNIT MANAGER ──────────────────────────────────────────────────────────────
+function openUnitMgr(){renderUMgr();document.getElementById('modal-units').classList.add('open');}
+function pickULoc(btn){
+  newULoc=btn.dataset.loc;
+  document.querySelectorAll('#uloc-btns .chip').forEach(b=>b.className='chip chip-off');
+  btn.className='chip chip-on';
+}
+function addUnit(){
+  const nm=document.getElementById('new-uname').value.trim();
+  if(!nm){toast('❌ नाम लिखें','#ef4444');return;}
+  if((window.UNITS||[]).find(u=>u.name.toLowerCase()===nm.toLowerCase())){toast('❌ पहले से मौजूद है','#ef4444');return;}
+  window.UNITS.push({id:'u'+Date.now(),name:nm,loc:newULoc});
+  document.getElementById('new-uname').value='';
+  renderUMgr();render();
+  toast('✅ '+nm+' जोड़ी गई','#10b981');
+}
+function delUnit(id,name){
+  const cnt=cntOf(name);
+  if(cnt>0){toast('❌ पहले '+cnt+' contacts move करें','#ef4444');return;}
+  if(!confirm('"'+name+'" हटाएं?'))return;
+  window.UNITS=window.UNITS.filter(u=>u.id!==id);
+  renderUMgr();render();
+  toast('🗑️ '+name+' हटाई गई','#f59e0b');
+}
+function renderUMgr(){
+  const el=document.getElementById('umgr-list');
+  el.innerHTML=['Jalipa Cantt','Jasai','अन्य'].map(loc=>{
+    const us=(window.UNITS||[]).filter(u=>u.loc===loc);
+    if(!us.length)return'';
+    const lc=LC[loc];
+    return `<div style="margin-bottom:11px">
+      <div style="background:${lc.bg};color:${lc.text};padding:2px 9px;border-radius:11px;font-size:9px;font-weight:800;display:inline-block;margin-bottom:6px">📍 ${loc}</div>
+      ${us.map(u=>`<div style="display:flex;align-items:center;gap:7px;padding:7px 10px;background:#080e1c;border-radius:8px;margin-bottom:4px;border:1px solid #1e293b">
+        <div style="flex:1">
+          <div style="font-weight:800;font-size:12px">${u.name}</div>
+          <div style="font-size:9px;color:${cntOf(u.name)>0?lc.text:'#334155'};margin-top:1px">${cntOf(u.name)>0?cntOf(u.name)+' contacts':'कोई नहीं'}</div>
+        </div>
+        <button onclick="delUnit('${u.id}','${u.name}')" style="background:#1a0505;color:#f87171;border:1px solid #7f1d1d;border-radius:6px;padding:4px 8px;font-size:10px;cursor:pointer;font-family:inherit">🗑️</button>
+      </div>`).join('')}
+    </div>`;
+  }).join('');
+}
+
+// ── LOAD CONTACTS (called from refresh button) ────────────────────────────────
+async function loadContacts(){
+  toast('🔄 Refresh हो रहा है...','#6366f1');
+  // re-trigger by reloading page is simplest; or re-fetch:
+  location.reload();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<title>VBE — Unit Contacts & Orders</title>
+<meta name="robots" content="noindex,nofollow">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700;800&display=swap" rel="stylesheet"/>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, getDocs, setDoc, deleteDoc }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, signInAnonymously, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+const cfg={apiKey:"AIzaSyBCe5DKNKcthOl4umprfRm2QBfbVaFORg8",authDomain:"vbe-order-tracker-60324.firebaseapp.com",projectId:"vbe-order-tracker-60324",storageBucket:"vbe-order-tracker-60324.firebasestorage.app",messagingSenderId:"894023456122",appId:"1:894023456122:web:6ee548f0913c887c67f2c3"};
+const app=initializeApp(cfg);const db=getFirestore(app);const auth=getAuth(app);
+window._db=db;window._col=collection;window._doc=doc;window._getDocs=getDocs;window._setDoc=setDoc;window._deleteDoc=deleteDoc;
+signInAnonymously(auth).catch(e=>console.warn(e));
+onAuthStateChanged(auth,user=>{if(user){document.getElementById('auth-dot').style.background='#10b981';loadAll();}});
+</script>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Noto Sans Devanagari','Segoe UI',sans-serif;background:#050a14;color:#e2e8f0;min-height:100vh;max-width:480px;margin:0 auto}
+.hdr{background:linear-gradient(135deg,#0f1e47,#1a0a3a);padding:13px 14px;position:sticky;top:0;z-index:50;border-bottom:1px solid #1e3a5f}
+.hdr-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.hdr-title{font-size:16px;font-weight:800;color:#818cf8}
+.hdr-sub{font-size:10px;color:#475569;display:flex;align-items:center;gap:5px;margin-top:2px}
+.back-btn{background:#1e293b;border:1px solid #334155;color:#94a3b8;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;text-decoration:none}
+.srch{width:100%;padding:8px 12px;border-radius:9px;border:1px solid #1e3a5f;background:#0d1526;color:#e2e8f0;font-size:13px;font-family:inherit;outline:none}
+.srch::placeholder{color:#334155}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:10px 12px 4px}
+.stat{background:#0d1526;border-radius:9px;padding:7px 4px;text-align:center;border:1px solid #1e3a5f}
+.sv{font-size:16px;font-weight:800}.sl{font-size:8px;color:#475569;margin-top:2px}
+.sort-hint{font-size:9px;color:#334155;text-align:center;padding:4px 12px 8px}
+.body{padding:8px 12px 80px}
+.uc{background:#0d1526;border-radius:14px;margin-bottom:10px;border:1px solid #1e3a5f;overflow:hidden}
+.uc.overdue{border-color:#7f1d1d;box-shadow:0 0 0 1px #7f1d1d22}
+.uc.active-ord{border-color:#312e81}
+.uc-hdr{display:flex;align-items:center;padding:12px 13px;cursor:pointer;gap:10px}
+.uc-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.uc-info{flex:1;min-width:0}
+.uc-name{font-size:14px;font-weight:800;color:#c7d2fe}
+.uc-addr{font-size:10px;color:#475569;margin-top:1px}
+.uc-badges{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap}
+.bo{background:#7f1d1d;color:#fca5a5;border-radius:5px;padding:2px 7px;font-size:9px;font-weight:800}
+.ba{background:#312e81;color:#a5b4fc;border-radius:5px;padding:2px 7px;font-size:9px;font-weight:800}
+.bc{background:#1e293b;color:#6366f1;border-radius:5px;padding:2px 7px;font-size:9px;font-weight:800}
+.bd{background:#052e16;color:#4ade80;border-radius:5px;padding:2px 7px;font-size:9px;font-weight:800}
+.arr{color:#334155;font-size:11px;transition:transform .3s;flex-shrink:0}
+.arr.open{transform:rotate(90deg)}
+.ub{display:none;border-top:1px solid #0a0f1e}
+.ub.open{display:block}
+.ord-section{padding:10px 13px;border-bottom:1px solid #0a0f1e}
+.ct-section{padding:10px 13px}
+.sec-title{font-size:10px;font-weight:800;color:#475569;letter-spacing:.8px;margin-bottom:7px}
+.ord-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid #050a14}
+.ord-row:last-child{border-bottom:none}
+.ord-item{font-size:12px;font-weight:700;color:#e2e8f0}
+.ord-meta{font-size:10px;color:#475569;margin-top:1px}
+.ord-dl{font-size:10px;font-weight:700;white-space:nowrap}
+.ord-dl.over{color:#ef4444}.ord-dl.ok{color:#94a3b8}
+.stage-pill{font-size:9px;padding:2px 6px;border-radius:4px;font-weight:800;white-space:nowrap}
+.ct-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #0a0f1e}
+.ct-row:last-of-type{border-bottom:none}
+.ct-left{flex:1;min-width:0}
+.ct-name{font-size:13px;font-weight:700;color:#e2e8f0}
+.ct-role{font-size:10px;color:#6366f1;margin-top:1px}
+.ct-ph{font-size:11px;color:#10b981;margin-top:2px}
+.ct-actions{display:flex;gap:5px;flex-shrink:0}
+.bwa{background:#128c7e;color:#fff;border:none;border-radius:7px;padding:6px 9px;font-size:11px;font-weight:800;cursor:pointer}
+.bsum{background:linear-gradient(135deg,#1e3a5f,#312e81);color:#a5b4fc;border:none;border-radius:7px;padding:6px 9px;font-size:11px;font-weight:800;cursor:pointer}
+.bcall{background:#1e3a5f;color:#93c5fd;border:none;border-radius:7px;padding:6px 9px;font-size:11px;cursor:pointer}
+.bedit{background:#1e293b;color:#a5b4fc;border:1px solid #334155;border-radius:7px;padding:6px 8px;font-size:11px;cursor:pointer}
+.bdel{background:transparent;color:#ef4444;border:1px solid #450a0a;border-radius:7px;padding:6px 8px;font-size:11px;cursor:pointer}
+.add-btn{width:100%;padding:7px;border-radius:8px;border:1px dashed #334155;background:transparent;color:#475569;font-size:11px;font-weight:700;cursor:pointer;margin-top:6px;font-family:inherit}
+.empty-ct{font-size:11px;color:#334155;padding:6px 0;font-style:italic}
+.mbg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:200;align-items:flex-end;justify-content:center}
+.mbg.open{display:flex}
+.mbox{background:#0d1526;border-radius:18px 18px 0 0;width:100%;max-width:480px;padding:18px 16px 36px;border:1px solid #1e3a5f;max-height:90vh;overflow-y:auto}
+.mtitle{font-size:14px;font-weight:800;color:#c7d2fe;margin-bottom:14px}
+.irow{margin-bottom:11px}
+.ilbl{font-size:10px;color:#475569;font-weight:700;display:block;margin-bottom:3px;letter-spacing:.4px}
+.inp{width:100%;padding:10px 12px;border-radius:9px;border:1px solid #1e3a5f;background:#0a0f1e;color:#e2e8f0;font-size:13px;font-family:inherit;outline:none}
+.inp::placeholder{color:#334155}
+.mbtns{display:flex;gap:8px;margin-top:14px}
+.bsave{flex:1;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit}
+.bcancel{padding:12px 16px;border-radius:10px;border:1px solid #334155;background:#1e293b;color:#94a3b8;font-size:13px;cursor:pointer;font-family:inherit}
+.fab{position:fixed;bottom:22px;right:18px;width:52px;height:52px;border-radius:50%;border:none;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:22px;cursor:pointer;box-shadow:0 4px 20px rgba(99,102,241,.5);z-index:100;display:flex;align-items:center;justify-content:center}
+.loading{text-align:center;padding:60px 20px;color:#334155;font-size:13px}
+.spin{width:32px;height:32px;border:3px solid #1e293b;border-top-color:#6366f1;border-radius:50%;animation:sp 1s linear infinite;margin:0 auto 12px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.nwrap{position:fixed;top:8px;left:50%;transform:translateX(-50%);width:calc(100% - 24px);max-width:440px;z-index:999;pointer-events:none}
+.notif{border-radius:10px;padding:9px 13px;font-size:12px;font-weight:700;color:#fff;margin-bottom:5px;display:none}
+.notif.show{display:block}
+.notif.ok{background:#15803d}.notif.err{background:#b91c1c}.notif.info{background:#1e40af}
+</style>
+</head>
+<body>
+<div class="nwrap"><div class="notif" id="notif"></div></div>
+<div class="hdr">
+  <div class="hdr-row">
+    <div>
+      <div class="hdr-title">📋 Unit Contacts & Orders</div>
+      <div class="hdr-sub">
+        <span id="auth-dot" style="width:7px;height:7px;border-radius:50%;background:#334155;display:inline-block;transition:background .4s"></span>
+        Vande Bharat Enterprises · Live
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <button onclick="openAddUnitModal()" style="background:linear-gradient(135deg,#312e81,#6366f1);border:none;color:#c7d2fe;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit">➕ Unit</button>
+      <a href="./" class="back-btn">← वापस</a>
+    </div>
+  </div>
+  <input class="srch" id="srch" placeholder="🔍 Unit या contact search..." oninput="renderAll()"/>
+</div>
+<div class="stats" id="stats"></div>
+<div class="sort-hint" id="sort-hint">⬆ सबसे ज्यादा pending काम वाली unit सबसे ऊपर</div>
+<div class="body" id="body"><div class="loading"><div class="spin"></div>Firebase से load हो रहा है...</div></div>
+<button class="fab" onclick="openModal('','','','',-1)">+</button>
+
+<!-- ══ ADD UNIT MODAL ══ -->
+<div class="mbg" id="add-unit-modal" onclick="if(event.target===this)closeAddUnitModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:300;align-items:flex-end;justify-content:center">
+  <div class="mbox" onclick="event.stopPropagation()">
+    <div class="mtitle">➕ नई Unit Add करें</div>
+    <div class="irow">
+      <label class="ilbl">📍 Location *</label>
+      <select class="inp" id="nu-loc">
+        <option value="jalipa">जालीपा मिलिट्री स्टेशन, बाड़मेर</option>
+        <option value="jaisalmer">जसाई मिलिट्री स्टेशन, जैसलमेर</option>
+        <option value="other">अन्य (Other)</option>
+      </select>
+    </div>
+    <div class="irow">
+      <label class="ilbl">Unit का नाम *</label>
+      <input class="inp" id="nu-name" placeholder="जैसे: 22 Guards, ECHS..."/>
+    </div>
+    <div class="irow">
+      <label class="ilbl">Short Note (Optional)</label>
+      <input class="inp" id="nu-note" placeholder="कोई जानकारी..."/>
+    </div>
+    <div id="nu-err" style="display:none;background:#450a0a;border-radius:8px;padding:8px 12px;font-size:11px;color:#fca5a5;margin-bottom:8px"></div>
+    <div class="mbtns">
+      <button class="bcancel" onclick="closeAddUnitModal()">रद्द</button>
+      <button class="bsave" onclick="saveNewUnit()">💾 Unit Save करें</button>
+    </div>
+  </div>
+</div>
+<div class="mbg" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="mbox">
+    <div class="mtitle" id="mtitle">Contact Add करें</div>
+    <div class="irow"><label class="ilbl">UNIT *</label><select class="inp" id="m-unit"></select></div>
+    <div class="irow"><label class="ilbl">नाम *</label><input class="inp" id="m-name" placeholder="Col. Sharma"/></div>
+    <div class="irow"><label class="ilbl">ROLE / RANK</label><input class="inp" id="m-role" placeholder="CO, QM, Admin..."/></div>
+    <div class="irow"><label class="ilbl">PHONE *</label><input class="inp" id="m-phone" type="tel" placeholder="10 digit" maxlength="10"/></div>
+    <div class="irow"><label class="ilbl">NOTE</label><input class="inp" id="m-note" placeholder="कोई जरूरी बात..."/></div>
+    <div class="mbtns">
+      <button class="bcancel" onclick="closeModal()">रद्द</button>
+      <button class="bsave" onclick="saveContact()">💾 Save</button>
+    </div>
+  </div>
+</div>
+<script>
+const UNITS=[
+  {id:'j01',name:'17 Guards',addr:'जालीपा कैंट'},{id:'j02',name:'MES',addr:'जालीपा कैंट'},
+  {id:'j03',name:'17 MAC',addr:'जालीपा कैंट'},{id:'j04',name:'177 MH',addr:'जालीपा कैंट'},
+  {id:'j05',name:'Station HQ',addr:'जालीपा कैंट'},{id:'j06',name:'NCC',addr:'जालीपा कैंट'},
+  {id:'j07',name:'318 Workshop',addr:'जालीपा कैंट'},{id:'j08',name:'74 Armd Regt',addr:'जालीपा कैंट'},
+  {id:'j09',name:'60 Armd Regt',addr:'जालीपा कैंट'},{id:'j10',name:'18 MAC',addr:'जालीपा कैंट'},
+  {id:'j11',name:'5 MAC',addr:'जालीपा कैंट'},{id:'j12',name:'414 Engr',addr:'जालीपा कैंट'},
+  {id:'j13',name:'6340 DBS',addr:'जालीपा कैंट'},{id:'j14',name:'6340 (74)',addr:'जालीपा कैंट'},
+  {id:'j15',name:'32 ELent',addr:'जालीपा कैंट'},{id:'j16',name:'110 Brigade',addr:'जालीपा कैंट'},
+  {id:'j17',name:'110 Signals',addr:'जालीपा कैंट'},{id:'j18',name:'694 Tatra',addr:'जालीपा कैंट'},
+  {id:'j19',name:'625 Tatra',addr:'जालीपा कैंट'},{id:'j20',name:'KV Jalipa',addr:'जालीपा कैंट'},
+  {id:'j21',name:'MCO',addr:'जालीपा कैंट'},
+  {id:'z01',name:'747 Armd Regt',addr:'जसाई, जैसलमेर'},{id:'z02',name:'2 Lancer',addr:'जसाई, जैसलमेर'},
+  {id:'z03',name:'25 Ammo Depot',addr:'जसाई, जैसलमेर'},{id:'z04',name:'496 Depot',addr:'जसाई, जैसलमेर'},
+];
+const STAGES={
+  received:{e:'📋',hi:'ऑर्डर मिला',c:'#6366f1'},
+  confirmed:{e:'✅',hi:'Confirm हुआ',c:'#f59e0b'},
+  processing:{e:'⚙️',hi:'तैयारी हो रही',c:'#3b82f6'},
+  packed:{e:'📦',hi:'Pack हो गया',c:'#8b5cf6'},
+  dispatched:{e:'🚚',hi:'निकल गया',c:'#f97316'},
+  delivered:{e:'🎯',hi:'पहुंच गया ✓',c:'#10b981'},
+};
+let _contacts={},_orders=[],_editUnit='',_editIdx=-1;
+let _customUnits=[]; // Firebase से load होंगी
+
+// सभी units — hardcoded + custom
+function getAllUnits(){
+  return [...UNITS,..._customUnits];
+}
+
+async function loadAll(){
+  try{
+    // Contacts load करो
+    const cs=await window._getDocs(window._col(window._db,'fvhq_contacts'));
+    cs.forEach(d=>{_contacts[d.id]=d.data().list||[];});
+    // Orders load करो
+    const os=await window._getDocs(window._col(window._db,'vbe_orders'));
+    _orders=[];os.forEach(d=>{_orders.push({id:d.id,...d.data()});});
+    // Custom Units load करो — नई units जो index.html से add हुई हैं
+    try{
+      const cu=await window._getDocs(window._col(window._db,'fvhq_custom_units'));
+      _customUnits=[];
+      cu.forEach(d=>{
+        const u=d.data();
+        // Duplicate check — same id पहले से नहीं हो
+        if(!UNITS.find(x=>x.id===u.id)){
+          _customUnits.push({id:u.id,name:u.name,addr:u.addr||u.loc||'अन्य',custom:true});
+        }
+      });
+    }catch(e){ console.warn('custom units load:',e); }
+    renderAll();
+    notif('✅ सब load हो गया'+(  _customUnits.length?' · '+_customUnits.length+' custom units':''),'ok');
+  }catch(e){
+    console.error(e);
+    document.getElementById('body').innerHTML='<div class="loading" style="color:#ef4444">❌ Load नहीं हुआ<br><br><button onclick="loadAll()" style="background:#1e293b;color:#94a3b8;border:1px solid #334155;border-radius:8px;padding:8px 16px;cursor:pointer">🔄 Retry</button></div>';
+  }
+}
+
+function getUnitOrders(uid,uname){
+  const n=uname.toLowerCase();
+  // Unit name keywords map — customer field se match karo
+  const keyMap={
+    'j01':['17 guard','17guard','22 guard','22guard'],
+    'j02':['mes','military engineer'],
+    'j03':['17 mac','17mac'],
+    'j04':['177 mh','177mh','military hospital','mil hosp','177 mil'],
+    'j05':['station hq','stn hq','station hq'],
+    'j06':['ncc'],
+    'j07':['318 workshop','318workshop','318 wksp','318wksp'],
+    'j08':['74 armd','74armd','74 arm'],
+    'j09':['60 armd','60armd','60 arm'],
+    'j10':['18 mac','18mac'],
+    'j11':['5 mac','5mac'],
+    'j12':['414 engr','414engr','414 engineer'],
+    'j13':['6340 dbs','6340dbs'],
+    'j14':['6340','74 ws','74ws'],
+    'j15':['32 elent','32elent','32 el'],
+    'j16':['110 brigade','110bde','110 bde','armd bde'],
+    'j17':['110 signals','110 sig'],
+    'j18':['694 tatra','694tatra'],
+    'j19':['625 tatra','625tatra','625 tpt'],
+    'j20':['kv jalipa','kendriya vidyalaya','kv sch'],
+    'j21':['mco'],
+    'z01':['747 armd','747armd'],
+    'z02':['2 lancer','2lancer'],
+    'z03':['25 ammo','25ammo'],
+    'z04':['496 depot','496depot'],
+  };
+  const keys=keyMap[uid]||[];
+  return _orders.filter(o=>{
+    const c=(o.customer||o.party||o.unitName||'').toLowerCase();
+    if(o.unitId===uid) return true;
+    if(c.includes(n)) return true;
+    return keys.some(k=>c.includes(k));
+  });
+}
+
+function renderAll(){
+  const q=(document.getElementById('srch').value||'').toLowerCase().trim();
+  let tOver=0,tPend=0,tCts=0,tUnits=0;
+  let items=getAllUnits().map(u=>{
+    const cts=_contacts[u.id]||[];
+    const orders=getUnitOrders(u.id,u.name);
+    const active=orders.filter(o=>o.stage!=='delivered'&&new Date(o.deadline)>=new Date());
+    const over=orders.filter(o=>o.stage!=='delivered'&&new Date(o.deadline)<new Date());
+    const done=orders.filter(o=>o.stage==='delivered');
+    const matchU=u.name.toLowerCase().includes(q)||u.addr.toLowerCase().includes(q);
+    const matchC=cts.filter(c=>(c.name||'').toLowerCase().includes(q)||(c.phone||'').includes(q)||(c.role||'').toLowerCase().includes(q));
+    if(q&&!matchU&&!matchC.length) return null;
+    const showCts=(q&&matchC.length)?matchC:cts;
+    const score=over.length*3+active.length;
+    tOver+=over.length;tPend+=active.length+over.length;tCts+=cts.length;
+    if(orders.length>0||cts.length>0) tUnits++;
+    return {u,cts,showCts,orders,active,over,done,score};
+  }).filter(Boolean);
+  if(!q) items.sort((a,b)=>b.score-a.score);
+  document.getElementById('stats').innerHTML=
+    '<div class="stat"><div class="sv" style="color:#ef4444">'+tOver+'</div><div class="sl">Overdue</div></div>'+
+    '<div class="stat"><div class="sv" style="color:#6366f1">'+tPend+'</div><div class="sl">Pending</div></div>'+
+    '<div class="stat"><div class="sv" style="color:#10b981">'+tUnits+'</div><div class="sl">Active Units</div></div>'+
+    '<div class="stat"><div class="sv" style="color:#f59e0b">'+tCts+'</div><div class="sl">Contacts</div></div>';
+  document.getElementById('sort-hint').textContent=q?'':'⬆ सबसे ज्यादा pending काम वाली unit सबसे ऊपर';
+  if(!items.length){document.getElementById('body').innerHTML='<div class="loading">🔍 "'+q+'" — कोई result नहीं</div>';return;}
+  document.getElementById('body').innerHTML=items.map(x=>unitCard(x)).join('');
+}
+
+function unitCard({u,cts,showCts,orders,active,over,done}){
+  const hasO=over.length>0,hasA=active.length>0;
+  const autoOpen=hasO||hasA;
+  const cls=hasO?'overdue':hasA?'active-ord':'';
+  const icon=hasO?'🔴':hasA?'🟡':cts.length>0?'🟢':'⚫';
+  const customBadge=u.custom?'<span style="font-size:9px;background:#312e81;color:#a5b4fc;padding:1px 6px;border-radius:4px;font-weight:800;margin-left:4px">★ Custom</span>':'';
+  let badges='';
+  if(over.length) badges+='<span class="bo">⚠ '+over.length+' Overdue</span>';
+  if(active.length) badges+='<span class="ba">🔵 '+active.length+' Active</span>';
+  if(done.length) badges+='<span class="bd">✓ '+done.length+' Done</span>';
+  if(cts.length) badges+='<span class="bc">👤 '+cts.length+'</span>';
+  const pending=[...over,...active];
+  let ordHtml='';
+  if(pending.length){
+    ordHtml='<div class="ord-section"><div class="sec-title">📦 PENDING ORDERS ('+pending.length+')</div>'+
+    pending.slice(0,6).map(o=>{
+      const st=STAGES[o.stage]||{e:'?',hi:o.stage,c:'#475569'};
+      const dl=new Date(o.deadline);
+      const isO=dl<new Date()&&o.stage!=='delivered';
+      const dlS=dl.toLocaleString('hi-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+      return '<div class="ord-row"><div style="flex:1;min-width:0"><div class="ord-item">'+
+        (o.item||'—')+(o.qty?' ('+o.qty+')':'')+'</div><div class="ord-meta">'+
+        (o.staff?'👤 '+o.staff:'')+'</div></div><div style="text-align:right">'+
+        '<div class="stage-pill" style="background:'+st.c+'22;color:'+st.c+'">'+st.e+' '+st.hi+'</div>'+
+        '<div class="ord-dl '+( isO?'over':'ok')+'">'+( isO?'⚠ ':'')+dlS+'</div></div></div>';
+    }).join('')+
+    (pending.length>6?'<div style="font-size:10px;color:#475569;text-align:center;padding:4px">+'+(pending.length-6)+' और</div>':'')+
+    '</div>';
+  }
+  const un=u.name.replace(/'/g,"\\'");
+  const ctsHtml=showCts.length===0?'<div class="empty-ct">कोई contact नहीं — Add करें</div>':
+    showCts.map(c=>{
+      const ri=cts.findIndex(x=>x.name===c.name&&x.phone===c.phone);
+      return '<div class="ct-row"><div class="ct-left"><div class="ct-name">'+
+        (c.name||'—')+'</div>'+(c.role?'<div class="ct-role">'+c.role+'</div>':'')+
+        (c.phone?'<div class="ct-ph"><a href="tel:'+c.phone+'" style="color:#10b981;text-decoration:none">'+c.phone+'</a></div>':'')+
+        (c.note?'<div style="font-size:10px;color:#475569;margin-top:1px">'+c.note+'</div>':'')+
+        '</div><div class="ct-actions">'+
+        (pending.length&&c.phone?'<button class="bsum" onclick="sendSummary(\''+u.id+'\',\''+un+'\','+ri+')">📊</button>':'')+
+        (c.phone?'<button class="bwa" onclick="window.open(\'https://wa.me/91'+c.phone+'\')">WA</button>':'')+
+        (c.phone?'<button class="bcall" onclick="window.open(\'tel:'+c.phone+'\')">📞</button>':'')+
+        '<button class="bedit" onclick="openModal(\''+u.id+'\',\''+(c.name||'').replace(/\'/g,"\\\\\\'")+'\',\''+(c.role||'')+'\',\''+(c.phone||'')+'\','+ri+')">✏</button>'+
+        '<button class="bdel" onclick="delContact(\''+u.id+'\','+ri+')">🗑</button>'+
+        '</div></div>';
+    }).join('');
+  return '<div class="uc '+cls+'" id="uc-'+u.id+'">'+
+    '<div class="uc-hdr" onclick="toggle(\''+u.id+'\')">'+
+    '<div class="uc-icon" style="background:'+(hasO?'#7f1d1d22':hasA?'#312e8122':'#1e293b')+'">'+icon+'</div>'+
+    '<div class="uc-info"><div class="uc-name">'+u.name+customBadge+'</div><div class="uc-addr">'+u.addr+'</div>'+
+    (badges?'<div class="uc-badges">'+badges+'</div>':'')+'</div>'+
+    '<span class="arr'+(autoOpen?' open':'')+'" id="arr-'+u.id+'">▶</span></div>'+
+    '<div class="ub'+(autoOpen?' open':'')+'" id="ub-'+u.id+'">'+ordHtml+
+    '<div class="ct-section"><div class="sec-title">👤 CONTACTS ('+cts.length+')</div>'+ctsHtml+
+    '<button class="add-btn" onclick="openModal(\''+u.id+'\',\'\',\'\',\'\',-1)">+ Contact Add करें</button></div></div></div>';
+}
+
+function toggle(id){
+  const ub=document.getElementById('ub-'+id),ar=document.getElementById('arr-'+id);
+  if(!ub)return;const o=ub.classList.toggle('open');if(ar)ar.classList.toggle('open',o);
+}
+
+function sendSummary(uid,uname,idx){
+  const c=(_contacts[uid]||[])[idx];
+  if(!c||!c.phone){notif('❌ Phone नहीं है','err');return;}
+  const pending=getUnitOrders(uid,uname).filter(o=>o.stage!=='delivered');
+  if(!pending.length){notif('कोई pending order नहीं','info');return;}
+  const now=new Date();
+  let lines=['🙏 नमस्ते '+c.name+(c.role?' ('+c.role+')':'')+'!','',
+    '📍 *'+uname+'* — Pending Orders की जानकारी:',
+    '📅 '+now.toLocaleString('hi-IN',{day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'}),''];
+  pending.forEach((o,i)=>{
+    const st=STAGES[o.stage]||{e:'?',hi:o.stage};
+    const dl=new Date(o.deadline);const isO=dl<now;
+    const dlS=dl.toLocaleString('hi-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    lines.push((i+1)+'. *'+(o.item||'—')+(o.qty?' ('+o.qty+')':'')+'*');
+    lines.push('   '+st.e+' Status: *'+st.hi+'*');
+    lines.push('   📅 Deadline: '+dlS+(isO?' ⚠ *Overdue*':'')); 
+    if(o.staff) lines.push('   👤 Staff: *'+o.staff+'*');
+    lines.push('');
+  });
+  lines.push('—');lines.push('Vande Bharat Enterprises | Jalipa Cantt, Barmer');
+  window.open('https://wa.me/91'+c.phone+'?text='+encodeURIComponent(lines.join('\n')));
+}
+
+function openModal(uid,name,role,phone,idx){
+  _editUnit=uid;_editIdx=idx;
+  document.getElementById('mtitle').textContent=idx===-1?'+ Contact Add करें':'✏ Contact Edit करें';
+  document.getElementById('m-name').value=name||'';
+  document.getElementById('m-role').value=role||'';
+  document.getElementById('m-phone').value=phone||'';
+  document.getElementById('m-note').value='';
+  document.getElementById('m-unit').innerHTML=getAllUnits().map(u=>'<option value="'+u.id+'"'+(u.id===uid?' selected':'')+'>'+u.name+(u.custom?' ★':'')+'</option>').join('');
+  document.getElementById('modal').classList.add('open');
+  setTimeout(()=>document.getElementById('m-name').focus(),200);
+}
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+
+async function saveContact(){
+  const uid=document.getElementById('m-unit').value;
+  const name=document.getElementById('m-name').value.trim();
+  const role=document.getElementById('m-role').value.trim();
+  const phone=document.getElementById('m-phone').value.trim();
+  const note=document.getElementById('m-note').value.trim();
+  if(!name){notif('❌ नाम जरूरी है','err');return;}
+  if(!phone||phone.length<10){notif('❌ Phone 10 digit चाहिए','err');return;}
+  const list=[...(_contacts[uid]||[])];
+  const entry={name,role,phone,note};
+  if(_editIdx>=0) list[_editIdx]=entry; else list.push(entry);
+  try{
+    await window._setDoc(window._doc(window._db,'fvhq_contacts',uid),{list});
+    _contacts[uid]=list;closeModal();renderAll();notif('✅ Save हो गया','ok');
+  }catch(e){notif('❌ Save नहीं हुआ','err');}
+}
+
+async function delContact(uid,idx){
+  if(!confirm('यह contact delete करें?')) return;
+  const list=[...(_contacts[uid]||[])];list.splice(idx,1);
+  try{
+    await window._setDoc(window._doc(window._db,'fvhq_contacts',uid),{list});
+    _contacts[uid]=list;renderAll();notif('🗑 Deleted','info');
+  }catch(e){notif('❌ Delete नहीं हुआ','err');}
+}
+
+function notif(msg,type='info'){
+  const el=document.getElementById('notif');
+  el.textContent=msg;el.className='notif show '+type;
+  setTimeout(()=>el.classList.remove('show'),2500);
+}
+
+// ══ NEW UNIT ADD ══
+function openAddUnitModal(){
+  document.getElementById('nu-name').value='';
+  document.getElementById('nu-note').value='';
+  document.getElementById('nu-loc').value='jalipa';
+  document.getElementById('nu-err').style.display='none';
+  const m=document.getElementById('add-unit-modal');
+  m.style.display='flex';
+  setTimeout(()=>document.getElementById('nu-name').focus(),200);
+}
+function closeAddUnitModal(){
+  document.getElementById('add-unit-modal').style.display='none';
+}
+
+async function saveNewUnit(){
+  const name=document.getElementById('nu-name').value.trim();
+  const loc=document.getElementById('nu-loc').value;
+  const note=document.getElementById('nu-note').value.trim();
+  const errEl=document.getElementById('nu-err');
+
+  if(!name){
+    errEl.textContent='❌ Unit का नाम जरूरी है';
+    errEl.style.display='block'; return;
+  }
+  // Duplicate check
+  if(getAllUnits().some(u=>u.name.toLowerCase()===name.toLowerCase())){
+    errEl.textContent='⚠️ यह Unit पहले से है — '+name;
+    errEl.style.display='block'; return;
+  }
+  errEl.style.display='none';
+
+  const id='cu_'+Date.now().toString(36).toUpperCase();
+  const addr=loc==='jalipa'?'जालीपा कैंट, बाड़मेर':loc==='jaisalmer'?'जसाई, जैसलमेर':'अन्य';
+  const newUnit={id,name,loc,addr,note,createdAt:new Date().toISOString()};
+
+  try{
+    await window._setDoc(window._doc(window._db,'fvhq_custom_units',id),newUnit);
+    _customUnits.push({id,name,addr,custom:true});
+    // Contact list में भी add करो (खाली)
+    _contacts[id]=[];
+    closeAddUnitModal();
+    renderAll();
+    notif('✅ '+name+' add हो गई!','ok');
+    // नई unit को scroll करके दिखाओ
+    setTimeout(()=>{
+      const el=document.getElementById('uc-'+id);
+      if(el) el.scrollIntoView({behavior:'smooth',block:'center'});
+    },400);
+  }catch(e){
+    errEl.textContent='❌ Save नहीं हुआ — Internet check करो';
+    errEl.style.display='block';
+    console.error(e);
+  }
+}
+</script>
+</body>
+</html>

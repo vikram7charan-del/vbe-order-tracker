@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>👥 Clients — Vande Bharat Enterprises</title>
+<link rel="manifest" href="manifest.webmanifest"/>
+<meta name="theme-color" content="#050a14"/>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:#050a14;color:#e2e8f0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;min-height:100vh}
+body{max-width:480px;margin:0 auto;padding-bottom:30px}
+.hdr{background:linear-gradient(135deg,#0a0f1e,#050a14);border-bottom:1px solid #1e3a5f;padding:14px 14px 12px;position:sticky;top:0;z-index:50}
+.htop{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.back{background:#1e293b;border:1px solid #334155;color:#a5b4fc;border-radius:8px;padding:6px 10px;font-size:14px;cursor:pointer;font-family:inherit;font-weight:700}
+.htitle{flex:1;font-size:17px;font-weight:800;background:linear-gradient(90deg,#818cf8,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sub{font-size:9px;color:#475569;letter-spacing:1.5px;margin-bottom:8px}
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px}
+.stat-box{background:#0d1526;border:1px solid #1e3a5f;border-radius:9px;padding:6px 4px;text-align:center}
+.stat-v{font-size:16px;font-weight:800;line-height:1.1}
+.stat-l{font-size:9px;color:#64748b;margin-top:2px;font-weight:600}
+.search-wrap{display:flex;gap:6px;margin-bottom:8px}
+.s-inp{flex:1;background:#0d1526;border:1px solid #1e3a5f;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none;font-family:inherit}
+.s-inp:focus{border-color:#6366f1}
+.add-btn{background:linear-gradient(135deg,#10b981,#059669);border:none;color:#fff;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap}
+.sort-row{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.sort-row::-webkit-scrollbar{display:none}
+.sort-chip{background:#1e293b;color:#64748b;border:1px solid #334155;border-radius:14px;padding:4px 10px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0}
+.sort-chip.on{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border-color:transparent}
+.list{padding:10px 12px}
+.client-card{background:linear-gradient(135deg,#0d1526,#0a111f);border:1px solid #1e3a5f;border-radius:12px;padding:11px 12px;margin-bottom:10px;cursor:pointer;position:relative;overflow:hidden}
+.client-card.top{border-color:#f59e0b66;background:linear-gradient(135deg,#1c1405,#0a111f)}
+.client-card.top::before{content:'🏆 TOP';position:absolute;top:6px;right:6px;background:#f59e0b;color:#000;font-size:8px;font-weight:800;padding:2px 6px;border-radius:6px;letter-spacing:0.5px}
+.client-row1{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:6px}
+.cname{font-size:15px;font-weight:800;color:#e2e8f0;flex:1;line-height:1.2}
+.crank{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:10px;font-weight:800;padding:2px 7px;border-radius:6px;flex-shrink:0}
+.cphone{font-size:11px;color:#22d3ee;font-family:monospace;font-weight:700;margin-bottom:6px;letter-spacing:0.3px}
+.cphone-no{font-size:11px;color:#64748b;font-style:italic;margin-bottom:6px}
+.cstats{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.cstat{background:#0a0f1e;border:1px solid #1e3a5f;border-radius:6px;padding:3px 7px;font-size:10px;font-weight:700}
+.cstat-act{color:#6366f1;border-color:#6366f155}
+.cstat-done{color:#10b981;border-color:#10b98155}
+.cstat-over{color:#ef4444;border-color:#ef444455}
+.cstat-tot{color:#f59e0b;border-color:#f59e0b55}
+.cunits{font-size:10px;color:#94a3b8;line-height:1.3;margin-bottom:6px}
+.cunits .u-tag{background:#1e293b;color:#a5b4fc;border-radius:5px;padding:1px 6px;margin-right:3px;display:inline-block;margin-bottom:2px;font-size:9px;font-weight:700}
+.cactions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-top:8px}
+.cact{padding:6px 4px;border-radius:7px;border:none;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;text-decoration:none;text-align:center;display:flex;align-items:center;justify-content:center;gap:3px}
+.cact-call{background:linear-gradient(135deg,#10b98122,#05966922);border:1px solid #10b98155;color:#10b981}
+.cact-wa{background:linear-gradient(135deg,#22c55e22,#16a34a22);border:1px solid #22c55e55;color:#22c55e}
+.cact-view{background:linear-gradient(135deg,#6366f122,#312e8122);border:1px solid #6366f155;color:#818cf8}
+.empty{text-align:center;color:#475569;padding:50px 20px;font-size:13px;line-height:1.6}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:200;padding:0;align-items:flex-end;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:linear-gradient(180deg,#0a0f1e,#050a14);border-top:2px solid #6366f1;border-radius:18px 18px 0 0;width:100%;max-width:480px;max-height:92vh;overflow-y:auto;padding:14px 14px 30px;animation:slideUp .25s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.m-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #1e3a5f}
+.m-title{font-size:15px;font-weight:800;color:#e2e8f0;flex:1;line-height:1.2}
+.x-btn{background:#1e293b;border:1px solid #334155;color:#94a3b8;border-radius:8px;width:30px;height:30px;font-size:14px;cursor:pointer;font-family:inherit;font-weight:700;flex-shrink:0}
+.lbl{display:block;font-size:11px;color:#64748b;font-weight:700;margin:8px 0 4px}
+.inp{width:100%;background:#0d1526;border:1px solid #1e3a5f;border-radius:8px;padding:9px 11px;color:#e2e8f0;font-size:13px;outline:none;font-family:inherit}
+.inp:focus{border-color:#6366f1}
+.btn-primary{background:linear-gradient(135deg,#6366f1,#8b5cf6);border:none;color:#fff;border-radius:9px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;width:100%;margin-top:12px}
+.detail-stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:12px}
+.dstat{background:#0d1526;border:1px solid #1e3a5f;border-radius:8px;padding:7px 4px;text-align:center}
+.dstat-v{font-size:15px;font-weight:800;line-height:1}
+.dstat-l{font-size:8px;color:#64748b;margin-top:3px;font-weight:600;text-transform:uppercase}
+.detail-section{margin-top:14px}
+.detail-section h4{font-size:11px;color:#94a3b8;font-weight:700;letter-spacing:1px;margin:0 0 7px;text-transform:uppercase}
+.unit-pill-list{display:flex;flex-wrap:wrap;gap:5px}
+.unit-pill{background:linear-gradient(135deg,#1e3a8a44,#312e8144);border:1px solid #6366f155;color:#a5b4fc;border-radius:14px;padding:4px 10px;font-size:11px;font-weight:700}
+.order-mini{background:#0d1526;border:1px solid #1e3a5f;border-left:3px solid #6366f1;border-radius:7px;padding:8px 10px;margin-bottom:6px;font-size:12px}
+.order-mini.delivered{border-left-color:#10b981}
+.order-mini.overdue{border-left-color:#ef4444}
+.om-row1{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:3px}
+.om-id{font-family:monospace;font-size:10px;font-weight:800;color:#a5b4fc;background:#1e293b;padding:1px 6px;border-radius:4px}
+.om-stage{font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px}
+.om-item{font-size:12px;color:#e2e8f0;font-weight:700;line-height:1.3}
+.om-meta{font-size:10px;color:#64748b;margin-top:2px}
+.detail-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:14px;padding-top:12px;border-top:1px solid #1e3a5f}
+.dact{padding:9px;border-radius:9px;border:none;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;text-decoration:none;text-align:center;display:flex;align-items:center;justify-content:center;gap:4px}
+.dact-call{background:linear-gradient(135deg,#10b981,#059669);color:#fff}
+.dact-wa{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff}
+.dact-edit{background:#1e293b;border:1px solid #334155;color:#a5b4fc}
+.dact-del{background:#1e293b;border:1px solid #ef444455;color:#ef4444}
+.notif-wrap{position:fixed;top:14px;left:14px;right:14px;z-index:300;max-width:455px;margin:0 auto}
+.notif{background:#10b981;color:#fff;padding:9px 13px;border-radius:9px;margin-bottom:6px;font-size:12px;font-weight:700;box-shadow:0 6px 16px rgba(0,0,0,0.4);animation:slideDown .25s ease}
+@keyframes slideDown{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}
+.note-info{background:#1e293b;border:1px solid #334155;border-radius:8px;padding:8px 11px;font-size:11px;color:#94a3b8;line-height:1.4;margin-bottom:8px}
+.loading{text-align:center;padding:40px;color:#475569;font-size:13px}
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid #1e3a5f;border-top-color:#6366f1;border-radius:50%;animation:spin .8s linear infinite;margin-right:8px;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toggle-row{display:flex;gap:5px;margin-bottom:8px}
+.tg-btn{flex:1;background:#1e293b;color:#64748b;border:1px solid #334155;border-radius:8px;padding:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit}
+.tg-btn.on{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border-color:transparent}
+</style>
+</head>
+<body>
+
+<div id="nwrap" class="notif-wrap"></div>
+
+<div class="hdr">
+  <div class="htop">
+    <button class="back" onclick="window.location.href='index.html'">←</button>
+    <div class="htitle">👥 Clients — Order देने वाले</div>
+  </div>
+  <div class="sub">VANDE BHARAT ENTERPRISES · CLIENT MANAGER</div>
+
+  <div class="stat-row">
+    <div class="stat-box"><div class="stat-v" style="color:#6366f1" id="kpi-tot">0</div><div class="stat-l">Total Clients</div></div>
+    <div class="stat-box"><div class="stat-v" style="color:#10b981" id="kpi-act">0</div><div class="stat-l">Active</div></div>
+    <div class="stat-box"><div class="stat-v" style="color:#f59e0b" id="kpi-ord">0</div><div class="stat-l">Total Orders</div></div>
+  </div>
+
+  <div class="search-wrap">
+    <input class="s-inp" id="srch" placeholder="🔍 नाम / नंबर / यूनिट..." oninput="renderList()"/>
+    <button class="add-btn" onclick="openAdd()">➕ नया</button>
+  </div>
+
+  <div class="toggle-row">
+    <button class="tg-btn on" id="tg-all" onclick="setView('all')">सभी</button>
+    <button class="tg-btn" id="tg-act" onclick="setView('active')">🔥 सक्रिय</button>
+    <button class="tg-btn" id="tg-ov" onclick="setView('overdue')">⚠️ Overdue</button>
+  </div>
+
+  <div class="sort-row">
+    <button class="sort-chip on" id="sort-orders" onclick="setSort('orders')">📦 सबसे ज़्यादा Orders</button>
+    <button class="sort-chip" id="sort-recent" onclick="setSort('recent')">🕐 हाल का Order</button>
+    <button class="sort-chip" id="sort-name" onclick="setSort('name')">🔤 नाम</button>
+    <button class="sort-chip" id="sort-active" onclick="setSort('active')">🔥 Active Orders</button>
+  </div>
+</div>
+
+<div id="list" class="list">
+  <div class="loading"><span class="spinner"></span>Loading clients...</div>
+</div>
+
+<!-- Detail Modal -->
+<div id="m-detail" class="modal-bg" onclick="if(event.target===this)closeDetail()">
+  <div class="modal">
+    <div class="m-hdr">
+      <div class="m-title" id="d-name">Client Detail</div>
+      <button class="x-btn" onclick="closeDetail()">✕</button>
+    </div>
+    <div id="d-body"></div>
+  </div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div id="m-add" class="modal-bg" onclick="if(event.target===this)closeAdd()">
+  <div class="modal">
+    <div class="m-hdr">
+      <div class="m-title" id="add-title">➕ नया Client</div>
+      <button class="x-btn" onclick="closeAdd()">✕</button>
+    </div>
+    <div class="note-info">📌 जो Phone Number से orders आते हैं वो auto-link हो जाते हैं। यहाँ extra info जोड़ सकते हो।</div>
+
+    <label class="lbl">नाम *</label>
+    <input class="inp" id="ad-name" placeholder="जैसे: चौबे जी / Sharma JCO"/>
+
+    <label class="lbl">📞 Mobile Number * (Unique ID)</label>
+    <input class="inp" id="ad-phone" placeholder="जैसे: 9876543210" inputmode="numeric" maxlength="10"/>
+
+    <label class="lbl">🏛️ Unit / Brigade / Company</label>
+    <input class="inp" id="ad-unit" placeholder="जैसे: Brigade 110 / 74 Armd"/>
+
+    <label class="lbl">पद / Role</label>
+    <input class="inp" id="ad-role" placeholder="जैसे: JCO / Sahab / Owner"/>
+
+    <label class="lbl">📝 Note (कौन सा काम देते हैं, कब से जान-पहचान, etc.)</label>
+    <textarea class="inp" id="ad-note" rows="3" placeholder="Brigade 110 के सबसे active client • हर महीने 3-4 orders..."></textarea>
+
+    <button class="btn-primary" onclick="saveClient()">💾 Save Client</button>
+    <button id="ad-del" style="display:none;background:transparent;border:1px solid #ef444455;color:#ef4444;border-radius:9px;padding:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;width:100%;margin-top:8px" onclick="deleteClient()">🗑️ Client Delete करो</button>
+  </div>
+</div>
+
+<!-- ══ FIREBASE ══ -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, setDoc, getDoc, getDocs, deleteDoc, onSnapshot }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, signInAnonymously, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey:            "AIzaSyBCe5DKNKcthOl4umprfRm2QBfbVaFORg8",
+  authDomain:        "vbe-order-tracker-60324.firebaseapp.com",
+  projectId:         "vbe-order-tracker-60324",
+  storageBucket:     "vbe-order-tracker-60324.firebasestorage.app",
+  messagingSenderId: "894023456122",
+  appId:             "1:894023456122:web:6ee548f0913c887c67f2c3"
+};
+
+const app  = initializeApp(firebaseConfig);
+const db   = getFirestore(app);
+const auth = getAuth(app);
+
+window._db = db;
+window._collection = collection;
+window._doc = doc;
+window._setDoc = setDoc;
+window._getDoc = getDoc;
+window._getDocs = getDocs;
+window._deleteDoc = deleteDoc;
+window._onSnapshot = onSnapshot;
+
+onAuthStateChanged(auth, (user)=>{
+  if(user){
+    console.log('[Auth] Signed in:', user.uid);
+    init();
+  } else {
+    signInAnonymously(auth).catch(e=>console.error('Auth fail',e));
+  }
+});
+</script>
+
+<script>
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
+let _orders = [];          // सारे orders (Firebase से)
+let _clientsMeta = {};     // { phone: {name, phone, unit, role, note, manualOnly} }
+let _viewMode = 'all';     // 'all' | 'active' | 'overdue'
+let _sortMode = 'orders';  // 'orders' | 'recent' | 'name' | 'active'
+let _editingPhone = '';
+let _ordersUnsub = null;
+let _metaUnsub = null;
+
+// ══════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════
+function notif(txt, type='ok'){
+  const el = document.createElement('div');
+  el.className = 'notif';
+  if(type==='warn') el.style.background = '#f59e0b';
+  if(type==='danger') el.style.background = '#ef4444';
+  if(type==='info') el.style.background = '#6366f1';
+  el.textContent = txt;
+  document.getElementById('nwrap').prepend(el);
+  setTimeout(()=>el.remove(), 4000);
+}
+
+function normPhone(p){
+  if(!p) return '';
+  return String(p).replace(/[^0-9]/g,'').replace(/^91(?=\d{10}$)/,'').slice(-10);
+}
+
+function fmtDate(iso){
+  if(!iso) return '—';
+  const d = new Date(iso);
+  if(isNaN(d)) return '—';
+  return d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'2-digit'});
+}
+
+function daysAgo(iso){
+  if(!iso) return null;
+  const d = (Date.now()-new Date(iso))/86400000;
+  if(d<1) return 'आज';
+  if(d<2) return 'कल';
+  return Math.floor(d)+' दिन पहले';
+}
+
+function stageBadge(stage){
+  const map = {
+    'received':   {t:'📥 Received', c:'#6366f1', bg:'#312e8133'},
+    'confirmed':  {t:'✅ Confirmed', c:'#22c55e', bg:'#16653433'},
+    'processing': {t:'⚙️ Processing', c:'#f59e0b', bg:'#78350f33'},
+    'dispatched': {t:'🚚 Dispatched', c:'#06b6d4', bg:'#155e7533'},
+    'delivered':  {t:'✅ Delivered', c:'#10b981', bg:'#05603a33'}
+  };
+  return map[stage] || {t:stage||'—', c:'#94a3b8', bg:'#1e293b'};
+}
+
+// ══════════════════════════════════════════
+//  CLIENT AGGREGATION (mobile-number-based)
+// ══════════════════════════════════════════
+function buildClients(){
+  // Group orders by normalized phone
+  const map = {};
+  _orders.forEach(o => {
+    const ph = normPhone(o.phone);
+    if(!ph || ph.length < 10) return; // बिना phone वाले orders skip
+    if(!map[ph]){
+      map[ph] = {
+        phone: ph,
+        names: {},     // name frequency
+        units: {},     // unit frequency
+        orders: [],
+        firstOrder: null,
+        lastOrder: null
+      };
+    }
+    const c = map[ph];
+    if(o.customer){ c.names[o.customer] = (c.names[o.customer]||0) + 1; }
+    if(o.unitName){ c.units[o.unitName] = (c.units[o.unitName]||0) + 1; }
+    c.orders.push(o);
+    const t = new Date(o.createdAt||0).getTime();
+    if(!c.firstOrder || t < c.firstOrder) c.firstOrder = t;
+    if(!c.lastOrder  || t > c.lastOrder ) c.lastOrder = t;
+  });
+
+  // Add manual-only clients (no orders yet)
+  Object.keys(_clientsMeta).forEach(ph => {
+    const p = normPhone(ph);
+    if(!p) return;
+    if(!map[p]){
+      map[p] = {
+        phone: p,
+        names: {},
+        units: {},
+        orders: [],
+        firstOrder: null,
+        lastOrder: null,
+        manualOnly: true
+      };
+    }
+  });
+
+  // Convert to array with computed stats
+  const list = Object.values(map).map(c => {
+    const meta = _clientsMeta[c.phone] || {};
+    // Best name: manual override → most-frequent from orders
+    let bestName = meta.name || '';
+    if(!bestName){
+      const arr = Object.entries(c.names).sort((a,b)=>b[1]-a[1]);
+      bestName = arr[0] ? arr[0][0] : '(नाम नहीं)';
+    }
+    // Units list (sorted by frequency)
+    const unitList = Object.entries(c.units).sort((a,b)=>b[1]-a[1]).map(x=>x[0]);
+    if(meta.unit && !unitList.includes(meta.unit)) unitList.unshift(meta.unit);
+
+    const total = c.orders.length;
+    const delivered = c.orders.filter(o=>o.stage==='delivered').length;
+    const active = c.orders.filter(o=>o.stage!=='delivered' && !o.isLater).length;
+    const later = c.orders.filter(o=>o.isLater && o.stage!=='delivered').length;
+    const overdue = c.orders.filter(o=>{
+      if(o.stage==='delivered' || o.isLater) return false;
+      return new Date(o.deadline) < new Date();
+    }).length;
+
+    return {
+      phone: c.phone,
+      name: bestName,
+      role: meta.role || '',
+      note: meta.note || '',
+      units: unitList,
+      orders: c.orders.sort((a,b)=>new Date(b.createdAt||0)-new Date(a.createdAt||0)),
+      total, delivered, active, later, overdue,
+      firstOrder: c.firstOrder,
+      lastOrder: c.lastOrder,
+      manualOnly: !!c.manualOnly
+    };
+  });
+
+  return list;
+}
+
+// ══════════════════════════════════════════
+//  RENDER
+// ══════════════════════════════════════════
+function setView(v){ _viewMode = v;
+  ['all','active','overdue'].forEach(x=>{
+    const el = document.getElementById('tg-'+(x==='all'?'all':x==='active'?'act':'ov'));
+    if(el) el.classList.toggle('on', x===v);
+  });
+  renderList();
+}
+function setSort(s){ _sortMode = s;
+  ['orders','recent','name','active'].forEach(x=>{
+    const el = document.getElementById('sort-'+x);
+    if(el) el.classList.toggle('on', x===s);
+  });
+  renderList();
+}
+
+function renderList(){
+  const clients = buildClients();
+  const q = (document.getElementById('srch').value||'').toLowerCase().trim();
+
+  // Filter by search
+  let filt = clients.filter(c => {
+    if(q){
+      const hay = (c.name+' '+c.phone+' '+c.units.join(' ')+' '+c.role+' '+c.note).toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    if(_viewMode==='active' && c.active===0) return false;
+    if(_viewMode==='overdue' && c.overdue===0) return false;
+    return true;
+  });
+
+  // Sort
+  if(_sortMode==='orders'){
+    filt.sort((a,b)=> b.total - a.total || (b.lastOrder||0)-(a.lastOrder||0));
+  } else if(_sortMode==='recent'){
+    filt.sort((a,b)=> (b.lastOrder||0) - (a.lastOrder||0));
+  } else if(_sortMode==='name'){
+    filt.sort((a,b)=> a.name.localeCompare(b.name,'hi'));
+  } else if(_sortMode==='active'){
+    filt.sort((a,b)=> b.active - a.active || b.total-a.total);
+  }
+
+  // KPIs
+  document.getElementById('kpi-tot').textContent = clients.length;
+  document.getElementById('kpi-act').textContent = clients.filter(c=>c.active>0).length;
+  document.getElementById('kpi-ord').textContent = clients.reduce((s,c)=>s+c.total,0);
+
+  // Render cards
+  const list = document.getElementById('list');
+  if(filt.length===0){
+    list.innerHTML = `<div class="empty">${q?'❌ कोई client नहीं मिला':'अभी कोई client नहीं है।<br>Orders से auto-add हो जाएंगे, या ➕ नया से जोड़ें।'}</div>`;
+    return;
+  }
+
+  list.innerHTML = filt.map((c, i) => {
+    const isTop = (i===0 && _sortMode==='orders' && c.total>0);
+    const phoneDisplay = c.phone ? `📞 ${c.phone}` : '<span class="cphone-no">📞 नंबर नहीं है</span>';
+    const unitsHtml = c.units.length > 0
+      ? `<div class="cunits">🏛️ ${c.units.slice(0,4).map(u=>`<span class="u-tag">${escHtml(u)}</span>`).join('')}${c.units.length>4?` +${c.units.length-4}`:''}</div>`
+      : '';
+    const lastOrderTxt = c.lastOrder ? `🕐 ${daysAgo(new Date(c.lastOrder).toISOString())}` : '🆕 कोई order नहीं';
+    return `
+      <div class="client-card ${isTop?'top':''}" onclick="openDetail('${c.phone}')">
+        <div class="client-row1">
+          <div class="cname">${escHtml(c.name)}${c.role?` <span style="font-size:10px;color:#94a3b8;font-weight:600">· ${escHtml(c.role)}</span>`:''}</div>
+          <div class="crank">#${i+1}</div>
+        </div>
+        <div class="${c.phone?'cphone':'cphone-no'}">${phoneDisplay} ${c.phone?` <span style="color:#475569;font-size:10px">· ${lastOrderTxt}</span>`:''}</div>
+        <div class="cstats">
+          ${c.total>0?`<div class="cstat cstat-tot">📦 ${c.total} Total</div>`:`<div class="cstat" style="color:#22d3ee;border-color:#22d3ee55">🆕 New (कोई order नहीं)</div>`}
+          ${c.active>0?`<div class="cstat cstat-act">🔥 ${c.active} Active</div>`:''}
+          ${c.delivered>0?`<div class="cstat cstat-done">✅ ${c.delivered} Done</div>`:''}
+          ${c.overdue>0?`<div class="cstat cstat-over">⚠️ ${c.overdue} Overdue</div>`:''}
+        </div>
+        ${unitsHtml}
+        <div class="cactions" onclick="event.stopPropagation()">
+          ${c.phone?`<a class="cact cact-call" href="tel:${c.phone}">📞 Call</a>`:`<button class="cact cact-call" disabled style="opacity:0.4">📞 Call</button>`}
+          ${c.phone?`<a class="cact cact-wa" href="https://wa.me/91${c.phone}" target="_blank">💬 WA</a>`:`<button class="cact cact-wa" disabled style="opacity:0.4">💬 WA</button>`}
+          <button class="cact cact-view" onclick="openDetail('${c.phone}')">📋 खोलो</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function escHtml(s){
+  return String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+// ══════════════════════════════════════════
+//  DETAIL MODAL
+// ══════════════════════════════════════════
+function openDetail(phone){
+  const clients = buildClients();
+  const c = clients.find(x => x.phone === phone);
+  if(!c){ notif('Client नहीं मिला','danger'); return; }
+  document.getElementById('d-name').innerHTML = `${escHtml(c.name)}${c.role?` <span style="font-size:11px;color:#94a3b8;font-weight:600">· ${escHtml(c.role)}</span>`:''}`;
+
+  const orderListHtml = c.orders.length === 0
+    ? '<div style="text-align:center;color:#475569;padding:18px;font-size:12px">अभी कोई order नहीं है</div>'
+    : c.orders.map(o => {
+        const sb = stageBadge(o.stage);
+        const isOverdue = o.stage!=='delivered' && !o.isLater && new Date(o.deadline) < new Date();
+        const cls = o.stage==='delivered' ? 'delivered' : (isOverdue ? 'overdue' : '');
+        return `<div class="order-mini ${cls}">
+          <div class="om-row1">
+            <span class="om-id">${escHtml(o.orderNo||o.id||'—')}</span>
+            <span class="om-stage" style="background:${sb.bg};color:${sb.c}">${sb.t}</span>
+          </div>
+          <div class="om-item">${escHtml(o.item||'—')}${o.qty?` <span style="color:#64748b;font-weight:600">· ${escHtml(o.qty)}</span>`:''}</div>
+          <div class="om-meta">📅 ${fmtDate(o.createdAt)} ${o.unitName?`· 🏛️ ${escHtml(o.unitName)}`:''} ${o.staff?`· 👤 ${escHtml(o.staff)}`:''}</div>
+        </div>`;
+      }).join('');
+
+  const unitsBlock = c.units.length > 0
+    ? `<div class="detail-section"><h4>🏛️ Units / Brigades (${c.units.length})</h4>
+        <div class="unit-pill-list">${c.units.map(u=>`<span class="unit-pill">${escHtml(u)}</span>`).join('')}</div></div>`
+    : '';
+
+  const noteBlock = c.note
+    ? `<div class="detail-section"><h4>📝 Note</h4><div style="background:#0d1526;border:1px solid #1e3a5f;border-radius:8px;padding:9px 11px;font-size:12px;color:#cbd5e1;line-height:1.5;white-space:pre-wrap">${escHtml(c.note)}</div></div>`
+    : '';
+
+  const dateBlock = c.firstOrder ? `<div style="font-size:11px;color:#64748b;margin-top:6px">पहला order: ${fmtDate(new Date(c.firstOrder).toISOString())} · आख़िरी: ${fmtDate(new Date(c.lastOrder).toISOString())}</div>` : '';
+
+  document.getElementById('d-body').innerHTML = `
+    <div style="background:#0d1526;border:1px solid #1e3a5f;border-radius:9px;padding:9px 11px;margin-bottom:10px">
+      <div style="font-size:13px;color:#22d3ee;font-family:monospace;font-weight:700">${c.phone?`📞 ${c.phone}`:'📞 नंबर नहीं है'}</div>
+      ${dateBlock}
+    </div>
+
+    <div class="detail-stat-row">
+      <div class="dstat"><div class="dstat-v" style="color:#f59e0b">${c.total}</div><div class="dstat-l">Total</div></div>
+      <div class="dstat"><div class="dstat-v" style="color:#6366f1">${c.active}</div><div class="dstat-l">Active</div></div>
+      <div class="dstat"><div class="dstat-v" style="color:#10b981">${c.delivered}</div><div class="dstat-l">Done</div></div>
+      <div class="dstat"><div class="dstat-v" style="color:#ef4444">${c.overdue}</div><div class="dstat-l">Overdue</div></div>
+    </div>
+
+    ${unitsBlock}
+    ${noteBlock}
+
+    <div class="detail-section"><h4>📦 सारे Orders (${c.orders.length})</h4>${orderListHtml}</div>
+
+    <div class="detail-actions">
+      ${c.phone?`<a class="dact dact-call" href="tel:${c.phone}">📞 Call</a>`:`<button class="dact dact-call" disabled style="opacity:0.4">📞 Call</button>`}
+      ${c.phone?`<a class="dact dact-wa" href="https://wa.me/91${c.phone}?text=${encodeURIComponent(buildSummaryMsg(c))}" target="_blank">💬 Summary भेजो</a>`:`<button class="dact dact-wa" disabled style="opacity:0.4">💬 Summary</button>`}
+      <button class="dact dact-edit" onclick="openEdit('${c.phone}')">✏️ Edit Info</button>
+      <button class="dact dact-edit" onclick="copySummary('${c.phone}')" style="color:#22d3ee;border-color:#22d3ee55">📋 Copy</button>
+    </div>
+  `;
+
+  document.getElementById('m-detail').classList.add('open');
+}
+
+function closeDetail(){
+  document.getElementById('m-detail').classList.remove('open');
+}
+
+window.openDetail = openDetail;
+window.closeDetail = closeDetail;
+window.setView = setView;
+window.setSort = setSort;
+window.renderList = renderList;
+
+// ══════════════════════════════════════════
+//  SUMMARY MESSAGE BUILDER
+// ══════════════════════════════════════════
+function buildSummaryMsg(c){
+  let msg = `🙏 नमस्कार ${c.name} जी,\n\n`;
+  msg += `*Vande Bharat Enterprises · Barmer*\n`;
+  msg += `आपके orders का status:\n\n`;
+  msg += `📦 कुल Orders: *${c.total}*\n`;
+  msg += `✅ Delivered: *${c.delivered}*\n`;
+  if(c.active>0) msg += `🔥 Active: *${c.active}*\n`;
+  if(c.overdue>0) msg += `⚠️ Overdue: *${c.overdue}*\n`;
+  msg += `\n`;
+  if(c.orders.length>0){
+    const recent = c.orders.slice(0, 5);
+    msg += `*हाल के Orders:*\n`;
+    recent.forEach(o => {
+      const sb = stageBadge(o.stage);
+      msg += `• ${o.orderNo||''} — ${o.item||'—'}${o.qty?' ('+o.qty+')':''} → ${sb.t}\n`;
+    });
+    if(c.orders.length > 5) msg += `_... और ${c.orders.length-5} orders_\n`;
+    msg += `\n`;
+  }
+  msg += `📞 Vikram Sa: 9509553600\n`;
+  msg += `🏢 Vande Bharat Enterprises, Jalipa Cantt`;
+  return msg;
+}
+
+function copySummary(phone){
+  const c = buildClients().find(x => x.phone === phone);
+  if(!c) return;
+  const msg = buildSummaryMsg(c);
+  navigator.clipboard.writeText(msg).then(()=>{
+    notif('📋 Summary copy हो गई!','ok');
+  }).catch(()=>{
+    notif('Copy fail — manually select करो','warn');
+  });
+}
+window.copySummary = copySummary;
+
+// ══════════════════════════════════════════
+//  ADD / EDIT
+// ══════════════════════════════════════════
+function openAdd(){
+  _editingPhone = '';
+  document.getElementById('add-title').textContent = '➕ नया Client';
+  document.getElementById('ad-name').value = '';
+  document.getElementById('ad-phone').value = '';
+  document.getElementById('ad-phone').disabled = false;
+  document.getElementById('ad-unit').value = '';
+  document.getElementById('ad-role').value = '';
+  document.getElementById('ad-note').value = '';
+  document.getElementById('ad-del').style.display = 'none';
+  document.getElementById('m-add').classList.add('open');
+}
+
+function openEdit(phone){
+  closeDetail();
+  const c = buildClients().find(x => x.phone === phone);
+  if(!c) return;
+  _editingPhone = phone;
+  document.getElementById('add-title').textContent = '✏️ Edit Client';
+  document.getElementById('ad-name').value = c.name;
+  document.getElementById('ad-phone').value = c.phone;
+  document.getElementById('ad-phone').disabled = true; // phone = unique ID, can't change
+  document.getElementById('ad-unit').value = (_clientsMeta[phone]||{}).unit || c.units[0] || '';
+  document.getElementById('ad-role').value = c.role;
+  document.getElementById('ad-note').value = c.note;
+  document.getElementById('ad-del').style.display = (_clientsMeta[phone] ? 'block' : 'none');
+  document.getElementById('m-add').classList.add('open');
+}
+
+function closeAdd(){
+  document.getElementById('m-add').classList.remove('open');
+}
+
+window.openAdd = openAdd;
+window.openEdit = openEdit;
+window.closeAdd = closeAdd;
+
+async function saveClient(){
+  const name = document.getElementById('ad-name').value.trim();
+  const phone = normPhone(document.getElementById('ad-phone').value);
+  const unit = document.getElementById('ad-unit').value.trim();
+  const role = document.getElementById('ad-role').value.trim();
+  const note = document.getElementById('ad-note').value.trim();
+
+  if(!name){ notif('नाम डालो','warn'); return; }
+  if(!phone || phone.length !== 10){ notif('सही 10-digit mobile number डालो','warn'); return; }
+
+  const data = { name, phone, unit, role, note, updatedAt: new Date().toISOString() };
+  try {
+    await window._setDoc(window._doc(window._db, 'vbe_clients_meta', phone), data);
+    _clientsMeta[phone] = data;
+    notif('✅ Client save हो गया','ok');
+    closeAdd();
+    renderList();
+  } catch(e){
+    console.error(e);
+    notif('❌ Save fail: '+e.message,'danger');
+  }
+}
+window.saveClient = saveClient;
+
+async function deleteClient(){
+  if(!_editingPhone) return;
+  if(!confirm('क्या आप sure हैं? Client meta delete हो जाएगी (orders नहीं हटेंगे)।')) return;
+  try {
+    await window._deleteDoc(window._doc(window._db, 'vbe_clients_meta', _editingPhone));
+    delete _clientsMeta[_editingPhone];
+    notif('🗑️ Delete हो गया','ok');
+    closeAdd();
+    renderList();
+  } catch(e){
+    notif('❌ Delete fail: '+e.message,'danger');
+  }
+}
+window.deleteClient = deleteClient;
+
+// ══════════════════════════════════════════
+//  FIREBASE LIVE LISTENERS
+// ══════════════════════════════════════════
+function init(){
+  // Orders live
+  if(_ordersUnsub) _ordersUnsub();
+  _ordersUnsub = window._onSnapshot(window._collection(window._db,'vbe_orders'), (snap)=>{
+    _orders = [];
+    snap.forEach(d => _orders.push(d.data()));
+    renderList();
+  }, (err)=>{
+    console.error('Orders listen error',err);
+    notif('Orders load fail','danger');
+  });
+
+  // Client meta live
+  if(_metaUnsub) _metaUnsub();
+  _metaUnsub = window._onSnapshot(window._collection(window._db,'vbe_clients_meta'), (snap)=>{
+    _clientsMeta = {};
+    snap.forEach(d => { const x = d.data(); if(x.phone) _clientsMeta[x.phone] = x; });
+    renderList();
+  }, (err)=>{
+    console.warn('Meta listen error (collection may be empty - that\'s OK)', err);
+    // Empty collection is fine
+  });
+}
+window._init = init;
+</script>
+
+</body>
+</html>

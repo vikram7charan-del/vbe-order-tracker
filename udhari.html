@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🍛 Marwad Rasoi — Udhari Tracker</title>
+<style>
+:root{--bg:#0a0f1e;--sf:#111827;--sf2:#1e293b;--sf3:#263148;--bd:#2d3f5e;--acc:#f97316;--acc2:#fb923c;--grn:#22c55e;--red:#ef4444;--ylw:#eab308;--blu:#3b82f6;--txt:#f1f5f9;--t2:#94a3b8;--t3:#64748b;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--txt);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;padding-bottom:80px;}
+
+/* NAV */
+.hdr{background:linear-gradient(135deg,#1a0800,#0a0f1e 55%);border-bottom:2px solid var(--acc);padding:10px 14px 0;position:sticky;top:0;z-index:100;box-shadow:0 2px 20px rgba(249,115,22,.25);}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;padding-bottom:8px;}
+.brand{display:flex;align-items:center;gap:9px;}
+.brand h1{font-size:14px;font-weight:800;color:var(--acc);line-height:1.1;}
+.brand p{font-size:9px;color:var(--t3);}
+.nav-tabs{display:flex;gap:0;overflow-x:auto;scrollbar-width:none;}
+.nav-tabs::-webkit-scrollbar{display:none;}
+.ntab{flex-shrink:0;background:transparent;border:none;color:var(--t3);padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;border-bottom:2px solid transparent;white-space:nowrap;}
+.ntab.active{color:var(--acc);border-bottom-color:var(--acc);}
+.ntab:hover{color:var(--txt);}
+
+/* PAGE SECTIONS */
+.page{display:none;} .page.active{display:block;}
+
+/* STATS BAR */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:8px 12px;background:var(--sf);border-bottom:1px solid var(--bd);}
+.sc{background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:7px 4px;text-align:center;}
+.sc .v{font-size:14px;font-weight:800;line-height:1;}
+.sc .l{font-size:9px;color:var(--t3);margin-top:2px;}
+.vo{color:var(--acc);}.vr{color:var(--red);}.vg{color:var(--grn);}.vy{color:var(--ylw);}
+
+/* DATE BAR */
+.dbar{background:var(--sf);border-bottom:1px solid var(--bd);padding:7px 12px;display:flex;gap:5px;align-items:center;flex-wrap:wrap;}
+.di{background:var(--sf2);border:1px solid var(--bd);color:var(--txt);border-radius:7px;padding:5px 7px;font-size:11px;font-family:inherit;outline:none;}
+.di:focus{border-color:var(--acc);}
+.dbn{background:var(--sf2);border:1px solid var(--bd);color:var(--t2);border-radius:7px;padding:5px 8px;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap;}
+.dbn.active{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:700;}
+
+/* STATUS TABS */
+.stabs{display:flex;gap:6px;padding:7px 12px;background:var(--sf);border-bottom:1px solid var(--bd);overflow-x:auto;scrollbar-width:none;}
+.stabs::-webkit-scrollbar{display:none;}
+.stab{flex-shrink:0;background:var(--sf2);border:1px solid var(--bd);color:var(--t2);border-radius:20px;padding:4px 11px;font-size:11px;cursor:pointer;}
+.stab.active{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:700;}
+
+/* SEARCH */
+.srch{padding:7px 12px;background:var(--sf);border-bottom:1px solid var(--bd);}
+.srch input{width:100%;background:var(--sf2);border:1px solid var(--bd);color:var(--txt);border-radius:8px;padding:7px 11px;font-size:12px;font-family:inherit;outline:none;}
+.srch input:focus{border-color:var(--acc);}
+.srch input::placeholder{color:var(--t3);}
+
+/* DATE GROUP HEADER */
+.dgh{display:flex;align-items:center;gap:8px;padding:10px 12px 4px;font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.5px;}
+.dgh::after{content:'';flex:1;height:1px;background:var(--bd);}
+
+/* CARD */
+.list{padding:8px 12px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:13px;padding:11px 12px 9px;margin-bottom:8px;cursor:pointer;transition:all .15s;position:relative;overflow:hidden;}
+.card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:4px 0 0 4px;}
+.card.pending::before{background:var(--red);}
+.card.paid::before{background:var(--grn);}
+.card:hover{border-color:var(--acc);transform:translateY(-1px);}
+.ct{display:flex;justify-content:space-between;align-items:flex-start;gap:6px;}
+.bno{font-size:20px;font-weight:900;color:var(--acc);}
+.badge{flex-shrink:0;border-radius:7px;padding:3px 8px;font-size:10px;font-weight:700;}
+.badge.pending{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3);}
+.badge.paid{background:rgba(34,197,94,.15);color:var(--grn);border:1px solid rgba(34,197,94,.3);}
+.cloc{font-size:12px;color:var(--t2);margin-top:2px;}
+.cph{font-size:11px;color:var(--t3);}
+.cmid{margin-top:6px;display:flex;gap:4px;flex-wrap:wrap;}
+.chip{background:var(--sf2);border:1px solid var(--bd);border-radius:5px;padding:2px 6px;font-size:11px;color:var(--t2);}
+.cbot{margin-top:7px;display:flex;justify-content:space-between;align-items:center;}
+.abig{font-size:19px;font-weight:900;color:var(--acc);}
+.apnd{font-size:12px;font-weight:700;color:var(--red);}
+.cact{display:flex;gap:5px;}
+.bsm{border:none;border-radius:7px;padding:5px 8px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;}
+.bwa{background:#25d366;color:#fff;}
+.bpay{background:rgba(34,197,94,.15);color:var(--grn);border:1px solid rgba(34,197,94,.4);}
+.cnote{font-size:10px;color:var(--t3);margin-top:4px;}
+
+/* FAB */
+.fab{position:fixed;bottom:20px;right:16px;z-index:200;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;border:none;border-radius:50%;width:54px;height:54px;font-size:26px;box-shadow:0 6px 24px rgba(249,115,22,.5);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.fab:hover{transform:scale(1.08);}
+
+/* MODAL */
+.mbg{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.8);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center;}
+.mbg.open{display:flex;}
+.modal{background:var(--sf);border:1px solid var(--bd);border-radius:20px 20px 0 0;width:100%;max-width:540px;max-height:92vh;overflow-y:auto;padding:18px 16px 30px;animation:su .25s ease;}
+@keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.mhdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:13px;}
+.mtl{font-size:15px;font-weight:800;}
+.xb{background:var(--sf2);border:1px solid var(--bd);color:var(--t2);border-radius:7px;width:28px;height:28px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;}
+
+/* FORM */
+.fg{margin-bottom:9px;}
+.fl{font-size:10px;color:var(--t3);font-weight:700;letter-spacing:.4px;margin-bottom:3px;display:block;}
+.fi,.fsl,.fta{width:100%;background:var(--sf2);border:1px solid var(--bd);color:var(--txt);border-radius:8px;padding:9px 11px;font-size:13px;font-family:inherit;outline:none;}
+.fi:focus,.fsl:focus,.fta:focus{border-color:var(--acc);}
+.fsl option{background:var(--sf2);}
+.fta{resize:vertical;min-height:50px;}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.irow{display:grid;grid-template-columns:1fr 50px 65px 25px;gap:4px;align-items:center;margin-bottom:4px;}
+.idl{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:var(--red);border-radius:6px;width:25px;height:25px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;}
+.iadd{background:var(--sf2);border:1px dashed var(--bd);color:var(--t2);border-radius:7px;padding:5px;width:100%;cursor:pointer;font-size:11px;font-family:inherit;}
+.iadd:hover{border-color:var(--acc);color:var(--acc);}
+.totb{background:var(--sf2);border:1px solid var(--bd);border-radius:8px;padding:9px 11px;margin-bottom:9px;display:flex;justify-content:space-between;align-items:center;}
+.totv{font-size:20px;font-weight:900;color:var(--acc);}
+.sbtn{width:100%;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 4px 16px rgba(249,115,22,.4);}
+.cbtn{width:100%;background:transparent;border:1px solid var(--bd);color:var(--t3);border-radius:10px;padding:9px;font-size:12px;cursor:pointer;font-family:inherit;margin-top:6px;}
+.sec{font-size:10px;color:var(--t3);font-weight:700;letter-spacing:.4px;margin-bottom:6px;}
+hr{border:none;border-top:1px solid var(--bd);margin:10px 0;}
+
+/* DETAIL */
+.dg2{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.dg3{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;text-align:center;}
+.dbox{background:var(--sf2);border-radius:9px;padding:9px 10px;}
+.dbox .dv{font-size:16px;font-weight:800;line-height:1;}
+.dbox .dl{font-size:9px;color:var(--t3);margin-top:2px;}
+.ditr{display:flex;justify-content:space-between;background:var(--sf2);border-radius:7px;padding:6px 9px;font-size:12px;margin-bottom:3px;}
+
+/* PAYMENT BUTTONS after marking paid */
+.pay-action-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
+.pabtn{border:none;border-radius:10px;padding:11px 8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;text-align:center;}
+
+/* WA BOXES */
+.wa-box{border-radius:9px;padding:10px 12px;font-size:11px;white-space:pre-wrap;line-height:1.6;font-family:monospace;margin-bottom:7px;}
+.wa-grn{background:#0a1a0f;border:1px solid #25d366;color:#dcf8c6;}
+.wa-blu{background:#0a0e1a;border:1px solid var(--blu);color:#bfdbfe;}
+.wa-red{background:#1a0a0a;border:1px solid var(--red);color:#fecaca;}
+.wa-ylw{background:#1a1400;border:1px solid var(--ylw);color:#fef08a;}
+.wasbtn{width:100%;border:none;border-radius:10px;padding:10px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;margin-bottom:7px;}
+.wabtn-grn{background:#25d366;color:#fff;}
+.wabtn-blu{background:var(--blu);color:#fff;}
+.wabtn-red{background:var(--red);color:#fff;}
+.wabtn-sms{background:var(--sf2);border:1px solid var(--bd);color:var(--t2);}
+
+/* CASH PAGE */
+.cash-header{padding:12px;background:var(--sf);border-bottom:1px solid var(--bd);}
+.cash-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:10px 12px;}
+.cash-big{background:linear-gradient(135deg,#1a0800,var(--sf2));border:1px solid var(--acc);border-radius:12px;padding:14px;text-align:center;grid-column:span 2;}
+.cash-big .cv{font-size:28px;font-weight:900;color:var(--acc);}
+.cash-big .cl{font-size:10px;color:var(--t3);}
+.txn-row{background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:10px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;}
+.txn-row .ta{font-size:12px;font-weight:700;}
+.txn-in{color:var(--grn);}
+.txn-out{color:var(--red);}
+
+/* STAFF PAGE */
+.staff-card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:8px;cursor:pointer;}
+.staff-card:hover{border-color:var(--acc);}
+.sname{font-size:14px;font-weight:800;}
+.srole{font-size:11px;color:var(--t3);}
+.s-owed{font-size:16px;font-weight:800;color:var(--grn);}
+.s-adv{font-size:12px;color:var(--red);}
+
+/* TOAST */
+.toast{position:fixed;bottom:82px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--grn);color:#fff;border-radius:9px;padding:9px 15px;font-size:12px;font-weight:700;z-index:1000;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.err{background:var(--red);}
+
+.empty{text-align:center;padding:40px 20px;color:var(--t3);}
+.empty .big{font-size:40px;margin-bottom:8px;}
+@media(max-width:380px){.stats{grid-template-columns:repeat(2,1fr);}.irow{grid-template-columns:1fr 44px 58px 23px;}}
+</style>
+</head>
+<body>
+
+<!-- ══════════════ HEADER / NAV ══════════════ -->
+<div class="hdr">
+  <div class="hdr-top">
+    <div class="brand">
+      <span style="font-size:22px">🍛</span>
+      <div><h1>Marwad Rasoi</h1><p>Udhari · Cash · Staff · Barmer</p></div>
+    </div>
+    <button style="background:var(--sf2);border:1px solid var(--bd);color:var(--t2);border-radius:8px;padding:6px 9px;cursor:pointer;font-size:11px;font-family:inherit;" onclick="openCSV()">📊 CSV</button>
+  </div>
+  <div class="nav-tabs">
+    <button class="ntab active" onclick="showPage('udhari',this)">🧾 Udhari</button>
+    <button class="ntab" onclick="showPage('cash',this)">💵 Cash</button>
+    <button class="ntab" onclick="showPage('staff',this)">👨‍🍳 Staff</button>
+  </div>
+</div>
+
+<!-- ══════════════ UDHARI PAGE ══════════════ -->
+<div class="page active" id="pg_udhari">
+  <div class="stats">
+    <div class="sc"><div class="v vo" id="s1">0</div><div class="l">Total Bills</div></div>
+    <div class="sc"><div class="v vr" id="s2">₹0</div><div class="l">⏳ Pending</div></div>
+    <div class="sc"><div class="v vg" id="s3">₹0</div><div class="l">✅ Received</div></div>
+    <div class="sc"><div class="v vy" id="s4">0</div><div class="l">Pending Bills</div></div>
+  </div>
+  <div class="dbar">
+    <span style="font-size:10px;color:var(--t3);font-weight:700">📅</span>
+    <button class="dbn active" id="dq_all" onclick="setDQ('all',this)">All</button>
+    <button class="dbn" id="dq_td" onclick="setDQ('today',this)">Today</button>
+    <button class="dbn" id="dq_wk" onclick="setDQ('week',this)">7 Days</button>
+    <button class="dbn" id="dq_mn" onclick="setDQ('month',this)">Month</button>
+    <input class="di" type="date" id="dFrom" onchange="setDR()">
+    <span style="font-size:10px;color:var(--t3)">—</span>
+    <input class="di" type="date" id="dTo" onchange="setDR()">
+    <button class="dbn" onclick="clearD()" style="color:var(--red)">✕</button>
+  </div>
+  <div class="stabs">
+    <div class="stab active" onclick="setTab('all',this)">📋 All <span id="tc0"></span></div>
+    <div class="stab" onclick="setTab('pending',this)">⏳ Pending <span id="tc1"></span></div>
+    <div class="stab" onclick="setTab('paid',this)">✅ Settled <span id="tc2"></span></div>
+  </div>
+  <div class="srch"><input type="text" id="srchQ" placeholder="🔍 Bill No, Location, Mobile…" oninput="renderU()"></div>
+  <div class="list" id="uList"></div>
+  <div class="empty" id="uEmpty" style="display:none"><div class="big">📭</div><p>No bills found</p><p style="font-size:11px;margin-top:5px">Tap + to add a new bill or import CSV</p></div>
+  <button class="fab" onclick="openAdd()">＋</button>
+</div>
+
+<!-- ══════════════ CASH PAGE ══════════════ -->
+<div class="page" id="pg_cash">
+  <div class="cash-header" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+    <button class="dbn active" id="cq_td" onclick="setCDQ('today',this)">Today</button>
+    <button class="dbn" id="cq_wk" onclick="setCDQ('week',this)">7 Days</button>
+    <button class="dbn" id="cq_mn" onclick="setCDQ('month',this)">Month</button>
+    <button class="dbn" id="cq_all" onclick="setCDQ('all',this)">All</button>
+    <input class="di" type="date" id="cdFrom" onchange="setCDR()">
+    <span style="font-size:10px;color:var(--t3)">—</span>
+    <input class="di" type="date" id="cdTo" onchange="setCDR()">
+  </div>
+  <div class="cash-cards">
+    <div class="cash-big">
+      <div class="cv" id="cashBalance">₹0</div>
+      <div class="cl">💵 CURRENT CASH BALANCE</div>
+    </div>
+    <div class="sc" style="border-radius:10px;padding:10px"><div class="v vg" id="cashIn">₹0</div><div class="l">Cash In (period)</div></div>
+    <div class="sc" style="border-radius:10px;padding:10px"><div class="v vr" id="cashOut">₹0</div><div class="l">Cash Out (period)</div></div>
+  </div>
+  <div style="padding:0 12px 10px;display:flex;gap:8px">
+    <button class="sbtn" style="font-size:12px;padding:10px" onclick="openCashTxn('in')">＋ Cash In</button>
+    <button class="sbtn" style="font-size:12px;padding:10px;background:linear-gradient(135deg,var(--red),#f87171)" onclick="openCashTxn('out')">− Cash Out</button>
+    <button class="sbtn" style="font-size:12px;padding:10px;background:linear-gradient(135deg,#1d4ed8,var(--blu))" onclick="openCashTxn('opening')">🏦 Set Opening</button>
+  </div>
+  <div style="padding:0 12px">
+    <div class="sec">📋 TRANSACTIONS</div>
+    <div id="cashList"></div>
+  </div>
+</div>
+
+<!-- ══════════════ STAFF PAGE ══════════════ -->
+<div class="page" id="pg_staff">
+  <div style="padding:10px 12px;background:var(--sf);border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center">
+    <div class="sec" style="margin:0">👨‍🍳 STAFF — <span id="staffCount">0</span> Members</div>
+    <button class="sbtn" style="width:auto;padding:7px 13px;font-size:12px" onclick="openAddStaff()">＋ Add Staff</button>
+  </div>
+  <div style="padding:8px 12px;background:var(--sf);border-bottom:1px solid var(--bd)">
+    <div class="sec" style="margin-bottom:4px">📅 TODAY: <span id="todayStr"></span></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap" id="attendanceBtns"></div>
+  </div>
+  <div class="list" id="staffList"></div>
+  <div class="empty" id="staffEmpty" style="display:none"><div class="big">👨‍🍳</div><p>No staff added yet</p></div>
+</div>
+
+<!-- ══════════════ MODALS ══════════════ -->
+
+<!-- ADD/EDIT BILL -->
+<div class="mbg" id="addM"><div class="modal">
+  <div class="mhdr"><div class="mtl" id="addT">📥 New Bill</div><button class="xb" onclick="cm('addM')">✕</button></div>
+  <input type="hidden" id="eid">
+  <div class="fr">
+    <div class="fg"><label class="fl">🧾 BILL NO *</label><input class="fi" id="f_bn" placeholder="e.g. 42"></div>
+    <div class="fg"><label class="fl">📅 DATE *</label><input class="fi" type="date" id="f_dt"></div>
+  </div>
+  <div class="fg"><label class="fl">📍 DELIVERY LOCATION *</label><input class="fi" id="f_loc" placeholder="Jalipa, Barmer Cantt, Jasai…"></div>
+  <div class="fr">
+    <div class="fg"><label class="fl">📱 MOBILE (WhatsApp) *</label><input class="fi" id="f_ph" placeholder="9876543210" type="tel"></div>
+    <div class="fg"><label class="fl">📝 NOTE</label><input class="fi" id="f_nt" placeholder="Extra info"></div>
+  </div>
+  <div class="fg">
+    <label class="fl">🍽️ ITEMS (Name · Qty · ₹/piece)</label>
+    <div id="iList"></div>
+    <button class="iadd" onclick="addRow()">＋ Add Item</button>
+  </div>
+  <div class="totb"><div style="font-size:11px;color:var(--t3)">💰 Total Amount</div><div class="totv" id="totD">₹0</div></div>
+  <button class="sbtn" onclick="saveBill()">💾 Save Bill</button>
+  <button class="cbtn" onclick="cm('addM')">Cancel</button>
+</div></div>
+
+<!-- BILL DETAIL -->
+<div class="mbg" id="detM"><div class="modal">
+  <div class="mhdr">
+    <div><div class="mtl" id="d_bn">BILL —</div><div style="font-size:11px;color:var(--t3)" id="d_st">—</div></div>
+    <button class="xb" onclick="cm('detM')">✕</button>
+  </div>
+  <div class="dg2" style="margin-bottom:10px">
+    <div class="dbox"><div style="font-size:9px;color:var(--t3)">📍 LOCATION</div><div style="font-size:13px;font-weight:700;margin-top:2px" id="d_loc">—</div></div>
+    <div class="dbox"><div style="font-size:9px;color:var(--t3)">📱 MOBILE</div><div style="font-size:13px;font-weight:700;margin-top:2px" id="d_ph">—</div></div>
+    <div class="dbox"><div style="font-size:9px;color:var(--t3)">📅 DATE</div><div style="font-size:13px;font-weight:700;margin-top:2px" id="d_dt">—</div></div>
+    <div class="dbox"><div style="font-size:9px;color:var(--t3)">💳 PAY MODE</div><div style="font-size:13px;font-weight:700;margin-top:2px" id="d_pm">—</div></div>
+  </div>
+  <div class="sec">🍽️ ITEMS</div>
+  <div id="d_its" style="margin-bottom:10px"></div>
+  <div class="dg3" style="margin-bottom:12px">
+    <div class="dbox"><div class="dv vo" id="d_tot">₹0</div><div class="dl">Total</div></div>
+    <div class="dbox"><div class="dv vg" id="d_paid">₹0</div><div class="dl">Received</div></div>
+    <div class="dbox"><div class="dv vr" id="d_pnd">₹0</div><div class="dl">Pending</div></div>
+  </div>
+
+  <!-- PAYMENT SECTION (only for pending) -->
+  <div id="paySec">
+    <div class="sec">💰 MARK PAYMENT</div>
+    <div class="fg">
+      <label class="fl">💳 PAYMENT MODE *</label>
+      <select class="fsl" id="pay_mode">
+        <option value="">— Select Mode —</option>
+        <option value="BharatPe">BharatPe</option>
+        <option value="Cash">Cash</option>
+        <option value="UPI - Kamla Kanwar">UPI — Kamla Kanwar</option>
+        <option value="UPI - Charan Kanchan">UPI — Charan Kanchan</option>
+        <option value="UPI - MH Wet Canteen">UPI — MH Wet Canteen</option>
+        <option value="UPI - Vikram">UPI — Vikram</option>
+        <option value="UPI - Other">UPI — Other</option>
+        <option value="Any">Any / Other</option>
+      </select>
+    </div>
+    <div class="fr" style="margin-bottom:10px">
+      <div class="fg"><label class="fl">📅 PAYMENT DATE</label><input class="fi" type="date" id="pay_dt"></div>
+      <div class="fg"><label class="fl">📝 NOTE</label><input class="fi" id="pay_note" placeholder="Optional"></div>
+    </div>
+    <button class="sbtn" onclick="markPaid()">✅ Mark as FULLY SETTLED</button>
+  </div>
+
+  <!-- PAYMENT DONE SECTION -->
+  <div id="paidSec" style="display:none">
+    <div class="sec">✅ BILL SETTLED — Send Notifications</div>
+    <div class="pay-action-grid">
+      <button class="pabtn" style="background:#25d366;color:#fff" onclick="sendMsg('thanks')">📲 Thank Customer</button>
+      <button class="pabtn" style="background:var(--blu);color:#fff" onclick="sendMsg('manager')">👔 Notify Manager</button>
+      <button class="pabtn" style="background:var(--sf2);border:1px solid var(--bd);color:var(--t2)" onclick="sendMsg('sms')">📱 Send SMS</button>
+      <button class="pabtn" style="background:var(--sf2);border:1px solid var(--bd);color:var(--t2)" onclick="copyMsg('thanks')">📋 Copy Message</button>
+    </div>
+  </div>
+
+  <hr>
+  <div class="sec">📲 REMINDERS</div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+    <button class="wasbtn wabtn-blu" style="flex:1;margin:0" onclick="sendMsg('r1')">📩 Reminder 1</button>
+    <button class="wasbtn wabtn-red" style="flex:1;margin:0" onclick="sendMsg('r2')">🔔 Reminder 2</button>
+    <button class="wasbtn wabtn-sms" style="flex:1;margin:0" onclick="sendMsg('smsr')">📱 SMS Reminder</button>
+  </div>
+
+  <hr>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+    <button style="padding:9px;background:var(--sf2);border:1px solid var(--bd);color:var(--t2);border-radius:9px;cursor:pointer;font-size:12px;font-family:inherit" onclick="editB()">✏️ Edit</button>
+    <button style="padding:9px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:var(--red);border-radius:9px;cursor:pointer;font-size:12px;font-family:inherit" onclick="delB()">🗑️ Delete</button>
+  </div>
+</div></div>
+
+<!-- MESSAGE PREVIEW MODAL -->
+<div class="mbg" id="msgM"><div class="modal">
+  <div class="mhdr"><div class="mtl" id="msgTitle">Message</div><button class="xb" onclick="cm('msgM')">✕</button></div>
+  <div class="wa-box wa-grn" id="msgPreview" style="font-size:11px;max-height:300px;overflow-y:auto"></div>
+  <button class="wasbtn wabtn-grn" onclick="sendMsgWA()">📲 Open in WhatsApp</button>
+  <button class="wasbtn wabtn-sms" onclick="copyMsgText()">📋 Copy Text</button>
+  <button class="cbtn" onclick="cm('msgM')">Close</button>
+</div></div>
+
+<!-- CASH TXN MODAL -->
+<div class="mbg" id="cashM"><div class="modal">
+  <div class="mhdr"><div class="mtl" id="cashT">Cash Transaction</div><button class="xb" onclick="cm('cashM')">✕</button></div>
+  <input type="hidden" id="cashType">
+  <div class="fr">
+    <div class="fg"><label class="fl">📅 DATE *</label><input class="fi" type="date" id="ct_dt"></div>
+    <div class="fg"><label class="fl">💰 AMOUNT (₹) *</label><input class="fi" type="number" id="ct_amt" min="0" placeholder="0"></div>
+  </div>
+  <div class="fg"><label class="fl">📂 CATEGORY</label>
+    <select class="fsl" id="ct_cat">
+      <option value="Opening Balance">Opening Balance</option>
+      <option value="Udhari Payment">Udhari Payment — Cash</option>
+      <option value="Local Sale">Local / Counter Sale</option>
+      <option value="Other Income">Other Income</option>
+      <option value="Petrol / Vehicle">Petrol / Vehicle</option>
+      <option value="Staff Salary">Staff Salary</option>
+      <option value="Staff Advance">Staff Advance</option>
+      <option value="Raw Material">Raw Material / Kirana</option>
+      <option value="Misc Expense">Misc Expense</option>
+    </select>
+  </div>
+  <div class="fg"><label class="fl">📝 NOTE</label><input class="fi" id="ct_nt" placeholder="Details…"></div>
+  <button class="sbtn" onclick="saveCashTxn()">💾 Save</button>
+  <button class="cbtn" onclick="cm('cashM')">Cancel</button>
+</div></div>
+
+<!-- ADD STAFF MODAL -->
+<div class="mbg" id="staffM"><div class="modal">
+  <div class="mhdr"><div class="mtl" id="staffT">Add Staff</div><button class="xb" onclick="cm('staffM')">✕</button></div>
+  <input type="hidden" id="seid">
+  <div class="fr">
+    <div class="fg"><label class="fl">👤 NAME *</label><input class="fi" id="s_nm" placeholder="Ganesh Nepali"></div>
+    <div class="fg"><label class="fl">📱 MOBILE</label><input class="fi" id="s_ph" placeholder="9876543210" type="tel"></div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label class="fl">🎯 ROLE / POST</label>
+      <select class="fsl" id="s_role">
+        <option>Cook</option><option>Tandoor Master</option><option>Helper</option>
+        <option>Waiter</option><option>Dishwasher</option><option>Manager</option><option>Driver</option><option>Other</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">💰 MONTHLY SALARY (₹)</label><input class="fi" id="s_sal" type="number" min="0" placeholder="0"></div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label class="fl">📅 JOINING DATE</label><input class="fi" type="date" id="s_jd"></div>
+    <div class="fg"><label class="fl">📝 NOTE</label><input class="fi" id="s_nt" placeholder="Optional"></div>
+  </div>
+  <button class="sbtn" onclick="saveStaff()">💾 Save Staff</button>
+  <button class="cbtn" onclick="cm('staffM')">Cancel</button>
+</div></div>
+
+<!-- STAFF DETAIL MODAL -->
+<div class="mbg" id="sdetM"><div class="modal">
+  <div class="mhdr">
+    <div><div class="mtl" id="sd_nm">—</div><div style="font-size:11px;color:var(--t3)" id="sd_role">—</div></div>
+    <button class="xb" onclick="cm('sdetM')">✕</button>
+  </div>
+  <div class="dg3" style="margin-bottom:10px">
+    <div class="dbox"><div class="dv vg" id="sd_earned">₹0</div><div class="dl">Earned Till Today</div></div>
+    <div class="dbox"><div class="dv vr" id="sd_adv">₹0</div><div class="dl">Advance Taken</div></div>
+    <div class="dbox"><div class="dv vo" id="sd_net">₹0</div><div class="dl">Net Payable</div></div>
+  </div>
+  <div class="dg2" style="margin-bottom:10px">
+    <div class="dbox"><div style="font-size:9px;color:var(--t3)">💰 MONTHLY SALARY</div><div style="font-size:14px;font-weight:800;margin-top:2px" id="sd_sal">—</div></div>
+    <div class="dbox"><div style="font-size:9px;color:var(--t3)">📅 JOINING</div><div style="font-size:14px;font-weight:800;margin-top:2px" id="sd_jd">—</div></div>
+  </div>
+
+  <div class="sec">📅 THIS MONTH ATTENDANCE</div>
+  <div id="sd_att" style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px"></div>
+
+  <div class="sec">💰 ADVANCE / DEDUCTION</div>
+  <div class="fr" style="margin-bottom:8px">
+    <input class="fi" id="sadv_amt" type="number" min="0" placeholder="₹ Amount">
+    <input class="fi" id="sadv_note" placeholder="Reason">
+  </div>
+  <div style="display:flex;gap:7px;margin-bottom:10px">
+    <button style="flex:1;padding:9px;background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.4);border-radius:9px;cursor:pointer;font-size:12px;font-weight:700;font-family:inherit" onclick="addAdvance()">➖ Advance Given</button>
+    <button style="flex:1;padding:9px;background:rgba(34,197,94,.15);color:var(--grn);border:1px solid rgba(34,197,94,.4);border-radius:9px;cursor:pointer;font-size:12px;font-weight:700;font-family:inherit" onclick="addAdvance(-1)">✅ Salary Paid</button>
+  </div>
+
+  <div class="sec">📋 ADVANCE HISTORY</div>
+  <div id="sd_advhist" style="max-height:130px;overflow-y:auto;margin-bottom:10px"></div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+    <button style="padding:9px;background:var(--sf2);border:1px solid var(--bd);color:var(--t2);border-radius:9px;cursor:pointer;font-size:12px;font-family:inherit" onclick="editStaff()">✏️ Edit</button>
+    <button style="padding:9px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:var(--red);border-radius:9px;cursor:pointer;font-size:12px;font-family:inherit" onclick="delStaff()">🗑️ Remove</button>
+  </div>
+</div></div>
+
+<!-- CSV MODAL -->
+<div class="mbg" id="csvM"><div class="modal">
+  <div class="mhdr"><div class="mtl">📊 CSV Import / Export</div><button class="xb" onclick="cm('csvM')">✕</button></div>
+  <div style="background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:12px;margin-bottom:10px">
+    <div class="sec">⬇️ EXPORT</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="sbtn" style="width:auto;padding:7px 12px;font-size:11px;background:linear-gradient(135deg,var(--grn),#16a34a)" onclick="expCSV('all')">All Bills</button>
+      <button class="sbtn" style="width:auto;padding:7px 12px;font-size:11px;background:linear-gradient(135deg,var(--red),#dc2626)" onclick="expCSV('pending')">Pending Only</button>
+      <button class="sbtn" style="width:auto;padding:7px 12px;font-size:11px;background:linear-gradient(135deg,var(--blu),#2563eb)" onclick="dlTemplate()">📄 Template</button>
+    </div>
+  </div>
+  <div style="background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:12px;margin-bottom:10px">
+    <div class="sec">⬆️ IMPORT CSV</div>
+    <p style="font-size:11px;color:var(--t3);margin-bottom:6px">Format: <code style="color:var(--acc)">bill_no,date,location,mobile,items,total,status,note</code></p>
+    <textarea class="fta" id="csvP" placeholder="1,2025-01-20,Jalipa,9876543210,Dal Bati×4=480|Thali×2=300,780,pending,
+2,2025-01-21,Barmer Cantt,9765432100,Laal Maas×3=600,600,paid,BharatPe"></textarea>
+    <button class="sbtn" style="margin-top:7px;font-size:12px;padding:10px" onclick="impCSV()">⚡ Import</button>
+  </div>
+  <button class="cbtn" onclick="cm('csvM')">Close</button>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════ DATA ════════
+const K={bills:'mrk_bills_v3',cash:'mrk_cash_v1',staff:'mrk_staff_v1'};
+let bills=JSON.parse(localStorage.getItem(K.bills)||'[]');
+let cash=JSON.parse(localStorage.getItem(K.cash)||'[]');
+let staffList=JSON.parse(localStorage.getItem(K.staff)||'[]');
+let curTab='all',curDId=null,curStId=null,curCDFrom='',curCDTo='',dFrom='',dTo='',curMsg='',curMsgPhone='';
+
+const MANAGER_PHONE='9166753417'; // Swroop Sa
+
+function saveB(){localStorage.setItem(K.bills,JSON.stringify(bills));}
+function saveC(){localStorage.setItem(K.cash,JSON.stringify(cash));}
+function saveS(){localStorage.setItem(K.staff,JSON.stringify(staffList));}
+function today(){return new Date().toISOString().slice(0,10);}
+function daysAgo(n){const d=new Date();d.setDate(d.getDate()-n);return d.toISOString().slice(0,10);}
+function monthStart(){const d=new Date();d.setDate(1);return d.toISOString().slice(0,10);}
+function fmtDate(d){if(!d)return'—';try{return new Date(d+'T00:00:00').toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});}catch{return d;}}
+function fmtDateShort(d){if(!d)return'—';try{return new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});}catch{return d;}}
+function nowTime(){return new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});}
+function nextBN(){let mx=0;bills.forEach(b=>{const n=parseInt(b.billNo);if(!isNaN(n)&&n>mx)mx=n;});return String(mx+1);}
+
+// ════════ PAGE NAV ════════
+function showPage(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('pg_'+id).classList.add('active');
+  el.classList.add('active');
+  if(id==='cash') renderCash();
+  if(id==='staff') renderStaff();
+}
+
+// ════════ DATE FILTERS ════════
+function setDQ(m,el){document.querySelectorAll('.dbn').forEach(b=>b.classList.remove('active'));el.classList.add('active');if(m==='all'){dFrom=dTo='';}else if(m==='today'){dFrom=dTo=today();}else if(m==='week'){dFrom=daysAgo(6);dTo=today();}else if(m==='month'){dFrom=monthStart();dTo=today();}document.getElementById('dFrom').value=dFrom;document.getElementById('dTo').value=dTo;renderU();}
+function setDR(){dFrom=document.getElementById('dFrom').value;dTo=document.getElementById('dTo').value;document.querySelectorAll('.dbn').forEach(b=>b.classList.remove('active'));renderU();}
+function clearD(){dFrom=dTo='';document.getElementById('dFrom').value='';document.getElementById('dTo').value='';document.querySelectorAll('.dbn').forEach(b=>b.classList.remove('active'));document.getElementById('dq_all').classList.add('active');renderU();}
+function inR(d,f,t){if(!f&&!t)return true;if(f&&d<f)return false;if(t&&d>t)return false;return true;}
+
+// ════════ UDHARI RENDER ════════
+function renderU(){
+  const q=document.getElementById('srchQ').value.toLowerCase();
+  let filt=bills.filter(b=>{
+    if(curTab!=='all'&&b.status!==curTab)return false;
+    if(!inR(b.date||'',dFrom,dTo))return false;
+    if(q)return String(b.billNo).toLowerCase().includes(q)||(b.location||'').toLowerCase().includes(q)||(b.phone||'').includes(q);
+    return true;
+  });
+  filt.sort((a,b)=>{if(a.status!==b.status)return a.status==='pending'?-1:1;return(b.date||'')>(a.date||'')?1:-1;});
+
+  const inD=bills.filter(b=>inR(b.date||'',dFrom,dTo));
+  document.getElementById('tc0').textContent=inD.length?` (${inD.length})`:'';
+  document.getElementById('tc1').textContent=inD.filter(b=>b.status==='pending').length?` (${inD.filter(b=>b.status==='pending').length})`:'';
+  document.getElementById('tc2').textContent=inD.filter(b=>b.status==='paid').length?` (${inD.filter(b=>b.status==='paid').length})`:'';
+  document.getElementById('s1').textContent=inD.length;
+  document.getElementById('s2').textContent='₹'+inD.filter(b=>b.status==='pending').reduce((s,b)=>s+(b.total||0),0).toLocaleString('hi');
+  document.getElementById('s3').textContent='₹'+inD.filter(b=>b.status==='paid').reduce((s,b)=>s+(b.total||0),0).toLocaleString('hi');
+  document.getElementById('s4').textContent=inD.filter(b=>b.status==='pending').length;
+
+  const wrap=document.getElementById('uList'),emp=document.getElementById('uEmpty');
+  if(!filt.length){wrap.innerHTML='';emp.style.display='block';return;}
+  emp.style.display='none';
+
+  const grps={};filt.forEach(b=>{const k=b.date||'No Date';if(!grps[k])grps[k]=[];grps[k].push(b);});
+  let html='';
+  Object.keys(grps).sort((a,b)=>b>a?1:-1).forEach(dk=>{
+    const dT=grps[dk].reduce((s,b)=>s+(b.total||0),0);
+    const dP=grps[dk].filter(b=>b.status==='pending').reduce((s,b)=>s+(b.total||0),0);
+    html+=`<div class="dgh">📅 ${fmtDate(dk)} <span style="color:var(--acc);font-size:10px">₹${dT.toLocaleString('hi')} total · Pending ₹${dP.toLocaleString('hi')}</span></div>`;
+    grps[dk].forEach(b=>{
+      const its=(b.items&&b.items.length)?b.items.map(i=>i.name+'×'+i.qty).join(', '):(b.itemsRaw||'—');
+      html+=`<div class="card ${b.status}" onclick="opDet('${b.id}')">
+        <div class="ct"><div><div class="bno">BILL #${b.billNo}</div><div class="cloc">📍 ${b.location||'—'}</div><div class="cph">📱 ${b.phone||'—'}</div></div>
+        <div class="badge ${b.status}">${b.status==='paid'?'✅ Settled':'⏳ Pending'}</div></div>
+        <div class="cmid"><div class="chip">🍽️ ${its.length>45?its.slice(0,45)+'…':its}</div>${b.paymode?`<div class="chip">💳 ${b.paymode}</div>`:''}</div>
+        <div class="cbot"><div><div class="abig">₹${(b.total||0).toLocaleString('hi')}</div>${b.status==='pending'?`<div class="apnd">Pending ₹${(b.total||0).toLocaleString('hi')}</div>`:'<div style="font-size:11px;color:var(--grn)">Fully Settled ✅</div>'}</div>
+        <div class="cact"><button class="bsm bwa" onclick="event.stopPropagation();qRemind('${b.id}')">📲</button>${b.status==='pending'?`<button class="bsm bpay" onclick="event.stopPropagation();opDet('${b.id}')">💰 Pay</button>`:''}</div></div>
+        ${b.note?`<div class="cnote">📝 ${b.note}</div>`:''}
+      </div>`;
+    });
+  });
+  wrap.innerHTML=html;
+}
+function setTab(t,el){curTab=t;document.querySelectorAll('.stab').forEach(x=>x.classList.remove('active'));el.classList.add('active');renderU();}
+
+// ════════ ADD BILL ════════
+function openAdd(){
+  document.getElementById('eid').value='';document.getElementById('addT').textContent='📥 New Bill';
+  document.getElementById('f_bn').value=nextBN();document.getElementById('f_dt').value=today();
+  ['f_loc','f_ph','f_nt'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('iList').innerHTML='';addRow();calcT();om('addM');
+}
+function addRow(n='',q='',p=''){
+  const d=document.createElement('div');d.className='irow';
+  d.innerHTML=`<input class="fi" placeholder="Item" value="${n}" oninput="calcT()"><input class="fi" placeholder="Qty" type="number" min="1" value="${q}" oninput="calcT()"><input class="fi" placeholder="₹/pc" type="number" min="0" value="${p}" oninput="calcT()"><button class="idl" onclick="this.parentElement.remove();calcT()">✕</button>`;
+  document.getElementById('iList').appendChild(d);calcT();
+}
+function calcT(){let t=0;document.querySelectorAll('#iList .irow').forEach(r=>{const i=r.querySelectorAll('input');t+=(parseFloat(i[1].value)||1)*(parseFloat(i[2].value)||0);});document.getElementById('totD').textContent='₹'+t.toLocaleString('hi');}
+function getIts(){const its=[];document.querySelectorAll('#iList .irow').forEach(r=>{const i=r.querySelectorAll('input');const n=i[0].value.trim();if(!n)return;its.push({name:n,qty:parseFloat(i[1].value)||1,price:parseFloat(i[2].value)||0});});return its;}
+function saveBill(){
+  const bn=document.getElementById('f_bn').value.trim(),loc=document.getElementById('f_loc').value.trim(),ph=document.getElementById('f_ph').value.trim();
+  if(!bn){toast('❌ Bill No required',true);return;}if(!loc){toast('❌ Location required',true);return;}if(!ph){toast('❌ Mobile required',true);return;}
+  const its=getIts(),total=its.reduce((s,i)=>s+i.qty*i.price,0);
+  const eid=document.getElementById('eid').value;
+  const bill={id:eid||('b'+Date.now()),billNo:bn,date:document.getElementById('f_dt').value,location:loc,phone:ph,items:its,total,status:eid?(bills.find(b=>b.id===eid)?.status||'pending'):'pending',note:document.getElementById('f_nt').value.trim(),paymode:'',payDate:'',payments:[],createdAt:eid?(bills.find(b=>b.id===eid)?.createdAt||Date.now()):Date.now()};
+  if(eid){const i=bills.findIndex(b=>b.id===eid);if(i>-1)bills[i]=bill;}else bills.unshift(bill);
+  saveB();renderU();cm('addM');toast(eid?'✅ Bill Updated!':'✅ Bill Saved!');
+}
+
+// ════════ DETAIL ════════
+function opDet(id){
+  const b=bills.find(x=>x.id===id);if(!b)return;
+  curDId=id;
+  document.getElementById('d_bn').textContent='BILL #'+b.billNo;
+  document.getElementById('d_st').textContent=b.status==='paid'?`✅ Settled on ${fmtDateShort(b.payDate)} via ${b.paymode}`:'⏳ Payment Pending';
+  document.getElementById('d_loc').textContent=b.location||'—';document.getElementById('d_ph').textContent=b.phone||'—';document.getElementById('d_dt').textContent=fmtDate(b.date)||'—';document.getElementById('d_pm').textContent=b.paymode||'—';
+  document.getElementById('d_its').innerHTML=(b.items&&b.items.length)?b.items.map(i=>`<div class="ditr"><span style="color:var(--t2)">${i.name} × ${i.qty}</span><span style="font-weight:700">₹${(i.qty*i.price).toLocaleString('hi')}</span></div>`).join(''):`<div class="ditr"><span style="color:var(--t2)">${b.itemsRaw||'—'}</span></div>`;
+  document.getElementById('d_tot').textContent='₹'+(b.total||0).toLocaleString('hi');
+  document.getElementById('d_paid').textContent=b.status==='paid'?'₹'+(b.total||0).toLocaleString('hi'):'₹0';
+  document.getElementById('d_pnd').textContent=b.status==='paid'?'₹0':'₹'+(b.total||0).toLocaleString('hi');
+  document.getElementById('paySec').style.display=b.status==='pending'?'block':'none';
+  document.getElementById('paidSec').style.display=b.status==='paid'?'block':'none';
+  document.getElementById('pay_mode').value='';document.getElementById('pay_dt').value=today();document.getElementById('pay_note').value='';
+  om('detM');
+}
+
+function markPaid(){
+  const b=bills.find(x=>x.id===curDId);if(!b)return;
+  const mode=document.getElementById('pay_mode').value;if(!mode){toast('❌ Select Payment Mode',true);return;}
+  b.status='paid';b.paymode=mode;b.payDate=document.getElementById('pay_dt').value||today();
+  // If Cash — add to cash ledger
+  if(mode==='Cash'){
+    cash.push({id:'c'+Date.now(),type:'in',date:b.payDate,amount:b.total,category:'Udhari Payment',note:`Bill #${b.billNo} — ${b.location}`,createdAt:Date.now()});
+    saveC();
+  }
+  saveB();renderU();
+  // Update detail panel
+  document.getElementById('paySec').style.display='none';
+  document.getElementById('paidSec').style.display='block';
+  document.getElementById('d_st').textContent=`✅ Settled on ${fmtDateShort(b.payDate)} via ${b.paymode}`;
+  document.getElementById('d_paid').textContent='₹'+(b.total||0).toLocaleString('hi');
+  document.getElementById('d_pnd').textContent='₹0';
+  document.getElementById('d_pm').textContent=mode;
+  toast('🎉 Bill Settled! Send notifications below.');
+}
+
+// ════════ MESSAGES ════════
+function getMsg(type){
+  const b=bills.find(x=>x.id===curDId);if(!b)return{text:'',phone:''};
+  const items=(b.items&&b.items.length)?b.items.map(i=>`  • ${i.name} × ${i.qty} = ₹${(i.qty*i.price).toLocaleString('hi')}`).join('\n'):(b.itemsRaw||'  —');
+  const dt=fmtDateShort(b.payDate||today());
+  const tm=nowTime();
+  let txt='',ph=b.phone;
+
+  if(type==='thanks'){
+    txt=`Jai Hind! 🙏\n\nDear Guest,\n\nYour bill has been settled. Thank you for your prompt payment! ✅\n\n——————————————\n*Payment Details:*\nBill No    : #${b.billNo}\nLocation   : ${b.location||'—'}\nDate       : ${dt}\nTime       : ${tm}\nAmount     : ₹${(b.total||0).toLocaleString('hi')}/-\nMode       : ${b.paymode||'—'}\nMobile     : ${b.phone}\nStatus     : ✅ Settled\n——————————————\n\nTo order again:\n📞 Swroop Sa  : 9166753417\n📞 Manoj      : 8696283600\n📞 Vikram     : 9509553600\n\n🛒 WhatsApp Catalog:\nhttps://wa.me/c/916367183480\n\n⏰ Lunch: 11:30 AM – 2:30 PM\n⏰ Dinner: 6:30 PM – 10:30 PM\n🚚 Free Home Delivery\n\n🍛 *Marwad Rasoi* — A Promise of Taste & Purity\nJai Hind! 🇮🇳`;
+  }else if(type==='manager'){
+    txt=`🧑‍💼 *Manager Alert — Bill Settled*\n\nSwroop Sa,\nA pending bill has been received.\n——————————————\nBill No.  : #${b.billNo}\nLocation  : ${b.location||'—'}\nMobile    : ${b.phone||'—'}\nAmount    : ₹${(b.total||0).toLocaleString('hi')}/-\nMode      : ${b.paymode||'—'}\nDate      : ${dt}\nTime      : ${tm}\n——————————————\nKindly update your records.\n\n— Marwad Rasoi App`;ph=MANAGER_PHONE;
+  }else if(type==='r1'){
+    txt=`Jai Hind! 🙏\n\nDear Guest,\n\nThis is a polite reminder from *Marwad Rasoi*.\nThe following amount is due against your account:\n——————————————\nBill No.  : #${b.billNo}\nLocation  : ${b.location||'—'}\nDate      : ${fmtDateShort(b.date)}\nMobile    : ${b.phone||'—'}\n*Amount Due : ₹${(b.total||0).toLocaleString('hi')}/-*\n——————————————\n🍽️ *Items Ordered:*\n${items}\n——————————————\n💳 *Payment Options:*\nUPI / PhonePe : 6367183480\nUPI ID        : vikram3600@ibl\n\nAfter payment, please share a screenshot. 📸\n\n📞 Contact: 6367183480 / 8696283600\n\n🍛 Marwad Rasoi\nJai Hind! 🇮🇳`;
+  }else if(type==='r2'){
+    txt=`Jai Hind! 🙏\n\nAdarniya Guest ji,\n\n*Marwad Rasoi* ki taraf se sadar pranam. 🙏\n\nHumne pehle bhi ek reminder bheja tha. Aaj phir se vinm request hai ki neeche ki rashi jald chukta kar dein:\n——————————————\nBill No.  : #${b.billNo}\nLocation  : ${b.location||'—'}\n*Rashi    : ₹${(b.total||0).toLocaleString('hi')}/-*\n——————————————\n💳 UPI / PhonePe : 6367183480\n💳 UPI ID        : vikram3600@ibl\n\nBhugtan ke baad screenshot zaroor bhejein. 📸\n\nAgar koi asuvidhaa ho — bejhijhak bataen.\n📞 6367183480 / 8696283600\n\nAapka sahyog hamara uchcha moraal rakhta hai. 🙏\n\n🍛 *Marwad Rasoi Family*\nJai Hind! Jai Bharat! 🇮🇳`;
+  }else if(type==='sms'||type==='smsr'){
+    txt=`Marwad Rasoi: Bill #${b.billNo} | ${b.location||'—'} | Due ₹${b.total}. Pay: UPI 6367183480 (vikram3600@ibl). After payment share screenshot. Ph: 8696283600`;ph=b.phone;
+  }
+  return{text:txt,phone:ph};
+}
+
+function sendMsg(type){
+  const{text,phone}=getMsg(type);
+  curMsg=text;curMsgPhone=phone;
+  const titles={thanks:'📲 Thank You — Customer',manager:'👔 Manager Notification',r1:'📩 Reminder 1 — Customer',r2:'🔔 Reminder 2 — Customer',sms:'📱 SMS Reminder',smsr:'📱 SMS Reminder'};
+  document.getElementById('msgTitle').textContent=titles[type]||'Message';
+  document.getElementById('msgPreview').textContent=text;
+  om('msgM');
+}
+function sendMsgWA(){if(!curMsgPhone){toast('❌ No phone',true);return;}window.open(`https://wa.me/91${curMsgPhone.replace(/\D/g,'')}?text=${encodeURIComponent(curMsg)}`,'_blank');}
+function copyMsgText(){navigator.clipboard.writeText(curMsg).then(()=>toast('✅ Copied!')).catch(()=>toast('❌ Copy failed',true));}
+function copyMsg(type){const{text}=getMsg(type);navigator.clipboard.writeText(text).then(()=>toast('✅ Copied!')).catch(()=>toast('❌ Failed',true));}
+function qRemind(id){curDId=id;sendMsg('r1');}
+function editB(){const b=bills.find(x=>x.id===curDId);if(!b)return;cm('detM');document.getElementById('eid').value=b.id;document.getElementById('addT').textContent='✏️ Edit Bill #'+b.billNo;document.getElementById('f_bn').value=b.billNo||'';document.getElementById('f_dt').value=b.date||'';document.getElementById('f_loc').value=b.location||'';document.getElementById('f_ph').value=b.phone||'';document.getElementById('f_nt').value=b.note||'';document.getElementById('iList').innerHTML='';(b.items&&b.items.length?b.items:[{name:b.itemsRaw||'',qty:1,price:b.total||0}]).forEach(i=>addRow(i.name,i.qty,i.price));calcT();om('addM');}
+function delB(){if(!confirm('Delete this bill?'))return;bills=bills.filter(b=>b.id!==curDId);saveB();renderU();cm('detM');toast('🗑️ Deleted');}
+
+// ════════ CASH ════════
+function setCDQ(m,el){document.querySelectorAll('[id^="cq_"]').forEach(b=>b.classList.remove('active'));el.classList.add('active');if(m==='all'){curCDFrom=curCDTo='';}else if(m==='today'){curCDFrom=curCDTo=today();}else if(m==='week'){curCDFrom=daysAgo(6);curCDTo=today();}else if(m==='month'){curCDFrom=monthStart();curCDTo=today();}document.getElementById('cdFrom').value=curCDFrom;document.getElementById('cdTo').value=curCDTo;renderCash();}
+function setCDR(){curCDFrom=document.getElementById('cdFrom').value;curCDTo=document.getElementById('cdTo').value;document.querySelectorAll('[id^="cq_"]').forEach(b=>b.classList.remove('active'));renderCash();}
+function renderCash(){
+  const filt=cash.filter(t=>inR(t.date||'',curCDFrom,curCDTo));
+  // Opening balance = latest opening entry before or in period
+  const opens=cash.filter(t=>t.category==='Opening Balance').sort((a,b)=>b.date>a.date?1:-1);
+  const lastOpen=opens.length?opens[0]:null;
+  const openAmt=lastOpen?lastOpen.amount:0;
+  const inAmt=filt.filter(t=>t.type==='in'&&t.category!=='Opening Balance').reduce((s,t)=>s+t.amount,0);
+  const outAmt=filt.filter(t=>t.type==='out').reduce((s,t)=>s+t.amount,0);
+  const balance=openAmt+inAmt-outAmt;
+  document.getElementById('cashBalance').textContent='₹'+balance.toLocaleString('hi');
+  document.getElementById('cashIn').textContent='₹'+inAmt.toLocaleString('hi');
+  document.getElementById('cashOut').textContent='₹'+outAmt.toLocaleString('hi');
+  const sorted=[...filt].sort((a,b)=>b.date>a.date?1:-1);
+  document.getElementById('cashList').innerHTML=sorted.length?sorted.map(t=>`
+    <div class="txn-row">
+      <div><div style="font-size:12px;font-weight:700">${t.category||'—'}</div><div style="font-size:10px;color:var(--t3)">${fmtDateShort(t.date)} ${t.note?'· '+t.note:''}</div></div>
+      <div class="ta ${t.type==='in'||t.category==='Opening Balance'?'txn-in':'txn-out'}">${t.type==='in'||t.category==='Opening Balance'?'+':'-'}₹${(t.amount||0).toLocaleString('hi')}</div>
+    </div>`).join(''):`<div class="empty"><div class="big">💵</div><p>No transactions</p></div>`;
+}
+function openCashTxn(type){
+  document.getElementById('cashType').value=type;
+  const titles={in:'➕ Cash In',out:'➖ Cash Out',opening:'🏦 Set Opening Balance'};
+  document.getElementById('cashT').textContent=titles[type]||'Cash';
+  document.getElementById('ct_dt').value=today();document.getElementById('ct_amt').value='';document.getElementById('ct_nt').value='';
+  if(type==='opening')document.getElementById('ct_cat').value='Opening Balance';
+  else if(type==='out')document.getElementById('ct_cat').value='Misc Expense';
+  else document.getElementById('ct_cat').value='Local Sale';
+  om('cashM');
+}
+function saveCashTxn(){
+  const type=document.getElementById('cashType').value;
+  const amt=parseFloat(document.getElementById('ct_amt').value)||0;
+  if(!amt){toast('❌ Amount required',true);return;}
+  const cat=document.getElementById('ct_cat').value;
+  cash.push({id:'c'+Date.now(),type:type==='out'?'out':'in',date:document.getElementById('ct_dt').value,amount:amt,category:cat,note:document.getElementById('ct_nt').value.trim(),createdAt:Date.now()});
+  saveC();renderCash();cm('cashM');toast('✅ Saved!');
+}
+
+// ════════ STAFF ════════
+function calcDaysWorked(joiningDate){
+  if(!joiningDate)return 0;
+  const j=new Date(joiningDate+'T00:00:00');
+  const now=new Date();
+  const days=Math.floor((now-j)/(1000*60*60*24))+1;
+  return Math.max(0,days);
+}
+function calcEarned(s){
+  const sal=s.salary||0;if(!sal)return 0;
+  const absent=(s.attendance||[]).filter(a=>a.status==='absent').length;
+  const days=calcDaysWorked(s.joiningDate);
+  const daysInMonth=new Date(new Date().getFullYear(),new Date().getMonth()+1,0).getDate();
+  const dailyRate=sal/daysInMonth;
+  return Math.round(dailyRate*(days-absent));
+}
+function renderStaff(){
+  document.getElementById('todayStr').textContent=fmtDateShort(today());
+  document.getElementById('staffCount').textContent=staffList.length;
+  const atBtns=document.getElementById('attendanceBtns');
+  atBtns.innerHTML=staffList.map(s=>{
+    const todayAt=(s.attendance||[]).find(a=>a.date===today());
+    const col=todayAt?( todayAt.status==='present'?'var(--grn)':'var(--red)' ):'var(--bd)';
+    return `<button style="background:var(--sf2);border:2px solid ${col};color:${col==='var(--bd)'?'var(--t3)':col};border-radius:7px;padding:4px 8px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit" onclick="markAttendance('${s.id}')">${s.name.split(' ')[0]} ${todayAt?(todayAt.status==='present'?'✅':'❌'):'?'}</button>`;
+  }).join('');
+  const wrap=document.getElementById('staffList'),emp=document.getElementById('staffEmpty');
+  if(!staffList.length){wrap.innerHTML='';emp.style.display='block';return;}
+  emp.style.display='none';
+  wrap.innerHTML=staffList.map(s=>{
+    const earned=calcEarned(s);
+    const adv=(s.advances||[]).reduce((sm,a)=>sm+a.amount,0);
+    const net=earned-adv;
+    return`<div class="staff-card" onclick="opStaff('${s.id}')">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div><div class="sname">${s.name}</div><div class="srole">${s.role||'—'} · ₹${(s.salary||0).toLocaleString('hi')}/mo</div></div>
+        <div style="text-align:right"><div class="s-owed">₹${net.toLocaleString('hi')}</div><div class="srole">Net Payable</div></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:6px;font-size:11px">
+        <span style="color:var(--t3)">Earned ₹${earned.toLocaleString('hi')}</span>
+        ${adv>0?`<span style="color:var(--red)">Advance ₹${adv.toLocaleString('hi')}</span>`:''}
+        <span style="color:var(--t3)">📱 ${s.phone||'—'}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+function markAttendance(sid){
+  const s=staffList.find(x=>x.id===sid);if(!s)return;
+  s.attendance=s.attendance||[];
+  const todayAt=s.attendance.find(a=>a.date===today());
+  if(!todayAt){s.attendance.push({date:today(),status:'present'});}
+  else if(todayAt.status==='present'){todayAt.status='absent';}
+  else{s.attendance=s.attendance.filter(a=>a.date!==today());}
+  saveS();renderStaff();
+}
+function openAddStaff(){
+  document.getElementById('seid').value='';document.getElementById('staffT').textContent='Add Staff';
+  ['s_nm','s_ph','s_nt'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('s_sal').value='';document.getElementById('s_jd').value=today();
+  document.getElementById('s_role').value='Cook';om('staffM');
+}
+function saveStaff(){
+  const nm=document.getElementById('s_nm').value.trim();if(!nm){toast('❌ Name required',true);return;}
+  const seid=document.getElementById('seid').value;
+  const s={id:seid||('s'+Date.now()),name:nm,phone:document.getElementById('s_ph').value.trim(),role:document.getElementById('s_role').value,salary:parseFloat(document.getElementById('s_sal').value)||0,joiningDate:document.getElementById('s_jd').value,note:document.getElementById('s_nt').value.trim(),attendance:seid?(staffList.find(x=>x.id===seid)?.attendance||[]):[],advances:seid?(staffList.find(x=>x.id===seid)?.advances||[]):[],createdAt:seid?(staffList.find(x=>x.id===seid)?.createdAt||Date.now()):Date.now()};
+  if(seid){const i=staffList.findIndex(x=>x.id===seid);if(i>-1)staffList[i]=s;}else staffList.push(s);
+  saveS();renderStaff();cm('staffM');toast(seid?'✅ Updated!':'✅ Staff Added!');
+}
+function opStaff(id){
+  const s=staffList.find(x=>x.id===id);if(!s)return;
+  curStId=id;
+  document.getElementById('sd_nm').textContent=s.name;
+  document.getElementById('sd_role').textContent=(s.role||'—')+' · 📱 '+(s.phone||'—');
+  document.getElementById('sd_sal').textContent='₹'+(s.salary||0).toLocaleString('hi')+' /month';
+  document.getElementById('sd_jd').textContent=fmtDateShort(s.joiningDate)||'—';
+  const earned=calcEarned(s),adv=(s.advances||[]).reduce((sm,a)=>sm+a.amount,0),net=earned-adv;
+  document.getElementById('sd_earned').textContent='₹'+earned.toLocaleString('hi');
+  document.getElementById('sd_adv').textContent='₹'+adv.toLocaleString('hi');
+  document.getElementById('sd_net').textContent='₹'+net.toLocaleString('hi');
+  // Attendance this month
+  const thisMonth=today().slice(0,7);
+  const att=(s.attendance||[]).filter(a=>(a.date||'').startsWith(thisMonth));
+  const daysInM=new Date(new Date().getFullYear(),new Date().getMonth()+1,0).getDate();
+  let attHtml='';
+  for(let d=1;d<=new Date().getDate();d++){
+    const dateStr=today().slice(0,7)+'-'+String(d).padStart(2,'0');
+    const rec=att.find(a=>a.date===dateStr);
+    attHtml+=`<div style="width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;cursor:pointer;${rec?(rec.status==='present'?'background:rgba(34,197,94,.2);color:var(--grn);border:1px solid rgba(34,197,94,.4)':'background:rgba(239,68,68,.2);color:var(--red);border:1px solid rgba(239,68,68,.4)'):'background:var(--sf2);border:1px solid var(--bd);color:var(--t3)'}" title="${dateStr}">${d}</div>`;
+  }
+  document.getElementById('sd_att').innerHTML=attHtml;
+  document.getElementById('sadv_amt').value='';document.getElementById('sadv_note').value='';
+  document.getElementById('sd_advhist').innerHTML=(s.advances&&s.advances.length)?s.advances.slice().reverse().map(a=>`<div class="txn-row" style="margin-bottom:4px"><div><div style="font-size:11px;font-weight:700">${a.note||'Advance'}</div><div style="font-size:10px;color:var(--t3)">${fmtDateShort(a.date)}</div></div><div class="ta txn-out">−₹${a.amount.toLocaleString('hi')}</div></div>`).join(''):`<div style="font-size:11px;color:var(--t3);text-align:center;padding:8px">No advances taken</div>`;
+  om('sdetM');
+}
+function addAdvance(type=1){
+  const s=staffList.find(x=>x.id===curStId);if(!s)return;
+  const amt=parseFloat(document.getElementById('sadv_amt').value)||0;if(!amt){toast('❌ Amount required',true);return;}
+  const note=document.getElementById('sadv_note').value.trim()||(type===1?'Advance':'Salary Payment');
+  s.advances=s.advances||[];
+  if(type===1){s.advances.push({amount:amt,note,date:today(),createdAt:Date.now()});}
+  else{// Salary paid — reset advances
+    s.advances.push({amount:-amt,note,date:today(),createdAt:Date.now()});
+    cash.push({id:'c'+Date.now(),type:'out',date:today(),amount:amt,category:'Staff Salary',note:`${s.name} — ${note}`,createdAt:Date.now()});saveC();
+  }
+  saveS();opStaff(curStId);renderStaff();toast('✅ Saved!');
+}
+function editStaff(){const s=staffList.find(x=>x.id===curStId);if(!s)return;cm('sdetM');document.getElementById('seid').value=s.id;document.getElementById('staffT').textContent='Edit Staff';document.getElementById('s_nm').value=s.name||'';document.getElementById('s_ph').value=s.phone||'';document.getElementById('s_role').value=s.role||'Cook';document.getElementById('s_sal').value=s.salary||'';document.getElementById('s_jd').value=s.joiningDate||'';document.getElementById('s_nt').value=s.note||'';om('staffM');}
+function delStaff(){if(!confirm('Remove this staff member?'))return;staffList=staffList.filter(s=>s.id!==curStId);saveS();renderStaff();cm('sdetM');toast('🗑️ Removed');}
+
+// ════════ CSV ════════
+function openCSV(){om('csvM');}
+function esc(v){v=String(v||'');return(v.includes(',')||v.includes('"')||v.includes('\n'))?'"'+v.replace(/"/g,'""')+'"':v;}
+function expCSV(f){
+  let arr=bills;if(f==='pending')arr=bills.filter(b=>b.status==='pending');
+  const h='bill_no,date,location,mobile,items,total,status,paymode,note\n';
+  const rows=arr.map(b=>{const its=(b.items&&b.items.length)?b.items.map(i=>`${i.name}×${i.qty}=${i.qty*i.price}`).join('|'):(b.itemsRaw||'');return[b.billNo,b.date||'',b.location||'',b.phone||'',its,b.total||0,b.status||'pending',b.paymode||'',b.note||''].map(esc).join(',');}).join('\n');
+  const blob=new Blob(['\ufeff'+h+rows],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`marwad_rasoi_${f}_${today()}.csv`;a.click();toast('✅ CSV Downloaded!');
+}
+function dlTemplate(){
+  const csv=`bill_no,date,location,mobile,items,total,status,paymode,note\n1,${today()},Jalipa,9876543210,"Dal Bati×4=480|Thali×2=300",780,pending,,`;
+  const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='marwad_template.csv';a.click();toast('✅ Template Downloaded!');
+}
+function parseL(l){const r=[];let c='',q=false;for(let i=0;i<l.length;i++){const ch=l[i];if(ch==='"'){if(q&&l[i+1]==='"'){c+='"';i++;}else q=!q;}else if(ch===','&&!q){r.push(c);c='';}else c+=ch;}r.push(c);return r;}
+function impCSV(){
+  const raw=document.getElementById('csvP').value.trim();if(!raw){toast('❌ Paste CSV data',true);return;}
+  const lines=raw.split('\n').filter(l=>l.trim());let cnt=0,sk=0;
+  lines.forEach((line,idx)=>{const p=parseL(line.trim());if(p[0]==='bill_no'||p[0].toLowerCase()==='bill_no')return;if(p.length<4){sk++;return;}const[bn,dt,loc,mob,itsStr,tot,st,pm,nt]=p;if(!bn){sk++;return;}
+    const its=(itsStr||'').split('|').map(s=>{const m=s.match(/^(.+?)×(\d+\.?\d*)=(\d+\.?\d*)$/);if(m)return{name:m[1].trim(),qty:parseFloat(m[2])||1,price:parseFloat(m[3])/(parseFloat(m[2])||1)};return{name:s.trim(),qty:1,price:parseFloat(tot)||0};}).filter(i=>i.name);
+    bills.unshift({id:'i'+Date.now()+'_'+idx,billNo:bn.trim(),date:dt.trim(),location:loc.trim(),phone:mob.trim(),items:its,itemsRaw:itsStr,total:parseFloat(tot)||0,status:(st||'').trim()||'pending',paymode:(pm||'').trim(),note:(nt||'').trim(),payments:[],createdAt:Date.now()});cnt++;});
+  saveB();renderU();cm('csvM');document.getElementById('csvP').value='';toast(`✅ ${cnt} bills imported!${sk?' '+sk+' skipped':''}`);}
+
+// ════════ MODAL HELPERS ════════
+function om(id){document.getElementById(id).classList.add('open');}
+function cm(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.mbg').forEach(b=>b.addEventListener('click',e=>{if(e.target===b)b.classList.remove('open');}));
+function toast(msg,err=false){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(err?' err':'');setTimeout(()=>t.className='toast',2800);}
+
+// INIT
+renderU();
+document.getElementById('todayStr').textContent=fmtDateShort(today());
+</script>
+</body>
+</html>

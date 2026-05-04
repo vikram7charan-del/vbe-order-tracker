@@ -1,0 +1,1710 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🍛 Marwad Rasoi — Udhari Tracker</title>
+<style>
+:root{--bg:#0a0f1e;--sf:#111827;--sf2:#1e293b;--sf3:#263148;--bd:#2d3f5e;--acc:#f97316;--acc2:#fb923c;--grn:#22c55e;--red:#ef4444;--ylw:#eab308;--blu:#3b82f6;--txt:#f1f5f9;--t2:#94a3b8;--t3:#64748b;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--txt);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;padding-bottom:80px;}
+.hdr{background:linear-gradient(135deg,#1a0800,#0a0f1e 55%);border-bottom:2px solid var(--acc);padding:7px 12px 0;position:sticky;top:0;z-index:100;box-shadow:0 2px 20px rgba(249,115,22,.25);}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;padding-bottom:6px;}
+.brand{display:flex;align-items:center;gap:7px;}
+.brand h1{font-size:13px;font-weight:800;color:var(--acc);line-height:1.1;}
+.brand p{font-size:8px;color:var(--t3);}
+.nav-tabs{display:flex;gap:0;overflow-x:auto;scrollbar-width:none;}
+.nav-tabs::-webkit-scrollbar{display:none;}
+.ntab{flex-shrink:0;background:transparent;border:none;color:var(--t3);padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;border-bottom:2px solid transparent;white-space:nowrap;}
+.ntab.active{color:var(--acc);border-bottom-color:var(--acc);}
+.page{display:none;} .page.active{display:block;}
+.stats{display:flex;gap:3px;padding:4px 8px;background:var(--sf);border-bottom:1px solid var(--bd);}
+.sc{flex:1;background:var(--sf2);border:1px solid var(--bd);border-radius:7px;padding:4px 2px;text-align:center;}
+.sc .v{font-size:12px;font-weight:800;line-height:1;}
+.sc .l{font-size:7px;color:var(--t3);margin-top:1px;}
+.vo{color:var(--acc);}.vr{color:var(--red);}.vg{color:var(--grn);}.vy{color:var(--ylw);}
+.dbar{background:var(--sf);border-bottom:1px solid var(--bd);padding:3px 8px;display:flex;gap:3px;align-items:center;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;}
+.di{background:var(--sf2);border:1px solid var(--bd);color:var(--txt);border-radius:5px;padding:2px 3px;font-size:9px;font-family:inherit;outline:none;width:80px;}
+.di:focus{border-color:var(--acc);}
+.dbn{background:var(--sf2);border:1px solid var(--bd);color:var(--t2);border-radius:5px;padding:2px 6px;font-size:9px;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;}
+.dbn.active{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:700;}
+.stabs{display:flex;gap:5px;padding:5px 10px;background:var(--sf);border-bottom:1px solid var(--bd);overflow-x:auto;scrollbar-width:none;}
+.stabs::-webkit-scrollbar{display:none;}
+.stab{flex-shrink:0;background:var(--sf2);border:1px solid var(--bd);color:var(--t2);border-radius:20px;padding:3px 10px;font-size:10px;cursor:pointer;}
+.stab.active{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:700;}
+.srch{padding:5px 10px;background:var(--sf);border-bottom:1px solid var(--bd);}
+.srch input{width:100%;background:var(--sf2);border:1px solid var(--bd);color:var(--txt);border-radius:7px;padding:5px 10px;font-size:11px;font-family:inherit;outline:none;}
+.srch input:focus{border-color:var(--acc);}
+.srch input::placeholder{color:var(--t3);}
+.dgh{display:flex;align-items:center;gap:8px;padding:10px 12px 4px;font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.5px;}
+.dgh::after{content:'';flex:1;height:1px;background:var(--bd);}
+.list{padding:4px 8px;}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:7px 8px 7px;margin-bottom:6px;position:relative;overflow:hidden;}
+.card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px;}
+.card.pending::before{background:var(--red);}
+.card.paid::before{background:var(--grn);}
+.ct{display:flex;justify-content:space-between;align-items:center;gap:4px;cursor:pointer;margin-bottom:3px;}
+.bno{font-size:17px;font-weight:900;color:var(--acc);}
+.bamt{font-size:13px;font-weight:800;color:var(--acc);}
+.badge{flex-shrink:0;border-radius:5px;padding:2px 6px;font-size:9px;font-weight:700;}
+.badge.pending{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3);}
+.badge.paid{background:rgba(34,197,94,.15);color:var(--grn);border:1px solid rgba(34,197,94,.3);}
+.cloc{font-size:10px;color:var(--t2);margin-top:1px;}
+.cph{font-size:9px;color:var(--t3);}
+.chip{display:inline-block;background:var(--sf2);border:1px solid var(--bd);border-radius:4px;padding:1px 5px;font-size:9px;color:var(--t2);margin-bottom:4px;}
+.apnd{font-size:9px;font-weight:700;color:var(--red);margin-bottom:4px;}
+.apaid{font-size:9px;font-weight:700;color:var(--grn);margin-bottom:4px;}
+.btn-row1{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:5px;}
+.bbig{border:none;border-radius:7px;padding:7px 6px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:4px;}
+.bwa-big{background:#25d366;color:#fff;}
+.bpay-big{background:linear-gradient(135deg,rgba(34,197,94,.25),rgba(34,197,94,.15));color:var(--grn);border:1px solid rgba(34,197,94,.5);}
+.bmgr-big{background:rgba(59,130,246,.15);color:var(--blu);border:1px solid rgba(59,130,246,.4);}
+.btn-row2{display:flex;gap:4px;}
+.bsm{border:none;border-radius:6px;padding:4px 6px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:2px;flex:1;justify-content:center;}
+.br2{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.35);}
+.bedt{background:rgba(59,130,246,.12);color:var(--blu);border:1px solid rgba(59,130,246,.35);}
+.bsms{background:rgba(234,179,8,.12);color:var(--ylw);border:1px solid rgba(234,179,8,.35);}
+.bdel{background:rgba(100,116,139,.12);color:var(--t3);border:1px solid rgba(100,116,139,.3);}
+.cnote{font-size:9px;color:var(--t3);margin-top:2px;}
+.fab{position:fixed;bottom:20px;right:16px;z-index:200;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;border:none;border-radius:50%;width:54px;height:54px;font-size:26px;box-shadow:0 6px 24px rgba(249,115,22,.5);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.fab:hover{transform:scale(1.08);}
+.mbg{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.8);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center;}
+.mbg.open{display:flex;}
+.modal{background:var(--sf);border:1px solid var(--bd);border-radius:20px 20px 0 0;width:100%;max-width:540px;max-height:92vh;overflow-y:auto;padding:18px 16px 30px;animation:su .25s ease;}
+@keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.mhdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:13px;}
+.mtl{font-size:15px;font-weight:800;}
+.xb{background:var(--sf2);border:1px solid var(--bd);color:var(--t2);border-radius:7px;width:28px;height:28px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;}
+.fg{margin-bottom:9px;}
+.fl{font-size:10px;color:var(--t3);font-weight:700;letter-spacing:.4px;margin-bottom:3px;display:block;}
+.fi,.fsl,.fta{width:100%;background:var(--sf2);border:1px solid var(--bd);color:var(--txt);border-radius:8px;padding:9px 11px;font-size:13px;font-family:inherit;outline:none;}
+.fi:focus,.fsl:focus,.fta:focus{border-color:var(--acc);}
+.fsl option{background:var(--sf2);}
+.fta{resize:vertical;min-height:50px;}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.irow{display:grid;grid-template-columns:1fr 50px 65px 25px;gap:4px;align-items:center;margin-bottom:4px;}
+.idl{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:var(--red);border-radius:6px;width:25px;height:25px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;}
+.iadd{background:var(--sf2);border:1px dashed var(--bd);color:var(--t2);border-radius:7px;padding:5px;width:100%;cursor:pointer;font-size:11px;font-family:inherit;}
+.iadd:hover{border-color:var(--acc);color:var(--acc);}
+.totb{background:var(--sf2);border:1px solid var(--bd);border-radius:8px;padding:9px 11px;margin-bottom:9px;display:flex;justify-content:space-between;align-items:center;}
+.totv{font-size:20px;font-weight:900;color:var(--acc);}
+.sbtn{width:100%;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 4px 16px rgba(249,115,22,.4);}
+.cbtn{width:100%;background:transparent;border:1px solid var(--bd);color:var(--t3);border-radius:10px;padding:9px;font-size:12px;cursor:pointer;font-family:inherit;margin-top:6px;}
+.sec{font-size:10px;color:var(--t3);font-weight:700;letter-spacing:.4px;margin-bottom:6px;}
+hr{border:none;border-top:1px solid var(--bd);margin:10px 0;}
+.dg2{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.dg3{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;text-align:center;}
+.dbox{background:var(--sf2);border-radius:9px;padding:9px 10px;}
+.dbox .dv{font-size:16px;font-weight:800;line-height:1;}
+.dbox .dl{font-size:9px;color:var(--t3);margin-top:2px;}
+.ditr{display:flex;justify-content:space-between;background:var(--sf2);border-radius:7px;padding:6px 9px;font-size:12px;margin-bottom:3px;}
+.pay-action-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
+.pabtn{border:none;border-radius:10px;padding:11px 8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;text-align:center;}
+.wa-box{border-radius:9px;padding:10px 12px;font-size:11px;white-space:pre-wrap;line-height:1.6;font-family:monospace;margin-bottom:7px;}
+.wa-grn{background:#0a1a0f;border:1px solid #25d366;color:#dcf8c6;}
+.wa-blu{background:#0a0e1a;border:1px solid var(--blu);color:#bfdbfe;}
+.wa-red{background:#1a0a0a;border:1px solid var(--red);color:#fecaca;}
+.wa-ylw{background:#1a1400;border:1px solid var(--ylw);color:#fef08a;}
+.wasbtn{width:100%;border:none;border-radius:10px;padding:10px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;margin-bottom:7px;}
+.wabtn-grn{background:#25d366;color:#fff;}
+.wabtn-blu{background:var(--blu);color:#fff;}
+.wabtn-red{background:var(--red);color:#fff;}
+.wabtn-sms{background:var(--sf2);border:1px solid var(--bd);color:var(--t2);}
+.cash-header{padding:12px;background:var(--sf);border-bottom:1px solid var(--bd);}
+.cash-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:10px 12px;}
+.cash-big{background:linear-gradient(135deg,#1a0800,var(--sf2));border:1px solid var(--acc);border-radius:12px;padding:14px;text-align:center;grid-column:span 2;}
+.cash-big .cv{font-size:28px;font-weight:900;color:var(--acc);}
+.cash-big .cl{font-size:10px;color:var(--t3);}
+.txn-row{background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:10px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;}
+.txn-row .ta{font-size:12px;font-weight:700;}
+.txn-in{color:var(--grn);}.txn-out{color:var(--red);}
+.staff-card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:8px;cursor:pointer;}
+.staff-card:hover{border-color:var(--acc);}
+.sname{font-size:14px;font-weight:800;}
+.srole{font-size:11px;color:var(--t3);}
+.s-owed{font-size:16px;font-weight:800;color:var(--grn);}
+.toast{position:fixed;bottom:82px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--grn);color:#fff;border-radius:9px;padding:9px 15px;font-size:12px;font-weight:700;z-index:1000;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.err{background:var(--red);}
+.empty{text-align:center;padding:40px 20px;color:var(--t3);}
+.empty .big{font-size:40px;margin-bottom:8px;}
+
+/* FIREBASE STATUS */
+.fb-status{display:flex;align-items:center;gap:6px;font-size:10px;padding:5px 10px;border-radius:7px;font-weight:700;}
+.fb-connecting{background:rgba(234,179,8,.1);border:1px solid rgba(234,179,8,.3);color:var(--ylw);}
+.fb-online{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:var(--grn);}
+.fb-offline{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:var(--red);}
+.pulse{width:6px;height:6px;border-radius:50%;background:currentColor;animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* CONFIG BANNER */
+.cfg-banner{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:10px;padding:14px;margin:12px;font-size:12px;line-height:1.7;}
+.cfg-banner code{background:var(--sf2);border-radius:4px;padding:1px 5px;font-size:11px;color:var(--acc);}
+
+@media(max-width:380px){.stats{grid-template-columns:repeat(2,1fr);}.irow{grid-template-columns:1fr 44px 58px 23px;}}
+
+/* REMINDER LOG */
+.rlog{background:var(--sf2);border:1px solid var(--bd);border-radius:7px;padding:5px 8px;margin-top:4px;font-size:9px;color:var(--t3);line-height:1.7;}
+.rlog-entry{display:flex;align-items:center;gap:5px;padding:2px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.rlog-entry:last-child{border-bottom:none;}
+.rlog-chk{width:14px;height:14px;accent-color:var(--grn);cursor:pointer;flex-shrink:0;}
+.rlog-time{color:var(--acc);font-weight:700;font-size:9px;}
+.rlog-type{color:var(--t2);}
+/* MENU SEND */
+.menu-send-bar{background:linear-gradient(135deg,#0a1a0f,var(--sf2));border:1px solid #25d366;border-radius:10px;padding:10px 12px;margin-bottom:8px;}
+/* PAYMENT FILTER DROPDOWN */
+.pmfop{padding:6px 10px;font-size:11px;color:var(--t2);cursor:pointer;border-radius:7px;margin-bottom:2px;}
+.pmfop:hover{background:var(--sf2);}
+.pmfop.active{background:rgba(59,130,246,.2);color:var(--blu);font-weight:700;}
+</style>
+</head>
+<body>
+
+<!-- ══════════════ HEADER ══════════════ -->
+<div class="hdr">
+  <div class="hdr-top">
+    <div class="brand">
+      <span style="font-size:22px">🍛</span>
+      <div><h1>Marwad Rasoi</h1><p>Udhari · Cash · Staff · Firebase Sync</p></div>
+    </div>
+    <div id="fbStatus" class="fb-status fb-connecting"><div class="pulse"></div>Connect हो रहा है...</div>
+  </div>
+  <div class="nav-tabs">
+    <button class="ntab active" onclick="showPage('udhari',this)">🧾 Udhari</button>
+    <button class="ntab" onclick="showPage('cash',this)">💵 Cash</button>
+    <button class="ntab" onclick="showPage('staff',this)">👨‍🍳 Staff</button>
+    <button class="ntab" onclick="showPage('menu',this)">🍽️ Menu</button>
+  </div>
+</div>
+
+<!-- CONFIG BANNER (hidden when Firebase works) -->
+<div class="cfg-banner" id="cfgBanner" style="display:none">
+  ⚠️ <strong>Firebase Config डालनी है!</strong><br>
+  नीचे script में <code>YOUR_API_KEY</code> आदि की जगह अपना Firebase config डालो।<br>
+  Firebase Console → Project Settings → Web App → Config copy करो।<br>
+  Collection names: <code>mrk_bills</code> · <code>mrk_cash</code> · <code>mrk_staff</code>
+</div>
+
+<!-- ══════════════ UDHARI PAGE ══════════════ -->
+<div class="page active" id="pg_udhari">
+  <div class="stats">
+    <div class="sc"><div class="v vo" id="s1">0</div><div class="l">Total Bills</div></div>
+    <div class="sc"><div class="v vr" id="s2">₹0</div><div class="l">⏳ Pending</div></div>
+    <div class="sc"><div class="v vg" id="s3">₹0</div><div class="l">✅ Received</div></div>
+    <div class="sc"><div class="v vy" id="s4">0</div><div class="l">Pending Bills</div></div>
+  </div>
+  <div class="dbar">
+    <span style="font-size:10px;color:var(--t3);font-weight:700">📅</span>
+    <button class="dbn active" id="dq_all" onclick="setDQ('all',this)">All</button>
+    <button class="dbn" id="dq_td" onclick="setDQ('today',this)">Today</button>
+    <button class="dbn" id="dq_wk" onclick="setDQ('week',this)">7 Days</button>
+    <button class="dbn" id="dq_mn" onclick="setDQ('month',this)">Month</button>
+    <input class="di" type="date" id="dFrom" onchange="setDR()">
+    <span style="font-size:10px;color:var(--t3)">—</span>
+    <input class="di" type="date" id="dTo" onchange="setDR()">
+    <button class="dbn" onclick="clearD()" style="color:var(--red)">✕</button>
+  </div>
+  <div class="stabs" style="position:relative">
+    <div class="stab active" onclick="setTab('all',this)">📋 All <span id="tc0"></span></div>
+    <div class="stab" onclick="setTab('pending',this)">⏳ Pending <span id="tc1"></span></div>
+    <div class="stab" onclick="setTab('paid',this)">✅ Settled <span id="tc2"></span></div>
+    <div style="flex:1"></div>
+    <div style="position:relative;flex-shrink:0">
+      <button id="pmfBtn" onclick="togglePMF()" style="background:var(--sf2);border:1px solid var(--bd);color:var(--t2);border-radius:20px;padding:3px 10px;font-size:10px;cursor:pointer;font-family:inherit;white-space:nowrap" id="pmfBtnLbl">💳 Filter</button>
+      <div id="pmfDrop" style="display:none;position:absolute;right:0;top:30px;background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:6px;z-index:300;min-width:160px;box-shadow:0 8px 24px rgba(0,0,0,.5)">
+        <div style="font-size:9px;color:var(--t3);font-weight:700;padding:2px 6px 4px;border-bottom:1px solid var(--bd);margin-bottom:4px">💳 Payment Mode Filter</div>
+        <div class="pmfop active" id="pmfop_all" onclick="setPMF('all',this)">✅ सब</div>
+        <div class="pmfop" id="pmfop_cash" onclick="setPMF('Cash',this)">💵 Cash</div>
+        <div class="pmfop" id="pmfop_bharatpe" onclick="setPMF('BharatPe',this)">📱 BharatPe</div>
+        <div class="pmfop" id="pmfop_kamla" onclick="setPMF('Kamla Kanwar UPI',this)">👩 Kamla Kanwar UPI</div>
+        <div class="pmfop" id="pmfop_charan" onclick="setPMF('Charan Kanchan UPI',this)">👤 Charan Kanchan UPI</div>
+        <div class="pmfop" id="pmfop_any" onclick="setPMF('Any / Other',this)">🔵 Any / Other</div>
+        <div class="pmfop" id="pmfop_unpaid" onclick="setPMF('_unpaid',this)">⏳ अभी बकाया</div>
+      </div>
+    </div>
+  </div>
+  <div class="srch">
+    <div style="position:relative">
+      <input type="text" id="srchQ" placeholder="🔍 Bill No, नाम, Mobile, Item, Location — सब खोजेगा" oninput="renderU()" style="width:100%;padding-right:36px">
+      <button onclick="document.getElementById('srchQ').value='';renderU()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--t3);cursor:pointer;font-size:14px;padding:0">✕</button>
+    </div>
+    <div id="srchInfo" style="font-size:9px;color:var(--t3);padding:2px 4px 0;display:none"></div>
+  </div>
+  <div class="list" id="uList"><div class="empty"><div class="big">🔄</div><p>Firebase से load हो रहा है...</p></div></div>
+  <div class="empty" id="uEmpty" style="display:none"><div class="big">📭</div><p>No bills found</p><p style="font-size:11px;margin-top:5px">Tap + to add a new bill</p></div>
+  <button class="fab" onclick="openAdd()">＋</button>
+<button onclick="openCSV()" style="position:fixed;bottom:82px;right:16px;z-index:200;background:#1e293b;border:1px solid #f97316;color:#f97316;border-radius:12px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">📥 CSV</button>
+</div>
+
+<!-- ══════════════ CASH PAGE ══════════════ -->
+<div class="page" id="pg_cash">
+  <div class="cash-header" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+    <button class="dbn active" id="cq_td" onclick="setCDQ('today',this)">Today</button>
+    <button class="dbn" id="cq_wk" onclick="setCDQ('week',this)">7 Days</button>
+    <button class="dbn" id="cq_mn" onclick="setCDQ('month',this)">Month</button>
+    <button class="dbn" id="cq_all" onclick="setCDQ('all',this)">All</button>
+    <input class="di" type="date" id="cdFrom" onchange="setCDR()">
+    <span style="font-size:10px;color:var(--t3)">—</span>
+    <input class="di" type="date" id="cdTo" onchange="setCDR()">
+  </div>
+  <div class="cash-cards">
+    <div class="cash-big"><div class="cv" id="cashBalance">₹0</div><div class="cl">💵 CURRENT CASH BALANCE</div></div>
+    <div class="sc" style="border-radius:10px;padding:10px"><div class="v vg" id="cashIn">₹0</div><div class="l">Cash In (period)</div></div>
+    <div class="sc" style="border-radius:10px;padding:10px"><div class="v vr" id="cashOut">₹0</div><div class="l">Cash Out (period)</div></div>
+  </div>
+  <div style="padding:0 12px 10px;display:flex;gap:8px">
+    <button class="sbtn" style="font-size:12px;padding:10px" onclick="openCashTxn('in')">＋ Cash In</button>
+    <button class="sbtn" style="font-size:12px;padding:10px;background:linear-gradient(135deg,var(--red),#f87171)" onclick="openCashTxn('out')">− Cash Out</button>
+    <button class="sbtn" style="font-size:12px;padding:10px;background:linear-gradient(135deg,#1d4ed8,var(--blu))" onclick="openCashTxn('opening')">🏦 Set Opening</button>
+  </div>
+  <div style="padding:0 12px"><div class="sec">📋 TRANSACTIONS</div><div id="cashList"></div></div>
+</div>
+
+<!-- ══════════════ STAFF PAGE ══════════════ -->
+<div class="page" id="pg_staff">
+  <div style="padding:10px 12px;background:var(--sf);border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center">
+    <div class="sec" style="margin:0">👨‍🍳 STAFF — <span id="staffCount">0</span> Members</div>
+    <button class="sbtn" style="width:auto;padding:7px 13px;font-size:12px" onclick="openAddStaff()">＋ Add Staff</button>
+  </div>
+  <div style="padding:10px 12px;background:var(--sf);border-bottom:1px solid var(--bd)">
+    <div class="sec">📅 आज की Attendance — <span id="todayStr"></span></div>
+    <div id="attendanceBtns" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+  </div>
+  <div style="padding:8px 12px" id="staffList"></div>
+  <div class="empty" id="staffEmpty" style="display:none"><div class="big">👨‍🍳</div><p>No staff added</p></div>
+</div>
+
+<!-- ══════════════ MENU PAGE ══════════════ -->
+<div class="page" id="pg_menu">
+
+  <!-- SEND TO CUSTOMER -->
+  <div style="background:linear-gradient(135deg,#0a1a0f,#0f2010);border-bottom:2px solid #25d366;padding:14px 14px 12px">
+    <div style="font-size:13px;font-weight:800;color:#25d366;margin-bottom:2px">📲 Customer को Menu भेजो</div>
+    <div style="font-size:9px;color:#4ade80;margin-bottom:10px">Number डालो → WhatsApp tap करो → Welcome + Full Menu जाएगा</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input class="fi" id="menuPhone" type="tel" placeholder="📱 Customer का Mobile Number" style="flex:1;font-size:13px;padding:10px 12px;border-color:#25d366">
+      <button onclick="sendMenuWA()" style="background:#25d366;border:none;border-radius:10px;color:#fff;padding:10px 18px;font-size:22px;cursor:pointer;box-shadow:0 4px 14px rgba(37,211,102,.4)">📲</button>
+    </div>
+  </div>
+
+  <!-- HEADER BANNER -->
+  <div style="background:linear-gradient(135deg,#1a0800,#0a0f1e);padding:16px 14px 12px;border-bottom:1px solid var(--bd);text-align:center">
+    <div style="font-size:28px;margin-bottom:2px">🍛</div>
+    <div style="font-size:18px;font-weight:900;color:var(--acc);letter-spacing:1px">मारवाड़ रसोई</div>
+    <div style="font-size:10px;color:var(--t3);margin-top:2px;letter-spacing:2px">MARWAD RASOI · JALIPA CANTT · BARMER</div>
+    <div style="display:flex;justify-content:center;gap:10px;margin-top:10px;flex-wrap:wrap">
+      <div style="background:rgba(249,115,22,.12);border:1px solid rgba(249,115,22,.3);border-radius:8px;padding:5px 12px;text-align:center">
+        <div style="font-size:9px;color:var(--t3)">🍽️ LUNCH</div>
+        <div style="font-size:11px;font-weight:800;color:var(--acc)">11:30 – 2:30</div>
+      </div>
+      <div style="background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.3);border-radius:8px;padding:5px 12px;text-align:center">
+        <div style="font-size:9px;color:var(--t3)">🌙 DINNER</div>
+        <div style="font-size:11px;font-weight:800;color:var(--blu)">6:30 – 10:30</div>
+      </div>
+      <div style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);border-radius:8px;padding:5px 12px;text-align:center">
+        <div style="font-size:9px;color:var(--t3)">🚚 DELIVERY</div>
+        <div style="font-size:11px;font-weight:800;color:var(--grn)">FREE</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:10px 10px 20px">
+
+    <!-- VEG MAIN COURSE -->
+    <div style="margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:linear-gradient(90deg,rgba(234,179,8,.15),transparent);border-left:3px solid var(--ylw);border-radius:0 8px 8px 0;margin-bottom:6px">
+        <span style="font-size:16px">🥬</span>
+        <span style="font-size:12px;font-weight:800;color:var(--ylw);letter-spacing:.5px">VEG MAIN COURSE</span>
+      </div>
+      <div style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;overflow:hidden">
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;background:var(--sf2)"><span style="font-size:11px;color:var(--txt)">Dal Tadka</span><span style="font-size:12px;font-weight:800;color:var(--ylw)">&#8377;130</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;"><span style="font-size:11px;color:var(--txt)">Dal Fry</span><span style="font-size:12px;font-weight:800;color:var(--ylw)">&#8377;130</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;background:var(--sf2)"><span style="font-size:11px;color:var(--txt)">Mashroom Masala</span><span style="font-size:12px;font-weight:800;color:var(--ylw)">&#8377;189</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;"><span style="font-size:11px;color:var(--txt)">Mashroom Paneer</span><span style="font-size:12px;font-weight:800;color:var(--ylw)">&#8377;189</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;background:var(--sf2)"><span style="font-size:11px;color:var(--txt)">Mashroom Mutter</span><span style="font-size:12px;font-weight:800;color:var(--ylw)">&#8377;189</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;"><span style="font-size:11px;color:var(--txt)">Mashroom Kaju Masala</span><span style="font-size:12px;font-weight:800;color:var(--ylw)">&#8377;229</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;background:var(--sf2)"><span style="font-size:11px;color:var(--txt)">Kaju Masala</span><span style="font-size:12px;font-weight:800;color:var(--ylw)">&#8377;229</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;"><span style="font-size:11px;color:var(--txt)">Kaju Paneer Masala</span><span style="font-size:12px;font-weight:800;color:var(--ylw)">&#8377;229</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;background:var(--sf2)"><span style="font-size:11px;color:var(--txt)">Kaju Kury</span><span style="font-size:12px;font-weight:800;color:var(--ylw)">&#8377;229</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;"><span style="font-size:11px;color:var(--txt)">Mutter Paneer</span><span style="font-size:12px;font-weight:800;color:var(--ylw)">&#8377;170</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;background:var(--sf2)"><span style="font-size:11px;color:var(--txt)">Sahi Paneer</span><span style="font-size:12px;font-weight:800;color:var(--ylw)">&#8377;190</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;"><span style="font-size:11px;color:var(--txt)">Paneer Butter Masala</span><span style="font-size:12px;font-weight:800;color:var(--ylw)">&#8377;170</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;background:var(--sf2)"><span style="font-size:11px;color:var(--txt)">Paneer Lababdar</span><span style="font-size:12px;font-weight:800;color:var(--ylw)">&#8377;190</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;"><span style="font-size:11px;color:var(--txt)">Paneer Burji</span><span style="font-size:12px;font-weight:800;color:var(--ylw)">&#8377;190</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;background:var(--sf2)"><span style="font-size:11px;color:var(--txt)">Paneer Handi</span><span style="font-size:12px;font-weight:800;color:var(--ylw)">&#8377;170</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;"><span style="font-size:11px;color:var(--txt)">Paneer Masala</span><span style="font-size:12px;font-weight:800;color:var(--ylw)">&#8377;170</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;background:var(--sf2)"><span style="font-size:11px;color:var(--txt)">Kadai Paneer</span><span style="font-size:12px;font-weight:800;color:var(--ylw)">&#8377;170</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;"><span style="font-size:11px;color:var(--txt)">Mix Veg.</span><span style="font-size:12px;font-weight:800;color:var(--ylw)">&#8377;150</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;background:var(--sf2)"><span style="font-size:11px;color:var(--txt)">Sev Tamater</span><span style="font-size:12px;font-weight:800;color:var(--ylw)">&#8377;150</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;"><span style="font-size:11px;color:var(--txt)">Manchuriyan Grevi</span><span style="font-size:12px;font-weight:800;color:var(--ylw)">&#8377;100</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;background:var(--sf2)"><span style="font-size:11px;color:var(--txt)">Manchuriyan Dry</span><span style="font-size:12px;font-weight:800;color:var(--ylw)">&#8377;100</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;"><span style="font-size:11px;color:var(--txt)">Paneer Tika</span><span style="font-size:12px;font-weight:800;color:var(--ylw)">&#8377;220</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;background:var(--sf2)"><span style="font-size:11px;color:var(--txt)">Chily Paneer Grevi</span><span style="font-size:12px;font-weight:800;color:var(--ylw)">&#8377;170</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;"><span style="font-size:11px;color:var(--txt)">Chily Paneer Dry</span><span style="font-size:12px;font-weight:800;color:var(--ylw)">&#8377;170</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;background:var(--sf2)"><span style="font-size:11px;color:var(--txt)">Paneer Malai Tikka</span><span style="font-size:12px;font-weight:800;color:var(--ylw)">&#8377;220</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;"><span style="font-size:11px;color:var(--txt)">Paneer Hariyali Tikka</span><span style="font-size:12px;font-weight:800;color:var(--ylw)">&#8377;220</span></div>
+      </div>
+    </div>
+
+    <!-- NON VEG MAIN COURSE -->
+    <div style="margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:linear-gradient(90deg,rgba(239,68,68,.15),transparent);border-left:3px solid var(--red);border-radius:0 8px 8px 0;margin-bottom:6px">
+        <span style="font-size:16px">🍗</span>
+        <span style="font-size:12px;font-weight:800;color:var(--red);letter-spacing:.5px">NON VEG MAIN COURSE</span>
+      </div>
+      <div style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;overflow:hidden">
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;background:var(--sf2)"><span style="font-size:11px;color:var(--txt)">Kadai Chicken</span><span style="font-size:12px;font-weight:800;color:var(--red)">&#8377;220</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;"><span style="font-size:11px;color:var(--txt)">Chicken Curry</span><span style="font-size:12px;font-weight:800;color:var(--red)">&#8377;220</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;background:var(--sf2)"><span style="font-size:11px;color:var(--txt)">Chicken Handi</span><span style="font-size:12px;font-weight:800;color:var(--red)">&#8377;220</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;"><span style="font-size:11px;color:var(--txt)">Masala Chicken</span><span style="font-size:12px;font-weight:800;color:var(--red)">&#8377;220</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;background:var(--sf2)"><span style="font-size:11px;color:var(--txt)">Chicken Chilli Gravy</span><span style="font-size:12px;font-weight:800;color:var(--red)">&#8377;220</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;"><span style="font-size:11px;color:var(--txt)">Deshi Chicken (Half)</span><span style="font-size:12px;font-weight:800;color:var(--red)">&#8377;400</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;background:var(--sf2)"><span style="font-size:11px;color:var(--txt)">Deshi Chicken (Full)</span><span style="font-size:12px;font-weight:800;color:var(--red)">&#8377;800</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;"><span style="font-size:11px;color:var(--txt)">Garlic Chicken</span><span style="font-size:12px;font-weight:800;color:var(--red)">&#8377;240</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;background:var(--sf2)"><span style="font-size:11px;color:var(--txt)">Butter Chicken</span><span style="font-size:12px;font-weight:800;color:var(--red)">&#8377;240</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;"><span style="font-size:11px;color:var(--txt)">Chilli Chicken Dry</span><span style="font-size:12px;font-weight:800;color:var(--red)">&#8377;220</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;background:var(--sf2)"><span style="font-size:11px;color:var(--txt)">Tandoori Chicken (Plate)</span><span style="font-size:12px;font-weight:800;color:var(--red)">&#8377;240</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;"><span style="font-size:11px;color:var(--txt)">Tandoori Chicken (Half)</span><span style="font-size:12px;font-weight:800;color:var(--red)">&#8377;350</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;background:var(--sf2)"><span style="font-size:11px;color:var(--txt)">Tandoori Chicken (Full)</span><span style="font-size:12px;font-weight:800;color:var(--red)">&#8377;700</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;"><span style="font-size:11px;color:var(--txt)">Chicken Tika</span><span style="font-size:12px;font-weight:800;color:var(--red)">&#8377;220</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;background:var(--sf2)"><span style="font-size:11px;color:var(--txt)">Chicken Hariyali Tika</span><span style="font-size:12px;font-weight:800;color:var(--red)">&#8377;220</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;"><span style="font-size:11px;color:var(--txt)">Fish Fry</span><span style="font-size:12px;font-weight:800;color:var(--red)">&#8377;240</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;background:var(--sf2)"><span style="font-size:11px;color:var(--txt)">Fish Curry</span><span style="font-size:12px;font-weight:800;color:var(--red)">&#8377;220</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;"><span style="font-size:11px;color:var(--txt)">Fish Masala</span><span style="font-size:12px;font-weight:800;color:var(--red)">&#8377;220</span></div>
+      </div>
+    </div>
+
+    <!-- BIRYANI -->
+    <div style="margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:linear-gradient(90deg,rgba(249,115,22,.15),transparent);border-left:3px solid var(--acc);border-radius:0 8px 8px 0;margin-bottom:6px">
+        <span style="font-size:16px">🍛</span>
+        <span style="font-size:12px;font-weight:800;color:var(--acc);letter-spacing:.5px">CHICKEN BIRYANI</span>
+      </div>
+      <div style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;overflow:hidden">
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;background:var(--sf2)"><span style="font-size:11px;color:var(--txt)">Chicken Biryani</span><span style="font-size:12px;font-weight:800;color:var(--acc)">&#8377;199</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;"><span style="font-size:11px;color:var(--txt)">Hydrabadi Chicken Biryani</span><span style="font-size:12px;font-weight:800;color:var(--acc)">&#8377;209</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;background:var(--sf2)"><span style="font-size:11px;color:var(--txt)">Chiken Dum Biryani</span><span style="font-size:12px;font-weight:800;color:var(--acc)">&#8377;209</span></div>
+      </div>
+    </div>
+
+    <!-- RICE & PULAO -->
+    <div style="margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:linear-gradient(90deg,rgba(34,197,94,.15),transparent);border-left:3px solid var(--grn);border-radius:0 8px 8px 0;margin-bottom:6px">
+        <span style="font-size:16px">🍚</span>
+        <span style="font-size:12px;font-weight:800;color:var(--grn);letter-spacing:.5px">RICE / PULAO / BIRYANI</span>
+      </div>
+      <div style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;overflow:hidden">
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;background:var(--sf2)"><span style="font-size:11px;color:var(--txt)">Jeera Rice</span><span style="font-size:12px;font-weight:800;color:var(--grn)">&#8377;90</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;"><span style="font-size:11px;color:var(--txt)">Fried Rice</span><span style="font-size:12px;font-weight:800;color:var(--grn)">&#8377;130</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;background:var(--sf2)"><span style="font-size:11px;color:var(--txt)">Veg Pulava</span><span style="font-size:12px;font-weight:800;color:var(--grn)">&#8377;130</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;"><span style="font-size:11px;color:var(--txt)">Plain Rice</span><span style="font-size:12px;font-weight:800;color:var(--grn)">&#8377;70</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;background:var(--sf2)"><span style="font-size:11px;color:var(--txt)">Veg. Biryani</span><span style="font-size:12px;font-weight:800;color:var(--grn)">&#8377;150</span></div>
+      </div>
+    </div>
+
+    <!-- NAAN / ROTI -->
+    <div style="margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:linear-gradient(90deg,rgba(251,146,60,.15),transparent);border-left:3px solid var(--acc2);border-radius:0 8px 8px 0;margin-bottom:6px">
+        <span style="font-size:16px">🫓</span>
+        <span style="font-size:12px;font-weight:800;color:var(--acc2);letter-spacing:.5px">NAAN / तंदूरी रोटी</span>
+      </div>
+      <div style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;overflow:hidden">
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;background:var(--sf2)"><span style="font-size:11px;color:var(--txt)">Plain Tandoori Roti</span><span style="font-size:12px;font-weight:800;color:var(--acc2)">&#8377;15</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;"><span style="font-size:11px;color:var(--txt)">Butter Tandoori Roti</span><span style="font-size:12px;font-weight:800;color:var(--acc2)">&#8377;19</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;background:var(--sf2)"><span style="font-size:11px;color:var(--txt)">Plain Naan</span><span style="font-size:12px;font-weight:800;color:var(--acc2)">&#8377;25</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;"><span style="font-size:11px;color:var(--txt)">Butter Naan</span><span style="font-size:12px;font-weight:800;color:var(--acc2)">&#8377;30</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;background:var(--sf2)"><span style="font-size:11px;color:var(--txt)">Garlic Naan</span><span style="font-size:12px;font-weight:800;color:var(--acc2)">&#8377;40</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;"><span style="font-size:11px;color:var(--txt)">Lachha Paratha</span><span style="font-size:12px;font-weight:800;color:var(--acc2)">&#8377;35</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;background:var(--sf2)"><span style="font-size:11px;color:var(--txt)">Butter Tawa Roti</span><span style="font-size:12px;font-weight:800;color:var(--acc2)">&#8377;15</span></div>
+      </div>
+    </div>
+
+    <!-- COLD DRINKS & EXTRAS -->
+    <div style="margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:linear-gradient(90deg,rgba(59,130,246,.15),transparent);border-left:3px solid var(--blu);border-radius:0 8px 8px 0;margin-bottom:6px">
+        <span style="font-size:16px">🥤</span>
+        <span style="font-size:12px;font-weight:800;color:var(--blu);letter-spacing:.5px">COLD DRINK & EXTRAS</span>
+      </div>
+      <div style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;overflow:hidden">
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;background:var(--sf2)"><span style="font-size:11px;color:var(--txt)">Cold Drink</span><span style="font-size:12px;font-weight:800;color:var(--blu)">MRP</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;"><span style="font-size:11px;color:var(--txt)">Water Bottle</span><span style="font-size:12px;font-weight:800;color:var(--blu)">&#8377;20</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;background:var(--sf2)"><span style="font-size:11px;color:var(--txt)">Green Salad</span><span style="font-size:12px;font-weight:800;color:var(--blu)">&#8377;40</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 12px;"><span style="font-size:11px;color:var(--txt)">Dahi</span><span style="font-size:12px;font-weight:800;color:var(--blu)">&#8377;40</span></div>
+      </div>
+    </div>
+
+    <!-- ORDER KAISE KAREIN -->
+    <div style="margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:linear-gradient(90deg,rgba(37,211,102,.15),transparent);border-left:3px solid #25d366;border-radius:0 8px 8px 0;margin-bottom:6px">
+        <span style="font-size:16px">📦</span>
+        <span style="font-size:12px;font-weight:800;color:#25d366;letter-spacing:.5px">ORDER कैसे करें?</span>
+      </div>
+      <div style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:13px">
+        <div style="font-size:11px;font-weight:800;color:var(--txt);margin-bottom:10px">3 आसान तरीके 👇</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="background:rgba(37,211,102,.08);border:1px solid rgba(37,211,102,.25);border-radius:8px;padding:10px 12px">
+            <div style="font-size:11px;font-weight:700;color:#25d366;margin-bottom:3px">📲 WhatsApp पर Order करो</div>
+            <div style="font-size:10px;color:var(--t2)">Item का नाम + Qty + Address भेजो</div>
+            <div style="font-size:10px;color:var(--t3);margin-top:2px">👉 6367183480 · 8696283600</div>
+          </div>
+          <div style="background:rgba(249,115,22,.08);border:1px solid rgba(249,115,22,.25);border-radius:8px;padding:10px 12px">
+            <div style="font-size:11px;font-weight:700;color:var(--acc);margin-bottom:3px">📞 Call करके Order करो</div>
+            <div style="font-size:10px;color:var(--t2)">सीधे बात करो — Order तुरंत लेंगे</div>
+            <div style="font-size:10px;color:var(--t3);margin-top:2px">👉 9166753417 (Swroop Sa) · 9509553600 (Vikram)</div>
+          </div>
+          <div style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.25);border-radius:8px;padding:10px 12px">
+            <div style="font-size:11px;font-weight:700;color:var(--blu);margin-bottom:3px">🛒 WhatsApp Catalog से चुनो</div>
+            <div style="font-size:10px;color:var(--t2)">पूरा Menu देखो — Photo के साथ Order करो</div>
+            <div style="font-size:10px;color:var(--t3);margin-top:2px">👉 wa.me/c/916367183480</div>
+          </div>
+        </div>
+        <div style="margin-top:10px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:8px 12px;font-size:10px;color:var(--grn);text-align:center">
+          🚚 Address बताओ → FREE Delivery → 💳 Pay बाद में या Delivery पर
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER CONTACT -->
+    <div style="background:linear-gradient(135deg,#1a0800,var(--sf2));border:1px solid var(--acc);border-radius:12px;padding:14px;text-align:center">
+      <div style="font-size:22px;margin-bottom:4px">🍛</div>
+      <div style="font-size:14px;font-weight:900;color:var(--acc)">मारवाड़ रसोई</div>
+      <div style="font-size:9px;color:var(--t3);margin-bottom:10px">Kendriya Vidyalaya, Jalipa Cantt, Barmer · Rajasthan</div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px">
+        <a href="tel:9166753417" style="background:var(--sf2);border:1px solid var(--bd);border-radius:8px;color:var(--txt);text-decoration:none;font-size:11px;padding:7px 12px;display:block">📞 Swroop Sa — <b style="color:var(--acc)">9166753417</b></a>
+        <a href="tel:8696283600" style="background:var(--sf2);border:1px solid var(--bd);border-radius:8px;color:var(--txt);text-decoration:none;font-size:11px;padding:7px 12px;display:block">📞 Manoj — <b style="color:var(--acc)">8696283600</b></a>
+        <a href="tel:9509553600" style="background:var(--sf2);border:1px solid var(--bd);border-radius:8px;color:var(--txt);text-decoration:none;font-size:11px;padding:7px 12px;display:block">📞 Vikram — <b style="color:var(--acc)">9509553600</b></a>
+      </div>
+      <button onclick="window.open('https://wa.me/c/916367183480','_blank')" style="width:100%;background:#25d366;border:none;border-radius:10px;color:#fff;padding:12px;font-size:12px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(37,211,102,.35)">📲 WhatsApp Catalog — पूरा Menu Photo के साथ देखो</button>
+      <div style="margin-top:8px;font-size:9px;color:var(--t3)">🚚 FREE Delivery · Jai Hind! 🇮🇳</div>
+    </div>
+
+  </div>
+</div>
+<!-- ADD BILL -->
+<div class="mbg" id="addM"><div class="modal">
+  <div class="mhdr"><div class="mtl" id="addT">📥 New Bill</div><button class="xb" onclick="cm('addM')">✕</button></div>
+  <input type="hidden" id="eid">
+  <div class="fr">
+    <div class="fg"><label class="fl">BILL NO *</label><input class="fi" id="f_bn" placeholder="Auto"></div>
+    <div class="fg"><label class="fl">DATE *</label><input class="fi" id="f_dt" type="date"></div>
+  </div>
+  <div class="fg"><label class="fl">LOCATION / PARTY *</label><input class="fi" id="f_loc" placeholder="e.g. जालीपा MES, 56 Regt..."></div>
+  <div class="fg"><label class="fl">MOBILE *</label><input class="fi" id="f_ph" type="tel" placeholder="WhatsApp Number"></div>
+  <hr>
+  <div class="sec">🍽️ ITEMS</div>
+  <div style="display:grid;grid-template-columns:1fr 50px 65px 25px;gap:4px;margin-bottom:4px">
+    <div style="font-size:9px;color:var(--t3);padding:0 2px">Item</div>
+    <div style="font-size:9px;color:var(--t3);padding:0 2px">Qty</div>
+    <div style="font-size:9px;color:var(--t3);padding:0 2px">₹/pc</div>
+    <div></div>
+  </div>
+  <div id="iList"></div>
+  <button class="iadd" onclick="addRow()">＋ Item जोड़ो</button>
+  <div class="totb" style="margin-top:8px"><span style="font-size:11px;color:var(--t3)">TOTAL AMOUNT</span><div class="totv" id="totD">₹0</div></div>
+  <div class="fg"><label class="fl">NOTE (Optional)</label><textarea class="fta" id="f_nt" placeholder="Extra info..."></textarea></div>
+  <button class="sbtn" onclick="saveBill()">💾 Save Bill</button>
+  <button class="cbtn" onclick="cm('addM')">रद्द</button>
+</div></div>
+
+<!-- DETAIL -->
+<div class="mbg" id="detM"><div class="modal">
+  <div class="mhdr"><div class="mtl" id="d_bn">BILL #—</div><button class="xb" onclick="cm('detM')">✕</button></div>
+  <div style="font-size:11px;color:var(--t2);margin-bottom:10px" id="d_st"></div>
+  <div class="dg2" style="margin-bottom:8px">
+    <div class="dbox"><div class="dl">📍 Location</div><div class="dv" id="d_loc" style="font-size:13px"></div></div>
+    <div class="dbox"><div class="dl">📅 Date</div><div class="dv" id="d_dt" style="font-size:13px"></div></div>
+    <div class="dbox"><div class="dl">📱 Mobile</div><div class="dv" id="d_ph" style="font-size:13px"></div></div>
+    <div class="dbox"><div class="dl">💳 Pay Mode</div><div class="dv" id="d_pm" style="font-size:13px"></div></div>
+  </div>
+  <div class="sec">🍽️ ITEMS</div>
+  <div id="d_its" style="margin-bottom:8px"></div>
+  <div class="dg3" style="margin-bottom:10px">
+    <div class="dbox"><div class="dv vo" id="d_tot"></div><div class="dl">Total</div></div>
+    <div class="dbox"><div class="dv vg" id="d_paid"></div><div class="dl">Paid</div></div>
+    <div class="dbox"><div class="dv vr" id="d_pnd"></div><div class="dl">Pending</div></div>
+  </div>
+  <div id="paySec">
+    <hr>
+    <div class="sec">💰 PAYMENT MARK करें</div>
+    <div class="fr">
+      <div class="fg"><label class="fl">PAYMENT MODE *</label>
+        <select class="fsl" id="pay_mode">
+          <option value="">— चुनें —</option>
+          <option>Cash</option>
+          <option>BharatPe</option>
+          <option>Kamla Kanwar UPI</option>
+          <option>Charan Kanchan UPI</option>
+          <option>Any / Other</option>
+        </select>
+      </div>
+      <div class="fg"><label class="fl">DATE</label><input class="fi" id="pay_dt" type="date"></div>
+    </div>
+    <div class="fg"><label class="fl">NOTE</label><input class="fi" id="pay_note" placeholder="Optional"></div>
+    <button class="sbtn" onclick="markPaid()">✅ Mark as Paid</button>
+  </div>
+  <div id="paidSec" style="display:none">
+    <hr>
+    <!-- PAYMENT MODE UPDATE FOR OLD BILLS -->
+    <div style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.25);border-radius:10px;padding:10px 12px;margin-bottom:10px">
+      <div class="sec" style="margin-bottom:6px;color:var(--blu)">✏️ Payment Mode बदलो (Filter के लिए)</div>
+      <div class="fr">
+        <div class="fg">
+          <label class="fl">💳 MODE बदलो</label>
+          <select class="fsl" id="edit_paymode">
+            <option value="">— चुनें —</option>
+            <option>Cash</option>
+            <option>BharatPe</option>
+            <option>Kamla Kanwar UPI</option>
+            <option>Charan Kanchan UPI</option>
+            <option>Any / Other</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="fl">📅 Date बदलो</label>
+          <input class="fi" id="edit_paydate" type="date">
+        </div>
+      </div>
+      <button onclick="updatePayMode()" style="width:100%;background:linear-gradient(135deg,#1d4ed8,var(--blu));color:#fff;border:none;border-radius:8px;padding:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">💾 Update करो — Filter में आएगा</button>
+    </div>
+    <div class="sec">📲 NOTIFICATIONS भेजें</div>
+    <button class="wasbtn wabtn-grn" onclick="sendMsg('thanks')">📲 Customer को Thank You WA</button>
+    <button class="wasbtn wabtn-blu" onclick="sendMsg('manager')">👔 Swroop Sa को Alert</button>
+  </div>
+  <hr>
+  <div class="sec">📩 REMINDER भेजें</div>
+  <!-- REMINDER LOG -->
+  <div id="reminderLog" class="rlog" style="margin-bottom:8px;display:none"></div>
+  <button class="wasbtn wabtn-red" onclick="sendMsg('r1')">🔔 Reminder 1 — WhatsApp</button>
+  <button class="wasbtn wabtn-red" style="background:rgba(239,68,68,.8)" onclick="sendMsg('r2')">🔔 Reminder 2 — Firm WA</button>
+  <button class="wasbtn" style="background:rgba(234,179,8,.15);border:1px solid rgba(234,179,8,.5);color:var(--ylw)" onclick="sendSMSDirect()">📱 Short SMS भेजो (सीधे मोबाइल)</button>
+  <div style="display:flex;gap:7px;margin-top:8px">
+    <button class="sbtn" style="font-size:12px;padding:9px;background:linear-gradient(135deg,#1e40af,var(--blu))" onclick="editB()">✏️ Edit</button>
+    <button class="sbtn" style="font-size:12px;padding:9px;background:linear-gradient(135deg,#7f1d1d,var(--red))" onclick="delB()">🗑️ Delete</button>
+  </div>
+</div></div>
+
+<!-- MSG -->
+<div class="mbg" id="msgM"><div class="modal">
+  <div class="mhdr"><div class="mtl" id="msgTitle">Message</div><button class="xb" onclick="cm('msgM')">✕</button></div>
+  <div class="wa-box wa-grn" id="msgPreview"></div>
+  <button class="wasbtn wabtn-grn" onclick="sendMsgWA()">📲 WhatsApp पर भेजो</button>
+  <button class="wasbtn" style="background:rgba(234,179,8,.15);border:1px solid rgba(234,179,8,.5);color:var(--ylw)" onclick="sendSMSFromModal()">📱 Short SMS भेजो (सीधे मोबाइल)</button>
+  <button class="wasbtn wabtn-sms" onclick="copyMsgText()">📋 Text Copy करो</button>
+  <button class="cbtn" onclick="cm('msgM')">बंद करें</button>
+</div></div>
+
+<!-- CASH TXN -->
+<div class="mbg" id="cashM"><div class="modal">
+  <input type="hidden" id="cashType">
+  <div class="mhdr"><div class="mtl" id="cashT">Cash</div><button class="xb" onclick="cm('cashM')">✕</button></div>
+  <div class="fr">
+    <div class="fg"><label class="fl">AMOUNT (₹) *</label><input class="fi" id="ct_amt" type="number" placeholder="0"></div>
+    <div class="fg"><label class="fl">DATE</label><input class="fi" id="ct_dt" type="date"></div>
+  </div>
+  <div class="fg"><label class="fl">CATEGORY</label>
+    <select class="fsl" id="ct_cat">
+      <option>Local Sale</option><option>Udhari Payment</option><option>Opening Balance</option>
+      <option>Raw Material</option><option>Staff Salary</option><option>Gas / Fuel</option>
+      <option>Misc Expense</option><option>Other</option>
+    </select>
+  </div>
+  <div class="fg"><label class="fl">NOTE</label><input class="fi" id="ct_nt" placeholder="Optional"></div>
+  <button class="sbtn" onclick="saveCashTxn()">💾 Save</button>
+  <button class="cbtn" onclick="cm('cashM')">रद्द</button>
+</div></div>
+
+<!-- STAFF ADD -->
+<div class="mbg" id="staffM"><div class="modal">
+  <input type="hidden" id="seid">
+  <div class="mhdr"><div class="mtl" id="staffT">Add Staff</div><button class="xb" onclick="cm('staffM')">✕</button></div>
+  <div class="fr">
+    <div class="fg"><label class="fl">NAME *</label><input class="fi" id="s_nm" placeholder="Full Name"></div>
+    <div class="fg"><label class="fl">ROLE</label>
+      <select class="fsl" id="s_role"><option>Cook</option><option>Helper</option><option>Delivery</option><option>Manager</option><option>Cleaner</option></select>
+    </div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label class="fl">PHONE</label><input class="fi" id="s_ph" type="tel" placeholder="WhatsApp"></div>
+    <div class="fg"><label class="fl">SALARY (₹/mo)</label><input class="fi" id="s_sal" type="number" placeholder="0"></div>
+  </div>
+  <div class="fg"><label class="fl">JOINING DATE</label><input class="fi" id="s_jd" type="date"></div>
+  <div class="fg"><label class="fl">NOTE</label><textarea class="fta" id="s_nt" placeholder="Optional..."></textarea></div>
+  <button class="sbtn" onclick="saveStaff()">💾 Save</button>
+  <button class="cbtn" onclick="cm('staffM')">रद्द</button>
+</div></div>
+
+<!-- STAFF DETAIL -->
+<div class="mbg" id="sdetM"><div class="modal">
+  <div class="mhdr"><div><div class="mtl" id="sd_nm">—</div><div id="sd_role" style="font-size:11px;color:var(--t3)"></div></div><button class="xb" onclick="cm('sdetM')">✕</button></div>
+  <div class="dg3" style="margin-bottom:10px">
+    <div class="dbox"><div class="dv vg" id="sd_earned"></div><div class="dl">Earned</div></div>
+    <div class="dbox"><div class="dv vr" id="sd_adv"></div><div class="dl">Advance</div></div>
+    <div class="dbox"><div class="dv vo" id="sd_net"></div><div class="dl">Net Payable</div></div>
+  </div>
+  <div class="dg2" style="margin-bottom:10px">
+    <div class="dbox"><div class="dl">💰 Salary</div><div class="dv" id="sd_sal" style="font-size:13px"></div></div>
+    <div class="dbox"><div class="dl">📅 Joined</div><div class="dv" id="sd_jd" style="font-size:13px"></div></div>
+  </div>
+  <div class="sec">📅 ATTENDANCE THIS MONTH</div>
+  <div id="sd_att" style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px"></div>
+  <div class="sec">💸 ADVANCE / SALARY PAYMENT</div>
+  <div class="fr">
+    <div class="fg"><label class="fl">AMOUNT (₹)</label><input class="fi" id="sadv_amt" type="number" placeholder="0"></div>
+    <div class="fg"><label class="fl">NOTE</label><input class="fi" id="sadv_note" placeholder="Reason"></div>
+  </div>
+  <div style="display:flex;gap:7px;margin-bottom:10px">
+    <button class="sbtn" style="font-size:12px;padding:9px;background:linear-gradient(135deg,var(--red),#dc2626)" onclick="addAdvance(1)">💸 Advance दो</button>
+    <button class="sbtn" style="font-size:12px;padding:9px;background:linear-gradient(135deg,var(--grn),#16a34a)" onclick="addAdvance(2)">✅ Salary Pay</button>
+  </div>
+  <div class="sec">📋 ADVANCE HISTORY</div>
+  <div id="sd_advhist"></div>
+  <div style="display:flex;gap:7px;margin-top:10px">
+    <button class="sbtn" style="font-size:12px;padding:9px;background:linear-gradient(135deg,#1e40af,var(--blu))" onclick="editStaff()">✏️ Edit</button>
+    <button class="sbtn" style="font-size:12px;padding:9px;background:linear-gradient(135deg,#7f1d1d,var(--red))" onclick="delStaff()">🗑️ Remove</button>
+  </div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+
+<!-- CSV IMPORT MODAL -->
+<div class="mbg" id="csvM"><div class="modal">
+  <div class="mhdr"><div class="mtl">📥 Data Import</div><button class="xb" onclick="cm('csvM')">✕</button></div>
+  
+  <!-- MODE TABS -->
+  <div style="display:flex;gap:5px;margin-bottom:10px">
+    <button id="tab_csv" onclick="setITab('csv')" style="flex:1;border:none;border-radius:7px;padding:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;background:var(--acc);color:#fff">📋 CSV</button>
+    <button id="tab_wa" onclick="setITab('wa')" style="flex:1;border:none;border-radius:7px;padding:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;background:var(--sf2);color:var(--t2);border:1px solid var(--bd)">💬 WhatsApp Text</button>
+    <button id="tab_dl" onclick="setITab('dl')" style="flex:1;border:none;border-radius:7px;padding:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;background:var(--sf2);color:var(--t2);border:1px solid var(--bd)">⬇️ Template</button>
+  </div>
+
+  <!-- CSV TAB -->
+  <div id="itab_csv">
+    <div style="font-size:10px;color:var(--t3);background:var(--sf2);border-radius:7px;padding:7px;margin-bottom:7px;font-family:monospace;line-height:1.6">
+      bill_no,date,location,mobile,items,total,status,paymode,note,order_time<br>
+      2,2026-05-02,Jalipa Cantt,9876543210,Chicken×2|Roti×4,440,pending,,,08:19 PM
+    </div>
+    <textarea class="fta" id="csvInput" style="min-height:140px;font-size:10px;font-family:monospace" placeholder="यहाँ CSV paste करो...&#10;bill_no,date,location,mobile,items,total,status..."></textarea>
+  </div>
+
+  <!-- WHATSAPP TAB -->
+  <div id="itab_wa" style="display:none">
+    <div style="font-size:10px;color:var(--t3);background:var(--sf2);border-radius:7px;padding:8px;margin-bottom:7px;line-height:1.7">
+      💬 <strong style="color:var(--acc)">WhatsApp format में paste करो:</strong><br>
+      Bill 5 · Jalipa · 9876543210<br>
+      Chicken Biryani×2 · Dal Makhani×1<br>
+      Total: ₹580<br><br>
+      <span style="color:var(--ylw)">⚡ Auto detect होगा — format कोई भी चलेगा</span>
+    </div>
+    <textarea class="fta" id="waInput" style="min-height:140px;font-size:11px" placeholder="WhatsApp पर जो भेजा है वह यहाँ paste करो...&#10;&#10;Bill 5 · Jalipa Cantt · 9876543210&#10;Kadai Chicken×2 · Roti×8&#10;Total: ₹520"></textarea>
+  </div>
+
+  <!-- DOWNLOAD TAB -->
+  <div id="itab_dl" style="display:none">
+    <div style="font-size:11px;color:var(--t2);margin-bottom:10px">CSV template download करो — Excel/Sheets में भरो — वापस paste करो।</div>
+    <div style="background:var(--sf2);border:1px solid var(--bd);border-radius:9px;padding:12px;margin-bottom:8px">
+      <div style="font-size:12px;font-weight:700;color:var(--acc);margin-bottom:6px">📋 Columns:</div>
+      <div style="font-size:10px;color:var(--t2);line-height:2">
+        <b>bill_no</b> — Bill नंबर (1,2,3...)<br>
+        <b>date</b> — YYYY-MM-DD format (2026-05-02)<br>
+        <b>location</b> — Party/Unit का नाम<br>
+        <b>mobile</b> — WhatsApp नंबर<br>
+        <b>items</b> — Item×Qty|Item×Qty (pipe से अलग)<br>
+        <b>total</b> — कुल रकम (सिर्फ नंबर)<br>
+        <b>status</b> — pending या paid<br>
+        <b>paymode</b> — Cash/BharatPe/Kamla Kanwar UPI (खाली रहे तो ठीक)<br>
+        <b>note</b> — कोई नोट (खाली रहे तो ठीक)<br>
+        <b>order_time</b> — Order का समय e.g. 08:19 PM (जैसे OrderHub में दिखता है)
+      </div>
+    </div>
+    <button class="sbtn" onclick="downloadTemplate()">⬇️ Template CSV Download करो</button>
+    <div style="margin-top:8px;font-size:10px;color:var(--t3);text-align:center">Excel/Google Sheets में खोलो → भरो → CSV export → यहाँ paste करो</div>
+  </div>
+
+  <!-- LOG -->
+  <div id="csvLog" style="background:#0a0f1e;border:1px solid var(--bd);border-radius:8px;padding:8px;margin-top:8px;font-size:10px;line-height:1.8;max-height:160px;overflow-y:auto;display:none"></div>
+  
+  <button class="sbtn" style="margin-top:10px" id="importBtn" onclick="importCSV()">🚀 Import → Firebase</button>
+  <button class="cbtn" onclick="cm('csvM')">बंद करें</button>
+</div></div>
+<!-- ══════════════ FIREBASE + SCRIPT ══════════════ -->
+<!-- GLOBAL ERROR CATCHER — सबसे पहले load होगा -->
+<script>
+window.addEventListener('error', function(e) {
+  const box = document.createElement('div');
+  box.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#1a0000;color:#fca5a5;border-bottom:3px solid #ef4444;padding:12px;font-size:11px;font-family:monospace;line-height:1.5;max-height:50vh;overflow-y:auto;white-space:pre-wrap;word-break:break-word;';
+  box.innerHTML = '<div style="color:#fff;background:#ef4444;padding:4px 8px;border-radius:4px;font-weight:bold;margin-bottom:6px;font-size:13px">🚨 JAVASCRIPT ERROR PAKDA GAYA!</div>' +
+    '<b>Message:</b> ' + (e.message || 'unknown') + '<br>' +
+    '<b>File:</b> ' + (e.filename || '?').split('/').pop() + '<br>' +
+    '<b>Line:</b> ' + (e.lineno || '?') + ':' + (e.colno || '?') + '<br>' +
+    (e.error && e.error.stack ? '<br><b>Stack:</b><br>' + e.error.stack.substring(0, 600) : '');
+  const closeBtn = document.createElement('button');
+  closeBtn.textContent = '✕';
+  closeBtn.style.cssText = 'position:absolute;top:5px;right:5px;background:#ef4444;color:#fff;border:none;border-radius:4px;width:28px;height:28px;font-size:14px;cursor:pointer;font-weight:bold';
+  closeBtn.onclick = function(){ box.remove(); };
+  box.appendChild(closeBtn);
+  document.body.appendChild(box);
+});
+
+window.addEventListener('unhandledrejection', function(e) {
+  const box = document.createElement('div');
+  box.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#1a0a00;color:#fcd34d;border-bottom:3px solid #f59e0b;padding:12px;font-size:11px;font-family:monospace;line-height:1.5;max-height:50vh;overflow-y:auto;white-space:pre-wrap;word-break:break-word;';
+  box.innerHTML = '<div style="color:#000;background:#f59e0b;padding:4px 8px;border-radius:4px;font-weight:bold;margin-bottom:6px;font-size:13px">⚠️ PROMISE ERROR (Firebase?)</div>' +
+    '<b>Reason:</b> ' + (e.reason && e.reason.message ? e.reason.message : String(e.reason)) + '<br>' +
+    (e.reason && e.reason.code ? '<b>Code:</b> ' + e.reason.code + '<br>' : '') +
+    (e.reason && e.reason.stack ? '<br><b>Stack:</b><br>' + e.reason.stack.substring(0, 600) : '');
+  const closeBtn = document.createElement('button');
+  closeBtn.textContent = '✕';
+  closeBtn.style.cssText = 'position:absolute;top:5px;right:5px;background:#f59e0b;color:#000;border:none;border-radius:4px;width:28px;height:28px;font-size:14px;cursor:pointer;font-weight:bold';
+  closeBtn.onclick = function(){ box.remove(); };
+  box.appendChild(closeBtn);
+  document.body.appendChild(box);
+});
+
+// Module load fail catcher
+window.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() {
+    if (typeof window.showPage !== 'function') {
+      const box = document.createElement('div');
+      box.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#0a0a1a;color:#93c5fd;border-bottom:3px solid #3b82f6;padding:12px;font-size:12px;font-family:monospace;line-height:1.6;';
+      box.innerHTML = '<div style="color:#fff;background:#3b82f6;padding:4px 8px;border-radius:4px;font-weight:bold;margin-bottom:6px;font-size:13px">📋 DIAGNOSIS:</div>' +
+        'window.showPage = ' + (typeof window.showPage) + '<br>' +
+        'window.openAdd = ' + (typeof window.openAdd) + '<br>' +
+        'window.setTab = ' + (typeof window.setTab) + '<br>' +
+        '<br><b>Mतलब:</b> Module script load नहीं हुई या crash हो गई।<br>' +
+        'अगर ऊपर 🚨 या ⚠️ box आया है तो वो असली error है।<br>' +
+        'अगर कोई error नहीं आया → शायद internet/firebase CDN block है।';
+      document.body.appendChild(box);
+    }
+  }, 3000);
+});
+</script>
+
+<script type="module">
+// ════════════════════════════════════════════════════════
+//  ⚠️  यहाँ अपना Firebase Config डालो
+//  Firebase Console → Project Settings → Web App → Config
+// ════════════════════════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyBCe5DKNKcthOl4umprfRm2QBfbVaFORg8",
+  authDomain: "vbe-order-tracker-60324.firebaseapp.com",
+  projectId: "vbe-order-tracker-60324",
+  storageBucket: "vbe-order-tracker-60324.firebasestorage.app",
+  messagingSenderId: "894023456122",
+  appId: "1:894023456122:web:6ee548f0913c887c67f2c3"
+};
+// ════════════════════════════════════════════════════════
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot,
+  query, orderBy, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// ─── CONFIG CHECK ───
+const isConfigured = firebaseConfig.apiKey !== "YOUR_API_KEY";
+if (!isConfigured) {
+  document.getElementById('cfgBanner').style.display = 'block';
+  document.getElementById('fbStatus').className = 'fb-status fb-offline';
+  document.getElementById('fbStatus').innerHTML = '<div class="pulse"></div>Config नहीं है';
+}
+
+let app, db;
+try {
+  app = initializeApp(firebaseConfig);
+  db = getFirestore(app);
+} catch(e) {
+  console.error('Firebase init error:', e);
+}
+
+// ─── STATE ───
+let bills = [], cash = [], staffList = [];
+let curTab = 'all', curDId = null, curStId = null;
+let curCDFrom = '', curCDTo = '', dFrom = '', dTo = '';
+let curMsg = '', curMsgPhone = '', curPMF = 'all';
+const MANAGER_PHONE = '9166753417';
+
+// ─── FIREBASE STATUS ───
+function setStatus(state) {
+  const el = document.getElementById('fbStatus');
+  if (state === 'online') {
+    el.className = 'fb-status fb-online';
+    el.innerHTML = '<div class="pulse"></div>🔥 Live Sync';
+  } else if (state === 'offline') {
+    el.className = 'fb-status fb-offline';
+    el.innerHTML = '<div class="pulse"></div>Offline';
+  } else {
+    el.className = 'fb-status fb-connecting';
+    el.innerHTML = '<div class="pulse"></div>Connect हो रहा है...';
+  }
+}
+
+// ─── REAL-TIME LISTENERS ───
+function startListeners() {
+  if (!db) { renderU(); renderCash(); renderStaff(); return; }
+
+  // Bills — orderBy हटा दिया (पुराने bills में createdAt नहीं है)
+  onSnapshot(collection(db, 'mrk_bills'), (snap) => {
+    try {
+      bills = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      bills.sort((a, b) => {
+        const ta = a.createdAt || 0;
+        const tb = b.createdAt || 0;
+        if (ta !== tb) return tb - ta;
+        return (parseInt(b.billNo) || 0) - (parseInt(a.billNo) || 0);
+      });
+      renderU();
+      setStatus('online');
+    } catch(e) {
+      console.error('Bills processing error:', e);
+      setStatus('offline');
+      const wrap = document.getElementById('uList');
+      if (wrap) wrap.innerHTML = '<div style="padding:20px;color:#fca5a5;font-size:11px;background:#1a0000;border:2px solid #ef4444;border-radius:10px;margin:10px;font-family:monospace">⚠️ Data processing error: ' + e.message + '</div>';
+    }
+  }, (err) => {
+    console.error('Bills error:', err.code, err.message);
+    setStatus('offline');
+    const wrap = document.getElementById('uList');
+    if (wrap) wrap.innerHTML = '<div style="padding:20px;color:#fca5a5;font-size:11px;background:#1a0000;border:2px solid #ef4444;border-radius:10px;margin:10px;font-family:monospace">⚠️ Firebase error: ' + err.code + '<br>' + err.message + '</div>';
+    toast('❌ Error: ' + err.code, true);
+  });
+
+  // Cash
+  onSnapshot(collection(db, 'mrk_cash'), (snap) => {
+    cash = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    cash.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    renderCash();
+  }, () => renderCash());
+
+  // Staff
+  onSnapshot(collection(db, 'mrk_staff'), (snap) => {
+    staffList = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderStaff();
+  }, () => renderStaff());
+}
+
+if (isConfigured && db) {
+  startListeners();
+  // 12 सेकंड बाद भी loading दिखे तो offline fallback
+  setTimeout(() => {
+    const el = document.getElementById('uList');
+    if (el && el.innerHTML.includes('load हो रहा')) {
+      setStatus('offline');
+      renderU();
+      toast('⚠️ Firebase slow — check connection', true);
+    }
+  }, 12000);
+} else {
+  bills = JSON.parse(localStorage.getItem('mrk_bills_v3') || '[]');
+  cash = JSON.parse(localStorage.getItem('mrk_cash_v1') || '[]');
+  staffList = JSON.parse(localStorage.getItem('mrk_staff_v1') || '[]');
+  renderU(); renderCash(); renderStaff();
+}
+
+// ─── SAVE HELPERS ───
+async function saveDoc(col, id, data) {
+  if (isConfigured && db) {
+    try {
+      await setDoc(doc(db, col, id), { ...data, updatedAt: serverTimestamp() });
+    } catch(e) {
+      toast('❌ Save error: ' + e.message, true);
+      throw e;
+    }
+  } else {
+    // localStorage fallback
+    const key = col === 'mrk_bills' ? 'mrk_bills_v3' : col === 'mrk_cash' ? 'mrk_cash_v1' : 'mrk_staff_v1';
+    localStorage.setItem(key, JSON.stringify(col === 'mrk_bills' ? bills : col === 'mrk_cash' ? cash : staffList));
+  }
+}
+async function delDoc(col, id) {
+  if (isConfigured && db) {
+    await deleteDoc(doc(db, col, id));
+  }
+}
+
+// ─── HELPERS ───
+function today() { return new Date().toISOString().slice(0, 10); }
+function daysAgo(n) { const d = new Date(); d.setDate(d.getDate() - n); return d.toISOString().slice(0, 10); }
+function monthStart() { const d = new Date(); d.setDate(1); return d.toISOString().slice(0, 10); }
+function fmtDate(d) { if (!d) return '—'; try { return new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }); } catch { return d; } }
+function fmtDateShort(d) { if (!d) return '—'; try { return new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }); } catch { return d; } }
+function nowTime() { return new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }); }
+function nextBN() { let mx = 0; bills.forEach(b => { const n = parseInt(b.billNo); if (!isNaN(n) && n > mx) mx = n; }); return String(mx + 1); }
+
+// ─── PAGE NAV ───
+window.showPage = function(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.ntab').forEach(t => t.classList.remove('active'));
+  document.getElementById('pg_' + id).classList.add('active');
+  el.classList.add('active');
+  if (id === 'cash') renderCash();
+  if (id === 'staff') renderStaff();
+};
+
+// ─── MENU SEND ───
+window.sendMenuWA = function() {
+  const ph = (document.getElementById('menuPhone').value || '').replace(/\D/g,'');
+  if (!ph || ph.length < 10) { toast('❌ Mobile number डालो', true); return; }
+  const msg = `🙏 Jai Hind!\n\nPyaare Marwad Rasoi Parivar ke Sadasya,\n\nAapka swagat hai! 🍛\n\nHum aapko *Marwad Rasoi* ki taraf se apna menu bhejne ka Saubhagya prapt kar rahe hain.\n\n🕐 *Timing:*\n🍽️ Lunch: 11:30 AM – 2:30 PM\n🌙 Dinner: 6:30 PM – 10:30 PM\n\n🚚 FREE DELIVERY\n\n📋 *Humara Menu dekhein:*\nhttps://wa.me/c/916367183480\n\n📞 Order ke liye:\n📞 Swroop Sa  : 9166753417\n📞 Manoj      : 8696283600\n📞 Vikram     : 9509553600\n\n🍛 *Marwad Rasoi Parivar* — Jai Hind! 🇮🇳`;
+  window.open(`https://wa.me/91${ph}?text=${encodeURIComponent(msg)}`, '_blank');
+  document.getElementById('menuPhone').value = '';
+  toast('📲 Menu WhatsApp पर भेजा!');
+};
+
+// ─── DATE FILTERS ───
+window.setDQ = function(m, el) {
+  document.querySelectorAll('.dbn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  if (m === 'all') { dFrom = dTo = ''; }
+  else if (m === 'today') { dFrom = dTo = today(); }
+  else if (m === 'week') { dFrom = daysAgo(6); dTo = today(); }
+  else if (m === 'month') { dFrom = monthStart(); dTo = today(); }
+  document.getElementById('dFrom').value = dFrom;
+  document.getElementById('dTo').value = dTo;
+  renderU();
+};
+window.setDR = function() { dFrom = document.getElementById('dFrom').value; dTo = document.getElementById('dTo').value; document.querySelectorAll('.dbn').forEach(b => b.classList.remove('active')); renderU(); };
+window.clearD = function() { dFrom = dTo = ''; document.getElementById('dFrom').value = ''; document.getElementById('dTo').value = ''; document.querySelectorAll('.dbn').forEach(b => b.classList.remove('active')); document.getElementById('dq_all').classList.add('active'); renderU(); };
+function inR(d, f, t) { if (!f && !t) return true; if (f && d < f) return false; if (t && d > t) return false; return true; }
+
+// ─── PAYMENT MODE FILTER ───
+window.togglePMF = function() {
+  const d = document.getElementById('pmfDrop');
+  d.style.display = d.style.display === 'none' ? 'block' : 'none';
+};
+// Close dropdown when clicking outside
+document.addEventListener('click', e => {
+  if (!e.target.closest('#pmfDrop') && !e.target.closest('#pmfBtn')) {
+    const d = document.getElementById('pmfDrop');
+    if (d) d.style.display = 'none';
+  }
+});
+window.setPMF = function(mode, el) {
+  curPMF = mode;
+  document.querySelectorAll('.pmfop').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  // Update button label
+  const labels = { all:'💳 Filter', Cash:'💵 Cash', BharatPe:'📱 BharatPe', 'Kamla Kanwar UPI':'👩 Kamla UPI', 'Charan Kanchan UPI':'👤 Charan UPI', 'Any / Other':'🔵 Any/Other', _unpaid:'⏳ बकाया' };
+  document.getElementById('pmfBtn').textContent = labels[mode] || '💳 Filter';
+  document.getElementById('pmfBtn').style.borderColor = mode === 'all' ? 'var(--bd)' : 'var(--blu)';
+  document.getElementById('pmfBtn').style.color = mode === 'all' ? 'var(--t2)' : 'var(--blu)';
+  document.getElementById('pmfDrop').style.display = 'none';
+  renderU();
+};
+
+// ─── RENDER UDHARI ───
+function renderU() {
+  try {
+    // SAFETY: पुराने bills में कुछ fields न हो तो उन्हें defaults दे दो
+    bills = bills.map(b => ({
+      ...b,
+      billNo: b.billNo || b.id || '?',
+      total: b.total || 0,
+      status: b.status || 'pending',
+      date: b.date || '',
+      location: b.location || '',
+      phone: b.phone || '',
+      paymode: b.paymode || '',
+      note: b.note || '',
+      payDate: b.payDate || b.date || '',
+      items: Array.isArray(b.items) ? b.items : [],
+      itemsRaw: b.itemsRaw || '',
+      payments: Array.isArray(b.payments) ? b.payments : [],
+      reminderLog: Array.isArray(b.reminderLog) ? b.reminderLog : []
+    }));
+
+    const srchEl = document.getElementById('srchQ');
+    const q = (srchEl ? srchEl.value : '').toLowerCase().trim();
+  let filt = bills.filter(b => {
+    if (curTab !== 'all' && b.status !== curTab) return false;
+    if (!inR(b.date || '', dFrom, dTo)) return false;
+    if (curPMF === '_unpaid') { if (b.status !== 'pending') return false; }
+    else if (curPMF !== 'all') { if ((b.paymode || '').toLowerCase() !== curPMF.toLowerCase()) return false; }
+    if (!q) return true;
+    // Universal search — bill no, location, phone, items, note, paymode, date
+    const itemStr = (b.items && b.items.length) ? b.items.map(i => i.name).join(' ') : (b.itemsRaw || '');
+    return (
+      String(b.billNo).includes(q) ||
+      (b.location || '').toLowerCase().includes(q) ||
+      (b.phone || '').includes(q) ||
+      itemStr.toLowerCase().includes(q) ||
+      (b.note || '').toLowerCase().includes(q) ||
+      (b.paymode || '').toLowerCase().includes(q) ||
+      (b.date || '').includes(q)
+    );
+  });
+  filt.sort((a, b) => { if (a.status !== b.status) return a.status === 'pending' ? -1 : 1; return (b.date || '') > (a.date || '') ? 1 : -1; });
+
+  // Search info
+  const srchInfo = document.getElementById('srchInfo');
+  if (srchInfo) {
+    if (q) {
+      srchInfo.style.display = 'block';
+      srchInfo.textContent = `"${q}" — ${filt.length} result${filt.length !== 1 ? 's' : ''} मिले`;
+    } else {
+      srchInfo.style.display = 'none';
+    }
+  }
+
+  const inD = bills.filter(b => inR(b.date || '', dFrom, dTo));
+  const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  setText('tc0', inD.length ? ` (${inD.length})` : '');
+  setText('tc1', inD.filter(b => b.status === 'pending').length ? ` (${inD.filter(b => b.status === 'pending').length})` : '');
+  setText('tc2', inD.filter(b => b.status === 'paid').length ? ` (${inD.filter(b => b.status === 'paid').length})` : '');
+  setText('s1', inD.length);
+  setText('s2', '₹' + inD.filter(b => b.status === 'pending').reduce((s, b) => s + (b.total || 0), 0).toLocaleString('hi'));
+  setText('s3', '₹' + inD.filter(b => b.status === 'paid').reduce((s, b) => s + (b.total || 0), 0).toLocaleString('hi'));
+  setText('s4', inD.filter(b => b.status === 'pending').length);
+
+  const wrap = document.getElementById('uList'), emp = document.getElementById('uEmpty');
+  if (!wrap) return;
+  if (!filt.length) { wrap.innerHTML = ''; if (emp) emp.style.display = 'block'; return; }
+  if (emp) emp.style.display = 'none';
+
+  const grps = {};
+  filt.forEach(b => { const k = b.date || 'No Date'; if (!grps[k]) grps[k] = []; grps[k].push(b); });
+  let html = '';
+  Object.keys(grps).sort((a, b) => b > a ? 1 : -1).forEach(dk => {
+    const dT = grps[dk].reduce((s, b) => s + (b.total || 0), 0);
+    const dP = grps[dk].filter(b => b.status === 'pending').reduce((s, b) => s + (b.total || 0), 0);
+    html += `<div class="dgh">📅 ${fmtDate(dk)} <span style="color:var(--acc);font-size:10px">₹${dT.toLocaleString('hi')} total · Pending ₹${dP.toLocaleString('hi')}</span></div>`;
+    grps[dk].forEach(b => {
+      const its = (b.items && b.items.length) ? b.items.map(i => i.name + '×' + i.qty).join(', ') : (b.itemsRaw || '—');
+      html += `<div class="card ${b.status}">
+        <div class="ct" onclick="opDet('${b.id}')">
+          <div>
+            <div class="bno">BILL #${b.billNo} <span class="bamt">₹${(b.total||0).toLocaleString('hi')}</span></div>
+            <div class="cloc">📍 ${b.location||'—'} · 📱 ${b.phone||'—'}</div>
+          </div>
+          <div class="badge ${b.status}">${b.status==='paid'?'✅ Settled':'⏳ Pending'}</div>
+        </div>
+        <div class="chip">🍽️ ${its.length>42?its.slice(0,42)+'…':its}</div>${b.paymode?` <div class="chip">💳 ${b.paymode}</div>`:''}
+        <div class="${b.status==='paid'?'apaid':'apnd'}">${b.status==='paid'?'✅ Settled · '+(b.payDate||b.date||'')+' · '+(b.paymode||''):'⏳ Pending ₹'+(b.total||0).toLocaleString('hi')}</div>
+        ${(b.reminderLog && b.reminderLog.length) ? `<div class="rlog">${b.reminderLog.map(r=>`<div class="rlog-entry"><input type="checkbox" class="rlog-chk" ${r.done?'checked':''} onchange="toggleRlog('${b.id}',${b.reminderLog.indexOf(r)},this.checked);event.stopPropagation()"><span class="rlog-time">${r.time||''}</span> <span class="rlog-type">${r.type||''}</span></div>`).join('')}</div>` : ''}
+        ${b.status==='pending'?`
+        <div class="btn-row1">
+          <button class="bbig bwa-big" onclick="event.stopPropagation();qRemind('${b.id}')">📲 WA Reminder 1</button>
+          <button class="bbig bpay-big" onclick="event.stopPropagation();opDet('${b.id}')">💰 Mark as Paid</button>
+        </div>
+        <div class="btn-row2">
+          <button class="bsm br2" onclick="event.stopPropagation();curDId='${b.id}';sendMsgAndLog('r2')">🔔 2nd WA</button>
+          <button class="bsm bsms" onclick="event.stopPropagation();curDId='${b.id}';sendShortSMS()">📱 SMS</button>
+          <button class="bsm bedt" onclick="event.stopPropagation();curDId='${b.id}';editB()">✏️ Edit</button>
+          <button class="bsm bdel" onclick="event.stopPropagation();curDId='${b.id}';delB()">🗑️</button>
+        </div>`:`
+        <div class="btn-row1">
+          <button class="bbig bwa-big" onclick="event.stopPropagation();curDId='${b.id}';sendMsg('thanks')">📲 Thank You WA</button>
+          <button class="bbig bmgr-big" onclick="event.stopPropagation();curDId='${b.id}';sendMsg('manager')">👔 Manager Alert</button>
+        </div>
+        <div class="btn-row2">
+          <button class="bsm bedt" onclick="event.stopPropagation();curDId='${b.id}';editB()">✏️ Edit</button>
+          <button class="bsm bdel" onclick="event.stopPropagation();curDId='${b.id}';delB()">🗑️ Delete</button>
+        </div>`}
+        ${b.note?`<div class="cnote">📝 ${b.note}</div>`:''}
+      </div>`;
+    });
+  });
+  wrap.innerHTML = html;
+  } catch(e) {
+    console.error('renderU CRASH:', e);
+    const wrap = document.getElementById('uList');
+    if (wrap) {
+      wrap.innerHTML = '<div style="padding:20px;background:#1a0000;border:2px solid #ef4444;border-radius:10px;margin:10px;color:#fca5a5;font-size:11px;font-family:monospace;word-break:break-word"><b>⚠️ Render Error:</b><br>' + e.message + '<br><br><b>Stack:</b><br>' + (e.stack || '').substring(0, 500) + '</div>';
+    }
+  }
+}
+window.setTab = function(t, el) { curTab = t; document.querySelectorAll('.stab').forEach(x => x.classList.remove('active')); el.classList.add('active'); renderU(); };
+
+// ─── ADD BILL ───
+window.openAdd = function() {
+  document.getElementById('eid').value = '';
+  document.getElementById('addT').textContent = '📥 New Bill';
+  document.getElementById('f_bn').value = nextBN();
+  document.getElementById('f_dt').value = today();
+  ['f_loc', 'f_ph', 'f_nt'].forEach(i => document.getElementById(i).value = '');
+  document.getElementById('iList').innerHTML = '';
+  addRow(); calcT(); om('addM');
+};
+window.addRow = function(n = '', q = '', p = '') {
+  const d = document.createElement('div'); d.className = 'irow';
+  d.innerHTML = `<input class="fi" placeholder="Item" value="${n}" oninput="calcT()"><input class="fi" placeholder="Qty" type="number" min="1" value="${q}" oninput="calcT()"><input class="fi" placeholder="₹/pc" type="number" min="0" value="${p}" oninput="calcT()"><button class="idl" onclick="this.parentElement.remove();calcT()">✕</button>`;
+  document.getElementById('iList').appendChild(d); calcT();
+};
+window.calcT = function() { let t = 0; document.querySelectorAll('#iList .irow').forEach(r => { const i = r.querySelectorAll('input'); t += (parseFloat(i[1].value) || 1) * (parseFloat(i[2].value) || 0); }); document.getElementById('totD').textContent = '₹' + t.toLocaleString('hi'); };
+function getIts() { const its = []; document.querySelectorAll('#iList .irow').forEach(r => { const i = r.querySelectorAll('input'); const n = i[0].value.trim(); if (!n) return; its.push({ name: n, qty: parseFloat(i[1].value) || 1, price: parseFloat(i[2].value) || 0 }); }); return its; }
+
+window.saveBill = async function() {
+  const bn = document.getElementById('f_bn').value.trim();
+  const loc = document.getElementById('f_loc').value.trim();
+  const ph = document.getElementById('f_ph').value.trim();
+  if (!bn) { toast('❌ Bill No required', true); return; }
+  if (!loc) { toast('❌ Location required', true); return; }
+  if (!ph) { toast('❌ Mobile required', true); return; }
+  const its = getIts(), total = its.reduce((s, i) => s + i.qty * i.price, 0);
+  const eid = document.getElementById('eid').value;
+  const existing = eid ? bills.find(b => b.id === eid) : null;
+  const bill = {
+    id: eid || ('b' + Date.now()),
+    billNo: bn, date: document.getElementById('f_dt').value,
+    orderTime: existing?.orderTime || nowTime(),
+    location: loc, phone: ph, items: its, total,
+    status: existing ? existing.status : 'pending',
+    note: document.getElementById('f_nt').value.trim(),
+    paymode: existing?.paymode || '', payDate: existing?.payDate || '',
+    payments: existing?.payments || [],
+    reminderLog: existing?.reminderLog || [],
+    createdAt: existing?.createdAt || Date.now()
+  };
+  try {
+    await saveDoc('mrk_bills', bill.id, bill);
+    if (!isConfigured) {
+      if (eid) { const i = bills.findIndex(b => b.id === eid); if (i > -1) bills[i] = bill; } else bills.unshift(bill);
+      renderU();
+    }
+    cm('addM'); toast(eid ? '✅ Bill Updated!' : '✅ Bill Saved!');
+  } catch(e) {}
+};
+
+// ─── DETAIL ───
+window.opDet = function(id) {
+  const b = bills.find(x => x.id === id); if (!b) return;
+  curDId = id;
+  document.getElementById('d_bn').textContent = 'BILL #' + b.billNo;
+  const orderInfo = b.orderTime ? ` · ⏰ Order: ${b.orderTime}` : '';
+  document.getElementById('d_st').textContent = b.status === 'paid' ? `✅ Settled on ${fmtDateShort(b.payDate)} via ${b.paymode}` : `⏳ Payment Pending${orderInfo}`;
+  document.getElementById('d_loc').textContent = b.location || '—';
+  document.getElementById('d_ph').textContent = b.phone || '—';
+  document.getElementById('d_dt').textContent = fmtDate(b.date) || '—';
+  document.getElementById('d_pm').textContent = b.paymode || '—';
+  document.getElementById('d_its').innerHTML = (b.items && b.items.length) ? b.items.map(i => `<div class="ditr"><span style="color:var(--t2)">${i.name} × ${i.qty}</span><span style="font-weight:700">₹${(i.qty * i.price).toLocaleString('hi')}</span></div>`).join('') : `<div class="ditr"><span style="color:var(--t2)">${b.itemsRaw || '—'}</span></div>`;
+  document.getElementById('d_tot').textContent = '₹' + (b.total || 0).toLocaleString('hi');
+  document.getElementById('d_paid').textContent = b.status === 'paid' ? '₹' + (b.total || 0).toLocaleString('hi') : '₹0';
+  document.getElementById('d_pnd').textContent = b.status === 'paid' ? '₹0' : '₹' + (b.total || 0).toLocaleString('hi');
+  document.getElementById('paySec').style.display = b.status === 'pending' ? 'block' : 'none';
+  document.getElementById('paidSec').style.display = b.status === 'paid' ? 'block' : 'none';
+  document.getElementById('pay_mode').value = '';
+  document.getElementById('pay_dt').value = today();
+  document.getElementById('pay_note').value = '';
+  // Pre-fill edit fields for paid bills
+  if (b.status === 'paid') {
+    document.getElementById('edit_paymode').value = b.paymode || '';
+    document.getElementById('edit_paydate').value = b.payDate || today();
+  }
+  // Reminder log
+  const rlog = document.getElementById('reminderLog');
+  const logs = b.reminderLog || [];
+  if (logs.length) {
+    rlog.style.display = 'block';
+    rlog.innerHTML = '<div style="font-size:9px;color:var(--acc);font-weight:700;margin-bottom:3px">📋 Reminder History</div>' +
+      logs.map((r,i) => `<div class="rlog-entry"><input type="checkbox" class="rlog-chk" ${r.done?'checked':''} onchange="toggleRlog('${b.id}',${i},this.checked)"><span class="rlog-time">${r.time}</span> <span class="rlog-type">${r.type}</span></div>`).join('');
+  } else {
+    rlog.style.display = 'none';
+    rlog.innerHTML = '';
+  }
+  om('detM');
+};
+
+window.markPaid = async function() {
+  const b = bills.find(x => x.id === curDId); if (!b) return;
+  const mode = document.getElementById('pay_mode').value;
+  if (!mode) { toast('❌ Select Payment Mode', true); return; }
+  b.status = 'paid'; b.paymode = mode; b.payDate = document.getElementById('pay_dt').value || today();
+  try {
+    await saveDoc('mrk_bills', b.id, b);
+    if (mode === 'Cash') {
+      const txn = { id: 'c' + Date.now(), type: 'in', date: b.payDate, amount: b.total, category: 'Udhari Payment', note: `Bill #${b.billNo} — ${b.location}`, createdAt: Date.now() };
+      await saveDoc('mrk_cash', txn.id, txn);
+      if (!isConfigured) { cash.push(txn); }
+    }
+    if (!isConfigured) renderU();
+    document.getElementById('paySec').style.display = 'none';
+    document.getElementById('paidSec').style.display = 'block';
+    document.getElementById('d_st').textContent = `✅ Settled on ${fmtDateShort(b.payDate)} via ${b.paymode}`;
+    document.getElementById('d_paid').textContent = '₹' + (b.total || 0).toLocaleString('hi');
+    document.getElementById('d_pnd').textContent = '₹0';
+    document.getElementById('d_pm').textContent = mode;
+    toast('🎉 Bill Settled!');
+  } catch(e) {}
+};
+
+window.updatePayMode = async function() {
+  const b = bills.find(x => x.id === curDId); if (!b) return;
+  const mode = document.getElementById('edit_paymode').value;
+  if (!mode) { toast('❌ Mode चुनो', true); return; }
+  b.paymode = mode;
+  b.payDate = document.getElementById('edit_paydate').value || b.payDate || today();
+  try {
+    await saveDoc('mrk_bills', b.id, b);
+    if (!isConfigured) renderU();
+    document.getElementById('d_pm').textContent = mode;
+    document.getElementById('d_st').textContent = `✅ Settled on ${fmtDateShort(b.payDate)} via ${b.paymode}`;
+    toast('✅ Payment Mode Update हो गया! अब Filter करो।');
+  } catch(e) {}
+};
+
+window.editB = function() {
+  const b = bills.find(x => x.id === curDId); if (!b) return;
+  cm('detM');
+  document.getElementById('eid').value = b.id;
+  document.getElementById('addT').textContent = '✏️ Edit Bill #' + b.billNo;
+  document.getElementById('f_bn').value = b.billNo || '';
+  document.getElementById('f_dt').value = b.date || '';
+  document.getElementById('f_loc').value = b.location || '';
+  document.getElementById('f_ph').value = b.phone || '';
+  document.getElementById('f_nt').value = b.note || '';
+  document.getElementById('iList').innerHTML = '';
+  (b.items && b.items.length ? b.items : [{ name: b.itemsRaw || '', qty: 1, price: b.total || 0 }]).forEach(i => addRow(i.name, i.qty, i.price));
+  calcT(); om('addM');
+};
+
+window.delB = async function() {
+  if (!confirm('Delete this bill?')) return;
+  try {
+    await delDoc('mrk_bills', curDId);
+    if (!isConfigured) { bills = bills.filter(b => b.id !== curDId); renderU(); }
+    cm('detM'); toast('🗑️ Deleted');
+  } catch(e) {}
+};
+
+// ─── MESSAGES ───
+function getMsg(type) {
+  const b = bills.find(x => x.id === curDId); if (!b) return { text: '', phone: '' };
+  const items = (b.items && b.items.length) ? b.items.map(i => `  • ${i.name} × ${i.qty}`).join('\n') : (b.itemsRaw || '  —');
+  const dt = fmtDateShort(b.payDate || today()), tm = nowTime();
+  const orderDt = fmtDateShort(b.date);
+  const orderTm = b.orderTime || '';
+  let txt = '', ph = b.phone;
+  if (type === 'thanks') {
+    txt = `🙏 Jai Hind!\n\nPyaare *Marwad Rasoi Parivar* ke Sadasya,\n\nAapka shukriya! Bill settled ho gaya. ✅\n\n——————————————\n*Payment Details:*\nBill No.   : #${b.billNo}\nLocation   : ${b.location || '—'}\nMobile     : ${b.phone || '—'}\nOrder Date : ${orderDt}${orderTm ? ' · ' + orderTm : ''}\nPaid Date  : ${dt} · ${tm}\nAmount     : ₹${(b.total || 0).toLocaleString('hi')}/-\nMode       : ${b.paymode || '—'}\nStatus     : ✅ Settled\n——————————————\n\n📞 Swroop Sa  : 9166753417\n📞 Manoj      : 8696283600\n📞 Vikram     : 9509553600\n\n🛒 WhatsApp Menu:\nhttps://wa.me/c/916367183480\n\n🍛 *Marwad Rasoi Parivar* — Jai Hind! 🇮🇳`;
+  } else if (type === 'manager') {
+    txt = `🧑‍💼 *Manager Alert — Bill Settled*\n\nSwroop Sa,\nEk pending bill mil gayi.\n——————————————\nBill No.  : #${b.billNo}\nLocation  : ${b.location || '—'}\nMobile    : ${b.phone || '—'}\nOrder     : ${orderDt}${orderTm ? ' · ' + orderTm : ''}\nAmount    : ₹${(b.total || 0).toLocaleString('hi')}/-\nMode      : ${b.paymode || '—'}\nTime      : ${tm}\n——————————————\n\n— Marwad Rasoi App`; ph = MANAGER_PHONE;
+  } else if (type === 'r1') {
+    txt = `🙏 Jai Hind!\n\nPyaare Marwad Rasoi Parivar ke Sadasya,\n\n*Marwad Rasoi* ki taraf se vinm nivedan hai.\n——————————————\nBill No.   : #${b.billNo}\nLocation   : ${b.location || '—'}\nMobile     : ${b.phone || '—'}\nOrder Date : ${orderDt}${orderTm ? ' · ' + orderTm : ''}\n*Due Amount : ₹${(b.total || 0).toLocaleString('hi')}/-*\n——————————————\n🍽️ *Items:*\n${items}\n——————————————\n💳 UPI / PhonePe : 6367183480\nUPI ID           : vikram3600@ibl\n\nBhugtan ke baad screenshot zaroor bhejein. 📸\n\n📞 6367183480 / 8696283600\n\n🍛 *Marwad Rasoi Parivar* — Jai Hind! 🇮🇳`;
+  } else if (type === 'r2') {
+    txt = `🙏 Jai Hind!\n\nAdarniya Marwad Rasoi Parivar ke Sadasya ji,\n\nHumne pehle bhi reminder bheja tha. Bahut vinm request hai:\n——————————————\nBill No.   : #${b.billNo}\nLocation   : ${b.location || '—'}\nMobile     : ${b.phone || '—'}\nOrder Date : ${orderDt}${orderTm ? ' · ' + orderTm : ''}\n*Rashi     : ₹${(b.total || 0).toLocaleString('hi')}/-*\n——————————————\n💳 UPI : 6367183480 (vikram3600@ibl)\n\nBhugtan ke baad screenshot zaroor bhejein. 📸\n\n📞 6367183480 / 8696283600\n\n——————————————\nSahab ji kuch bhi order ho to hume zaroor yaad karna 🙏\n📞 Swroop Sa  : 9166753417\n📞 Manoj      : 8696283600\n📞 Vikram     : 9509553600\n\n🛒 WhatsApp Catalog:\nhttps://wa.me/c/916367183480\n\n🍛 *Marwad Rasoi* — Jai Hind! 🇮🇳`;
+  }
+  return { text: txt, phone: ph };
+}
+
+// Short SMS — सीधे SMS app खुलेगा
+window.sendShortSMS = function() {
+  const b = bills.find(x => x.id === curDId); if (!b) return;
+  const ph = (b.phone || '').replace(/\D/g,'');
+  if (!ph) { toast('❌ Mobile number नहीं है', true); return; }
+  const sms = `Marwad Rasoi: Bill #${b.billNo} — Rs.${b.total||0} due. UPI: 6367183480 (vikram3600@ibl). Call: 9509553600`;
+  window.open(`sms:${ph}?body=${encodeURIComponent(sms)}`, '_blank');
+  logReminder('📱 SMS', true);
+  toast('📱 SMS app खुल रहा है...');
+};
+
+// Card पर SMS button
+window.sendShortSMSForId = async function(id) {
+  curDId = id;
+  sendShortSMS();
+};
+
+// Log reminder to bill
+async function logReminder(type, skipModal = false) {
+  const b = bills.find(x => x.id === curDId); if (!b) return;
+  b.reminderLog = b.reminderLog || [];
+  const entry = { time: nowTime() + ' · ' + fmtDateShort(today()), type, done: false };
+  b.reminderLog.push(entry);
+  try {
+    await saveDoc('mrk_bills', b.id, b);
+    if (!isConfigured) renderU();
+  } catch(e) {}
+  // Refresh reminder log in modal if open
+  const rlog = document.getElementById('reminderLog');
+  if (rlog) {
+    rlog.style.display = 'block';
+    rlog.innerHTML = '<div style="font-size:9px;color:var(--acc);font-weight:700;margin-bottom:3px">📋 Reminder History</div>' +
+      b.reminderLog.map((r,i) => `<div class="rlog-entry"><input type="checkbox" class="rlog-chk" ${r.done?'checked':''} onchange="toggleRlog('${b.id}',${i},this.checked)"><span class="rlog-time">${r.time}</span> <span class="rlog-type">${r.type}</span></div>`).join('');
+  }
+}
+
+window.toggleRlog = async function(bid, idx, checked) {
+  const b = bills.find(x => x.id === bid); if (!b || !b.reminderLog) return;
+  b.reminderLog[idx].done = checked;
+  try { await saveDoc('mrk_bills', b.id, b); } catch(e) {}
+};
+
+// Send + log reminder
+window.sendMsgAndLog = function(type) {
+  sendMsg(type);
+};
+
+window.sendMsg = function(type) {
+  const { text, phone } = getMsg(type);
+  curMsg = text; curMsgPhone = phone;
+  const titles = { thanks: '📲 Thank You — Marwad Rasoi Parivar', manager: '👔 Manager Notification', r1: '📩 Reminder 1 — Customer', r2: '🔔 Reminder 2 — Firm' };
+  document.getElementById('msgTitle').textContent = titles[type] || 'Message';
+  document.getElementById('msgPreview').textContent = text;
+  // Store msg type for logging after WA send
+  document.getElementById('msgM').dataset.msgType = type;
+  om('msgM');
+};
+window.sendMsgWA = function() {
+  if (!curMsgPhone) { toast('❌ No phone', true); return; }
+  window.open(`https://wa.me/91${curMsgPhone.replace(/\D/g, '')}?text=${encodeURIComponent(curMsg)}`, '_blank');
+  const type = document.getElementById('msgM').dataset.msgType || '';
+  if (type === 'r1') logReminder('📲 WA Reminder 1');
+  else if (type === 'r2') logReminder('🔔 WA Reminder 2');
+  toast('📲 WhatsApp खुल रहा है...');
+};
+window.copyMsgText = function() { navigator.clipboard.writeText(curMsg).then(() => toast('✅ Copied!')).catch(() => toast('❌ Copy failed', true)); };
+window.sendSMSFromModal = function() {
+  cm('msgM');
+  sendShortSMS();
+};
+window.qRemind = function(id) { curDId = id; sendMsg('r1'); };
+// Detail modal SMS button
+window.sendSMSDirect = function() { sendShortSMS(); };
+
+// ─── CASH ───
+window.setCDQ = function(m, el) {
+  document.querySelectorAll('[id^="cq_"]').forEach(b => b.classList.remove('active')); el.classList.add('active');
+  if (m === 'all') { curCDFrom = curCDTo = ''; }
+  else if (m === 'today') { curCDFrom = curCDTo = today(); }
+  else if (m === 'week') { curCDFrom = daysAgo(6); curCDTo = today(); }
+  else if (m === 'month') { curCDFrom = monthStart(); curCDTo = today(); }
+  document.getElementById('cdFrom').value = curCDFrom; document.getElementById('cdTo').value = curCDTo; renderCash();
+};
+window.setCDR = function() { curCDFrom = document.getElementById('cdFrom').value; curCDTo = document.getElementById('cdTo').value; document.querySelectorAll('[id^="cq_"]').forEach(b => b.classList.remove('active')); renderCash(); };
+
+function renderCash() {
+  const filt = cash.filter(t => inR(t.date || '', curCDFrom, curCDTo));
+  const opens = cash.filter(t => t.category === 'Opening Balance').sort((a, b) => b.date > a.date ? 1 : -1);
+  const lastOpen = opens.length ? opens[0] : null;
+  const openAmt = lastOpen ? lastOpen.amount : 0;
+  const inAmt = filt.filter(t => t.type === 'in' && t.category !== 'Opening Balance').reduce((s, t) => s + t.amount, 0);
+  const outAmt = filt.filter(t => t.type === 'out').reduce((s, t) => s + t.amount, 0);
+  document.getElementById('cashBalance').textContent = '₹' + (openAmt + inAmt - outAmt).toLocaleString('hi');
+  document.getElementById('cashIn').textContent = '₹' + inAmt.toLocaleString('hi');
+  document.getElementById('cashOut').textContent = '₹' + outAmt.toLocaleString('hi');
+  const sorted = [...filt].sort((a, b) => b.date > a.date ? 1 : -1);
+  document.getElementById('cashList').innerHTML = sorted.length ? sorted.map(t => `
+    <div class="txn-row">
+      <div><div style="font-size:12px;font-weight:700">${t.category || '—'}</div><div style="font-size:10px;color:var(--t3)">${fmtDateShort(t.date)}${t.note ? ' · ' + t.note : ''}</div></div>
+      <div class="ta ${t.type === 'in' || t.category === 'Opening Balance' ? 'txn-in' : 'txn-out'}">${t.type === 'in' || t.category === 'Opening Balance' ? '+' : '-'}₹${(t.amount || 0).toLocaleString('hi')}</div>
+    </div>`).join('') : `<div class="empty"><div class="big">💵</div><p>No transactions</p></div>`;
+}
+
+window.openCashTxn = function(type) {
+  document.getElementById('cashType').value = type;
+  const titles = { in: '➕ Cash In', out: '➖ Cash Out', opening: '🏦 Set Opening Balance' };
+  document.getElementById('cashT').textContent = titles[type] || 'Cash';
+  document.getElementById('ct_dt').value = today(); document.getElementById('ct_amt').value = ''; document.getElementById('ct_nt').value = '';
+  if (type === 'opening') document.getElementById('ct_cat').value = 'Opening Balance';
+  else if (type === 'out') document.getElementById('ct_cat').value = 'Misc Expense';
+  else document.getElementById('ct_cat').value = 'Local Sale';
+  om('cashM');
+};
+
+window.saveCashTxn = async function() {
+  const type = document.getElementById('cashType').value;
+  const amt = parseFloat(document.getElementById('ct_amt').value) || 0;
+  if (!amt) { toast('❌ Amount required', true); return; }
+  const txn = { id: 'c' + Date.now(), type: type === 'out' ? 'out' : 'in', date: document.getElementById('ct_dt').value, amount: amt, category: document.getElementById('ct_cat').value, note: document.getElementById('ct_nt').value.trim(), createdAt: Date.now() };
+  try {
+    await saveDoc('mrk_cash', txn.id, txn);
+    if (!isConfigured) { cash.push(txn); renderCash(); }
+    cm('cashM'); toast('✅ Saved!');
+  } catch(e) {}
+};
+
+// ─── STAFF ───
+function calcDaysWorked(joiningDate) {
+  if (!joiningDate) return 0;
+  const j = new Date(joiningDate + 'T00:00:00'), now = new Date();
+  return Math.max(0, Math.floor((now - j) / (1000 * 60 * 60 * 24)) + 1);
+}
+function calcEarned(s) {
+  const sal = s.salary || 0; if (!sal) return 0;
+  const absent = (s.attendance || []).filter(a => a.status === 'absent').length;
+  const days = calcDaysWorked(s.joiningDate);
+  const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+  return Math.round((sal / daysInMonth) * (days - absent));
+}
+
+function renderStaff() {
+  document.getElementById('todayStr').textContent = fmtDateShort(today());
+  document.getElementById('staffCount').textContent = staffList.length;
+  const atBtns = document.getElementById('attendanceBtns');
+  atBtns.innerHTML = staffList.map(s => {
+    const todayAt = (s.attendance || []).find(a => a.date === today());
+    const col = todayAt ? (todayAt.status === 'present' ? 'var(--grn)' : 'var(--red)') : 'var(--bd)';
+    return `<button style="background:var(--sf2);border:2px solid ${col};color:${col === 'var(--bd)' ? 'var(--t3)' : col};border-radius:7px;padding:4px 8px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit" onclick="markAttendance('${s.id}')">${s.name.split(' ')[0]} ${todayAt ? (todayAt.status === 'present' ? '✅' : '❌') : '?'}</button>`;
+  }).join('');
+  const wrap = document.getElementById('staffList'), emp = document.getElementById('staffEmpty');
+  if (!staffList.length) { wrap.innerHTML = ''; emp.style.display = 'block'; return; }
+  emp.style.display = 'none';
+  wrap.innerHTML = staffList.map(s => {
+    const earned = calcEarned(s), adv = (s.advances || []).reduce((sm, a) => sm + a.amount, 0), net = earned - adv;
+    return `<div class="staff-card" onclick="opStaff('${s.id}')">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div><div class="sname">${s.name}</div><div class="srole">${s.role || '—'} · ₹${(s.salary || 0).toLocaleString('hi')}/mo</div></div>
+        <div style="text-align:right"><div class="s-owed">₹${net.toLocaleString('hi')}</div><div class="srole">Net Payable</div></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:6px;font-size:11px">
+        <span style="color:var(--t3)">Earned ₹${earned.toLocaleString('hi')}</span>
+        ${adv > 0 ? `<span style="color:var(--red)">Advance ₹${adv.toLocaleString('hi')}</span>` : ''}
+        <span style="color:var(--t3)">📱 ${s.phone || '—'}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window.markAttendance = async function(sid) {
+  const s = staffList.find(x => x.id === sid); if (!s) return;
+  s.attendance = s.attendance || [];
+  const todayAt = s.attendance.find(a => a.date === today());
+  if (!todayAt) { s.attendance.push({ date: today(), status: 'present' }); }
+  else if (todayAt.status === 'present') { todayAt.status = 'absent'; }
+  else { s.attendance = s.attendance.filter(a => a.date !== today()); }
+  try {
+    await saveDoc('mrk_staff', s.id, s);
+    if (!isConfigured) renderStaff();
+  } catch(e) {}
+};
+
+window.openAddStaff = function() {
+  document.getElementById('seid').value = ''; document.getElementById('staffT').textContent = 'Add Staff';
+  ['s_nm', 's_ph', 's_nt'].forEach(i => document.getElementById(i).value = '');
+  document.getElementById('s_sal').value = ''; document.getElementById('s_jd').value = today();
+  document.getElementById('s_role').value = 'Cook'; om('staffM');
+};
+
+window.saveStaff = async function() {
+  const nm = document.getElementById('s_nm').value.trim(); if (!nm) { toast('❌ Name required', true); return; }
+  const seid = document.getElementById('seid').value;
+  const existing = seid ? staffList.find(x => x.id === seid) : null;
+  const s = { id: seid || ('s' + Date.now()), name: nm, phone: document.getElementById('s_ph').value.trim(), role: document.getElementById('s_role').value, salary: parseFloat(document.getElementById('s_sal').value) || 0, joiningDate: document.getElementById('s_jd').value, note: document.getElementById('s_nt').value.trim(), attendance: existing?.attendance || [], advances: existing?.advances || [], createdAt: existing?.createdAt || Date.now() };
+  try {
+    await saveDoc('mrk_staff', s.id, s);
+    if (!isConfigured) { if (seid) { const i = staffList.findIndex(x => x.id === seid); if (i > -1) staffList[i] = s; } else staffList.push(s); renderStaff(); }
+    cm('staffM'); toast(seid ? '✅ Updated!' : '✅ Staff Added!');
+  } catch(e) {}
+};
+
+window.opStaff = function(id) {
+  const s = staffList.find(x => x.id === id); if (!s) return;
+  curStId = id;
+  document.getElementById('sd_nm').textContent = s.name;
+  document.getElementById('sd_role').textContent = (s.role || '—') + ' · 📱 ' + (s.phone || '—');
+  document.getElementById('sd_sal').textContent = '₹' + (s.salary || 0).toLocaleString('hi') + ' /month';
+  document.getElementById('sd_jd').textContent = fmtDateShort(s.joiningDate) || '—';
+  const earned = calcEarned(s), adv = (s.advances || []).reduce((sm, a) => sm + a.amount, 0), net = earned - adv;
+  document.getElementById('sd_earned').textContent = '₹' + earned.toLocaleString('hi');
+  document.getElementById('sd_adv').textContent = '₹' + adv.toLocaleString('hi');
+  document.getElementById('sd_net').textContent = '₹' + net.toLocaleString('hi');
+  const thisMonth = today().slice(0, 7);
+  const att = (s.attendance || []).filter(a => (a.date || '').startsWith(thisMonth));
+  let attHtml = '';
+  for (let d = 1; d <= new Date().getDate(); d++) {
+    const dateStr = today().slice(0, 7) + '-' + String(d).padStart(2, '0');
+    const rec = att.find(a => a.date === dateStr);
+    attHtml += `<div style="width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;${rec ? (rec.status === 'present' ? 'background:rgba(34,197,94,.2);color:var(--grn);border:1px solid rgba(34,197,94,.4)' : 'background:rgba(239,68,68,.2);color:var(--red);border:1px solid rgba(239,68,68,.4)') : 'background:var(--sf2);border:1px solid var(--bd);color:var(--t3)'}">${d}</div>`;
+  }
+  document.getElementById('sd_att').innerHTML = attHtml;
+  document.getElementById('sadv_amt').value = ''; document.getElementById('sadv_note').value = '';
+  document.getElementById('sd_advhist').innerHTML = (s.advances && s.advances.length) ? s.advances.slice().reverse().map(a => `<div class="txn-row" style="margin-bottom:4px"><div><div style="font-size:11px;font-weight:700">${a.note || 'Advance'}</div><div style="font-size:10px;color:var(--t3)">${fmtDateShort(a.date)}</div></div><div class="ta txn-out">−₹${a.amount.toLocaleString('hi')}</div></div>`).join('') : `<div style="font-size:11px;color:var(--t3);text-align:center;padding:8px">No advances taken</div>`;
+  om('sdetM');
+};
+
+window.addAdvance = async function(type = 1) {
+  const s = staffList.find(x => x.id === curStId); if (!s) return;
+  const amt = parseFloat(document.getElementById('sadv_amt').value) || 0; if (!amt) { toast('❌ Amount required', true); return; }
+  const note = document.getElementById('sadv_note').value.trim() || (type === 1 ? 'Advance' : 'Salary Payment');
+  s.advances = s.advances || [];
+  if (type === 1) { s.advances.push({ amount: amt, note, date: today(), createdAt: Date.now() }); }
+  else {
+    s.advances.push({ amount: -amt, note, date: today(), createdAt: Date.now() });
+    const txn = { id: 'c' + Date.now(), type: 'out', date: today(), amount: amt, category: 'Staff Salary', note: `${s.name} — ${note}`, createdAt: Date.now() };
+    await saveDoc('mrk_cash', txn.id, txn);
+    if (!isConfigured) { cash.push(txn); }
+  }
+  try {
+    await saveDoc('mrk_staff', s.id, s);
+    if (!isConfigured) { opStaff(curStId); renderStaff(); }
+    toast('✅ Saved!');
+  } catch(e) {}
+};
+
+window.editStaff = function() {
+  const s = staffList.find(x => x.id === curStId); if (!s) return;
+  cm('sdetM');
+  document.getElementById('seid').value = s.id; document.getElementById('staffT').textContent = 'Edit Staff';
+  document.getElementById('s_nm').value = s.name || ''; document.getElementById('s_ph').value = s.phone || '';
+  document.getElementById('s_role').value = s.role || 'Cook'; document.getElementById('s_sal').value = s.salary || '';
+  document.getElementById('s_jd').value = s.joiningDate || ''; document.getElementById('s_nt').value = s.note || '';
+  om('staffM');
+};
+
+window.delStaff = async function() {
+  if (!confirm('Remove this staff member?')) return;
+  try {
+    await delDoc('mrk_staff', curStId);
+    if (!isConfigured) { staffList = staffList.filter(s => s.id !== curStId); renderStaff(); }
+    cm('sdetM'); toast('🗑️ Removed');
+  } catch(e) {}
+};
+
+// ─── MODAL HELPERS ───
+window.om = function(id) { document.getElementById(id).classList.add('open'); };
+window.cm = function(id) { document.getElementById(id).classList.remove('open'); };
+document.querySelectorAll('.mbg').forEach(b => b.addEventListener('click', e => { if (e.target === b) b.classList.remove('open'); }));
+window.toast = function(msg, err = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show' + (err ? ' err' : '');
+  setTimeout(() => t.className = 'toast', 2800);
+};
+
+// CSV IMPORT
+let curITab = 'csv';
+
+window.setITab = function(tab) {
+  curITab = tab;
+  ['csv','wa','dl'].forEach(t => {
+    document.getElementById('itab_'+t).style.display = t===tab ? 'block' : 'none';
+    const btn = document.getElementById('tab_'+t);
+    btn.style.background = t===tab ? 'var(--acc)' : 'var(--sf2)';
+    btn.style.color = t===tab ? '#fff' : 'var(--t2)';
+    btn.style.border = t===tab ? 'none' : '1px solid var(--bd)';
+  });
+  document.getElementById('importBtn').style.display = tab==='dl' ? 'none' : 'block';
+};
+
+window.openCSV = function() {
+  document.getElementById('csvInput').value = '';
+  document.getElementById('waInput').value = '';
+  document.getElementById('csvLog').style.display = 'none';
+  document.getElementById('csvLog').innerHTML = '';
+  setITab('csv');
+  om('csvM');
+};
+
+function csvLog(msg, type='info') {
+  const el = document.getElementById('csvLog');
+  el.style.display = 'block';
+  const colors = { ok:'#22c55e', err:'#ef4444', info:'#94a3b8' };
+  el.innerHTML += `<div style="color:${colors[type]||colors.info}">${msg}</div>`;
+  el.scrollTop = el.scrollHeight;
+}
+
+window.downloadTemplate = function() {
+  const csv = `bill_no,date,location,mobile,items,total,status,paymode,note,order_time
+1,2026-05-03,Jalipa Cantt Barmer,9876543210,Kadai Chicken×2|Tandoori Roti Butter×4,520,pending,,, 08:19 PM
+2,2026-05-03,Jalipa Cantt Barmer,8765432109,Dal Makhani×1|Butter Naan×3,280,pending,,,`;
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'udhari_template_' + today() + '.csv';
+  a.click();
+  toast('✅ Template Download हो गया!');
+};
+
+function parseWAText(raw) {
+  // WhatsApp text को bills में convert करो
+  const bills = [];
+  const blocks = raw.split(/\n\s*\n/).filter(b => b.trim());
+  blocks.forEach((block, idx) => {
+    const lines = block.trim().split('\n').map(l => l.trim()).filter(Boolean);
+    if (!lines.length) return;
+    let bn = String(idx+1), dt = today(), loc = '', mob = '', items = [], total = 0, note = '';
+    lines.forEach(line => {
+      // Bill number
+      const bnm = line.match(/bill\s*#?(\d+)/i) || line.match(/^(\d+)\s*[·\-]/i);
+      if (bnm) bn = bnm[1];
+      // Mobile
+      const phm = line.match(/\b([6-9]\d{9})\b/);
+      if (phm) mob = phm[1];
+      // Total
+      const totm = line.match(/total[:\s]*₹?\s*([\d,]+)/i) || line.match(/₹\s*([\d,]+)/);
+      if (totm) total = parseFloat(totm[1].replace(',',''));
+      // Location — line जिसमें नंबर या Total नहीं
+      if (!phm && !totm && !bnm && line.length > 3 && !line.match(/×/)) {
+        if (!loc) loc = line.replace(/[·\-]/g,'').trim();
+      }
+      // Items — × वाली lines
+      if (line.match(/×/)) {
+        line.split(/[,·]/).forEach(seg => {
+          const m = seg.trim().match(/^(.+?)×(\d+)$/);
+          if (m) items.push({name:m[1].trim(), qty:parseInt(m[2])||1, price:0});
+        });
+      }
+    });
+    if (!total && items.length) total = 0;
+    if (loc || items.length) {
+      bills.push({bn, dt, loc:loc||'—', mob, items, total, status:'pending', pm:'', note});
+    }
+  });
+  return bills;
+}
+
+async function saveBillFromData(data) {
+  const {bn, dt, loc, mob, items, total, status, pm, note, orderTime} = data;
+  const bill = {
+    id: 'b_' + bn,
+    billNo: bn, date: dt,
+    orderTime: orderTime || '',
+    location: loc, phone: mob,
+    items, itemsRaw: items.map(i=>i.name+'×'+i.qty).join('|'),
+    total: parseFloat(total)||0,
+    status: status||'pending', paymode: pm||'', note: note||'',
+    payments: [], reminderLog: [], createdAt: Date.now()
+  };
+  await saveDoc('mrk_bills', bill.id, bill);
+  return bill;
+}
+
+window.importCSV = async function() {
+  document.getElementById('csvLog').innerHTML = '';
+  document.getElementById('csvLog').style.display = 'block';
+  let ok = 0, fail = 0;
+
+  if (curITab === 'wa') {
+    // WhatsApp text import
+    const raw = document.getElementById('waInput').value.trim();
+    if (!raw) { toast('❌ Text खाली है', true); return; }
+    const bills = parseWAText(raw);
+    if (!bills.length) { csvLog('❌ कोई bill detect नहीं हुआ — format check करो', 'err'); return; }
+    csvLog('📥 ' + bills.length + ' bills detect हुए...', 'info');
+    for (const b of bills) {
+      try {
+        await saveBillFromData(b);
+        csvLog('✅ BILL #' + b.bn + ' — ' + b.loc + ' — ₹' + (b.total||0).toLocaleString('hi'), 'ok');
+        ok++;
+      } catch(e) { csvLog('❌ BILL #' + b.bn + ' — ' + e.message, 'err'); fail++; }
+    }
+  } else {
+    // CSV import
+    const raw = document.getElementById('csvInput').value.trim();
+    if (!raw) { toast('❌ CSV खाली है', true); return; }
+    const lines = raw.split('\n').filter(l => l.trim() && !l.trim().startsWith('bill_no'));
+    csvLog('📥 ' + lines.length + ' bills import हो रहे हैं...', 'info');
+    for (const line of lines) {
+      const p = line.split(',');
+      if (p.length < 6) continue;
+      const [bn, dt, loc, mob, itsStr, tot, st, pm, nt, orderTime] = p;
+      if (!bn || !bn.trim()) continue;
+      const items = (itsStr||'').split('|').map(s => {
+        const m = s.match(/^(.+?)×(\d+)$/);
+        return m ? {name:m[1].trim(), qty:parseInt(m[2])||1, price:0} : {name:s.trim(), qty:1, price:0};
+      }).filter(i => i.name);
+      try {
+        await saveBillFromData({bn:bn.trim(), dt:(dt||'').trim(), loc:(loc||'').trim(), mob:(mob||'').trim(), items, total:parseFloat(tot)||0, status:(st||'pending').trim(), pm:(pm||'').trim(), note:(nt||'').trim(), orderTime:(orderTime||'').trim()});
+        csvLog('✅ BILL #' + bn.trim() + ' — ₹' + (parseFloat(tot)||0).toLocaleString('hi'), 'ok');
+        ok++;
+      } catch(e) { csvLog('❌ BILL #' + bn.trim() + ' — ' + e.message, 'err'); fail++; }
+    }
+  }
+  csvLog('━━━━━━━━━━━━━━━━━', 'info');
+  csvLog('✅ ' + ok + ' imported · ❌ ' + fail + ' failed', ok > 0 ? 'ok' : 'err');
+  if (ok > 0) toast('✅ ' + ok + ' Bills Import हो गए!');
+};
+
+// INIT
+document.getElementById('todayStr').textContent = fmtDateShort(today());
+</script>
+</body>
+</html>

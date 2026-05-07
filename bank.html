@@ -1,0 +1,3430 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>🏦 VBE — Bank Statement Manager</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800;900&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg: #080b10;
+  --sf1: #0f1318;
+  --sf2: #161c26;
+  --sf3: #1e2738;
+  --sf4: #252f42;
+  --acc: #f59e0b;
+  --acc2: #fbbf24;
+  --grn: #10b981;
+  --red: #ef4444;
+  --blu: #3b82f6;
+  --pur: #8b5cf6;
+  --cyn: #06b6d4;
+  --t1: #f0f4ff;
+  --t2: #8899bb;
+  --t3: #445577;
+  --bdr: rgba(255,255,255,0.06);
+  --bdr2: rgba(255,255,255,0.1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: 'Noto Sans Devanagari', 'Baloo 2', sans-serif;
+  background: var(--bg);
+  color: var(--t1);
+  min-height: 100vh;
+  overflow-x: hidden;
+  padding-bottom: 90px;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0;
+  background:
+    radial-gradient(ellipse 70% 50% at 10% 5%, rgba(245,158,11,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 90% 90%, rgba(16,185,129,0.05) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 50% 50%, rgba(59,130,246,0.03) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* ═══════════════ HEADER ═══════════════ */
+.hdr {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(8,11,16,0.97);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--bdr);
+}
+
+.hdr-top {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px 8px;
+}
+
+.brand { display: flex; gap: 9px; align-items: center; }
+.brand-ico {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--acc), #d97706);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; box-shadow: 0 4px 12px rgba(245,158,11,0.3);
+}
+.brand h1 { font-size: 15px; font-weight: 900; color: var(--t1); letter-spacing: -0.3px; }
+.brand p { font-size: 9px; color: var(--t3); font-weight: 600; margin-top: 1px; letter-spacing: 0.5px; text-transform: uppercase; }
+
+.fb-dot {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 9px; color: var(--t3); font-weight: 600;
+}
+.pulse {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--grn);
+  box-shadow: 0 0 0 0 rgba(16,185,129,0.4);
+  animation: pulseAnim 2s infinite;
+}
+@keyframes pulseAnim {
+  0% { box-shadow: 0 0 0 0 rgba(16,185,129,0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(16,185,129,0); }
+  100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
+}
+.pulse.off { background: var(--red); animation: none; box-shadow: none; }
+
+/* SUMMARY STRIP */
+.sum-strip {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--bdr);
+}
+.ss {
+  padding: 8px 6px; text-align: center;
+  border-right: 1px solid var(--bdr);
+}
+.ss:last-child { border: none; }
+.ss-val { font-size: 13px; font-weight: 800; }
+.ss-lbl { font-size: 8px; color: var(--t3); font-weight: 600; margin-top: 1px; }
+
+/* UNIVERSAL SEARCH BAR */
+.usearch-wrap {
+  padding: 8px 12px;
+  border-top: 1px solid var(--bdr);
+  display: flex; gap: 7px; align-items: center;
+}
+.usearch {
+  flex: 1; position: relative;
+}
+.usearch input {
+  width: 100%;
+  background: var(--sf2);
+  border: 1px solid var(--bdr2);
+  border-radius: 22px;
+  color: var(--t1);
+  font-family: inherit; font-size: 12px; font-weight: 600;
+  padding: 8px 14px 8px 32px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.usearch input:focus { 
+  border-color: var(--acc); 
+  box-shadow: 0 0 0 3px rgba(245,158,11,0.12);
+}
+.usearch input::placeholder { color: var(--t3); font-weight: 500; }
+.usearch::before {
+  content: '🔍'; position: absolute;
+  left: 11px; top: 50%; transform: translateY(-50%);
+  font-size: 12px; opacity: 0.7;
+}
+.usearch-clear {
+  position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+  background: var(--sf3); border: none;
+  width: 22px; height: 22px; border-radius: 50%;
+  color: var(--t2); font-size: 11px; cursor: pointer;
+  display: none; align-items: center; justify-content: center;
+}
+.usearch-clear.show { display: flex; }
+.usearch-filter-btn {
+  background: var(--sf2);
+  border: 1px solid var(--bdr2);
+  width: 38px; height: 35px; border-radius: 11px;
+  color: var(--t2); font-size: 16px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.usearch-filter-btn.has-filter { 
+  border-color: var(--acc); color: var(--acc); 
+  background: rgba(245,158,11,0.08);
+}
+.usearch-filter-btn .fdot {
+  position: absolute; top: 4px; right: 4px;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--acc);
+}
+
+/* SEARCH FILTERS PANEL */
+.search-filters {
+  background: var(--sf1);
+  border-bottom: 1px solid var(--bdr);
+  padding: 0 12px;
+  max-height: 0; overflow: hidden;
+  transition: max-height 0.3s ease, padding 0.3s ease;
+}
+.search-filters.open {
+  max-height: 380px; 
+  padding: 10px 12px 12px;
+  border-top: 1px solid var(--bdr);
+}
+.sf-label {
+  font-size: 9px; font-weight: 800; color: var(--t3);
+  letter-spacing: 1px; text-transform: uppercase;
+  margin: 6px 0 5px;
+}
+.sf-pills {
+  display: flex; flex-wrap: wrap; gap: 5px;
+}
+.sf-pill {
+  background: var(--sf2);
+  border: 1px solid var(--bdr2);
+  color: var(--t2);
+  font-family: inherit; font-size: 10px; font-weight: 700;
+  padding: 5px 10px; border-radius: 18px;
+  cursor: pointer; transition: all 0.15s;
+}
+.sf-pill.active { 
+  background: var(--acc); color: #000; border-color: var(--acc); 
+}
+.sf-pill.dr.active { background: var(--red); border-color: var(--red); color: #fff; }
+.sf-pill.cr.active { background: var(--grn); border-color: var(--grn); color: #fff; }
+
+.sf-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 7px;
+  margin-top: 6px;
+}
+.sf-mini-input {
+  background: var(--sf2);
+  border: 1px solid var(--bdr2);
+  border-radius: 9px;
+  color: var(--t1);
+  font-family: inherit; font-size: 11px;
+  padding: 7px 10px; outline: none;
+  width: 100%;
+}
+.sf-mini-input:focus { border-color: var(--acc); }
+.sf-actions {
+  display: flex; gap: 7px; margin-top: 9px;
+}
+.sf-btn-clear {
+  flex: 1;
+  background: var(--sf3);
+  border: 1px solid var(--bdr2);
+  color: var(--t2);
+  font-family: inherit; font-size: 11px; font-weight: 700;
+  padding: 8px; border-radius: 9px; cursor: pointer;
+}
+.sf-btn-apply {
+  flex: 2;
+  background: var(--acc); border: none; color: #000;
+  font-family: inherit; font-size: 11px; font-weight: 800;
+  padding: 8px; border-radius: 9px; cursor: pointer;
+}
+
+/* NAV TABS */
+.nav-tabs {
+  display: flex; border-top: 1px solid var(--bdr);
+  overflow-x: auto; scrollbar-width: none;
+}
+.nav-tabs::-webkit-scrollbar { display: none; }
+.ntab {
+  flex: 1; min-width: 90px;
+  background: none; border: none; color: var(--t3);
+  font-family: inherit; font-size: 10px; font-weight: 700;
+  padding: 9px 4px 10px; cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s; white-space: nowrap; letter-spacing: 0.3px;
+}
+.ntab.active { color: var(--acc); border-bottom-color: var(--acc); }
+
+/* ═══════════════ CONTENT ═══════════════ */
+.content { position: relative; z-index: 1; padding: 12px 12px 20px; }
+.page { display: none; }
+.page.active { display: block; }
+
+/* ═══════════════ ACCOUNT CARDS GRID (DASHBOARD) ═══════════════ */
+.acc-grid {
+  display: grid; grid-template-columns: 1fr; gap: 9px;
+  margin-bottom: 12px;
+}
+.acc-card {
+  background: linear-gradient(135deg, var(--sf2), var(--sf1));
+  border: 1px solid var(--bdr2);
+  border-radius: 14px; padding: 13px 14px;
+  cursor: pointer; transition: transform 0.15s, border-color 0.2s;
+  position: relative; overflow: hidden;
+}
+.acc-card::before {
+  content: ''; position: absolute;
+  top: -30px; right: -30px;
+  width: 100px; height: 100px;
+  background: radial-gradient(circle, rgba(245,158,11,0.12), transparent 70%);
+  pointer-events: none;
+}
+.acc-card:active { transform: scale(0.985); }
+.acc-card.primary { border-color: rgba(245,158,11,0.3); }
+.ac-top {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 8px;
+}
+.ac-name { font-size: 13px; font-weight: 800; line-height: 1.25; }
+.ac-num { font-size: 9px; color: var(--t3); font-weight: 600; margin-top: 3px; letter-spacing: 0.5px; }
+.ac-bank-tag {
+  background: var(--sf3);
+  font-size: 8px; font-weight: 800; color: var(--t2);
+  padding: 3px 8px; border-radius: 12px;
+  letter-spacing: 0.6px; text-transform: uppercase;
+  flex-shrink: 0;
+}
+.ac-bal-lbl { font-size: 9px; color: var(--t3); font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; }
+.ac-bal { font-size: 22px; font-weight: 900; margin-top: 1px; }
+.ac-bal.cr { color: var(--grn); }
+.ac-bal.dr { color: var(--red); }
+.ac-meta {
+  display: flex; gap: 7px; flex-wrap: wrap;
+  margin-top: 9px; padding-top: 8px;
+  border-top: 1px solid var(--bdr);
+}
+.ac-stat {
+  font-size: 9px; color: var(--t2); font-weight: 600;
+}
+.ac-stat b { color: var(--t1); font-weight: 800; }
+.ac-stat.cr b { color: var(--grn); }
+.ac-stat.dr b { color: var(--red); }
+
+/* DASHBOARD QUICK CARDS */
+.qcards {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  margin-bottom: 12px;
+}
+.qcard {
+  background: var(--sf1);
+  border: 1px solid var(--bdr);
+  border-radius: 12px; padding: 12px;
+}
+.qcard .ico { font-size: 18px; margin-bottom: 5px; }
+.qcard .v { font-size: 17px; font-weight: 900; }
+.qcard .l { font-size: 9px; color: var(--t2); font-weight: 600; margin-top: 3px; letter-spacing: 0.4px; }
+
+/* ═══════════════ TXN LIST (Bank entries) ═══════════════ */
+.entry {
+  background: var(--sf1);
+  border: 1px solid var(--bdr);
+  border-radius: 12px; padding: 11px 12px;
+  margin-bottom: 7px; cursor: pointer;
+  transition: border-color 0.2s, transform 0.1s;
+  position: relative; overflow: hidden;
+}
+.entry:active { transform: scale(0.985); }
+.entry.debit { border-left: 3px solid var(--red); }
+.entry.credit { border-left: 3px solid var(--grn); }
+
+.e-r1 { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.e-desc {
+  font-size: 12px; font-weight: 700; flex: 1;
+  line-height: 1.35; color: var(--t1);
+}
+.e-amt-wrap { text-align: right; flex-shrink: 0; }
+.e-amt { font-size: 14px; font-weight: 900; }
+.e-amt.dr { color: var(--red); }
+.e-amt.cr { color: var(--grn); }
+.e-bal { font-size: 9px; color: var(--t3); font-weight: 600; margin-top: 2px; }
+
+.e-r2 {
+  display: flex; gap: 5px; flex-wrap: wrap;
+  margin-top: 7px; align-items: center;
+}
+.tag {
+  background: var(--sf3); border-radius: 5px;
+  padding: 2px 7px; font-size: 9px; color: var(--t2); font-weight: 700;
+}
+.tag.date { color: var(--cyn); background: rgba(6,182,212,0.1); }
+.tag.chq { color: var(--acc); background: rgba(245,158,11,0.1); }
+.tag.utr { color: var(--blu); background: rgba(59,130,246,0.1); }
+.tag.linked { color: var(--pur); background: rgba(139,92,246,0.12); }
+
+.e-r3 {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 7px; padding-top: 7px;
+  border-top: 1px solid var(--bdr);
+  gap: 6px;
+}
+.e-note { font-size: 10px; color: var(--t2); flex: 1; line-height: 1.4; }
+.e-acts { display: flex; gap: 5px; flex-shrink: 0; }
+.act-btn {
+  background: var(--sf3); border: none;
+  font-family: inherit; font-size: 10px; font-weight: 700;
+  padding: 4px 9px; border-radius: 6px; cursor: pointer;
+  color: var(--t2); transition: all 0.2s;
+}
+.act-btn:active { transform: scale(0.95); }
+.act-btn.link { color: var(--pur); background: rgba(139,92,246,0.12); }
+.act-btn.linked { color: var(--grn); background: rgba(16,185,129,0.12); }
+.act-btn.tag-btn { color: var(--blu); background: rgba(59,130,246,0.12); }
+
+/* DAY GROUP HEADER */
+.day-hdr {
+  font-size: 10px; font-weight: 800; color: var(--t3);
+  letter-spacing: 1.2px; text-transform: uppercase;
+  margin: 12px 0 7px;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0 2px;
+}
+.day-hdr .dt { display: flex; gap: 7px; align-items: center; }
+.day-hdr .dt span {
+  background: var(--sf3); color: var(--t2);
+  font-size: 9px; padding: 1px 7px; border-radius: 10px;
+  font-weight: 700;
+}
+.day-hdr .dr-cr {
+  display: flex; gap: 8px; font-size: 9px;
+}
+.day-hdr .dr-cr .dr { color: var(--red); }
+.day-hdr .dr-cr .cr { color: var(--grn); }
+
+/* FILTER BAR */
+.fbar {
+  display: flex; gap: 5px; overflow-x: auto;
+  scrollbar-width: none; margin-bottom: 10px; padding-bottom: 2px;
+}
+.fbar::-webkit-scrollbar { display: none; }
+.fbn {
+  flex-shrink: 0;
+  background: var(--sf2); border: 1px solid var(--bdr2);
+  color: var(--t2); font-family: inherit; font-size: 10px;
+  font-weight: 700; padding: 5px 11px; border-radius: 20px;
+  cursor: pointer; transition: all 0.2s;
+}
+.fbn.active { background: var(--acc); color: #000; border-color: var(--acc); }
+
+/* ACCOUNT PILLS (mini) */
+.acc-row {
+  display: flex; gap: 6px; overflow-x: auto;
+  scrollbar-width: none; margin-bottom: 10px;
+}
+.acc-row::-webkit-scrollbar { display: none; }
+.ap {
+  flex-shrink: 0;
+  background: var(--sf2); border: 1px solid var(--bdr2);
+  border-radius: 10px; padding: 6px 11px; cursor: pointer;
+  transition: all 0.2s; min-width: 90px;
+}
+.ap.active { border-color: var(--acc); background: rgba(245,158,11,0.08); }
+.ap-name { font-size: 9px; color: var(--t2); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+.ap-bal { font-size: 12px; font-weight: 800; margin-top: 2px; }
+
+/* ═══════════════ FAB ═══════════════ */
+.fab-wrap {
+  position: fixed; bottom: 78px; right: 14px; z-index: 200;
+  display: flex; flex-direction: column; gap: 9px; align-items: flex-end;
+}
+.fab {
+  width: 54px; height: 54px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--acc), #d97706);
+  border: none; color: #000; font-size: 24px; font-weight: 900;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(245,158,11,0.45), 0 2px 6px rgba(0,0,0,0.3);
+  transition: all 0.2s;
+}
+.fab:active { transform: scale(0.9); }
+.fab.sec {
+  width: 44px; height: 44px; font-size: 18px;
+  background: linear-gradient(135deg, var(--pur), #6d28d9);
+  color: white;
+  box-shadow: 0 4px 14px rgba(139,92,246,0.45);
+}
+
+/* BOTTOM NAV */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 150;
+  background: rgba(8,11,16,0.97);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--bdr);
+  display: flex; padding: 6px 0 20px;
+}
+.bnav {
+  flex: 1; background: none; border: none;
+  font-family: inherit; font-size: 9px; font-weight: 700;
+  color: var(--t3); padding: 6px 4px 2px;
+  cursor: pointer; transition: color 0.2s;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+}
+.bnav .bi { font-size: 18px; }
+.bnav.active { color: var(--acc); }
+
+/* ═══════════════ MODAL ═══════════════ */
+.modal-bg {
+  position: fixed; inset: 0; z-index: 300;
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(10px);
+  display: flex; align-items: flex-end;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s;
+}
+.modal-bg.open { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--sf1);
+  border: 1px solid var(--bdr2);
+  border-radius: 20px 20px 0 0;
+  padding: 0 0 40px;
+  width: 100%; max-height: 92vh; overflow-y: auto;
+  transform: translateY(100%);
+  transition: transform 0.35s cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+.modal-bg.open .modal { transform: translateY(0); }
+
+.modal-handle {
+  width: 38px; height: 4px; background: var(--sf3);
+  border-radius: 2px; margin: 12px auto 0;
+}
+.modal-hdr {
+  padding: 14px 16px 0;
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 14px;
+}
+.modal-title { font-size: 15px; font-weight: 900; }
+.modal-close {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--sf3); border: none; color: var(--t2);
+  font-size: 14px; cursor: pointer; display: flex;
+  align-items: center; justify-content: center;
+}
+.modal-body { padding: 0 14px; }
+
+/* FORM */
+.fg { margin-bottom: 11px; }
+.fl { font-size: 10px; font-weight: 700; color: var(--t3); margin-bottom: 5px; display: block; letter-spacing: 0.5px; }
+.fi {
+  width: 100%; background: var(--sf2);
+  border: 1px solid var(--bdr2); border-radius: 10px;
+  color: var(--t1); font-family: inherit; font-size: 13px;
+  padding: 10px 12px; outline: none;
+  transition: border-color 0.2s;
+}
+.fi:focus { border-color: var(--acc); }
+.fi-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+textarea.fi { resize: vertical; min-height: 60px; font-family: inherit; }
+select.fi option { background: #1e2738; }
+
+/* SAVE BTN */
+.save-btn {
+  width: 100%; border: none; color: #000;
+  font-family: inherit; font-size: 14px; font-weight: 900;
+  padding: 13px; border-radius: 12px; cursor: pointer;
+  margin-top: 10px; transition: all 0.2s;
+  letter-spacing: 0.3px;
+}
+.save-btn:active { transform: scale(0.98); }
+.save-btn.primary { background: linear-gradient(135deg, var(--acc), #d97706); }
+.save-btn.alt { background: linear-gradient(135deg, var(--pur), #6d28d9); color: white; }
+.save-btn.del { background: linear-gradient(135deg, var(--red), #b91c1c); color: white; }
+.cancel-btn {
+  width: 100%; background: none; border: none;
+  color: var(--t2); font-family: inherit; font-size: 12px;
+  padding: 11px; cursor: pointer;
+}
+
+/* PDF DROP AREA */
+.drop-area {
+  border: 2px dashed var(--bdr2); border-radius: 12px;
+  padding: 24px 14px; text-align: center;
+  cursor: pointer; transition: all 0.2s;
+  background: var(--sf2);
+}
+.drop-area:active, .drop-area.drag {
+  border-color: var(--acc); background: rgba(245,158,11,0.06);
+}
+.drop-area .pe { font-size: 30px; margin-bottom: 6px; }
+.drop-area p { font-size: 12px; color: var(--t2); font-weight: 700; }
+.drop-area small { font-size: 10px; color: var(--t3); display: block; margin-top: 5px; }
+
+/* PDF PROCESS PANEL */
+.proc-panel {
+  background: var(--sf2); border: 1px solid var(--bdr2);
+  border-radius: 12px; padding: 12px;
+  margin-top: 12px;
+}
+.proc-title {
+  font-size: 11px; font-weight: 800; margin-bottom: 8px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.proc-bar {
+  height: 5px; background: var(--sf3); border-radius: 3px;
+  overflow: hidden; margin-bottom: 8px;
+}
+.proc-fill {
+  height: 100%; background: linear-gradient(90deg, var(--acc), var(--acc2));
+  border-radius: 3px; transition: width 0.3s ease;
+}
+.proc-stat { font-size: 10px; color: var(--t2); }
+.proc-stat b { color: var(--t1); }
+
+/* PARSED PREVIEW */
+.parsed-list {
+  max-height: 260px; overflow-y: auto;
+  background: var(--sf2); border: 1px solid var(--bdr2);
+  border-radius: 12px; padding: 6px; margin: 10px 0;
+}
+.parsed-row {
+  background: var(--sf1); border: 1px solid var(--bdr);
+  border-radius: 8px; padding: 7px 9px;
+  margin-bottom: 5px; font-size: 10px;
+  display: grid; grid-template-columns: 60px 1fr 70px;
+  gap: 6px; align-items: center;
+}
+.parsed-row .pdate { color: var(--cyn); font-weight: 700; font-size: 9px; }
+.parsed-row .pdesc { color: var(--t2); line-height: 1.3; font-size: 10px; overflow: hidden; }
+.parsed-row .pamt { font-weight: 800; text-align: right; font-size: 10px; }
+.parsed-row .pamt.dr { color: var(--red); }
+.parsed-row .pamt.cr { color: var(--grn); }
+.parsed-row.dup { opacity: 0.45; border-color: rgba(239,68,68,0.3); }
+.parsed-row.dup::after { content: 'DUPLICATE'; font-size: 7px; color: var(--red); position: absolute; }
+
+/* DETAIL ROW */
+.detail-grid {
+  background: var(--sf2); border: 1px solid var(--bdr);
+  border-radius: 12px; padding: 4px 12px; margin-bottom: 11px;
+}
+.dgr {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding: 9px 0; border-bottom: 1px solid var(--bdr);
+  gap: 10px;
+}
+.dgr:last-child { border: none; }
+.dgr-l { font-size: 10px; color: var(--t3); font-weight: 600; flex-shrink: 0; }
+.dgr-v { font-size: 11px; font-weight: 700; text-align: right; word-break: break-word; }
+
+/* TYPE TOGGLE */
+.type-tog { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 12px; }
+.tt-btn {
+  border-radius: 10px; padding: 10px;
+  border: 1px solid var(--bdr2); background: var(--sf2);
+  text-align: center; cursor: pointer; transition: all 0.2s;
+  font-size: 11px; font-weight: 700; color: var(--t2);
+}
+.tt-btn .te { font-size: 22px; display: block; margin-bottom: 4px; }
+.tt-btn.active-debit { border-color: var(--red); background: rgba(239,68,68,0.1); color: var(--red); }
+.tt-btn.active-credit { border-color: var(--grn); background: rgba(16,185,129,0.1); color: var(--grn); }
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 80px; left: 50%;
+  transform: translateX(-50%);
+  background: var(--sf3); color: var(--t1);
+  padding: 10px 18px; border-radius: 20px;
+  font-size: 12px; font-weight: 700;
+  z-index: 500; opacity: 0; pointer-events: none;
+  transition: opacity 0.3s; white-space: nowrap;
+  border: 1px solid var(--bdr2);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  max-width: 90%;
+}
+.toast.show { opacity: 1; }
+.toast.success { border-color: rgba(16,185,129,0.4); }
+.toast.error { border-color: rgba(239,68,68,0.4); }
+
+/* EMPTY */
+.empty { text-align: center; padding: 50px 20px; color: var(--t3); }
+.empty .ei { font-size: 40px; margin-bottom: 10px; }
+.empty p { font-size: 12px; font-weight: 600; }
+.empty .sub { font-size: 10px; margin-top: 5px; color: var(--t3); }
+
+/* LOADING */
+.loading { text-align: center; padding: 30px; color: var(--t3); font-size: 12px; }
+
+/* SECTION TITLE */
+.stitle {
+  font-size: 10px; font-weight: 800; color: var(--t3);
+  letter-spacing: 1.5px; text-transform: uppercase;
+  margin: 14px 0 8px;
+  display: flex; align-items: center; gap: 6px;
+}
+.stitle span {
+  background: var(--sf3); color: var(--t2);
+  font-size: 9px; padding: 1px 7px; border-radius: 10px;
+  font-weight: 700;
+}
+
+/* HIGHLIGHT (search match) */
+mark {
+  background: rgba(245,158,11,0.3);
+  color: var(--acc2);
+  padding: 0 2px;
+  border-radius: 3px;
+}
+
+/* SEARCH RESULT META */
+.search-meta {
+  font-size: 10px; color: var(--t2);
+  margin-bottom: 10px; padding: 7px 10px;
+  background: rgba(245,158,11,0.06);
+  border: 1px solid rgba(245,158,11,0.2);
+  border-radius: 8px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.search-meta b { color: var(--acc); }
+
+/* CHIP for account name in search */
+.acc-chip {
+  display: inline-block;
+  background: rgba(59,130,246,0.12);
+  color: var(--blu);
+  font-size: 8px; font-weight: 800;
+  padding: 1px 6px; border-radius: 4px;
+  letter-spacing: 0.5px; text-transform: uppercase;
+  margin-right: 4px;
+}
+
+/* ALERT CARD */
+.alert-card {
+  border-radius: 11px; padding: 10px 12px;
+  margin-bottom: 11px;
+  display: flex; align-items: center; gap: 10px;
+}
+.alert-card.info {
+  background: rgba(59,130,246,0.07);
+  border: 1px solid rgba(59,130,246,0.2);
+}
+.alert-card.warn {
+  background: rgba(245,158,11,0.08);
+  border: 1px solid rgba(245,158,11,0.25);
+}
+.alert-card .ico { font-size: 20px; flex-shrink: 0; }
+.alert-card .txt h4 { font-size: 11px; font-weight: 800; }
+.alert-card .txt p { font-size: 10px; color: var(--t2); margin-top: 2px; line-height: 1.4; }
+
+/* CHARTS / BARS */
+.cat-bar {
+  background: var(--sf1); border: 1px solid var(--bdr);
+  border-radius: 12px; padding: 12px 13px; margin-bottom: 8px;
+}
+.cat-bar h4 { font-size: 11px; font-weight: 800; margin-bottom: 10px; }
+.cbar-row { margin-bottom: 9px; }
+.cbar-top { display: flex; justify-content: space-between; margin-bottom: 4px; }
+.cbar-name { font-size: 10px; color: var(--t2); font-weight: 600; }
+.cbar-amt { font-size: 10px; font-weight: 800; }
+.cbar-track { height: 5px; background: var(--sf3); border-radius: 3px; overflow: hidden; }
+.cbar-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+
+/* EDIT BTN inline */
+.icon-btn {
+  background: var(--sf3); border: none;
+  width: 26px; height: 26px; border-radius: 50%;
+  color: var(--t2); font-size: 11px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.icon-btn:active { transform: scale(0.92); }
+
+/* HIDDEN */
+.hidden { display: none !important; }
+
+/* SOFT DIVIDER */
+.soft-div {
+  height: 1px; background: var(--bdr);
+  margin: 11px 0;
+}
+
+/* COLOR BANK PICKER */
+.color-pick {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-top: 5px;
+}
+.cp-dot {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 2px solid transparent; cursor: pointer;
+  transition: transform 0.15s;
+}
+.cp-dot.sel { border-color: var(--t1); transform: scale(1.1); }
+
+/* AUTO-LINK SUGGESTION */
+.link-suggest {
+  background: rgba(139,92,246,0.08);
+  border: 1px solid rgba(139,92,246,0.25);
+  border-radius: 10px; padding: 9px 11px;
+  margin-bottom: 10px;
+  display: flex; align-items: center; gap: 9px;
+}
+.link-suggest .ls-ic { font-size: 18px; flex-shrink: 0; }
+.link-suggest .ls-txt { flex: 1; font-size: 10px; color: var(--t2); line-height: 1.4; }
+.link-suggest .ls-txt b { color: var(--pur); font-weight: 800; }
+.link-suggest .ls-btn {
+  background: var(--pur); border: none; color: white;
+  font-family: inherit; font-size: 10px; font-weight: 800;
+  padding: 6px 10px; border-radius: 7px; cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* ═══════════════ REPORTS v2 — Date Range + PDF Print ═══════════════ */
+.report-config {
+  background: var(--sf1);
+  border: 1px solid var(--bdr);
+  border-radius: 13px; padding: 12px;
+  margin-bottom: 10px;
+}
+.rc-title {
+  font-size: 11px; font-weight: 800;
+  margin-bottom: 9px; color: var(--t1);
+  display: flex; align-items: center; gap: 6px;
+}
+.rc-quick {
+  display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 9px;
+}
+.rc-qb {
+  background: var(--sf2); border: 1px solid var(--bdr2);
+  color: var(--t2); font-family: inherit; font-size: 10px; font-weight: 700;
+  padding: 5px 10px; border-radius: 18px; cursor: pointer;
+  transition: all 0.15s;
+}
+.rc-qb.active { background: var(--acc); color: #000; border-color: var(--acc); }
+.rc-row { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 8px; }
+.rc-row .fl { font-size: 9px; }
+.rc-acc-pills {
+  display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 9px;
+}
+.rc-acc-pill {
+  background: var(--sf2); border: 1px solid var(--bdr2);
+  color: var(--t2); font-family: inherit; font-size: 10px; font-weight: 700;
+  padding: 5px 10px; border-radius: 18px; cursor: pointer;
+}
+.rc-acc-pill.active { background: var(--blu); color: #fff; border-color: var(--blu); }
+.rc-type-row {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px;
+  margin-bottom: 9px;
+}
+.rc-type-btn {
+  background: var(--sf2); border: 1px solid var(--bdr2);
+  color: var(--t2); font-family: inherit; font-size: 10px; font-weight: 700;
+  padding: 7px; border-radius: 9px; cursor: pointer;
+  text-align: center;
+}
+.rc-type-btn.active.all { background: var(--acc); color: #000; border-color: var(--acc); }
+.rc-type-btn.active.dr { background: var(--red); color: #fff; border-color: var(--red); }
+.rc-type-btn.active.cr { background: var(--grn); color: #fff; border-color: var(--grn); }
+.rc-actions { display: flex; gap: 7px; }
+.rc-btn {
+  flex: 1;
+  border: none; color: #fff;
+  font-family: inherit; font-size: 11px; font-weight: 800;
+  padding: 10px; border-radius: 10px; cursor: pointer;
+  transition: all 0.2s;
+}
+.rc-btn:active { transform: scale(0.97); }
+.rc-btn.gen { background: linear-gradient(135deg, var(--acc), #d97706); color: #000; }
+.rc-btn.pdf { background: linear-gradient(135deg, var(--red), #b91c1c); }
+
+/* SUMMARY OUTPUT (post generate) */
+.summary-out {
+  background: var(--sf1); border: 1px solid var(--bdr);
+  border-radius: 13px; padding: 13px;
+  margin-bottom: 10px;
+}
+.so-hdr {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 10px; padding-bottom: 9px;
+  border-bottom: 1px solid var(--bdr);
+}
+.so-hdr h3 { font-size: 13px; font-weight: 900; }
+.so-hdr p { font-size: 10px; color: var(--t2); margin-top: 3px; }
+.so-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+  margin-bottom: 10px;
+}
+.so-stat {
+  background: var(--sf2); border: 1px solid var(--bdr);
+  border-radius: 9px; padding: 8px;
+  text-align: center;
+}
+.so-stat .l { font-size: 8px; color: var(--t3); font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
+.so-stat .v { font-size: 14px; font-weight: 900; margin-top: 3px; }
+.so-stat .v.cr { color: var(--grn); }
+.so-stat .v.dr { color: var(--red); }
+.so-stat .v.net { color: var(--acc); }
+
+.so-acc-breakdown {
+  background: var(--sf2); border: 1px solid var(--bdr);
+  border-radius: 9px; padding: 8px 10px;
+  margin-bottom: 10px;
+  font-size: 10px;
+}
+.so-ab-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 5px 0; border-bottom: 1px solid var(--bdr);
+}
+.so-ab-row:last-child { border: none; }
+.so-ab-name { font-weight: 700; color: var(--t1); }
+.so-ab-name small { color: var(--t3); font-weight: 500; margin-left: 5px; }
+.so-ab-vals { display: flex; gap: 9px; }
+.so-ab-vals .cr { color: var(--grn); font-weight: 700; }
+.so-ab-vals .dr { color: var(--red); font-weight: 700; }
+
+/* MISSING ENTRY ALERT */
+.missing-alert {
+  background: rgba(239,68,68,0.07);
+  border: 1px solid rgba(239,68,68,0.25);
+  border-radius: 11px; padding: 10px 12px;
+  margin-bottom: 10px;
+}
+.ma-hdr {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11px; font-weight: 800; color: var(--red);
+  margin-bottom: 6px;
+}
+.ma-list { font-size: 10px; color: var(--t2); line-height: 1.6; }
+.ma-list .gap { 
+  background: var(--sf2); padding: 3px 8px; border-radius: 6px;
+  display: inline-block; margin: 2px 3px 0 0;
+  border: 1px dashed rgba(239,68,68,0.3);
+}
+
+/* AUDIT TRAIL */
+.audit-trail {
+  background: var(--sf2); border: 1px solid var(--bdr);
+  border-radius: 10px; padding: 10px 11px;
+  margin: 9px 0;
+}
+.at-title {
+  font-size: 10px; font-weight: 800;
+  color: var(--t2); margin-bottom: 7px;
+  display: flex; align-items: center; gap: 6px;
+}
+.at-row {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 5px 0; font-size: 10px;
+  border-bottom: 1px dashed var(--bdr);
+}
+.at-row:last-child { border: none; }
+.at-time {
+  color: var(--cyn); font-weight: 700; font-size: 9px;
+  flex-shrink: 0; min-width: 75px;
+}
+.at-action { color: var(--t2); flex: 1; line-height: 1.4; }
+.at-action b { color: var(--t1); }
+.at-icon { font-size: 11px; flex-shrink: 0; }
+.at-empty { font-size: 10px; color: var(--t3); text-align: center; padding: 6px; font-style: italic; }
+
+/* REVIEWED BADGE on entry card */
+.rev-badge {
+  position: absolute; top: 9px; right: 10px;
+  background: rgba(16,185,129,0.15);
+  border: 1px solid rgba(16,185,129,0.35);
+  border-radius: 14px; padding: 2px 8px;
+  font-size: 8px; font-weight: 800; color: var(--grn);
+  letter-spacing: 0.4px;
+  display: flex; align-items: center; gap: 3px;
+}
+.rev-badge.un {
+  background: rgba(245,158,11,0.1);
+  border-color: rgba(245,158,11,0.3);
+  color: var(--acc);
+}
+
+/* CHALLAN BADGE on entry card */
+.ch-badge-bank {
+  position: absolute; top: 9px; right: 10px;
+  background: rgba(139,92,246,0.15);
+  border: 1px solid rgba(139,92,246,0.3);
+  border-radius: 14px; padding: 2px 8px;
+  font-size: 8px; font-weight: 800; color: var(--pur);
+  letter-spacing: 0.4px;
+}
+/* If both, stack them */
+.entry .badges {
+  position: absolute; top: 9px; right: 10px;
+  display: flex; flex-direction: column; gap: 4px;
+  align-items: flex-end;
+}
+.entry .badges .rev-badge,
+.entry .badges .ch-badge-bank {
+  position: static;
+}
+
+/* QUICK ACTION CHIPS in detail modal */
+.qa-chips {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 7px;
+  margin: 10px 0;
+}
+.qa-chip {
+  background: var(--sf2); border: 1px solid var(--bdr2);
+  border-radius: 11px; padding: 11px 8px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  cursor: pointer; transition: all 0.15s;
+  font-family: inherit;
+  text-align: center;
+}
+.qa-chip:active { transform: scale(0.96); }
+.qa-chip .qci { font-size: 18px; }
+.qa-chip .qct { font-size: 10px; font-weight: 800; color: var(--t1); }
+.qa-chip .qcd { font-size: 8px; color: var(--t3); margin-top: 1px; }
+.qa-chip.act-rev { border-color: rgba(16,185,129,0.4); background: rgba(16,185,129,0.06); }
+.qa-chip.act-rev.done { background: rgba(16,185,129,0.15); }
+.qa-chip.act-rev .qci, .qa-chip.act-rev .qct { color: var(--grn); }
+.qa-chip.act-ch { border-color: rgba(139,92,246,0.4); background: rgba(139,92,246,0.06); }
+.qa-chip.act-ch .qci, .qa-chip.act-ch .qct { color: var(--pur); }
+.qa-chip.act-vbe { border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.06); }
+.qa-chip.act-vbe .qci, .qa-chip.act-vbe .qct { color: var(--acc); }
+.qa-chip.act-vbe.done { background: rgba(245,158,11,0.15); }
+.qa-chip.act-edit { border-color: rgba(59,130,246,0.4); background: rgba(59,130,246,0.06); }
+.qa-chip.act-edit .qci, .qa-chip.act-edit .qct { color: var(--blu); }
+
+/* WORK NOTE box (separate from main note) */
+.wn-box {
+  background: rgba(245,158,11,0.04);
+  border: 1px solid rgba(245,158,11,0.2);
+  border-radius: 10px; padding: 9px 10px;
+  margin: 9px 0;
+}
+.wn-input {
+  width: 100%; background: var(--sf2);
+  border: 1px solid var(--bdr2); border-radius: 8px;
+  color: var(--t1); font-family: inherit; font-size: 11px;
+  padding: 7px 9px; outline: none; resize: vertical;
+  min-height: 50px;
+}
+.wn-input:focus { border-color: var(--acc); }
+.wn-btn {
+  margin-top: 7px;
+  background: var(--acc); border: none; color: #000;
+  font-family: inherit; font-size: 10px; font-weight: 800;
+  padding: 6px 12px; border-radius: 7px; cursor: pointer;
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ HEADER ═══════════ -->
+<div class="hdr">
+  <div class="hdr-top">
+    <div class="brand">
+      <div class="brand-ico">🏦</div>
+      <div>
+        <h1>Bank Statement Manager</h1>
+        <p>Vande Bharat Enterprises · Barmer</p>
+      </div>
+    </div>
+    <div class="fb-dot">
+      <div class="pulse" id="fbPulse"></div>
+      <span id="fbTxt">Connect...</span>
+    </div>
+  </div>
+
+  <div class="sum-strip">
+    <div class="ss">
+      <div class="ss-val" style="color:var(--acc)" id="totalBalAll">₹0</div>
+      <div class="ss-lbl">Total Balance</div>
+    </div>
+    <div class="ss">
+      <div class="ss-val" style="color:var(--grn)" id="monthIn">₹0</div>
+      <div class="ss-lbl">महीने में आया</div>
+    </div>
+    <div class="ss">
+      <div class="ss-val" style="color:var(--red)" id="monthOut">₹0</div>
+      <div class="ss-lbl">महीने में गया</div>
+    </div>
+    <div class="ss">
+      <div class="ss-val" style="color:var(--blu)" id="totalAccs">0</div>
+      <div class="ss-lbl">Accounts</div>
+    </div>
+  </div>
+
+  <!-- UNIVERSAL SEARCH -->
+  <div class="usearch-wrap">
+    <div class="usearch">
+      <input id="uSearchInp" type="search" placeholder="कुछ भी search करो — नाम, UTR, चेक नंबर, amount...">
+      <button class="usearch-clear" id="uClearBtn" onclick="clearSearch()">✕</button>
+    </div>
+    <button class="usearch-filter-btn" id="uFiltBtn" onclick="toggleFilters()" title="Filters">
+      ⚙️<div class="fdot hidden" id="filtDot"></div>
+    </button>
+  </div>
+
+  <!-- SEARCH FILTERS PANEL -->
+  <div class="search-filters" id="searchFilters">
+    <div class="sf-label">कौन से Account में search करें</div>
+    <div class="sf-pills" id="filtAccs">
+      <button class="sf-pill active" data-acc="all">सभी</button>
+    </div>
+
+    <div class="sf-label" style="margin-top:9px">Type</div>
+    <div class="sf-pills">
+      <button class="sf-pill active" data-type="all" onclick="setFilt('type','all',this)">सब</button>
+      <button class="sf-pill dr" data-type="debit" onclick="setFilt('type','debit',this)">📤 Debit</button>
+      <button class="sf-pill cr" data-type="credit" onclick="setFilt('type','credit',this)">📥 Credit</button>
+    </div>
+
+    <div class="sf-label" style="margin-top:9px">तारीख Range</div>
+    <div class="sf-row">
+      <input class="sf-mini-input" type="date" id="filtFrom" placeholder="From">
+      <input class="sf-mini-input" type="date" id="filtTo" placeholder="To">
+    </div>
+
+    <div class="sf-label" style="margin-top:9px">Amount Range</div>
+    <div class="sf-row">
+      <input class="sf-mini-input" type="number" id="filtMin" placeholder="Min ₹">
+      <input class="sf-mini-input" type="number" id="filtMax" placeholder="Max ₹">
+    </div>
+
+    <div class="sf-actions">
+      <button class="sf-btn-clear" onclick="clearFilters()">साफ करो</button>
+      <button class="sf-btn-apply" onclick="applyFilters()">✓ Apply करो</button>
+    </div>
+  </div>
+
+  <div class="nav-tabs">
+    <button class="ntab active" onclick="showTab('dash',this)">📊 Dashboard</button>
+    <button class="ntab" onclick="showTab('entries',this)">📋 Entries</button>
+    <button class="ntab" onclick="showTab('accs',this)">🏦 Accounts</button>
+    <button class="ntab" onclick="showTab('reports',this)">📈 Reports</button>
+  </div>
+</div>
+
+<!-- ═══════════ CONTENT ═══════════ -->
+<div class="content">
+
+  <!-- ══ DASHBOARD ══ -->
+  <div class="page active" id="pg_dash">
+    <div class="stitle">सभी Accounts <span id="dashAccCount">0</span></div>
+    <div class="acc-grid" id="accCards">
+      <div class="loading">🔄 Load हो रहा है...</div>
+    </div>
+
+    <div class="qcards">
+      <div class="qcard">
+        <div class="ico">📥</div>
+        <div class="v" style="color:var(--grn)" id="qIn7">₹0</div>
+        <div class="l">7 दिन में आया</div>
+      </div>
+      <div class="qcard">
+        <div class="ico">📤</div>
+        <div class="v" style="color:var(--red)" id="qOut7">₹0</div>
+        <div class="l">7 दिन में गया</div>
+      </div>
+      <div class="qcard">
+        <div class="ico">📋</div>
+        <div class="v" id="qEntries">0</div>
+        <div class="l">Total Entries</div>
+      </div>
+      <div class="qcard">
+        <div class="ico">⚠️</div>
+        <div class="v" style="color:var(--acc)" id="qUnlinked">0</div>
+        <div class="l">VBE में नहीं डाले</div>
+      </div>
+    </div>
+
+    <div class="alert-card info">
+      <div class="ico">💡</div>
+      <div class="txt">
+        <h4>SBI Statement PDF कैसे डालें?</h4>
+        <p>"📥 PDF Import" button (नीचे purple) पर click करें → PDF select → automatic entries पकड़ी जाएंगी</p>
+      </div>
+    </div>
+
+    <div class="stitle">हाल की Activity <span id="recentCount">0</span></div>
+    <div id="recentEntries"><div class="loading">🔄 Load हो रहा है...</div></div>
+  </div>
+
+  <!-- ══ ENTRIES ══ -->
+  <div class="page" id="pg_entries">
+
+    <!-- Date filter -->
+    <div class="fbar" id="dateFilter">
+      <button class="fbn" data-days="0">आज</button>
+      <button class="fbn" data-days="7">7 दिन</button>
+      <button class="fbn" data-days="30">महीना</button>
+      <button class="fbn" data-days="90">3 महीने</button>
+      <button class="fbn active" data-days="-1">सब</button>
+    </div>
+
+    <!-- Account pills -->
+    <div class="acc-row" id="accFilter">
+      <div class="ap active" data-acc="all">
+        <div class="ap-name">📋 सभी</div>
+        <div class="ap-bal" id="apBalAll" style="color:var(--acc)">₹0</div>
+      </div>
+      <!-- account pills inserted dynamically -->
+    </div>
+
+    <div class="search-meta hidden" id="searchMeta">
+      <span><b id="smCount">0</b> results — <span id="smQuery"></span></span>
+      <button class="sf-btn-clear" style="padding:5px 10px;font-size:10px;flex:none" onclick="clearSearch()">✕ Clear</button>
+    </div>
+
+    <div id="entriesList"><div class="loading">🔄 Load हो रहा है...</div></div>
+  </div>
+
+  <!-- ══ ACCOUNTS LIST + ADD ══ -->
+  <div class="page" id="pg_accs">
+    <div class="alert-card info">
+      <div class="ico">🏦</div>
+      <div class="txt">
+        <h4>अपने सभी Bank Accounts एक जगह</h4>
+        <p>नए account add करें, edit करें, या PDF import से entries डालें</p>
+      </div>
+    </div>
+    <div class="stitle">मेरे Accounts <span id="accListCount">0</span></div>
+    <div id="accountsList"><div class="loading">🔄 Load हो रहा है...</div></div>
+  </div>
+
+  <!-- ══ REPORTS — Date Range + PDF Print ══ -->
+  <div class="page" id="pg_reports">
+
+    <!-- CONFIG / FILTER PANEL -->
+    <div class="report-config">
+      <div class="rc-title">📅 Report Filter चुनो</div>
+
+      <!-- Quick presets -->
+      <div class="rc-quick" id="rcQuick">
+        <button class="rc-qb" data-preset="today">आज</button>
+        <button class="rc-qb" data-preset="yesterday">कल</button>
+        <button class="rc-qb" data-preset="week">7 दिन</button>
+        <button class="rc-qb" data-preset="thismonth">इस महीने</button>
+        <button class="rc-qb" data-preset="lastmonth">पिछला महीना</button>
+        <button class="rc-qb" data-preset="3mo">3 महीने</button>
+        <button class="rc-qb" data-preset="thisyear">इस साल</button>
+        <button class="rc-qb active" data-preset="all">सब</button>
+      </div>
+
+      <!-- Custom date range -->
+      <div class="rc-row">
+        <div>
+          <label class="fl">📆 From</label>
+          <input class="fi" id="rcFrom" type="date" style="font-size:12px;padding:8px 10px">
+        </div>
+        <div>
+          <label class="fl">📆 To</label>
+          <input class="fi" id="rcTo" type="date" style="font-size:12px;padding:8px 10px">
+        </div>
+      </div>
+
+      <!-- Type filter -->
+      <label class="fl">क्या दिखाना है?</label>
+      <div class="rc-type-row">
+        <button class="rc-type-btn all active" data-rtype="all" onclick="setRType('all',this)">📋 दोनों</button>
+        <button class="rc-type-btn cr" data-rtype="credit" onclick="setRType('credit',this)">📥 सिर्फ आया</button>
+        <button class="rc-type-btn dr" data-rtype="debit" onclick="setRType('debit',this)">📤 सिर्फ गया</button>
+      </div>
+
+      <!-- Account multi-select -->
+      <label class="fl">कौन से Accounts?</label>
+      <div class="rc-acc-pills" id="rcAccs">
+        <button class="rc-acc-pill active" data-acc="all" onclick="toggleRAcc('all',this)">सभी</button>
+      </div>
+
+      <div class="rc-actions">
+        <button class="rc-btn gen" onclick="generateReport()">⚡ Report बनाओ</button>
+        <button class="rc-btn pdf" onclick="printReportPdf()">🖨️ PDF Print</button>
+      </div>
+    </div>
+
+    <!-- MISSING ENTRIES ALERT (auto-detected) -->
+    <div id="missingAlertWrap"></div>
+
+    <!-- SUMMARY OUTPUT -->
+    <div id="reportOutput">
+      <div class="empty">
+        <div class="ei">📊</div>
+        <p>Filter चुनकर "Report बनाओ" दबाएं</p>
+        <div class="sub">Date range + Account + Type चुनकर तुरंत summary</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FAB STACK -->
+<div class="fab-wrap">
+  <button class="fab sec" onclick="openImportPdf()" title="PDF Import">📥</button>
+  <button class="fab" onclick="openAddEntry()" title="Manual Entry">＋</button>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="bnav active" onclick="showTab('dash',null,this)">
+    <span class="bi">📊</span>Dashboard
+  </button>
+  <button class="bnav" onclick="showTab('entries',null,this)">
+    <span class="bi">📋</span>Entries
+  </button>
+  <button class="bnav" onclick="showTab('accs',null,this)">
+    <span class="bi">🏦</span>Accounts
+  </button>
+  <button class="bnav" onclick="showTab('reports',null,this)">
+    <span class="bi">📈</span>Reports
+  </button>
+</div>
+
+<!-- ═════════ ADD / EDIT ACCOUNT MODAL ═════════ -->
+<div class="modal-bg" id="accModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-hdr">
+      <div class="modal-title" id="accModalTitle">🏦 नया Bank Account</div>
+      <button class="modal-close" onclick="closeModal('accModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="accEditId">
+
+      <div class="fg">
+        <label class="fl">🏷️ Business / Firm का नाम <span style="color:var(--red)">*</span></label>
+        <input class="fi" id="accName" type="text" placeholder="जैसे: Best Choice Traders">
+      </div>
+
+      <div class="fi-row">
+        <div class="fg">
+          <label class="fl">🏦 Bank</label>
+          <select class="fi" id="accBank">
+            <option value="SBI">SBI</option>
+            <option value="HDFC">HDFC</option>
+            <option value="ICICI">ICICI</option>
+            <option value="Axis">Axis</option>
+            <option value="PNB">PNB</option>
+            <option value="BoB">Bank of Baroda</option>
+            <option value="Canara">Canara</option>
+            <option value="BoI">Bank of India</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="fl">💼 Type</label>
+          <select class="fi" id="accType">
+            <option value="Current">Current A/C</option>
+            <option value="Savings">Savings A/C</option>
+            <option value="OD">OD A/C</option>
+            <option value="CC">Cash Credit</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="fg">
+        <label class="fl">🔢 Account Number <span style="color:var(--red)">*</span></label>
+        <input class="fi" id="accNum" type="text" inputmode="numeric" placeholder="जैसे: 43363032156">
+      </div>
+
+      <div class="fi-row">
+        <div class="fg">
+          <label class="fl">🏛️ IFSC Code</label>
+          <input class="fi" id="accIfsc" type="text" placeholder="SBIN0064678" style="text-transform:uppercase">
+        </div>
+        <div class="fg">
+          <label class="fl">📍 Branch</label>
+          <input class="fi" id="accBranch" type="text" placeholder="Military Station Barmer">
+        </div>
+      </div>
+
+      <div class="fg">
+        <label class="fl">📝 Note (Owner, GSTIN, या कुछ और)</label>
+        <input class="fi" id="accNote" type="text" placeholder="Optional...">
+      </div>
+
+      <div class="fg">
+        <label class="fl">🎨 Color (Card का रंग)</label>
+        <div class="color-pick" id="accColorPick"></div>
+      </div>
+
+      <div class="fg">
+        <label class="fl">⭐ Primary Account?</label>
+        <label style="display:flex;align-items:center;gap:7px;font-size:11px;cursor:pointer;color:var(--t2)">
+          <input type="checkbox" id="accPrimary" style="width:16px;height:16px;accent-color:var(--acc)">
+          हाँ — Dashboard में सबसे ऊपर रहे
+        </label>
+      </div>
+
+      <button class="save-btn primary" onclick="saveAccount()">💾 Account Save करो</button>
+      <button class="save-btn del hidden" id="accDelBtn" onclick="deleteAccount()">🗑️ इस Account को Delete करो</button>
+      <button class="cancel-btn" onclick="closeModal('accModal')">रद्द करें</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═════════ ADD ENTRY MODAL ═════════ -->
+<div class="modal-bg" id="entryModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-hdr">
+      <div class="modal-title" id="entryModalTitle">💰 Manual Entry</div>
+      <button class="modal-close" onclick="closeModal('entryModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="entEditId">
+
+      <div class="type-tog">
+        <div class="tt-btn active-debit" id="ettDebit" onclick="setEntryType('debit')">
+          <span class="te">📤</span>Debit (गया)
+        </div>
+        <div class="tt-btn" id="ettCredit" onclick="setEntryType('credit')">
+          <span class="te">📥</span>Credit (आया)
+        </div>
+      </div>
+
+      <div class="fg">
+        <label class="fl">🏦 कौन सा Account <span style="color:var(--red)">*</span></label>
+        <select class="fi" id="entAcc"></select>
+      </div>
+
+      <div class="fi-row">
+        <div class="fg">
+          <label class="fl">💰 Amount (₹) <span style="color:var(--red)">*</span></label>
+          <input class="fi" id="entAmt" type="number" placeholder="0" inputmode="decimal" step="0.01">
+        </div>
+        <div class="fg">
+          <label class="fl">📅 Date <span style="color:var(--red)">*</span></label>
+          <input class="fi" id="entDate" type="date">
+        </div>
+      </div>
+
+      <div class="fg">
+        <label class="fl">📝 Description (Bank statement में जो लिखा है)</label>
+        <textarea class="fi" id="entDesc" placeholder="जैसे: REMT THRU CHQ NEFT UTR, CAS CHQ XFER WD..."></textarea>
+      </div>
+
+      <div class="fi-row">
+        <div class="fg">
+          <label class="fl">🧾 Cheque / Reference No.</label>
+          <input class="fi" id="entChq" type="text" placeholder="917579">
+        </div>
+        <div class="fg">
+          <label class="fl">🔗 UTR / Transaction ID</label>
+          <input class="fi" id="entUtr" type="text" placeholder="SBIN526113673668">
+        </div>
+      </div>
+
+      <div class="fg">
+        <label class="fl">👤 Party / Unit का नाम</label>
+        <input class="fi" id="entParty" type="text" placeholder="जैसे: Ramesh Traders / 177 MH Wet Canteen">
+      </div>
+
+      <div class="fg">
+        <label class="fl">💼 क्या यह VBE app में डाला है?</label>
+        <select class="fi" id="entVbeStatus">
+          <option value="not_added">❌ नहीं डाला</option>
+          <option value="added">✅ डाल दिया</option>
+          <option value="not_required">⏭️ ज़रूरी नहीं</option>
+        </select>
+      </div>
+
+      <div class="fg">
+        <label class="fl">🏷️ Tags (comma से अलग करें, optional)</label>
+        <input class="fi" id="entTags" type="text" placeholder="GST, Govt Payment, Personal...">
+      </div>
+
+      <div class="fg">
+        <label class="fl">📋 Note / याद रखने के लिए</label>
+        <textarea class="fi" id="entNote" placeholder="किस लिए, क्यों, किसके वहाँ से..."></textarea>
+      </div>
+
+      <button class="save-btn primary" onclick="saveEntry()">💾 Entry Save करो</button>
+      <button class="save-btn del hidden" id="entDelBtn" onclick="deleteEntry()">🗑️ Delete करो</button>
+      <button class="cancel-btn" onclick="closeModal('entryModal')">रद्द करें</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═════════ PDF IMPORT MODAL ═════════ -->
+<div class="modal-bg" id="importModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-hdr">
+      <div class="modal-title">📥 SBI PDF Statement Import</div>
+      <button class="modal-close" onclick="closeModal('importModal')">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="alert-card info">
+        <div class="ico">💡</div>
+        <div class="txt">
+          <h4>कैसे काम करता है?</h4>
+          <p>SBI से download किया हुआ Statement PDF select करो → Date, Description, UTR, Cheque, Debit/Credit सब अपने आप पकड़े जाएंगे</p>
+        </div>
+      </div>
+
+      <div class="fg">
+        <label class="fl">🏦 कौन से Account का statement है? <span style="color:var(--red)">*</span></label>
+        <select class="fi" id="impAcc"></select>
+      </div>
+
+      <div class="drop-area" id="dropArea" onclick="document.getElementById('pdfInput').click()">
+        <div class="pe">📄</div>
+        <p>PDF Statement यहाँ drop करो<br>या tap करके select करो</p>
+        <small>SBI / HDFC / ICICI etc — सभी banks supported</small>
+      </div>
+      <input type="file" id="pdfInput" accept="application/pdf" class="hidden" onchange="handlePdfFile(this.files[0])">
+
+      <div class="proc-panel hidden" id="procPanel">
+        <div class="proc-title">
+          <span id="procTitleTxt">🔄 Process हो रहा है...</span>
+          <span class="proc-stat" id="procStatTxt">0%</span>
+        </div>
+        <div class="proc-bar"><div class="proc-fill" id="procFill" style="width:0%"></div></div>
+        <div class="proc-stat" id="procDetailTxt">PDF parse हो रहा है...</div>
+      </div>
+
+      <div class="hidden" id="parsedSection">
+        <div class="soft-div"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div style="font-size:12px;font-weight:800">📋 मिली Entries</div>
+          <div style="font-size:10px;color:var(--t2)" id="parsedCountTxt">0 entries</div>
+        </div>
+        <div class="parsed-list" id="parsedList"></div>
+        <div style="font-size:10px;color:var(--t2);margin:6px 0 10px;line-height:1.5">
+          ⓘ Duplicate (पहले से save) entries गहरी दिखेंगी — वो skip होंगी
+        </div>
+        <button class="save-btn primary" id="impSaveBtn" onclick="saveParsedEntries()">
+          ✅ <span id="impSaveBtnTxt">सभी Entries Save करो</span>
+        </button>
+      </div>
+
+      <button class="cancel-btn" onclick="closeModal('importModal')">रद्द करें</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═════════ DETAIL MODAL ═════════ -->
+<div class="modal-bg" id="detailModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-hdr">
+      <div class="modal-title" id="dtlTitle">Entry Detail</div>
+      <button class="modal-close" onclick="closeModal('detailModal')">✕</button>
+    </div>
+    <div class="modal-body" id="dtlBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- PDF.js for parsing -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+window.pdfjsLib && (pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js');
+</script>
+
+<!-- ════════════════════════════════════════
+     FIREBASE + APP LOGIC
+════════════════════════════════════════ -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getFirestore, collection, doc, setDoc, getDoc, deleteDoc, onSnapshot,
+  query, orderBy, serverTimestamp, writeBatch
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// ══════════════════════════════
+//  FIREBASE CONFIG — VBE Project (same as txn.html / challan.html)
+// ══════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyBCe5DKNKcthOl4umprfRm2QBfbVaFORg8",
+  authDomain: "vbe-order-tracker-60324.firebaseapp.com",
+  projectId: "vbe-order-tracker-60324",
+  storageBucket: "vbe-order-tracker-60324.firebasestorage.app",
+  messagingSenderId: "894023456122",
+  appId: "1:894023456122:web:6ee548f0913c887c67f2c3"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+// ══ STATE ══
+let accounts = [];      // vbe_bank_accounts
+let entries = [];       // vbe_bank_entries
+let curDays = -1;
+let curAcc = 'all';
+let curEntryType = 'debit';
+let curAccColor = '#f59e0b';
+let curEntryId = null;
+let curImportAcc = null;
+let parsedEntries = [];  // from PDF parse
+let searchQuery = '';
+let searchFilters = { type:'all', from:null, to:null, min:null, max:null, accs:['all'] };
+
+// COLORS for account cards
+const ACC_COLORS = ['#f59e0b','#3b82f6','#10b981','#8b5cf6','#06b6d4','#ef4444','#f97316','#ec4899','#14b8a6'];
+
+// ══════════════════════════════
+//  DEFAULT/SEED ACCOUNTS — only added if collection is empty
+// ══════════════════════════════
+const SEED_ACCOUNTS = [
+  { name:'Bright India Enterprises', bank:'SBI', type:'Current', accountNo:'43362997445', ifsc:'SBIN0064678', branch:'Military Station Barmer', color:'#3b82f6', isPrimary:false, note:'' },
+  { name:'Shree Hinglaj', bank:'SBI', type:'Current', accountNo:'42033283908', ifsc:'SBIN0064678', branch:'Military Station Barmer', color:'#10b981', isPrimary:false, note:'' },
+  { name:'177 MH Wet Canteen', bank:'SBI', type:'Current', accountNo:'41279524602', ifsc:'SBIN0031599', branch:'SBI', color:'#8b5cf6', isPrimary:false, note:'' },
+  { name:'Vande Bharat Enterprises', bank:'SBI', type:'Current', accountNo:'42188239871', ifsc:'SBIN0064678', branch:'Military Station Barmer', color:'#f59e0b', isPrimary:true, note:'मुख्य खाता' },
+  { name:'Best Choice Traders', bank:'SBI', type:'Current', accountNo:'43363032156', ifsc:'SBIN0064678', branch:'Military Station Barmer', color:'#06b6d4', isPrimary:false, note:'' },
+];
+
+// ══ FIREBASE STATUS ══
+function fbOnline() {
+  document.getElementById('fbPulse').className = 'pulse';
+  document.getElementById('fbTxt').textContent = 'Live';
+}
+function fbOffline() {
+  document.getElementById('fbPulse').className = 'pulse off';
+  document.getElementById('fbTxt').textContent = 'Offline';
+}
+
+// ══ HELPERS ══
+const fmt = n => '₹' + Number(n || 0).toLocaleString('hi-IN', { maximumFractionDigits: 2 });
+const fmtDate = ts => {
+  if (!ts) return '—';
+  const d = ts?.toDate ? ts.toDate() : new Date(ts);
+  return isNaN(d) ? '—' : d.toLocaleDateString('hi-IN', { day:'2-digit', month:'short', year:'numeric' });
+};
+const fmtDateShort = ts => {
+  if (!ts) return '—';
+  const d = ts?.toDate ? ts.toDate() : new Date(ts);
+  return isNaN(d) ? '—' : d.toLocaleDateString('hi-IN', { day:'2-digit', month:'short' });
+};
+const today = () => new Date().toISOString().split('T')[0];
+const nowId = () => Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2,5).toUpperCase();
+const escapeHtml = s => String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const maskAcc = n => {
+  const s = String(n||'');
+  if (s.length < 5) return s;
+  return '•••• ' + s.slice(-4);
+};
+
+// ══ FIREBASE LISTENERS ══
+let unsubAccs = null, unsubEntries = null;
+
+function startListeners() {
+  unsubAccs = onSnapshot(
+    query(collection(db, 'vbe_bank_accounts'), orderBy('createdAt', 'asc')),
+    async snap => {
+      accounts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      fbOnline();
+      // seed if empty
+      if (accounts.length === 0 && !window._seeded) {
+        window._seeded = true;
+        await seedAccounts();
+      }
+      renderAll();
+    },
+    err => { fbOffline(); console.error('accs', err); }
+  );
+
+  unsubEntries = onSnapshot(
+    query(collection(db, 'vbe_bank_entries'), orderBy('date', 'desc')),
+    snap => {
+      entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderAll();
+    },
+    err => { console.error('entries', err); }
+  );
+}
+
+async function seedAccounts() {
+  showToast('🏦 Seed accounts add हो रहे हैं...', '');
+  try {
+    const batch = writeBatch(db);
+    SEED_ACCOUNTS.forEach((a, i) => {
+      const id = 'BANK_' + nowId();
+      const ref = doc(db, 'vbe_bank_accounts', id);
+      batch.set(ref, {
+        ...a,
+        id,
+        createdAt: serverTimestamp(),
+        _order: i,
+      });
+    });
+    await batch.commit();
+    showToast('✅ ' + SEED_ACCOUNTS.length + ' accounts add हो गए', 'success');
+  } catch(e) {
+    console.error(e);
+    showToast('⚠️ Seed fail: ' + e.message, 'error');
+  }
+}
+
+// ══ RENDER ALL ══
+function renderAll() {
+  populateAccDropdowns();
+  renderDashboard();
+  renderEntries();
+  renderAccountsList();
+  populateRcAccPills();
+  populateSearchAccPills();
+}
+
+// ══ DASHBOARD ══
+function getAccountBalance(accId) {
+  let bal = 0;
+  entries.filter(e => e.accountId === accId).forEach(e => {
+    bal += (e.type === 'credit' ? 1 : -1) * (e.amount || 0);
+  });
+  return bal;
+}
+function getAccountStats(accId) {
+  const list = entries.filter(e => e.accountId === accId);
+  const cr = list.filter(e=>e.type==='credit').reduce((s,e)=>s+(e.amount||0), 0);
+  const dr = list.filter(e=>e.type==='debit').reduce((s,e)=>s+(e.amount||0), 0);
+  return { count: list.length, cr, dr };
+}
+
+function renderDashboard() {
+  const grid = document.getElementById('accCards');
+  const sorted = [...accounts].sort((a,b) => (b.isPrimary?1:0) - (a.isPrimary?1:0) || (a._order||0) - (b._order||0));
+
+  document.getElementById('dashAccCount').textContent = accounts.length;
+  document.getElementById('totalAccs').textContent = accounts.length;
+
+  if (!accounts.length) {
+    grid.innerHTML = `<div class="empty"><div class="ei">🏦</div><p>अभी कोई account नहीं</p><div class="sub">"Accounts" tab में जाकर add करें</div></div>`;
+  } else {
+    grid.innerHTML = sorted.map(a => {
+      const bal = getAccountBalance(a.id);
+      const st = getAccountStats(a.id);
+      const balClass = bal >= 0 ? 'cr' : 'dr';
+      const accentColor = a.color || '#f59e0b';
+      return `
+      <div class="acc-card ${a.isPrimary?'primary':''}" onclick="openAccDetail('${a.id}')" style="border-left:4px solid ${accentColor}">
+        <div class="ac-top">
+          <div>
+            <div class="ac-name">${a.isPrimary?'⭐ ':''}${escapeHtml(a.name)}</div>
+            <div class="ac-num">${escapeHtml(a.bank||'')} · ${maskAcc(a.accountNo)}</div>
+          </div>
+          <div class="ac-bank-tag" style="color:${accentColor};background:${accentColor}22">${escapeHtml(a.bank||'')}</div>
+        </div>
+        <div class="ac-bal-lbl">Available Balance</div>
+        <div class="ac-bal ${balClass}">${bal>=0?'':'−'}${fmt(Math.abs(bal))}</div>
+        <div class="ac-meta">
+          <span class="ac-stat cr">📥 आया <b>${fmt(st.cr)}</b></span>
+          <span class="ac-stat dr">📤 गया <b>${fmt(st.dr)}</b></span>
+          <span class="ac-stat">📋 <b>${st.count}</b></span>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // Top summary numbers
+  let totalBal = 0;
+  accounts.forEach(a => { totalBal += getAccountBalance(a.id); });
+  document.getElementById('totalBalAll').textContent = fmt(totalBal);
+
+  // Month in / out
+  const monthCutoff = new Date(); monthCutoff.setDate(1); monthCutoff.setHours(0,0,0,0);
+  const monthEntries = entries.filter(e => {
+    const d = e.date?.toDate ? e.date.toDate() : new Date(e.date);
+    return d >= monthCutoff;
+  });
+  const monthIn  = monthEntries.filter(e=>e.type==='credit').reduce((s,e)=>s+(e.amount||0), 0);
+  const monthOut = monthEntries.filter(e=>e.type==='debit').reduce((s,e)=>s+(e.amount||0), 0);
+  document.getElementById('monthIn').textContent = fmt(monthIn);
+  document.getElementById('monthOut').textContent = fmt(monthOut);
+
+  // 7-day cards
+  const cutoff7 = new Date(); cutoff7.setDate(cutoff7.getDate()-7); cutoff7.setHours(0,0,0,0);
+  const e7 = entries.filter(e => {
+    const d = e.date?.toDate ? e.date.toDate() : new Date(e.date);
+    return d >= cutoff7;
+  });
+  document.getElementById('qIn7').textContent = fmt(e7.filter(e=>e.type==='credit').reduce((s,e)=>s+(e.amount||0),0));
+  document.getElementById('qOut7').textContent = fmt(e7.filter(e=>e.type==='debit').reduce((s,e)=>s+(e.amount||0),0));
+  document.getElementById('qEntries').textContent = entries.length;
+  document.getElementById('qUnlinked').textContent = entries.filter(e=>e.vbeStatus==='not_added' || !e.vbeStatus).length;
+
+  // Recent activity (top 10)
+  const recent = entries.slice(0, 10);
+  document.getElementById('recentCount').textContent = recent.length;
+  const rEl = document.getElementById('recentEntries');
+  if (!recent.length) {
+    rEl.innerHTML = `<div class="empty"><div class="ei">📭</div><p>अभी कोई entry नहीं</p><div class="sub">PDF import करके या manually add करें</div></div>`;
+  } else {
+    rEl.innerHTML = recent.map(e => entryCardHtml(e)).join('');
+  }
+}
+
+// ══ ENTRIES ══
+function entryCardHtml(e, highlight) {
+  const acc = accounts.find(a => a.id === e.accountId);
+  const accName = acc ? acc.name : 'Unknown';
+  const accColor = acc?.color || '#888';
+  const dateStr = fmtDateShort(e.date);
+  const amtSign = e.type === 'debit' ? '−' : '+';
+  const linkedClass = e.vbeStatus === 'added' ? 'linked' : 'link';
+  const linkedTxt = e.vbeStatus === 'added' ? '✅ VBE में है' : (e.vbeStatus === 'not_required' ? '⏭️ Skip' : '🔗 VBE में डालो');
+
+  const desc = highlight ? hl(e.description || e.party || '—', highlight) : escapeHtml(e.description || e.party || '—');
+  const note = highlight && e.note ? hl(e.note, highlight) : escapeHtml(e.note || '');
+
+  // Top-right badges stack: reviewed + challan
+  const badges = [];
+  if (e.reviewed) {
+    const revDate = e.reviewedAt ? fmtDateShort(e.reviewedAt) : '';
+    badges.push(`<div class="rev-badge" title="Reviewed">✓ देखी ${revDate}</div>`);
+  }
+  if (e.challanId) {
+    badges.push(`<div class="ch-badge-bank" title="Challan #${e.challanId.slice(-6)}">🧾 ${e.challanId.slice(-6)}</div>`);
+  }
+  const editsCount = (e.audit?.edits?.length || 0);
+  if (editsCount > 0) {
+    badges.push(`<div class="ch-badge-bank" style="background:rgba(59,130,246,0.12);border-color:rgba(59,130,246,0.3);color:var(--blu)" title="${editsCount} edits">✏️ ${editsCount}</div>`);
+  }
+  const badgesHtml = badges.length ? `<div class="badges">${badges.join('')}</div>` : '';
+
+  return `
+  <div class="entry ${e.type}" onclick="openEntryDetail('${e.id}')">
+    ${badgesHtml}
+    <div class="e-r1">
+      <div style="${badges.length?'padding-right:80px':''}">
+        <div class="e-desc">${desc}</div>
+        ${e.party ? `<div style="font-size:10px;color:var(--t3);margin-top:3px;font-weight:600">👤 ${highlight?hl(e.party,highlight):escapeHtml(e.party)}</div>` : ''}
+      </div>
+      <div class="e-amt-wrap">
+        <div class="e-amt ${e.type==='debit'?'dr':'cr'}">${amtSign}${fmt(e.amount)}</div>
+        ${e.balance ? `<div class="e-bal">Bal: ${fmt(e.balance)}</div>` : ''}
+      </div>
+    </div>
+    <div class="e-r2">
+      <span class="acc-chip" style="color:${accColor};background:${accColor}22">${escapeHtml(acc?.bank||'')} · ${escapeHtml(accName)}</span>
+      <span class="tag date">📅 ${dateStr}</span>
+      ${e.chequeNo ? `<span class="tag chq">🧾 ${escapeHtml(e.chequeNo)}</span>` : ''}
+      ${e.utrNo ? `<span class="tag utr">🔗 ${escapeHtml(String(e.utrNo).slice(-12))}</span>` : ''}
+      ${(e.tags||[]).slice(0,2).map(t => `<span class="tag linked">#${escapeHtml(t)}</span>`).join('')}
+    </div>
+    <div class="e-r3">
+      <span class="e-note">${note || (e.workNote ? '📝 ' + escapeHtml(e.workNote.slice(0,40)) : '')}</span>
+      <div class="e-acts">
+        <button class="act-btn ${linkedClass}" onclick="event.stopPropagation();toggleVbeStatus('${e.id}')">${linkedTxt}</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function hl(txt, q) {
+  if (!q) return escapeHtml(txt);
+  const safe = escapeHtml(txt);
+  const re = new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'gi');
+  return safe.replace(re, '<mark>$1</mark>');
+}
+
+function filterEntriesAll(list) {
+  let out = list;
+
+  // Universal search
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    out = out.filter(e => {
+      const acc = accounts.find(a => a.id === e.accountId);
+      return [
+        e.description, e.party, e.note, e.utrNo, e.chequeNo,
+        String(e.amount), acc?.name, acc?.accountNo, acc?.bank,
+        ...(e.tags||[])
+      ].some(v => String(v||'').toLowerCase().includes(q));
+    });
+  }
+
+  // Account filter (from search filters or pills)
+  const accFilt = searchFilters.accs.includes('all') ? null : searchFilters.accs;
+  if (accFilt && accFilt.length) out = out.filter(e => accFilt.includes(e.accountId));
+  else if (curAcc !== 'all') out = out.filter(e => e.accountId === curAcc);
+
+  // Type filter
+  if (searchFilters.type !== 'all') out = out.filter(e => e.type === searchFilters.type);
+
+  // Date range from filter panel
+  if (searchFilters.from) {
+    const fr = new Date(searchFilters.from); fr.setHours(0,0,0,0);
+    out = out.filter(e => {
+      const d = e.date?.toDate ? e.date.toDate() : new Date(e.date);
+      return d >= fr;
+    });
+  }
+  if (searchFilters.to) {
+    const to = new Date(searchFilters.to); to.setHours(23,59,59,999);
+    out = out.filter(e => {
+      const d = e.date?.toDate ? e.date.toDate() : new Date(e.date);
+      return d <= to;
+    });
+  }
+
+  // Amount range
+  if (searchFilters.min) out = out.filter(e => (e.amount||0) >= +searchFilters.min);
+  if (searchFilters.max) out = out.filter(e => (e.amount||0) <= +searchFilters.max);
+
+  // Quick date pill (only when no panel from-to)
+  if (!searchFilters.from && !searchFilters.to && curDays >= 0) {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - curDays);
+    cutoff.setHours(0,0,0,0);
+    out = out.filter(e => {
+      const d = e.date?.toDate ? e.date.toDate() : new Date(e.date);
+      return d >= cutoff;
+    });
+  }
+
+  return out;
+}
+
+function renderEntries() {
+  const list = filterEntriesAll(entries);
+  const el = document.getElementById('entriesList');
+  const sm = document.getElementById('searchMeta');
+
+  if (searchQuery) {
+    sm.classList.remove('hidden');
+    document.getElementById('smCount').textContent = list.length;
+    document.getElementById('smQuery').textContent = '"' + searchQuery + '"';
+  } else {
+    sm.classList.add('hidden');
+  }
+
+  // Account pills update with running balances
+  renderAccPills();
+
+  if (!list.length) {
+    el.innerHTML = `<div class="empty"><div class="ei">📭</div><p>${searchQuery?'कुछ नहीं मिला':'कोई entry नहीं'}</p><div class="sub">${searchQuery?'दूसरा शब्द try करें':'PDF import करें या manual add करें'}</div></div>`;
+    return;
+  }
+
+  // Group by date
+  const groups = {};
+  list.forEach(e => {
+    const d = e.date?.toDate ? e.date.toDate() : new Date(e.date);
+    const key = isNaN(d) ? 'Unknown' : d.toISOString().split('T')[0];
+    if (!groups[key]) groups[key] = { items: [], cr: 0, dr: 0 };
+    groups[key].items.push(e);
+    if (e.type === 'credit') groups[key].cr += (e.amount||0);
+    else groups[key].dr += (e.amount||0);
+  });
+
+  let html = '';
+  Object.entries(groups).forEach(([dkey, g]) => {
+    const d = new Date(dkey);
+    const dateLabel = isNaN(d) ? dkey : d.toLocaleDateString('hi-IN', { weekday:'short', day:'2-digit', month:'short', year:'numeric' });
+    html += `<div class="day-hdr">
+      <div class="dt">${dateLabel} <span>${g.items.length}</span></div>
+      <div class="dr-cr">
+        ${g.cr ? `<span class="cr">+${fmt(g.cr)}</span>` : ''}
+        ${g.dr ? `<span class="dr">−${fmt(g.dr)}</span>` : ''}
+      </div>
+    </div>`;
+    g.items.forEach(e => { html += entryCardHtml(e, searchQuery); });
+  });
+  el.innerHTML = html;
+}
+
+function renderAccPills() {
+  const row = document.getElementById('accFilter');
+  // Keep "All" first
+  let html = `<div class="ap ${curAcc==='all'?'active':''}" data-acc="all" onclick="setAccFilter('all')">
+    <div class="ap-name">📋 सभी</div>
+    <div class="ap-bal" id="apBalAll" style="color:var(--acc)">${fmt(accounts.reduce((s,a)=>s+getAccountBalance(a.id),0))}</div>
+  </div>`;
+  accounts.forEach(a => {
+    const bal = getAccountBalance(a.id);
+    const c = a.color || '#f59e0b';
+    html += `<div class="ap ${curAcc===a.id?'active':''}" data-acc="${a.id}" onclick="setAccFilter('${a.id}')" style="${curAcc===a.id?`border-color:${c};background:${c}15`:''}">
+      <div class="ap-name" style="color:${c}">${escapeHtml(a.bank||'')}</div>
+      <div class="ap-bal" style="color:${bal>=0?'var(--grn)':'var(--red)'}">${fmt(bal)}</div>
+    </div>`;
+  });
+  row.innerHTML = html;
+}
+
+window.setAccFilter = function(accId) {
+  curAcc = accId;
+  renderEntries();
+};
+
+// ══ ACCOUNTS LIST ══
+function renderAccountsList() {
+  const el = document.getElementById('accountsList');
+  document.getElementById('accListCount').textContent = accounts.length;
+
+  if (!accounts.length) {
+    el.innerHTML = `<div class="empty"><div class="ei">🏦</div><p>अभी कोई account नहीं</p><div class="sub">＋ button से नया add करें</div></div>`;
+    return;
+  }
+
+  el.innerHTML = accounts.map(a => {
+    const bal = getAccountBalance(a.id);
+    const st = getAccountStats(a.id);
+    const c = a.color || '#f59e0b';
+    return `
+    <div class="acc-card" onclick="openEditAccount('${a.id}')" style="border-left:4px solid ${c}">
+      <div class="ac-top">
+        <div>
+          <div class="ac-name">${a.isPrimary?'⭐ ':''}${escapeHtml(a.name)}</div>
+          <div class="ac-num">A/c: ${maskAcc(a.accountNo)} · IFSC: ${escapeHtml(a.ifsc||'—')}</div>
+          <div class="ac-num">${escapeHtml(a.branch||'')}</div>
+        </div>
+        <div class="ac-bank-tag" style="color:${c};background:${c}22">${escapeHtml(a.bank||'')} · ${escapeHtml(a.type||'')}</div>
+      </div>
+      <div class="ac-bal-lbl">Balance</div>
+      <div class="ac-bal ${bal>=0?'cr':'dr'}">${bal>=0?'':'−'}${fmt(Math.abs(bal))}</div>
+      <div class="ac-meta">
+        <span class="ac-stat cr">📥 <b>${fmt(st.cr)}</b></span>
+        <span class="ac-stat dr">📤 <b>${fmt(st.dr)}</b></span>
+        <span class="ac-stat">📋 <b>${st.count}</b> entries</span>
+        ${a.note?`<span class="ac-stat" style="color:var(--t3)">📝 ${escapeHtml(a.note)}</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ══ POPULATE DROPDOWNS ══
+function populateAccDropdowns() {
+  ['entAcc', 'impAcc'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    const cur = sel.value;
+    sel.innerHTML = accounts.map(a =>
+      `<option value="${a.id}">${escapeHtml(a.bank||'')} · ${escapeHtml(a.name)} (${maskAcc(a.accountNo)})</option>`
+    ).join('') || '<option value="">— पहले Account add करें —</option>';
+    if (cur) sel.value = cur;
+  });
+}
+
+function populateSearchAccPills() {
+  const wrap = document.getElementById('filtAccs');
+  let html = `<button class="sf-pill ${searchFilters.accs.includes('all')?'active':''}" data-acc="all" onclick="toggleFiltAcc('all',this)">सभी</button>`;
+  accounts.forEach(a => {
+    const sel = !searchFilters.accs.includes('all') && searchFilters.accs.includes(a.id);
+    html += `<button class="sf-pill ${sel?'active':''}" data-acc="${a.id}" onclick="toggleFiltAcc('${a.id}',this)">${escapeHtml(a.bank||'')} ${escapeHtml(a.name).slice(0,12)}</button>`;
+  });
+  wrap.innerHTML = html;
+}
+
+window.toggleFiltAcc = function(accId, btn) {
+  if (accId === 'all') {
+    searchFilters.accs = ['all'];
+  } else {
+    if (searchFilters.accs.includes('all')) searchFilters.accs = [];
+    if (searchFilters.accs.includes(accId)) {
+      searchFilters.accs = searchFilters.accs.filter(x => x !== accId);
+      if (!searchFilters.accs.length) searchFilters.accs = ['all'];
+    } else {
+      searchFilters.accs.push(accId);
+    }
+  }
+  populateSearchAccPills();
+};
+
+// ══════════════════════════════
+//  ACCOUNT MODAL
+// ══════════════════════════════
+window.openAddAccount = function() {
+  document.getElementById('accModalTitle').textContent = '🏦 नया Bank Account';
+  document.getElementById('accEditId').value = '';
+  document.getElementById('accName').value = '';
+  document.getElementById('accNum').value = '';
+  document.getElementById('accIfsc').value = '';
+  document.getElementById('accBranch').value = '';
+  document.getElementById('accNote').value = '';
+  document.getElementById('accBank').value = 'SBI';
+  document.getElementById('accType').value = 'Current';
+  document.getElementById('accPrimary').checked = false;
+  curAccColor = ACC_COLORS[accounts.length % ACC_COLORS.length];
+  renderColorPicker();
+  document.getElementById('accDelBtn').classList.add('hidden');
+  document.getElementById('accModal').classList.add('open');
+};
+
+window.openEditAccount = function(accId) {
+  const a = accounts.find(x => x.id === accId);
+  if (!a) return;
+  document.getElementById('accModalTitle').textContent = '✏️ Edit: ' + a.name;
+  document.getElementById('accEditId').value = a.id;
+  document.getElementById('accName').value = a.name || '';
+  document.getElementById('accNum').value = a.accountNo || '';
+  document.getElementById('accIfsc').value = a.ifsc || '';
+  document.getElementById('accBranch').value = a.branch || '';
+  document.getElementById('accNote').value = a.note || '';
+  document.getElementById('accBank').value = a.bank || 'SBI';
+  document.getElementById('accType').value = a.type || 'Current';
+  document.getElementById('accPrimary').checked = !!a.isPrimary;
+  curAccColor = a.color || '#f59e0b';
+  renderColorPicker();
+  document.getElementById('accDelBtn').classList.remove('hidden');
+  document.getElementById('accModal').classList.add('open');
+};
+
+window.openAccDetail = function(accId) {
+  // From dashboard, switch to entries tab and filter to this account
+  curAcc = accId;
+  document.querySelectorAll('.ntab').forEach((b,i) => {
+    b.classList.toggle('active', i === 1);
+  });
+  document.querySelectorAll('.bnav').forEach((b,i) => {
+    b.classList.toggle('active', i === 1);
+  });
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('pg_entries').classList.add('active');
+  renderEntries();
+  window.scrollTo(0,0);
+};
+
+function renderColorPicker() {
+  document.getElementById('accColorPick').innerHTML = ACC_COLORS.map(c =>
+    `<div class="cp-dot ${c===curAccColor?'sel':''}" style="background:${c}" onclick="setAccColor('${c}',this)"></div>`
+  ).join('');
+}
+window.setAccColor = function(c, el) {
+  curAccColor = c;
+  document.querySelectorAll('.cp-dot').forEach(d => d.classList.remove('sel'));
+  el.classList.add('sel');
+};
+
+window.saveAccount = async function() {
+  const editId = document.getElementById('accEditId').value;
+  const name = document.getElementById('accName').value.trim();
+  const accountNo = document.getElementById('accNum').value.trim();
+  if (!name) { showToast('❌ Account का नाम डालो', 'error'); return; }
+  if (!accountNo) { showToast('❌ Account Number डालो', 'error'); return; }
+
+  const data = {
+    name,
+    accountNo,
+    bank: document.getElementById('accBank').value,
+    type: document.getElementById('accType').value,
+    ifsc: document.getElementById('accIfsc').value.trim().toUpperCase(),
+    branch: document.getElementById('accBranch').value.trim(),
+    note: document.getElementById('accNote').value.trim(),
+    color: curAccColor,
+    isPrimary: document.getElementById('accPrimary').checked,
+    updatedAt: serverTimestamp(),
+  };
+
+  try {
+    if (editId) {
+      await setDoc(doc(db, 'vbe_bank_accounts', editId), data, { merge: true });
+      showToast('✅ Account update हो गया', 'success');
+    } else {
+      const id = 'BANK_' + nowId();
+      data.id = id;
+      data.createdAt = serverTimestamp();
+      data._order = accounts.length;
+      await setDoc(doc(db, 'vbe_bank_accounts', id), data);
+      showToast('✅ नया Account add हो गया', 'success');
+    }
+    closeModal('accModal');
+  } catch(e) {
+    showToast('❌ ' + e.message, 'error');
+  }
+};
+
+window.deleteAccount = async function() {
+  const editId = document.getElementById('accEditId').value;
+  if (!editId) return;
+  const a = accounts.find(x => x.id === editId);
+  const linkedEntries = entries.filter(e => e.accountId === editId).length;
+  const msg = linkedEntries
+    ? `"${a?.name}" को delete करना है?\n\n⚠️ इस account की ${linkedEntries} entries भी delete हो जाएंगी!`
+    : `"${a?.name}" account delete करना है?`;
+  if (!confirm(msg)) return;
+
+  try {
+    // Delete all linked entries
+    if (linkedEntries) {
+      const batch = writeBatch(db);
+      entries.filter(e => e.accountId === editId).forEach(e => {
+        batch.delete(doc(db, 'vbe_bank_entries', e.id));
+      });
+      await batch.commit();
+    }
+    await deleteDoc(doc(db, 'vbe_bank_accounts', editId));
+    showToast('🗑️ Account delete हो गया', 'success');
+    closeModal('accModal');
+  } catch(e) {
+    showToast('❌ ' + e.message, 'error');
+  }
+};
+
+// ══════════════════════════════
+//  ENTRY MODAL
+// ══════════════════════════════
+window.openAddEntry = function() {
+  if (!accounts.length) {
+    showToast('⚠️ पहले एक Account add करें', 'error');
+    openAddAccount();
+    return;
+  }
+  document.getElementById('entryModalTitle').textContent = '💰 Manual Entry';
+  document.getElementById('entEditId').value = '';
+  document.getElementById('entAmt').value = '';
+  document.getElementById('entDesc').value = '';
+  document.getElementById('entChq').value = '';
+  document.getElementById('entUtr').value = '';
+  document.getElementById('entParty').value = '';
+  document.getElementById('entNote').value = '';
+  document.getElementById('entTags').value = '';
+  document.getElementById('entDate').value = today();
+  document.getElementById('entVbeStatus').value = 'not_added';
+  curEntryType = 'debit';
+  setEntryType('debit');
+  document.getElementById('entDelBtn').classList.add('hidden');
+  document.getElementById('entryModal').classList.add('open');
+};
+
+window.openEditEntry = function(entId) {
+  const e = entries.find(x => x.id === entId);
+  if (!e) return;
+  document.getElementById('entryModalTitle').textContent = '✏️ Edit Entry';
+  document.getElementById('entEditId').value = e.id;
+  document.getElementById('entAcc').value = e.accountId;
+  document.getElementById('entAmt').value = e.amount || '';
+  document.getElementById('entDesc').value = e.description || '';
+  document.getElementById('entChq').value = e.chequeNo || '';
+  document.getElementById('entUtr').value = e.utrNo || '';
+  document.getElementById('entParty').value = e.party || '';
+  document.getElementById('entNote').value = e.note || '';
+  document.getElementById('entTags').value = (e.tags || []).join(', ');
+  document.getElementById('entVbeStatus').value = e.vbeStatus || 'not_added';
+  const d = e.date?.toDate ? e.date.toDate() : new Date(e.date);
+  document.getElementById('entDate').value = isNaN(d) ? today() : d.toISOString().split('T')[0];
+  curEntryType = e.type || 'debit';
+  setEntryType(curEntryType);
+  document.getElementById('entDelBtn').classList.remove('hidden');
+  closeModal('detailModal');
+  document.getElementById('entryModal').classList.add('open');
+};
+
+window.setEntryType = function(t) {
+  curEntryType = t;
+  document.getElementById('ettDebit').className  = 'tt-btn' + (t==='debit'?' active-debit':'');
+  document.getElementById('ettCredit').className = 'tt-btn' + (t==='credit'?' active-credit':'');
+};
+
+window.saveEntry = async function() {
+  const editId = document.getElementById('entEditId').value;
+  const accountId = document.getElementById('entAcc').value;
+  const amt = parseFloat(document.getElementById('entAmt').value);
+  const dateVal = document.getElementById('entDate').value;
+  const desc = document.getElementById('entDesc').value.trim();
+
+  if (!accountId) { showToast('❌ Account चुनें', 'error'); return; }
+  if (!amt || amt <= 0) { showToast('❌ Amount डालें', 'error'); return; }
+  if (!dateVal) { showToast('❌ तारीख डालें', 'error'); return; }
+
+  const tags = document.getElementById('entTags').value.trim()
+    ? document.getElementById('entTags').value.split(',').map(t=>t.trim()).filter(Boolean) : [];
+
+  const data = {
+    accountId,
+    type: curEntryType,
+    amount: amt,
+    date: new Date(dateVal),
+    description: desc,
+    chequeNo: document.getElementById('entChq').value.trim(),
+    utrNo: document.getElementById('entUtr').value.trim(),
+    party: document.getElementById('entParty').value.trim(),
+    note: document.getElementById('entNote').value.trim(),
+    tags,
+    vbeStatus: document.getElementById('entVbeStatus').value,
+    source: 'manual',
+    updatedAt: serverTimestamp(),
+  };
+
+  try {
+    if (editId) {
+      // Detect what changed for audit trail
+      const orig = entries.find(x => x.id === editId);
+      const changes = [];
+      if (orig) {
+        if (Math.abs((orig.amount||0) - amt) > 0.01) changes.push(`Amount: ${fmt(orig.amount)} → ${fmt(amt)}`);
+        if ((orig.type||'') !== curEntryType) changes.push(`Type: ${orig.type} → ${curEntryType}`);
+        if ((orig.party||'') !== data.party) changes.push(`Party बदला`);
+        if ((orig.description||'') !== desc) changes.push(`Description बदला`);
+        if ((orig.note||'') !== data.note) changes.push(`Note बदला`);
+        if ((orig.vbeStatus||'') !== data.vbeStatus) changes.push(`VBE status: ${data.vbeStatus}`);
+        if (orig.accountId !== accountId) changes.push(`Account बदला`);
+      }
+      await setDoc(doc(db, 'vbe_bank_entries', editId), data, { merge: true });
+      if (changes.length) await logAudit(editId, 'edit', 'Edit किया', changes.join(' · '));
+      showToast('✅ Entry update हो गई', 'success');
+    } else {
+      const id = 'ENT_' + nowId();
+      data.id = id;
+      data.createdAt = serverTimestamp();
+      data.audit = { events: [{ type:'create', label:'Entry बनाई गई (manual)', at: new Date() }], viewCount: 0 };
+      await setDoc(doc(db, 'vbe_bank_entries', id), data);
+      showToast('✅ Entry save हो गई', 'success');
+    }
+    closeModal('entryModal');
+  } catch(e) {
+    showToast('❌ ' + e.message, 'error');
+  }
+};
+
+window.deleteEntry = async function() {
+  const editId = document.getElementById('entEditId').value;
+  if (!editId) return;
+  if (!confirm('यह entry delete करनी है?')) return;
+  try {
+    await deleteDoc(doc(db, 'vbe_bank_entries', editId));
+    showToast('🗑️ Entry delete हो गई', 'success');
+    closeModal('entryModal');
+  } catch(e) {
+    showToast('❌ ' + e.message, 'error');
+  }
+};
+
+window.toggleVbeStatus = async function(entId) {
+  const e = entries.find(x => x.id === entId);
+  if (!e) return;
+  const newStatus = e.vbeStatus === 'added' ? 'not_added' : 'added';
+  try {
+    await setDoc(doc(db, 'vbe_bank_entries', entId), { vbeStatus: newStatus }, { merge: true });
+    await logAudit(entId, 'vbe_marked', newStatus === 'added' ? 'VBE में डाला mark किया' : 'VBE mark हटाया');
+    showToast(newStatus === 'added' ? '✅ VBE में डाला mark हुआ' : '⏪ Mark हटा', 'success');
+  } catch(err) {
+    showToast('❌ ' + err.message, 'error');
+  }
+};
+
+// ══════════════════════════════
+//  DETAIL MODAL — Audit Trail + Quick Actions + Work Note
+// ══════════════════════════════
+window.openEntryDetail = async function(entId) {
+  const e = entries.find(x => x.id === entId);
+  if (!e) return;
+  curEntryId = entId;
+  const acc = accounts.find(a => a.id === e.accountId);
+  const amtSign = e.type==='debit' ? '−' : '+';
+
+  // Log this view in audit trail (background, non-blocking)
+  logAudit(entId, 'view', 'देखा').catch(()=>{});
+
+  document.getElementById('dtlTitle').textContent = e.description ? e.description.slice(0,30) : (e.party || 'Entry');
+
+  const linkedChallan = challanIndex[e.challanId];
+  const challanInfo = linkedChallan ? `${linkedChallan.challanNo} · ${linkedChallan.status||'pending'}` : '';
+
+  // Build audit trail HTML
+  const auditEvents = (e.audit?.events || []).slice().reverse();
+  const auditHtml = auditEvents.length ? auditEvents.slice(0, 12).map(ev => {
+    const t = ev.at?.toDate ? ev.at.toDate() : new Date(ev.at);
+    const tStr = isNaN(t) ? '—' : t.toLocaleString('hi-IN', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+    const icons = { view:'👁️', edit:'✏️', review:'✅', vbe_marked:'💼', challan_created:'🧾', work_note:'📝', delete:'🗑️', create:'➕' };
+    return `<div class="at-row">
+      <span class="at-icon">${icons[ev.type] || '•'}</span>
+      <span class="at-time">${tStr}</span>
+      <span class="at-action">${escapeHtml(ev.label || ev.type)}${ev.detail?` <b>${escapeHtml(ev.detail)}</b>`:''}</span>
+    </div>`;
+  }).join('') : '<div class="at-empty">अभी कोई activity नहीं — इसे पहली बार देखा जा रहा है</div>';
+
+  document.getElementById('dtlBody').innerHTML = `
+    <div style="text-align:center;padding:6px 0 14px">
+      <div style="font-size:30px;font-weight:900;color:${e.type==='debit'?'var(--red)':'var(--grn)'}">${amtSign}${fmt(e.amount)}</div>
+      <div style="font-size:11px;color:var(--t2);margin-top:4px">${fmtDate(e.date)} · ${e.type==='debit'?'Debit (गया)':'Credit (आया)'}</div>
+      ${e.reviewed ? `<div style="font-size:10px;color:var(--grn);margin-top:5px;font-weight:700">✓ Reviewed on ${fmtDate(e.reviewedAt)}</div>` : ''}
+    </div>
+
+    <!-- QUICK ACTION CHIPS -->
+    <div class="qa-chips">
+      <button class="qa-chip act-rev ${e.reviewed?'done':''}" onclick="toggleReview('${e.id}')">
+        <span class="qci">${e.reviewed?'✅':'👁️'}</span>
+        <span class="qct">${e.reviewed?'देखी (Verified)':'देखी? Mark करो'}</span>
+        <span class="qcd">${e.reviewed?'दोबारा toggle':'attendance'}</span>
+      </button>
+      <button class="qa-chip act-vbe ${e.vbeStatus==='added'?'done':''}" onclick="toggleVbeStatus('${e.id}');closeModal('detailModal')">
+        <span class="qci">${e.vbeStatus==='added'?'✅':'💼'}</span>
+        <span class="qct">${e.vbeStatus==='added'?'VBE में है':'VBE में डाला?'}</span>
+        <span class="qcd">${e.vbeStatus==='added'?'click to undo':'mark करो'}</span>
+      </button>
+      <button class="qa-chip act-ch" onclick="${e.challanId?`viewLinkedChallan('${e.id}')`:`createChallanFromEntry('${e.id}')`}">
+        <span class="qci">🧾</span>
+        <span class="qct">${e.challanId?'Challan देखो':'Challan बनाओ'}</span>
+        <span class="qcd">${e.challanId?escapeHtml(challanInfo):'auto-create'}</span>
+      </button>
+      <button class="qa-chip act-edit" onclick="openEditEntry('${e.id}')">
+        <span class="qci">✏️</span>
+        <span class="qct">Edit करो</span>
+        <span class="qcd">amount, party, note</span>
+      </button>
+    </div>
+
+    <!-- DETAIL ROWS -->
+    <div class="detail-grid">
+      ${row('🏦 Account', acc ? `${escapeHtml(acc.bank)} · ${escapeHtml(acc.name)}<br><span style="font-size:9px;color:var(--t3)">${maskAcc(acc.accountNo)}</span>` : '—')}
+      ${row('📝 Description', escapeHtml(e.description||'—'))}
+      ${e.party ? row('👤 Party', escapeHtml(e.party)) : ''}
+      ${e.chequeNo ? row('🧾 Cheque No.', escapeHtml(e.chequeNo)) : ''}
+      ${e.utrNo ? row('🔗 UTR / Ref', escapeHtml(e.utrNo)) : ''}
+      ${e.balance ? row('📊 Balance after', fmt(e.balance)) : ''}
+      ${e.tags?.length ? row('🏷️ Tags', e.tags.map(t=>`<span class="tag linked">${escapeHtml(t)}</span>`).join(' ')) : ''}
+      ${e.note ? row('📋 Note', escapeHtml(e.note)) : ''}
+      ${e.workNote ? row('💭 Work Note', escapeHtml(e.workNote)) : ''}
+      ${row('📥 Source', e.source==='pdf' ? '📄 PDF Import' : '✍️ Manual Add')}
+      ${e.createdAt ? row('🕐 Created', fmtDate(e.createdAt)) : ''}
+      ${e.audit?.viewCount ? row('👁️ Views', `${e.audit.viewCount} बार खोला`) : ''}
+    </div>
+
+    <!-- WORK NOTE BOX -->
+    <div class="wn-box">
+      <div style="font-size:10px;font-weight:800;color:var(--acc);margin-bottom:5px">💭 Work Note (इसमें क्या काम किया, क्या समझा)</div>
+      <textarea class="wn-input" id="workNoteInp" placeholder="जैसे: इसकी पेमेंट confirm की, Ramesh को बोला, GST claim किया...">${escapeHtml(e.workNote||'')}</textarea>
+      <button class="wn-btn" onclick="saveWorkNote('${e.id}')">💾 Work Note Save करो</button>
+    </div>
+
+    <!-- AUDIT TRAIL -->
+    <div class="audit-trail">
+      <div class="at-title">📜 Activity / History — कब-कब क्या किया</div>
+      ${auditHtml}
+    </div>
+
+    <!-- DELETE -->
+    <div style="display:flex;gap:7px;margin-top:9px">
+      <button class="act-btn" style="flex:1;padding:11px;font-size:11px;color:var(--red);background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25)" onclick="quickDeleteEntry('${e.id}')">🗑️ Entry Delete करो</button>
+    </div>
+  `;
+  document.getElementById('detailModal').classList.add('open');
+};
+
+window.toggleReview = async function(entId) {
+  const e = entries.find(x => x.id === entId);
+  if (!e) return;
+  const newRev = !e.reviewed;
+  try {
+    await setDoc(doc(db, 'vbe_bank_entries', entId), {
+      reviewed: newRev,
+      reviewedAt: newRev ? new Date() : null,
+    }, { merge: true });
+    await logAudit(entId, 'review', newRev ? 'Reviewed mark किया (देख ली)' : 'Review हटाया');
+    showToast(newRev ? '✓ देखी mark हो गई' : '⏪ Review हटा', 'success');
+    // Refresh detail modal silently
+    setTimeout(() => openEntryDetail(entId), 300);
+  } catch(err) {
+    showToast('❌ ' + err.message, 'error');
+  }
+};
+
+window.saveWorkNote = async function(entId) {
+  const txt = document.getElementById('workNoteInp').value.trim();
+  try {
+    await setDoc(doc(db, 'vbe_bank_entries', entId), { workNote: txt }, { merge: true });
+    await logAudit(entId, 'work_note', 'Work note लिखा', txt.slice(0, 50));
+    showToast('✅ Work note save हो गया', 'success');
+  } catch(err) {
+    showToast('❌ ' + err.message, 'error');
+  }
+};
+
+// ══ AUDIT LOGGER ══
+async function logAudit(entId, type, label, detail) {
+  const e = entries.find(x => x.id === entId);
+  if (!e) return;
+  const event = {
+    type, label,
+    detail: detail || '',
+    at: new Date(),
+  };
+  const audit = e.audit || { events: [], viewCount: 0 };
+  audit.events = [...(audit.events || []), event].slice(-50); // keep last 50
+  if (type === 'view') audit.viewCount = (audit.viewCount || 0) + 1;
+  audit.lastTouchedAt = new Date();
+  try {
+    await setDoc(doc(db, 'vbe_bank_entries', entId), { audit }, { merge: true });
+  } catch(err) {
+    console.warn('audit log fail', err);
+  }
+}
+
+// ══ AUTO-CHALLAN CREATION (uses vbe_challans collection — same as challan.html) ══
+let challanIndex = {}; // id → challan
+let unsubChallans = null;
+
+function startChallanListener() {
+  if (unsubChallans) return;
+  unsubChallans = onSnapshot(
+    collection(db, 'vbe_challans'),
+    snap => {
+      challanIndex = {};
+      snap.docs.forEach(d => { challanIndex[d.id] = { id: d.id, ...d.data() }; });
+    },
+    err => console.warn('challan listener', err)
+  );
+}
+
+window.createChallanFromEntry = async function(entId) {
+  const e = entries.find(x => x.id === entId);
+  if (!e) return;
+  const acc = accounts.find(a => a.id === e.accountId);
+
+  if (!confirm(`Challan बनाना है?\n\nParty: ${e.party || '—'}\nAmount: ${fmt(e.amount)}\nAccount: ${acc?.name || '—'}\n\n— यह challan.html में भी automatically दिखेगा।`)) return;
+
+  showToast('🧾 Challan बन रहा है...', '');
+  const challanId = 'CH' + nowId();
+  const challanNo = 'BCH/' + new Date().getFullYear().toString().slice(-2) + '-' + nowId().slice(-4);
+
+  const challanData = {
+    id: challanId,
+    challanNo,
+    party: e.party || e.description?.slice(0, 40) || 'Unknown',
+    phone: '',
+    amount: e.amount || 0,
+    item: e.description || e.note || 'Bank entry से auto-created',
+    gst: 0,
+    status: e.type === 'credit' ? 'paid' : 'pending',
+    note: `Bank Entry से बनाया · ${acc?.bank} · ${acc?.name}\nUTR: ${e.utrNo || '—'} · Cheque: ${e.chequeNo || '—'}`,
+    bankEntryId: entId,                  // back-link
+    bankAccountId: e.accountId,
+    date: e.date?.toDate ? e.date.toDate() : new Date(e.date),
+    createdAt: serverTimestamp(),
+    source: 'bank_manager',              // identify origin
+  };
+
+  try {
+    await setDoc(doc(db, 'vbe_challans', challanId), challanData);
+    await setDoc(doc(db, 'vbe_bank_entries', entId), { challanId }, { merge: true });
+    await logAudit(entId, 'challan_created', 'Challan बनाया', challanNo);
+    showToast(`✅ Challan ${challanNo} बन गया!`, 'success');
+    closeModal('detailModal');
+  } catch(err) {
+    showToast('❌ ' + err.message, 'error');
+  }
+};
+
+window.viewLinkedChallan = function(entId) {
+  const e = entries.find(x => x.id === entId);
+  if (!e?.challanId) return;
+  const c = challanIndex[e.challanId];
+  if (!c) {
+    showToast('⚠️ Challan अब Database में नहीं — शायद delete हो गया', 'error');
+    return;
+  }
+  alert(`🧾 Linked Challan\n\nNumber: ${c.challanNo}\nParty: ${c.party}\nAmount: ${fmt(c.amount)}\nStatus: ${c.status || 'pending'}\nDate: ${fmtDate(c.date)}\n\nNote: ${c.note || '—'}\n\n— पूरा detail challan.html में मिलेगा`);
+};
+
+function row(label, val) {
+  return `<div class="dgr"><div class="dgr-l">${label}</div><div class="dgr-v">${val||'—'}</div></div>`;
+}
+
+window.quickDeleteEntry = async function(entId) {
+  if (!confirm('यह entry delete करनी है?')) return;
+  try {
+    await deleteDoc(doc(db, 'vbe_bank_entries', entId));
+    showToast('🗑️ Delete हो गई', 'success');
+    closeModal('detailModal');
+  } catch(e) {
+    showToast('❌ ' + e.message, 'error');
+  }
+};
+
+// ══════════════════════════════
+//  PDF IMPORT
+// ══════════════════════════════
+window.openImportPdf = function() {
+  if (!accounts.length) {
+    showToast('⚠️ पहले एक Account add करें', 'error');
+    openAddAccount();
+    return;
+  }
+  document.getElementById('procPanel').classList.add('hidden');
+  document.getElementById('parsedSection').classList.add('hidden');
+  parsedEntries = [];
+  document.getElementById('importModal').classList.add('open');
+};
+
+window.handlePdfFile = async function(file) {
+  if (!file) return;
+  if (!window.pdfjsLib) { showToast('❌ PDF reader load नहीं हुआ — internet check करें', 'error'); return; }
+  const accId = document.getElementById('impAcc').value;
+  if (!accId) { showToast('❌ पहले Account चुनें', 'error'); return; }
+  curImportAcc = accId;
+
+  const panel = document.getElementById('procPanel');
+  panel.classList.remove('hidden');
+  setProc(5, 'PDF read हो रहा है...');
+
+  try {
+    const arrayBuf = await file.arrayBuffer();
+    setProc(15, 'PDF decode हो रहा है...');
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuf }).promise;
+    setProc(25, `${pdf.numPages} pages मिले — text निकाला जा रहा है...`);
+
+    let allText = '';
+    let allItems = [];
+    for (let i=1; i<=pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      allItems = allItems.concat(content.items.map(it => ({ str: it.str, x: it.transform[4], y: it.transform[5], page: i })));
+      allText += content.items.map(it => it.str).join(' ') + '\n';
+      setProc(25 + (i/pdf.numPages)*40, `Page ${i}/${pdf.numPages} processed`);
+    }
+
+    setProc(70, 'Entries parse हो रही हैं...');
+    parsedEntries = parseStatement(allItems, allText);
+
+    setProc(95, 'Duplicates check हो रहा है...');
+    markDuplicates();
+
+    setProc(100, `✅ ${parsedEntries.length} entries मिलीं`);
+
+    setTimeout(() => {
+      panel.classList.add('hidden');
+      renderParsedList();
+      document.getElementById('parsedSection').classList.remove('hidden');
+    }, 600);
+  } catch(e) {
+    console.error(e);
+    setProc(0, '❌ Error: ' + e.message);
+    showToast('❌ PDF parse fail: ' + e.message, 'error');
+  }
+};
+
+function setProc(pct, txt) {
+  document.getElementById('procFill').style.width = pct + '%';
+  document.getElementById('procStatTxt').textContent = Math.round(pct) + '%';
+  if (txt) document.getElementById('procDetailTxt').textContent = txt;
+}
+
+// ══ STATEMENT PARSER ══
+// Reconstruct rows from PDF text positions, then extract date + desc + amounts
+function parseStatement(items, fullText) {
+  // Group items by row using y-coordinate (with tolerance)
+  const rows = [];
+  const sorted = items.slice().sort((a,b) => b.page - a.page === 0 ? b.y - a.y : a.page - b.page);
+  // Page-by-page row grouping
+  const byPage = {};
+  items.forEach(it => {
+    if (!byPage[it.page]) byPage[it.page] = [];
+    byPage[it.page].push(it);
+  });
+
+  Object.keys(byPage).sort((a,b)=>+a-+b).forEach(pg => {
+    const pgItems = byPage[pg].slice().sort((a,b) => b.y - a.y || a.x - b.x);
+    let curRow = [], curY = null;
+    pgItems.forEach(it => {
+      if (curY === null || Math.abs(it.y - curY) <= 3) {
+        curRow.push(it);
+        curY = curY === null ? it.y : curY;
+      } else {
+        if (curRow.length) rows.push(curRow);
+        curRow = [it];
+        curY = it.y;
+      }
+    });
+    if (curRow.length) rows.push(curRow);
+  });
+
+  // Now convert each row to a structured object
+  const dateRe = /\b(\d{1,2})[-\/](\d{1,2})[-\/](\d{2,4})\b/;
+  const numRe = /^[\d,]+\.\d{2}$/;
+  const balRe = /^[\d,]+\.\d{2}\s*(CR|DR)?$/i;
+
+  const txnLines = [];
+  let pending = null;
+
+  rows.forEach(row => {
+    const sortedByX = row.slice().sort((a,b) => a.x - b.x);
+    const cells = sortedByX.map(it => it.str.trim()).filter(Boolean);
+    const line = cells.join(' ').replace(/\s+/g, ' ').trim();
+    if (!line) return;
+
+    // Skip header / footer rows
+    if (/^(Post Date|Value Date|Description|Cheque|Debit|Credit|Balance|STATEMENT|BROUGHT FORWARD|CLOSING BALANCE|Page \d+ of \d+)/i.test(line)) {
+      // BROUGHT FORWARD / CLOSING BALANCE we still want to capture for opening balance
+      if (/BROUGHT FORWARD/i.test(line)) {
+        const balMatch = line.match(/([\d,]+\.\d{2})\s*(CR|DR)?/i);
+        if (balMatch) {
+          pending = null;
+        }
+      }
+      return;
+    }
+
+    const dateMatch = line.match(dateRe);
+    if (dateMatch) {
+      // New row starting with a date — commit pending, start new
+      if (pending) txnLines.push(pending);
+      pending = { rawLines: [line], firstDate: dateMatch[0] };
+    } else {
+      // Continuation line of previous transaction
+      if (pending) {
+        pending.rawLines.push(line);
+      }
+    }
+  });
+  if (pending) txnLines.push(pending);
+
+  // Extract structured data from each candidate
+  const out = [];
+  txnLines.forEach(t => {
+    const fullLine = t.rawLines.join(' ');
+    const dates = (fullLine.match(/\b\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4}\b/g) || []);
+    const dateStr = dates[0];
+    const date = parseDate(dateStr);
+    if (!date) return;
+
+    // Find all numeric amounts in line (with .dd format)
+    const numMatches = [...fullLine.matchAll(/([\d,]+\.\d{2})\s*(CR|DR)?/gi)];
+    if (numMatches.length === 0) return;
+
+    // Last number = balance, second-last = amount (debit OR credit)
+    let amount = null, balance = null, balType = null, type = null;
+    if (numMatches.length >= 2) {
+      const last = numMatches[numMatches.length - 1];
+      const secondLast = numMatches[numMatches.length - 2];
+      balance = parseFloat(last[1].replace(/,/g,''));
+      balType = (last[2] || 'CR').toUpperCase();
+      amount = parseFloat(secondLast[1].replace(/,/g,''));
+    } else if (numMatches.length === 1) {
+      // Could be just balance row (BROUGHT FORWARD) — skip
+      return;
+    }
+
+    if (!amount) return;
+
+    // Determine debit vs credit based on previous balance vs current
+    const prevTxn = out[out.length - 1];
+    if (prevTxn && prevTxn.balance != null) {
+      const diff = +(balance - prevTxn.balance).toFixed(2);
+      if (Math.abs(diff - amount) < 0.5) type = 'credit';
+      else if (Math.abs(diff + amount) < 0.5) type = 'debit';
+    }
+    // Fallback: look at description for clues
+    if (!type) {
+      if (/CR\b|CREDIT|RECEIVED/i.test(fullLine)) type = 'credit';
+      else if (/DR\b|DEBIT|WD\b|WITHDRAWAL|XFER|TRANSFER TO|PAYMENT/i.test(fullLine)) type = 'debit';
+      else type = 'debit'; // safer default
+    }
+
+    // Extract cheque no (5-7 digit number that's not a date or amount)
+    let chequeNo = '';
+    const chqMatch = fullLine.match(/\b(9\d{5}|\d{6})\b/);
+    if (chqMatch) chequeNo = chqMatch[1];
+
+    // Extract UTR
+    let utr = '';
+    const utrMatch = fullLine.match(/(SBIN|HDFC|ICIC|UTIB|PUNB|BARB|UBIN|CNRB|IOBA|CITI|YESB|KKBK|IDFB)\d{10,16}/i);
+    if (utrMatch) utr = utrMatch[0].toUpperCase();
+    if (!utr) {
+      const altUtr = fullLine.match(/UTR[:\s]+(\w{12,18})/i);
+      if (altUtr) utr = altUtr[1];
+    }
+
+    // Description: remove dates, amounts, cheque, UTR
+    let desc = fullLine
+      .replace(/\b\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4}\b/g, '')
+      .replace(/[\d,]+\.\d{2}\s*(CR|DR)?/gi, '')
+      .replace(/(SBIN|HDFC|ICIC|UTIB|PUNB|BARB|UBIN|CNRB|IOBA|CITI|YESB|KKBK|IDFB)\d{10,16}/gi, '')
+      .replace(/UTR[:\s]+\w+/gi, '')
+      .replace(/\b(9\d{5}|\d{6})\b/g, '')
+      .replace(/\s+/g, ' ').trim();
+
+    // Try to extract a party name from common patterns
+    let party = '';
+    const partyMatch = desc.match(/(?:OF|TO|FROM)\s+(?:Miss\.|Mr\.|M\/?S\.?\s*|Smt\.?\s*)?([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+){0,3})/);
+    if (partyMatch) party = partyMatch[1].trim();
+
+    out.push({
+      date, dateStr, amount, balance, balType, type,
+      description: desc, chequeNo, utrNo: utr, party,
+      raw: fullLine.slice(0, 300)
+    });
+  });
+
+  return out;
+}
+
+function parseDate(s) {
+  if (!s) return null;
+  const m = s.match(/(\d{1,2})[-\/](\d{1,2})[-\/](\d{2,4})/);
+  if (!m) return null;
+  let [, dd, mm, yy] = m;
+  yy = +yy; if (yy < 100) yy = yy < 50 ? 2000 + yy : 1900 + yy;
+  const d = new Date(+yy, +mm - 1, +dd);
+  return isNaN(d) ? null : d;
+}
+
+function markDuplicates() {
+  const existing = entries.filter(e => e.accountId === curImportAcc);
+  parsedEntries.forEach(p => {
+    const dup = existing.find(e => {
+      const ed = e.date?.toDate ? e.date.toDate() : new Date(e.date);
+      const sameDate = Math.abs(ed - p.date) < 24*60*60*1000;
+      const sameAmt = Math.abs((e.amount||0) - p.amount) < 0.5;
+      const sameType = e.type === p.type;
+      const sameRef = (p.utrNo && e.utrNo === p.utrNo) || (p.chequeNo && e.chequeNo === p.chequeNo);
+      return sameDate && sameAmt && sameType && (sameRef || true);
+    });
+    p.isDuplicate = !!dup;
+  });
+}
+
+function renderParsedList() {
+  const el = document.getElementById('parsedList');
+  const cnt = parsedEntries.filter(p => !p.isDuplicate).length;
+  document.getElementById('parsedCountTxt').textContent = `${parsedEntries.length} total · ${cnt} new`;
+  document.getElementById('impSaveBtnTxt').textContent = `${cnt} New Entries Save करो`;
+
+  if (!parsedEntries.length) {
+    el.innerHTML = `<div class="empty" style="padding:20px"><div class="ei">😕</div><p>कोई entry नहीं मिली</p><div class="sub">PDF format शायद support नहीं है — manual add करें</div></div>`;
+    document.getElementById('impSaveBtn').style.display = 'none';
+    return;
+  }
+  document.getElementById('impSaveBtn').style.display = '';
+
+  el.innerHTML = parsedEntries.map(p => `
+    <div class="parsed-row ${p.isDuplicate?'dup':''}">
+      <span class="pdate">${p.date.toLocaleDateString('hi-IN', {day:'2-digit', month:'short'})}</span>
+      <span class="pdesc">${escapeHtml((p.description || p.party || 'Unknown').slice(0,60))}${p.utrNo?'<br><span style="color:var(--blu);font-size:9px">'+escapeHtml(p.utrNo)+'</span>':''}${p.chequeNo?' <span style="color:var(--acc);font-size:9px">#'+escapeHtml(p.chequeNo)+'</span>':''}</span>
+      <span class="pamt ${p.type==='debit'?'dr':'cr'}">${p.type==='debit'?'−':'+'}${fmt(p.amount)}</span>
+    </div>
+  `).join('');
+}
+
+window.saveParsedEntries = async function() {
+  const newOnes = parsedEntries.filter(p => !p.isDuplicate);
+  if (!newOnes.length) { showToast('⚠️ कोई नई entry नहीं — सब duplicate हैं', 'error'); return; }
+  showToast(`💾 ${newOnes.length} entries save हो रही हैं...`, '');
+
+  try {
+    const batch = writeBatch(db);
+    newOnes.forEach(p => {
+      const id = 'ENT_' + nowId();
+      const ref = doc(db, 'vbe_bank_entries', id);
+      batch.set(ref, {
+        id,
+        accountId: curImportAcc,
+        type: p.type,
+        amount: p.amount,
+        balance: p.balance,
+        date: p.date,
+        description: p.description,
+        chequeNo: p.chequeNo,
+        utrNo: p.utrNo,
+        party: p.party,
+        note: '',
+        tags: [],
+        vbeStatus: 'not_added',
+        source: 'pdf',
+        rawLine: p.raw,
+        createdAt: serverTimestamp(),
+      });
+    });
+    await batch.commit();
+    showToast(`✅ ${newOnes.length} entries save हो गईं!`, 'success');
+    closeModal('importModal');
+  } catch(e) {
+    console.error(e);
+    showToast('❌ Save fail: ' + e.message, 'error');
+  }
+};
+
+// ══════════════════════════════
+//  REPORTS v2 — Date Range + PDF Print + Missing Detection
+// ══════════════════════════════
+let reportFilters = {
+  preset: 'all',
+  from: null, to: null,
+  type: 'all',
+  accs: ['all'],
+};
+let lastReportData = null;  // cached for PDF print
+
+function setRcPreset(preset) {
+  reportFilters.preset = preset;
+  const now = new Date();
+  let from = null, to = null;
+  if (preset === 'today') { from = new Date(); from.setHours(0,0,0,0); to = new Date(); to.setHours(23,59,59,999); }
+  else if (preset === 'yesterday') {
+    from = new Date(); from.setDate(now.getDate()-1); from.setHours(0,0,0,0);
+    to = new Date(from); to.setHours(23,59,59,999);
+  }
+  else if (preset === 'week') { from = new Date(); from.setDate(now.getDate()-7); from.setHours(0,0,0,0); to = new Date(); }
+  else if (preset === 'thismonth') { from = new Date(now.getFullYear(), now.getMonth(), 1); to = new Date(); }
+  else if (preset === 'lastmonth') {
+    from = new Date(now.getFullYear(), now.getMonth()-1, 1);
+    to = new Date(now.getFullYear(), now.getMonth(), 0); to.setHours(23,59,59,999);
+  }
+  else if (preset === '3mo') { from = new Date(); from.setMonth(now.getMonth()-3); from.setHours(0,0,0,0); to = new Date(); }
+  else if (preset === 'thisyear') { from = new Date(now.getFullYear(), 0, 1); to = new Date(); }
+  else { from = null; to = null; }
+
+  reportFilters.from = from;
+  reportFilters.to = to;
+  document.getElementById('rcFrom').value = from ? from.toISOString().split('T')[0] : '';
+  document.getElementById('rcTo').value = to ? to.toISOString().split('T')[0] : '';
+
+  document.querySelectorAll('#rcQuick .rc-qb').forEach(b => b.classList.toggle('active', b.dataset.preset === preset));
+}
+
+window.setRType = function(type, btn) {
+  reportFilters.type = type;
+  btn.parentElement.querySelectorAll('.rc-type-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+};
+
+window.toggleRAcc = function(accId, btn) {
+  if (accId === 'all') {
+    reportFilters.accs = ['all'];
+  } else {
+    if (reportFilters.accs.includes('all')) reportFilters.accs = [];
+    if (reportFilters.accs.includes(accId)) {
+      reportFilters.accs = reportFilters.accs.filter(x => x !== accId);
+      if (!reportFilters.accs.length) reportFilters.accs = ['all'];
+    } else {
+      reportFilters.accs.push(accId);
+    }
+  }
+  populateRcAccPills();
+};
+
+function populateRcAccPills() {
+  const wrap = document.getElementById('rcAccs');
+  let html = `<button class="rc-acc-pill ${reportFilters.accs.includes('all')?'active':''}" data-acc="all" onclick="toggleRAcc('all',this)">सभी</button>`;
+  accounts.forEach(a => {
+    const sel = !reportFilters.accs.includes('all') && reportFilters.accs.includes(a.id);
+    html += `<button class="rc-acc-pill ${sel?'active':''}" data-acc="${a.id}" onclick="toggleRAcc('${a.id}',this)" style="${sel?`background:${a.color};border-color:${a.color};color:#fff`:''}">${escapeHtml(a.name).slice(0,18)}</button>`;
+  });
+  wrap.innerHTML = html;
+}
+
+// Init quick presets
+setTimeout(() => {
+  document.querySelectorAll('#rcQuick .rc-qb').forEach(btn => {
+    btn.addEventListener('click', () => setRcPreset(btn.dataset.preset));
+  });
+  // Auto-deselect preset when user manually changes from/to
+  ['rcFrom', 'rcTo'].forEach(id => {
+    document.getElementById(id).addEventListener('change', () => {
+      reportFilters.preset = 'custom';
+      document.querySelectorAll('#rcQuick .rc-qb').forEach(b => b.classList.remove('active'));
+      reportFilters.from = document.getElementById('rcFrom').value ? new Date(document.getElementById('rcFrom').value) : null;
+      reportFilters.to = document.getElementById('rcTo').value ? new Date(document.getElementById('rcTo').value + 'T23:59:59') : null;
+    });
+  });
+}, 100);
+
+function getReportEntries() {
+  let list = [...entries];
+  if (reportFilters.from) list = list.filter(e => {
+    const d = e.date?.toDate ? e.date.toDate() : new Date(e.date);
+    return d >= reportFilters.from;
+  });
+  if (reportFilters.to) list = list.filter(e => {
+    const d = e.date?.toDate ? e.date.toDate() : new Date(e.date);
+    return d <= reportFilters.to;
+  });
+  if (reportFilters.type !== 'all') list = list.filter(e => e.type === reportFilters.type);
+  if (!reportFilters.accs.includes('all')) list = list.filter(e => reportFilters.accs.includes(e.accountId));
+  return list;
+}
+
+window.generateReport = function() {
+  const list = getReportEntries();
+  const totalIn = list.filter(e=>e.type==='credit').reduce((s,e)=>s+(e.amount||0),0);
+  const totalOut = list.filter(e=>e.type==='debit').reduce((s,e)=>s+(e.amount||0),0);
+  const net = totalIn - totalOut;
+
+  // Account-wise
+  const accMap = {};
+  list.forEach(e => {
+    if (!accMap[e.accountId]) accMap[e.accountId] = { cr:0, dr:0, count:0 };
+    if (e.type==='credit') accMap[e.accountId].cr += (e.amount||0);
+    else accMap[e.accountId].dr += (e.amount||0);
+    accMap[e.accountId].count++;
+  });
+
+  // Party-wise
+  const partyMap = {};
+  list.forEach(e => {
+    const p = e.party || 'Unknown';
+    if (p === 'Unknown' && !e.party) return;
+    if (!partyMap[p]) partyMap[p] = { cr:0, dr:0, count:0 };
+    if (e.type==='credit') partyMap[p].cr += (e.amount||0);
+    else partyMap[p].dr += (e.amount||0);
+    partyMap[p].count++;
+  });
+  const topParties = Object.entries(partyMap).sort((a,b)=>(b[1].cr+b[1].dr) - (a[1].cr+a[1].dr)).slice(0,15);
+
+  // VBE status breakdown
+  const vbeAdded = list.filter(e=>e.vbeStatus==='added').length;
+  const vbeNotAdded = list.filter(e=>!e.vbeStatus || e.vbeStatus==='not_added').length;
+  const vbeSkip = list.filter(e=>e.vbeStatus==='not_required').length;
+
+  // Reviewed status
+  const reviewed = list.filter(e=>e.reviewed).length;
+
+  lastReportData = { list, totalIn, totalOut, net, accMap, topParties, vbeAdded, vbeNotAdded, vbeSkip, reviewed };
+
+  const dateLabel = formatRangeLabel();
+  const typeLabel = reportFilters.type === 'all' ? 'सब Transactions' : reportFilters.type === 'credit' ? '📥 सिर्फ Credits (आया)' : '📤 सिर्फ Debits (गया)';
+
+  let html = `
+  <div class="summary-out">
+    <div class="so-hdr">
+      <div>
+        <h3>📊 ${typeLabel}</h3>
+        <p>${dateLabel} · ${list.length} entries</p>
+      </div>
+      <button class="rc-btn pdf" style="flex:none;padding:7px 13px;font-size:11px" onclick="printReportPdf()">🖨️ PDF</button>
+    </div>
+
+    <div class="so-grid">
+      <div class="so-stat">
+        <div class="l">कुल आया</div>
+        <div class="v cr">${fmt(totalIn)}</div>
+      </div>
+      <div class="so-stat">
+        <div class="l">कुल गया</div>
+        <div class="v dr">${fmt(totalOut)}</div>
+      </div>
+      <div class="so-stat">
+        <div class="l">Net</div>
+        <div class="v net" style="color:${net>=0?'var(--grn)':'var(--red)'}">${net>=0?'+':''}${fmt(net)}</div>
+      </div>
+    </div>
+
+    <div class="so-acc-breakdown">
+      <div style="font-size:10px;font-weight:800;color:var(--t2);margin-bottom:6px;letter-spacing:0.6px;text-transform:uppercase">🏦 Account-wise</div>
+      ${Object.entries(accMap).map(([id, v]) => {
+        const a = accounts.find(x=>x.id===id);
+        return `<div class="so-ab-row">
+          <div class="so-ab-name">${escapeHtml(a?.name || 'Unknown')} <small>${escapeHtml(a?.bank||'')} · ${v.count}</small></div>
+          <div class="so-ab-vals">
+            <span class="cr">+${fmt(v.cr)}</span>
+            <span class="dr">−${fmt(v.dr)}</span>
+          </div>
+        </div>`;
+      }).join('') || '<div style="color:var(--t3);text-align:center;padding:7px">कोई data नहीं</div>'}
+    </div>
+
+    ${topParties.length ? `
+    <div class="so-acc-breakdown">
+      <div style="font-size:10px;font-weight:800;color:var(--t2);margin-bottom:6px;letter-spacing:0.6px;text-transform:uppercase">👥 Top Parties (${topParties.length})</div>
+      ${topParties.map(([p,v]) => `
+        <div class="so-ab-row">
+          <div class="so-ab-name">${escapeHtml(p)} <small>${v.count} txn</small></div>
+          <div class="so-ab-vals">
+            ${v.cr?`<span class="cr">+${fmt(v.cr)}</span>`:''}
+            ${v.dr?`<span class="dr">−${fmt(v.dr)}</span>`:''}
+          </div>
+        </div>
+      `).join('')}
+    </div>` : ''}
+
+    <div class="so-acc-breakdown">
+      <div style="font-size:10px;font-weight:800;color:var(--t2);margin-bottom:6px;letter-spacing:0.6px;text-transform:uppercase">💼 Status Check</div>
+      <div class="so-ab-row">
+        <div class="so-ab-name">✅ VBE App में डाली</div>
+        <div class="so-ab-vals"><span style="color:var(--grn);font-weight:800">${vbeAdded}</span></div>
+      </div>
+      <div class="so-ab-row">
+        <div class="so-ab-name">❌ VBE में नहीं डाली</div>
+        <div class="so-ab-vals"><span style="color:var(--red);font-weight:800">${vbeNotAdded}</span></div>
+      </div>
+      ${vbeSkip ? `<div class="so-ab-row">
+        <div class="so-ab-name">⏭️ Skip</div>
+        <div class="so-ab-vals"><span style="color:var(--t2);font-weight:800">${vbeSkip}</span></div>
+      </div>` : ''}
+      <div class="so-ab-row">
+        <div class="so-ab-name">👀 Reviewed (आँखों से देखी)</div>
+        <div class="so-ab-vals"><span style="color:var(--blu);font-weight:800">${reviewed} / ${list.length}</span></div>
+      </div>
+    </div>
+
+    <div style="font-size:10px;color:var(--t3);text-align:center;margin-top:8px;line-height:1.5">
+      ⓘ नीचे "🖨️ PDF Print" से इसकी proper PDF copy निकाल लें — हर entry, party-wise, account-wise सब उसमें होगा
+    </div>
+  </div>`;
+
+  // Missing entry detection
+  const missing = detectMissingEntries(list);
+  if (missing.length) {
+    html = `
+    <div class="missing-alert">
+      <div class="ma-hdr">⚠️ Missing Entry Suspect — ${missing.length} दिनों में gap दिखा</div>
+      <div class="ma-list">
+        इन तारीखों पर balance में जो jump है वो किसी entry से match नहीं हो रहा — शायद कोई transaction PDF में miss हो गई:<br>
+        ${missing.map(m => `<span class="gap">${m.date.toLocaleDateString('hi-IN',{day:'2-digit',month:'short'})} · ${m.account} · gap ${fmt(Math.abs(m.gap))}</span>`).join('')}
+      </div>
+    </div>` + html;
+  }
+
+  document.getElementById('reportOutput').innerHTML = html;
+};
+
+// Detect balance gaps that suggest missing entries
+function detectMissingEntries(list) {
+  const missing = [];
+  // Group by account, sort by date asc
+  const byAcc = {};
+  list.forEach(e => {
+    if (!byAcc[e.accountId]) byAcc[e.accountId] = [];
+    byAcc[e.accountId].push(e);
+  });
+  Object.entries(byAcc).forEach(([accId, ents]) => {
+    const sorted = ents.slice().sort((a,b) => {
+      const da = a.date?.toDate ? a.date.toDate() : new Date(a.date);
+      const db = b.date?.toDate ? b.date.toDate() : new Date(b.date);
+      return da - db;
+    });
+    const a = accounts.find(x => x.id === accId);
+    for (let i = 1; i < sorted.length; i++) {
+      const prev = sorted[i-1];
+      const cur = sorted[i];
+      // If both have balance (from PDF parse), check continuity
+      if (prev.balance != null && cur.balance != null) {
+        const expectedBal = prev.balance + (cur.type==='credit' ? cur.amount : -cur.amount);
+        const diff = Math.abs(expectedBal - cur.balance);
+        if (diff > 0.5) {
+          missing.push({
+            date: cur.date?.toDate ? cur.date.toDate() : new Date(cur.date),
+            account: a?.name || 'Unknown',
+            gap: expectedBal - cur.balance,
+          });
+        }
+      }
+    }
+  });
+  return missing.slice(0, 8);
+}
+
+function formatRangeLabel() {
+  if (!reportFilters.from && !reportFilters.to) return 'सभी समय की';
+  const f = reportFilters.from ? reportFilters.from.toLocaleDateString('hi-IN', {day:'2-digit',month:'short',year:'numeric'}) : 'शुरुआत';
+  const t = reportFilters.to ? reportFilters.to.toLocaleDateString('hi-IN', {day:'2-digit',month:'short',year:'numeric'}) : 'आज तक';
+  return f + ' से ' + t;
+}
+
+// ══ PDF PRINT (browser print to PDF) ══
+window.printReportPdf = function() {
+  if (!lastReportData) {
+    showToast('⚠️ पहले "Report बनाओ" दबाएं', 'error');
+    return;
+  }
+  const { list, totalIn, totalOut, net, accMap, topParties, vbeAdded, vbeNotAdded, reviewed } = lastReportData;
+  const dateLabel = formatRangeLabel();
+  const typeLabel = reportFilters.type === 'all' ? 'All Transactions' : reportFilters.type === 'credit' ? 'Credits Only (आया)' : 'Debits Only (गया)';
+
+  // Sort entries by date desc for printing
+  const sortedList = list.slice().sort((a,b) => {
+    const da = a.date?.toDate ? a.date.toDate() : new Date(a.date);
+    const db = b.date?.toDate ? b.date.toDate() : new Date(b.date);
+    return db - da;
+  });
+
+  const win = window.open('', '_blank', 'width=900,height=700');
+  if (!win) { showToast('❌ Popup block हुआ — popup allow करो', 'error'); return; }
+
+  const accLine = reportFilters.accs.includes('all')
+    ? 'सभी Accounts'
+    : reportFilters.accs.map(id => accounts.find(a=>a.id===id)?.name || '?').join(', ');
+
+  const printHtml = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Bank Report — ${dateLabel}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700;800&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Noto Sans Devanagari', sans-serif; color: #000; padding: 20px 25px; font-size: 12px; }
+  .head { border-bottom: 3px solid #1a3a6b; padding-bottom: 10px; margin-bottom: 14px; }
+  .head .co { font-size: 18px; font-weight: 800; color: #1a3a6b; }
+  .head .sub { font-size: 10px; color: #555; margin-top: 3px; }
+  .head .meta { display: flex; justify-content: space-between; margin-top: 8px; font-size: 11px; }
+  .head .meta div b { color: #1a3a6b; }
+  h2 { font-size: 14px; color: #1a3a6b; margin: 14px 0 7px; padding-bottom: 4px; border-bottom: 1px solid #ddd; }
+  .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 12px; }
+  .sb { border: 1px solid #ddd; padding: 8px 10px; border-radius: 4px; text-align: center; }
+  .sb .l { font-size: 9px; color: #777; text-transform: uppercase; letter-spacing: 0.5px; }
+  .sb .v { font-size: 16px; font-weight: 800; margin-top: 3px; }
+  .sb .v.cr { color: #047857; }
+  .sb .v.dr { color: #b91c1c; }
+  .sb .v.net { color: #1a3a6b; }
+  table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 11px; }
+  th { background: #1a3a6b; color: white; padding: 6px 7px; text-align: left; font-weight: 700; font-size: 10px; }
+  td { padding: 6px 7px; border-bottom: 1px solid #eee; vertical-align: top; }
+  tr:nth-child(even) td { background: #fafbfd; }
+  td.amt { text-align: right; font-weight: 700; font-family: monospace; white-space: nowrap; }
+  td.amt.cr { color: #047857; }
+  td.amt.dr { color: #b91c1c; }
+  td.dt { white-space: nowrap; font-size: 10px; color: #555; }
+  td.acc { font-size: 9px; color: #777; }
+  td.desc { font-size: 10px; max-width: 280px; }
+  .totals-row td { background: #eef2ff !important; font-weight: 800; padding: 8px 7px; }
+  .breakdown { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 10px 0 14px; }
+  .bd-table th, .bd-table td { font-size: 10px; padding: 5px 7px; }
+  .footer { margin-top: 16px; padding-top: 10px; border-top: 1px solid #ddd; text-align: center; font-size: 9px; color: #888; }
+  .check-row { display: flex; gap: 14px; margin: 6px 0 12px; font-size: 10px; }
+  .check-row span { background: #f5f6fa; padding: 5px 11px; border-radius: 4px; border: 1px solid #e5e7eb; }
+  .check-row span b { color: #1a3a6b; }
+  @media print {
+    @page { size: A4 portrait; margin: 12mm; }
+    body { padding: 0; }
+    table { page-break-inside: auto; }
+    tr { page-break-inside: avoid; page-break-after: auto; }
+    thead { display: table-header-group; }
+  }
+  .no-print { background: #f0f4ff; padding: 10px 14px; border-radius: 6px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; }
+  .no-print button { background: #1a3a6b; color: white; border: none; padding: 8px 16px; border-radius: 5px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  @media print { .no-print { display: none !important; } }
+</style></head>
+<body>
+
+<div class="no-print">
+  <div style="font-size:12px;color:#1a3a6b;font-weight:700">📄 Print/PDF preview ready — ⌘P / Ctrl+P दबाओ या नीचे button</div>
+  <button onclick="window.print()">🖨️ Print / Save as PDF</button>
+</div>
+
+<div class="head">
+  <div class="co">VANDE BHARAT ENTERPRISES — Bank Statement Report</div>
+  <div class="sub">GSTIN: 08GHDPD4384L1ZZ · Jalipa Cantt, Barmer, Rajasthan · UDYAM-RJ-05-0030914</div>
+  <div class="meta">
+    <div><b>Period:</b> ${dateLabel}</div>
+    <div><b>Type:</b> ${typeLabel}</div>
+    <div><b>Generated:</b> ${new Date().toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'})}</div>
+  </div>
+  <div style="font-size:10px;color:#666;margin-top:5px"><b>Accounts:</b> ${accLine}</div>
+</div>
+
+<h2>📊 Summary</h2>
+<div class="summary">
+  <div class="sb"><div class="l">Total Credit (आया)</div><div class="v cr">${fmt(totalIn)}</div></div>
+  <div class="sb"><div class="l">Total Debit (गया)</div><div class="v dr">${fmt(totalOut)}</div></div>
+  <div class="sb"><div class="l">Net</div><div class="v net">${net>=0?'+':''}${fmt(net)}</div></div>
+</div>
+
+<div class="check-row">
+  <span><b>Total Entries:</b> ${list.length}</span>
+  <span><b>VBE में डाली:</b> ${vbeAdded}</span>
+  <span><b>नहीं डाली:</b> ${vbeNotAdded}</span>
+  <span><b>Reviewed:</b> ${reviewed}/${list.length}</span>
+</div>
+
+<div class="breakdown">
+  <div>
+    <h2>🏦 Account-wise Breakdown</h2>
+    <table class="bd-table">
+      <thead><tr><th>Account</th><th>Bank</th><th style="text-align:right">Credit</th><th style="text-align:right">Debit</th><th style="text-align:right">#</th></tr></thead>
+      <tbody>
+        ${Object.entries(accMap).map(([id,v]) => {
+          const a = accounts.find(x=>x.id===id);
+          return `<tr>
+            <td>${escapeHtml(a?.name||'?')}</td>
+            <td>${escapeHtml(a?.bank||'?')}</td>
+            <td class="amt cr">${v.cr?'+'+fmt(v.cr):'—'}</td>
+            <td class="amt dr">${v.dr?'−'+fmt(v.dr):'—'}</td>
+            <td style="text-align:right">${v.count}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+  </div>
+  ${topParties.length ? `
+  <div>
+    <h2>👥 Top Parties (Top 10)</h2>
+    <table class="bd-table">
+      <thead><tr><th>Party</th><th style="text-align:right">In</th><th style="text-align:right">Out</th><th style="text-align:right">#</th></tr></thead>
+      <tbody>
+        ${topParties.slice(0,10).map(([p,v]) => `<tr>
+          <td>${escapeHtml(p.slice(0,35))}</td>
+          <td class="amt cr">${v.cr?'+'+fmt(v.cr):'—'}</td>
+          <td class="amt dr">${v.dr?'−'+fmt(v.dr):'—'}</td>
+          <td style="text-align:right">${v.count}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+  </div>` : ''}
+</div>
+
+<h2>📋 Detailed Entries (${sortedList.length})</h2>
+<table>
+  <thead>
+    <tr>
+      <th style="width:70px">Date</th>
+      <th>Description</th>
+      <th>Cheque/UTR</th>
+      <th>Account</th>
+      <th style="text-align:right;width:90px">Debit</th>
+      <th style="text-align:right;width:90px">Credit</th>
+      <th style="text-align:right;width:95px">Balance</th>
+    </tr>
+  </thead>
+  <tbody>
+    ${sortedList.map(e => {
+      const acc = accounts.find(a=>a.id===e.accountId);
+      const d = e.date?.toDate ? e.date.toDate() : new Date(e.date);
+      const dStr = isNaN(d) ? '—' : d.toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'2-digit'});
+      const ref = [e.chequeNo, e.utrNo].filter(Boolean).join(' / ');
+      return `<tr>
+        <td class="dt">${dStr}</td>
+        <td class="desc">${escapeHtml(e.description||e.party||'—').slice(0,80)}${e.party && e.description ? `<br><span style="color:#777;font-size:9px">${escapeHtml(e.party)}</span>` : ''}${e.note?`<br><span style="color:#888;font-size:9px;font-style:italic">📝 ${escapeHtml(e.note)}</span>`:''}</td>
+        <td class="acc">${escapeHtml(ref||'—').slice(0,20)}</td>
+        <td class="acc">${escapeHtml(acc?.bank||'?')}<br>${escapeHtml(acc?.name||'?').slice(0,18)}</td>
+        <td class="amt dr">${e.type==='debit'?fmt(e.amount):'—'}</td>
+        <td class="amt cr">${e.type==='credit'?fmt(e.amount):'—'}</td>
+        <td class="amt">${e.balance ? fmt(e.balance) : '—'}</td>
+      </tr>`;
+    }).join('')}
+    <tr class="totals-row">
+      <td colspan="4" style="text-align:right">TOTAL</td>
+      <td class="amt dr">${fmt(totalOut)}</td>
+      <td class="amt cr">${fmt(totalIn)}</td>
+      <td class="amt" style="color:${net>=0?'#047857':'#b91c1c'}">${net>=0?'+':''}${fmt(net)}</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="footer">
+  Generated by VBE Bank Statement Manager · ${new Date().toLocaleString('en-IN')}<br>
+  Vande Bharat Enterprises · Vikram Charan: 9509553600 · vikramcharan3600@gmail.com
+</div>
+
+<script>
+  // Auto-trigger print dialog
+  setTimeout(() => window.print(), 500);
+<\/script>
+
+</body></html>`;
+
+  win.document.write(printHtml);
+  win.document.close();
+};
+
+// initial setup
+populateRcAccPills();
+
+// ══════════════════════════════
+//  SEARCH
+// ══════════════════════════════
+const uInp = document.getElementById('uSearchInp');
+uInp.addEventListener('input', e => {
+  searchQuery = e.target.value.trim();
+  document.getElementById('uClearBtn').classList.toggle('show', !!searchQuery);
+  // When user types, switch to entries page
+  if (searchQuery && !document.getElementById('pg_entries').classList.contains('active')) {
+    showTab('entries', document.querySelectorAll('.ntab')[1], document.querySelectorAll('.bnav')[1]);
+  }
+  renderEntries();
+});
+
+window.clearSearch = function() {
+  searchQuery = '';
+  uInp.value = '';
+  document.getElementById('uClearBtn').classList.remove('show');
+  renderEntries();
+};
+
+window.toggleFilters = function() {
+  document.getElementById('searchFilters').classList.toggle('open');
+};
+
+window.setFilt = function(key, val, btn) {
+  searchFilters[key] = val;
+  btn.parentElement.querySelectorAll('.sf-pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+};
+
+window.applyFilters = function() {
+  searchFilters.from = document.getElementById('filtFrom').value || null;
+  searchFilters.to = document.getElementById('filtTo').value || null;
+  searchFilters.min = document.getElementById('filtMin').value || null;
+  searchFilters.max = document.getElementById('filtMax').value || null;
+
+  const hasAny = searchFilters.type !== 'all' || searchFilters.from || searchFilters.to ||
+                 searchFilters.min || searchFilters.max || !searchFilters.accs.includes('all');
+  document.getElementById('uFiltBtn').classList.toggle('has-filter', hasAny);
+  document.getElementById('filtDot').classList.toggle('hidden', !hasAny);
+
+  document.getElementById('searchFilters').classList.remove('open');
+  renderEntries();
+  showToast('✓ Filter apply हो गए', 'success');
+};
+
+window.clearFilters = function() {
+  searchFilters = { type:'all', from:null, to:null, min:null, max:null, accs:['all'] };
+  document.getElementById('filtFrom').value = '';
+  document.getElementById('filtTo').value = '';
+  document.getElementById('filtMin').value = '';
+  document.getElementById('filtMax').value = '';
+  document.querySelectorAll('#searchFilters .sf-pill').forEach(b => {
+    if (b.dataset.type === 'all' || b.dataset.acc === 'all') b.classList.add('active');
+    else b.classList.remove('active');
+  });
+  populateSearchAccPills();
+  document.getElementById('uFiltBtn').classList.remove('has-filter');
+  document.getElementById('filtDot').classList.add('hidden');
+  renderEntries();
+};
+
+// ══════════════════════════════
+//  TAB SWITCHING
+// ══════════════════════════════
+window.showTab = function(tab, btn, bnav) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('pg_' + tab).classList.add('active');
+  if (btn) {
+    document.querySelectorAll('.ntab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  if (bnav) {
+    document.querySelectorAll('.bnav').forEach(b => b.classList.remove('active'));
+    bnav.classList.add('active');
+  }
+  // Sync top-tabs and bottom-nav
+  const idx = ['dash','entries','accs','reports'].indexOf(tab);
+  if (idx >= 0) {
+    document.querySelectorAll('.ntab').forEach((b,i) => b.classList.toggle('active', i===idx));
+    document.querySelectorAll('.bnav').forEach((b,i) => b.classList.toggle('active', i===idx));
+  }
+  if (tab === 'reports') populateRcAccPills();
+};
+
+window.closeModal = (id) => document.getElementById(id).classList.remove('open');
+
+// Close on bg click
+document.querySelectorAll('.modal-bg').forEach(mb => {
+  mb.addEventListener('click', e => { if (e.target === mb) mb.classList.remove('open'); });
+});
+
+// Date filter pills
+document.getElementById('dateFilter').addEventListener('click', e => {
+  const btn = e.target.closest('.fbn');
+  if (!btn) return;
+  document.querySelectorAll('#dateFilter .fbn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  curDays = parseInt(btn.dataset.days);
+  renderEntries();
+});
+
+// Drag & drop for PDF
+const dropArea = document.getElementById('dropArea');
+['dragenter','dragover'].forEach(ev => dropArea.addEventListener(ev, e => {
+  e.preventDefault(); e.stopPropagation();
+  dropArea.classList.add('drag');
+}));
+['dragleave','drop'].forEach(ev => dropArea.addEventListener(ev, e => {
+  e.preventDefault(); e.stopPropagation();
+  dropArea.classList.remove('drag');
+}));
+dropArea.addEventListener('drop', e => {
+  const f = e.dataTransfer.files[0];
+  if (f && f.type === 'application/pdf') handlePdfFile(f);
+  else showToast('❌ PDF file ही drop करें', 'error');
+});
+
+// Add Account button on Accounts tab — add a fab when on accs page
+function addAccTabFab() {
+  // Inject "+ Add Account" button at top of accs page
+  const accsPage = document.getElementById('pg_accs');
+  if (accsPage.querySelector('.add-acc-btn')) return;
+  const btn = document.createElement('button');
+  btn.className = 'save-btn primary add-acc-btn';
+  btn.style.marginBottom = '12px';
+  btn.innerHTML = '＋ नया Bank Account जोड़ें';
+  btn.onclick = openAddAccount;
+  accsPage.insertBefore(btn, accsPage.querySelector('.stitle'));
+}
+addAccTabFab();
+
+window.showToast = showToast;
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + (type||'');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// Init
+startListeners();
+startChallanListener();
+
+// Set default date in entry modal
+document.getElementById('entDate').value = today();
+
+</script>
+</body>
+</html>

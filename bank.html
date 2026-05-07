@@ -987,13 +987,169 @@ mark {
 .wn-input:focus { border-color: var(--acc); }
 .wn-btn {
   margin-top: 7px;
-  background: var(--acc); border: none; color: #000;
-  font-family: inherit; font-size: 10px; font-weight: 800;
-  padding: 6px 12px; border-radius: 7px; cursor: pointer;
+/* ═══════════════ LOGIN SCREEN ═══════════════ */
+.login-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
 }
+.login-overlay::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 10%, rgba(245,158,11,0.18) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 50% 100%, rgba(59,130,246,0.10) 0%, transparent 60%);
+  pointer-events: none;
+}
+.login-box {
+  position: relative;
+  width: 100%; max-width: 380px;
+  background: var(--sf1);
+  border: 1px solid var(--bdr2);
+  border-radius: 22px;
+  padding: 28px 22px 24px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.login-logo {
+  width: 64px; height: 64px;
+  margin: 0 auto 14px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, var(--acc), #d97706);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32px;
+  box-shadow: 0 8px 24px rgba(245,158,11,0.4);
+}
+.login-title {
+  text-align: center;
+  font-size: 18px; font-weight: 900;
+  color: var(--t1); margin-bottom: 4px;
+}
+.login-sub {
+  text-align: center;
+  font-size: 11px; color: var(--t3);
+  font-weight: 600; letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 22px;
+}
+.login-field {
+  margin-bottom: 12px;
+}
+.login-field label {
+  display: block;
+  font-size: 10px; font-weight: 800; color: var(--t3);
+  letter-spacing: 1px; text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.login-field input {
+  width: 100%;
+  background: var(--sf2);
+  border: 1.5px solid var(--bdr2);
+  border-radius: 11px;
+  color: var(--t1);
+  font-family: inherit; font-size: 14px; font-weight: 600;
+  padding: 12px 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.login-field input:focus {
+  border-color: var(--acc);
+  box-shadow: 0 0 0 3px rgba(245,158,11,0.12);
+}
+.login-btn {
+  width: 100%;
+  background: linear-gradient(135deg, var(--acc), #d97706);
+  border: none; color: #000;
+  font-family: inherit; font-size: 14px; font-weight: 800;
+  padding: 13px; border-radius: 12px; cursor: pointer;
+  margin-top: 6px;
+  letter-spacing: 0.3px;
+  box-shadow: 0 6px 20px rgba(245,158,11,0.3);
+  transition: transform 0.1s, box-shadow 0.2s;
+}
+.login-btn:active { transform: scale(0.98); }
+.login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.login-err {
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.3);
+  color: #fca5a5;
+  font-size: 11px; font-weight: 600;
+  padding: 9px 12px; border-radius: 9px;
+  margin-bottom: 12px;
+  display: none;
+}
+.login-err.show { display: block; }
+.login-foot {
+  text-align: center;
+  font-size: 9px; color: var(--t3);
+  margin-top: 16px;
+  letter-spacing: 0.3px;
+}
+
+/* User chip in header */
+.user-chip {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 8px 4px 4px;
+  background: var(--sf2);
+  border: 1px solid var(--bdr2);
+  border-radius: 14px;
+  font-size: 9px; font-weight: 700;
+  color: var(--t2);
+}
+.user-chip .uc-av {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--acc), #d97706);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 900; color: #000;
+}
+.user-chip .uc-logout {
+  background: none; border: none; cursor: pointer;
+  color: var(--red); font-size: 12px; padding: 0 2px;
+}
+.role-badge {
+  display: inline-block;
+  padding: 1px 6px; border-radius: 8px;
+  font-size: 8px; font-weight: 800;
+  letter-spacing: 0.5px; text-transform: uppercase;
+}
+.role-badge.admin { background: rgba(245,158,11,0.15); color: var(--acc); }
+.role-badge.staff { background: rgba(59,130,246,0.15); color: var(--blu); }
+
+/* Hide Add Account / Edit / Delete for staff */
+body.staff-mode .add-acc-btn { display: none !important; }
+body.staff-mode .admin-only { display: none !important; }
+
 </style>
 </head>
 <body>
+
+<!-- ═══════════ LOGIN OVERLAY ═══════════ -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <div class="login-logo">🏦</div>
+    <div class="login-title">Bank Statement Manager</div>
+    <div class="login-sub">Vande Bharat Enterprises</div>
+
+    <div class="login-err" id="loginErr"></div>
+
+    <div class="login-field">
+      <label>📧 Email / User ID</label>
+      <input type="email" id="loginEmail" autocomplete="username" placeholder="staff@vbe.com" autocapitalize="none" spellcheck="false">
+    </div>
+    <div class="login-field">
+      <label>🔒 Password</label>
+      <input type="password" id="loginPass" autocomplete="current-password" placeholder="••••••••">
+    </div>
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">🔓 Login करें</button>
+    <div class="login-foot">
+      🔐 आपकी सारी activity Firebase में log होती है<br>
+      © Vande Bharat Enterprises · Barmer
+    </div>
+  </div>
+</div>
+
+<!-- Main App Wrapper (login ke baad hi dikhega) -->
+<div id="appWrap" style="display:none">
 
 <!-- ═══════════ HEADER ═══════════ -->
 <div class="hdr">
@@ -1005,9 +1161,16 @@ mark {
         <p>Vande Bharat Enterprises · Barmer</p>
       </div>
     </div>
-    <div class="fb-dot">
-      <div class="pulse" id="fbPulse"></div>
-      <span id="fbTxt">Connect...</span>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="fb-dot">
+        <div class="pulse" id="fbPulse"></div>
+        <span id="fbTxt">Connect...</span>
+      </div>
+      <div class="user-chip" id="userChip" style="display:none">
+        <div class="uc-av" id="ucAv">U</div>
+        <span id="ucName">user</span>
+        <button class="uc-logout" onclick="doLogout()" title="Logout">⏻</button>
+      </div>
     </div>
   </div>
 
@@ -1510,6 +1673,10 @@ import {
   getFirestore, collection, doc, setDoc, getDoc, deleteDoc, onSnapshot,
   query, orderBy, serverTimestamp, writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import {
+  getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged,
+  setPersistence, browserLocalPersistence
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 // ══════════════════════════════
 //  FIREBASE CONFIG — VBE Project (same as txn.html / challan.html)
@@ -1525,6 +1692,15 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
+const auth = getAuth(app);
+setPersistence(auth, browserLocalPersistence).catch(()=>{});
+
+// ══ ROLE / STAFF MODE ══
+// Admin emails — yeh users sab kuch kar sakte hain (account add/edit/delete)
+// Baki sab "staff" hain — sirf entries add/edit kar sakte hain, accounts ko sirf dekh sakte hain
+const ADMIN_EMAILS = ['vikramcharan3600@gmail.com'];
+let CURRENT_USER = null;
+let IS_ADMIN = false;
 
 // ══ STATE ══
 let accounts = [];      // vbe_bank_accounts
@@ -2004,6 +2180,10 @@ window.toggleFiltAcc = function(accId, btn) {
 //  ACCOUNT MODAL
 // ══════════════════════════════
 window.openAddAccount = function() {
+  if (!IS_ADMIN) {
+    showToast('🔒 सिर्फ़ Admin नया Account add कर सकता है', 'error');
+    return;
+  }
   document.getElementById('accModalTitle').textContent = '🏦 नया Bank Account';
   document.getElementById('accEditId').value = '';
   document.getElementById('accName').value = '';
@@ -2023,6 +2203,12 @@ window.openAddAccount = function() {
 window.openEditAccount = function(accId) {
   const a = accounts.find(x => x.id === accId);
   if (!a) return;
+  if (!IS_ADMIN) {
+    // Staff ke liye sirf details dikhao - read only
+    const balTxt = fmt(getAccountBalance(a.id));
+    showToast('🔒 ' + a.name + ' · A/c: ' + a.accountNo + ' · Bal: ' + balTxt + ' (Admin only edit कर सकता है)', '');
+    return;
+  }
   document.getElementById('accModalTitle').textContent = '✏️ Edit: ' + a.name;
   document.getElementById('accEditId').value = a.id;
   document.getElementById('accName').value = a.name || '';
@@ -2213,6 +2399,7 @@ window.saveEntry = async function() {
     vbeStatus: document.getElementById('entVbeStatus').value,
     source: 'manual',
     updatedAt: serverTimestamp(),
+    updatedBy: CURRENT_USER?.email || 'unknown',
   };
 
   try {
@@ -2236,7 +2423,8 @@ window.saveEntry = async function() {
       const id = 'ENT_' + nowId();
       data.id = id;
       data.createdAt = serverTimestamp();
-      data.audit = { events: [{ type:'create', label:'Entry बनाई गई (manual)', at: new Date() }], viewCount: 0 };
+      data.createdBy = CURRENT_USER?.email || 'unknown';
+      data.audit = { events: [{ type:'create', label:'Entry बनाई गई (manual)', by: CURRENT_USER?.email||'?', at: new Date() }], viewCount: 0 };
       await setDoc(doc(db, 'vbe_bank_entries', id), data);
       showToast('✅ Entry save हो गई', 'success');
     }
@@ -2792,6 +2980,7 @@ window.saveParsedEntries = async function() {
         source: 'pdf',
         rawLine: p.raw,
         createdAt: serverTimestamp(),
+        createdBy: CURRENT_USER?.email || 'unknown',
       });
     });
     await batch.commit();
@@ -3395,8 +3584,9 @@ dropArea.addEventListener('drop', e => {
   else showToast('❌ PDF file ही drop करें', 'error');
 });
 
-// Add Account button on Accounts tab — add a fab when on accs page
+// Add Account button on Accounts tab — sirf admin ke liye
 function addAccTabFab() {
+  if (!IS_ADMIN) return;  // Staff ke liye nahi
   // Inject "+ Add Account" button at top of accs page
   const accsPage = document.getElementById('pg_accs');
   if (accsPage.querySelector('.add-acc-btn')) return;
@@ -3407,7 +3597,6 @@ function addAccTabFab() {
   btn.onclick = openAddAccount;
   accsPage.insertBefore(btn, accsPage.querySelector('.stitle'));
 }
-addAccTabFab();
 
 window.showToast = showToast;
 function showToast(msg, type) {
@@ -3418,13 +3607,107 @@ function showToast(msg, type) {
   t._timer = setTimeout(() => t.classList.remove('show'), 3000);
 }
 
-// Init
-startListeners();
-startChallanListener();
+// ══════════════════════════════
+//  AUTH — LOGIN / LOGOUT
+// ══════════════════════════════
+let _appBooted = false;
 
-// Set default date in entry modal
-document.getElementById('entDate').value = today();
+window.doLogin = async function() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass  = document.getElementById('loginPass').value;
+  const errEl = document.getElementById('loginErr');
+  const btn   = document.getElementById('loginBtn');
+  errEl.classList.remove('show');
+
+  if (!email || !pass) {
+    errEl.textContent = '❌ Email aur Password दोनों भरें';
+    errEl.classList.add('show');
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = '🔄 Login हो रहा है...';
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+    // onAuthStateChanged automatically app boot karega
+  } catch(e) {
+    console.error(e);
+    let msg = '❌ Login fail: ';
+    if (e.code === 'auth/invalid-credential' || e.code === 'auth/wrong-password' || e.code === 'auth/user-not-found') {
+      msg = '❌ गलत Email या Password';
+    } else if (e.code === 'auth/too-many-requests') {
+      msg = '⚠️ बहुत बार गलत try किया — थोड़ी देर बाद कोशिश करें';
+    } else if (e.code === 'auth/network-request-failed') {
+      msg = '🌐 Internet नहीं है — connection check करें';
+    } else {
+      msg += (e.message || e.code);
+    }
+    errEl.textContent = msg;
+    errEl.classList.add('show');
+    btn.disabled = false;
+    btn.textContent = '🔓 Login करें';
+  }
+};
+
+window.doLogout = async function() {
+  if (!confirm('क्या आप logout करना चाहते हैं?')) return;
+  try {
+    await signOut(auth);
+    location.reload();
+  } catch(e) {
+    showToast('❌ Logout fail: ' + e.message, 'error');
+  }
+};
+
+// Enter key se login
+document.getElementById('loginPass').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+document.getElementById('loginEmail').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('loginPass').focus();
+});
+
+// Auth state watcher
+onAuthStateChanged(auth, user => {
+  if (user) {
+    CURRENT_USER = user;
+    IS_ADMIN = ADMIN_EMAILS.includes((user.email||'').toLowerCase());
+
+    // UI: hide login, show app
+    document.getElementById('loginOverlay').style.display = 'none';
+    document.getElementById('appWrap').style.display = '';
+
+    // User chip update
+    const chip = document.getElementById('userChip');
+    chip.style.display = 'flex';
+    const nameShort = (user.email||'').split('@')[0];
+    document.getElementById('ucName').innerHTML =
+      escapeHtml(nameShort) +
+      ' <span class="role-badge ' + (IS_ADMIN?'admin':'staff') + '">' + (IS_ADMIN?'Admin':'Staff') + '</span>';
+    document.getElementById('ucAv').textContent = (nameShort[0]||'U').toUpperCase();
+
+    // Staff mode body class
+    if (!IS_ADMIN) document.body.classList.add('staff-mode');
+    else document.body.classList.remove('staff-mode');
+
+    // App ko sirf ek baar boot karna
+    if (!_appBooted) {
+      _appBooted = true;
+      startListeners();
+      try { startChallanListener(); } catch(e){}
+      document.getElementById('entDate').value = today();
+      addAccTabFab();
+    }
+  } else {
+    // Logged out
+    CURRENT_USER = null;
+    IS_ADMIN = false;
+    document.getElementById('loginOverlay').style.display = 'flex';
+    document.getElementById('appWrap').style.display = 'none';
+    document.getElementById('userChip').style.display = 'none';
+  }
+});
 
 </script>
+</div><!-- /appWrap -->
 </body>
 </html>

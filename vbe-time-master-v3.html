@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>VBE — हर मिनट कीमती</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#09090f; --sf1:#111118; --sf2:#17171f; --sf3:#1e1e28; --sf4:#252533;
+  --gold:#f5a623; --gold2:#ffc347; --gold3:#e8920d;
+  --blue:#2d6be4; --blue2:#4a84f3;
+  --grn:#00c97a; --red:#ff4466; --pur:#9b6bff; --cyn:#00b8d9;
+  --t1:#f0f0ff; --t2:#7878a0; --t3:#35354a;
+  --bdr:rgba(245,166,35,0.08); --bdr2:rgba(245,166,35,0.18); --bdr3:rgba(245,166,35,0.30);
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes pulseGold{0%,100%{box-shadow:0 0 0 0 rgba(245,166,35,.35)}70%{box-shadow:0 0 0 8px rgba(245,166,35,0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes tickAnim{0%,100%{opacity:1}50%{opacity:.8}}
+@keyframes shakeX{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-4px)}40%,80%{transform:translateX(4px)}}
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Outfit','Noto Sans Devanagari',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;overflow-x:hidden;padding-bottom:76px}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 70% 50% at 15% 0%,rgba(245,120,10,.1) 0%,transparent 60%),
+  radial-gradient(ellipse 55% 45% at 85% 5%,rgba(45,107,228,.12) 0%,transparent 60%),
+  radial-gradient(ellipse 45% 35% at 50% 100%,rgba(245,166,35,.06) 0%,transparent 70%);}
+
+/* ══ HEADER ══ */
+.hdr{position:sticky;top:0;z-index:100;background:rgba(9,9,15,.97);backdrop-filter:blur(20px);border-bottom:1px solid var(--bdr3);box-shadow:0 2px 20px rgba(0,0,0,.6)}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;padding:10px 13px 8px;background:linear-gradient(135deg,rgba(245,100,10,.08) 0%,transparent 55%)}
+.brand{display:flex;gap:9px;align-items:center}
+.brand-ico{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--gold),var(--gold3));display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 3px 12px rgba(245,166,35,.4)}
+.brand h1{font-size:14px;font-weight:900;color:var(--t1)}
+.brand p{font-size:8px;color:rgba(245,166,35,.55);font-weight:700;letter-spacing:.7px;text-transform:uppercase;margin-top:1px}
+.hdr-right{text-align:right;display:flex;align-items:center;gap:8px}
+.fb-status{display:flex;align-items:center;gap:4px;font-size:8px;font-weight:700;color:var(--t3)}
+.fb-dot{width:6px;height:6px;border-radius:50%;background:var(--t3);transition:background .3s}
+.fb-dot.online{background:var(--grn);animation:pulseGold 2s infinite}
+.fb-dot.error{background:var(--red)}
+.live-clock{font-size:19px;font-weight:900;background:linear-gradient(135deg,var(--gold2),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:1.5px;font-variant-numeric:tabular-nums}
+.live-date{font-size:8px;color:var(--t2);font-weight:600;margin-top:1px;text-align:right}
+
+.day-prog-wrap{padding:5px 13px 0;display:flex;align-items:center;gap:8px}
+.day-prog-bar{flex:1;height:3px;background:var(--sf3);border-radius:99px;overflow:hidden}
+.day-prog-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gold3),var(--gold2));transition:width 1s linear}
+.day-prog-lbl{font-size:8px;font-weight:700;color:var(--t2);flex-shrink:0}
+
+.stat-strip{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--bdr);background:rgba(255,255,255,.01)}
+.ss{padding:7px 4px;text-align:center;border-right:1px solid var(--bdr)}
+.ss:last-child{border:none}
+.ss-val{font-size:14px;font-weight:900}
+.ss-lbl{font-size:7px;color:var(--t3);font-weight:700;margin-top:1px}
+
+.nav-tabs{display:flex;border-top:1px solid var(--bdr);overflow-x:auto;scrollbar-width:none}
+.nav-tabs::-webkit-scrollbar{display:none}
+.ntab{flex:1;min-width:58px;background:none;border:none;color:var(--t3);font-family:inherit;font-size:9px;font-weight:800;padding:8px 4px 9px;cursor:pointer;border-bottom:2.5px solid transparent;transition:all .2s;white-space:nowrap;letter-spacing:.4px}
+.ntab.active{color:var(--gold);border-bottom-color:var(--gold)}
+
+/* ══ CONTENT ══ */
+.content{position:relative;z-index:1;padding:10px 10px 16px}
+.page{display:none;animation:fadeIn .2s ease}
+.page.active{display:block}
+
+/* ══ LOADING ══ */
+.loading-wrap{text-align:center;padding:40px 20px}
+.spinner{width:28px;height:28px;border:3px solid var(--sf3);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px}
+.loading-text{font-size:12px;color:var(--t2);font-weight:600}
+
+/* ══ LOGIN SCREEN ══ */
+.login-screen{
+  position:fixed;inset:0;z-index:500;
+  background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:24px;
+}
+.login-screen.hidden{display:none}
+.login-logo{width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,var(--gold),var(--gold3));display:flex;align-items:center;justify-content:center;font-size:32px;box-shadow:0 6px 24px rgba(245,166,35,.4);margin-bottom:20px}
+.login-title{font-size:22px;font-weight:900;color:var(--t1);margin-bottom:4px;text-align:center}
+.login-sub{font-size:11px;color:var(--t2);font-weight:600;margin-bottom:32px;text-align:center}
+.login-card{background:var(--sf1);border:1px solid var(--bdr3);border-radius:16px;padding:20px;width:100%;max-width:340px}
+.login-field{margin-bottom:12px}
+.login-field label{display:block;font-size:9px;font-weight:900;color:var(--t3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:5px}
+.login-field input{width:100%;background:var(--sf2);border:1px solid var(--bdr2);border-radius:10px;color:var(--t1);font-family:inherit;font-size:13px;font-weight:600;padding:11px 14px;outline:none;transition:border-color .2s}
+.login-field input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(245,166,35,.1)}
+.login-btn{width:100%;padding:13px;border-radius:12px;background:linear-gradient(135deg,var(--gold3),var(--gold2));border:none;color:#000;font-family:inherit;font-size:13px;font-weight:900;cursor:pointer;margin-top:4px;box-shadow:0 4px 16px rgba(245,166,35,.3)}
+.login-err{font-size:10px;color:var(--red);font-weight:700;text-align:center;margin-top:10px;min-height:16px}
+.login-user-chips{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.user-chip{display:flex;align-items:center;gap:10px;background:var(--sf2);border:1.5px solid var(--bdr2);border-radius:10px;padding:10px 12px;cursor:pointer;transition:all .18s}
+.user-chip:hover,.user-chip:active{border-color:var(--gold);background:rgba(245,166,35,.08)}
+.uc-av{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.uc-name{font-size:12px;font-weight:800;color:var(--t1)}
+.uc-role{font-size:9px;color:var(--t2);font-weight:600}
+.login-divider{display:flex;align-items:center;gap:8px;margin:12px 0;font-size:9px;color:var(--t3);font-weight:700}
+.login-divider::before,.login-divider::after{content:'';flex:1;height:1px;background:var(--bdr2)}
+
+/* ══ PERSON BAR ══ */
+.person-bar{display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.person-bar::-webkit-scrollbar{display:none}
+.pchip{display:flex;align-items:center;gap:5px;background:var(--sf2);border:1.5px solid var(--bdr2);border-radius:20px;padding:5px 10px;cursor:pointer;transition:all .18s;flex-shrink:0}
+.pav{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#000}
+.pnm{font-size:10px;font-weight:700;transition:color .18s}
+.pct{font-size:8px;color:var(--t3);font-weight:600}
+
+/* ══ VIEW TOGGLE ══ */
+.view-toggle{display:flex;gap:0;margin-bottom:10px;background:var(--sf2);border:1.5px solid var(--bdr2);border-radius:10px;overflow:hidden}
+.vtab{flex:1;padding:8px;text-align:center;font-size:10px;font-weight:800;cursor:pointer;background:transparent;border:none;color:var(--t2);font-family:inherit;transition:all .18s}
+.vtab.active{background:linear-gradient(135deg,var(--gold3),var(--gold));color:#000}
+
+/* ══ DAY NAV ══ */
+.day-nav{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.day-nav-inner{display:flex;align-items:center;background:var(--sf2);border:1.5px solid var(--bdr2);border-radius:10px;padding:5px 8px;flex:1;gap:8px}
+.day-nav-inner button{background:none;border:none;color:var(--gold);font-size:18px;cursor:pointer;padding:0 4px;line-height:1}
+.day-title{flex:1;text-align:center;font-size:12px;font-weight:800;color:var(--t1)}
+.day-sub{font-size:8px;color:var(--t3);font-weight:600}
+.today-btn{background:rgba(245,166,35,.12);border:1.5px solid var(--bdr3);border-radius:8px;color:var(--gold);font-family:inherit;font-size:9px;font-weight:800;padding:6px 9px;cursor:pointer}
+
+/* ══ HOUR GRID ══ */
+.hour-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.hg-block{background:var(--sf2);border:1.5px solid var(--bdr2);border-radius:11px;padding:8px 7px;cursor:pointer;transition:all .18s;position:relative;overflow:hidden;min-height:68px}
+.hg-block:active{transform:scale(.96)}
+.hg-block.cur-hour{border-color:var(--gold);background:rgba(245,166,35,.07);box-shadow:0 0 0 1px rgba(245,166,35,.15)}
+.hg-block.has-task{border-color:rgba(45,107,228,.5);background:rgba(45,107,228,.06)}
+.hg-block.all-done{border-color:rgba(0,201,122,.5);background:rgba(0,201,122,.06)}
+.hg-ampm{font-size:8px;color:var(--t2);font-weight:700;display:block}
+.hg-time{font-size:15px;font-weight:900;color:var(--t1);letter-spacing:-.3px;line-height:1.2}
+.hg-tasks{margin-top:5px}
+.hg-task-dot{font-size:8px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.hg-cur-dot{position:absolute;top:6px;right:6px;width:6px;height:6px;border-radius:50%;background:var(--gold);animation:pulseGold 1.5s infinite}
+.hg-count-badge{position:absolute;bottom:6px;right:6px;background:var(--sf4);border-radius:6px;padding:2px 5px;font-size:8px;font-weight:800;color:var(--t2)}
+
+/* ══ TIMELINE ══ */
+.tl-wrap{background:var(--sf1);border:1px solid var(--bdr2);border-radius:14px;overflow:hidden;position:relative}
+.cur-line{position:absolute;left:48px;right:0;height:2px;background:var(--red);z-index:10;transition:top .5s}
+.cur-line::before{content:'';position:absolute;left:-5px;top:-3px;width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 6px var(--red)}
+.tl-row{display:flex;min-height:70px;border-bottom:1px solid var(--bdr);position:relative}
+.tl-row:last-child{border-bottom:none}
+.tl-row.cur-hr{background:rgba(245,166,35,.03)}
+.tl-label{width:48px;flex-shrink:0;padding:8px 6px;font-size:9px;font-weight:700;color:var(--t3);text-align:right;border-right:1px solid var(--bdr);line-height:1.3}
+.tl-h{font-size:11px;font-weight:900;color:var(--t2)}
+.tl-slots{flex:1;padding:5px;display:flex;flex-wrap:wrap;gap:4px;align-content:flex-start}
+.tl-add-ghost{width:100%;padding:5px 7px;border-radius:6px;border:1px dashed var(--bdr2);cursor:pointer;font-size:9px;color:var(--t3);font-weight:700;opacity:0;transition:opacity .2s;display:flex;align-items:center;gap:4px}
+.tl-row:hover .tl-add-ghost{opacity:1}
+
+/* ══ TASK BLOCK ══ */
+.t-block{width:100%;border-radius:8px;border-left:3px solid;padding:5px 8px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:7px;animation:fadeUp .3s ease}
+.t-block:active{transform:scale(.98)}
+.t-chk{width:16px;height:16px;border-radius:50%;border:2px solid;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;color:transparent;transition:all .2s}
+.t-block.done .t-chk{color:#000}
+.t-body{flex:1;min-width:0}
+.t-name{font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t-block.done .t-name{text-decoration:line-through;opacity:.5}
+.t-meta{font-size:8px;color:var(--t2);font-weight:600;margin-top:1px}
+.t-dur{font-size:8px;font-weight:800;flex-shrink:0;opacity:.75}
+.t-del{background:none;border:none;color:var(--t3);font-size:14px;cursor:pointer;padding:2px 4px;flex-shrink:0;transition:color .15s;border-radius:4px}
+.t-del:hover{color:var(--red);background:rgba(255,68,102,.1)}
+
+/* ══ FILTER BAR ══ */
+.filter-bar{display:flex;gap:5px;margin-bottom:10px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.filter-bar::-webkit-scrollbar{display:none}
+.fbtn{flex-shrink:0;background:var(--sf2);border:1.5px solid var(--bdr2);border-radius:18px;color:var(--t2);font-family:inherit;font-size:9px;font-weight:800;padding:5px 10px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.fbtn.active{background:var(--gold);border-color:var(--gold);color:#000}
+
+/* ══ BULK ACTIONS BAR ══ */
+.bulk-bar{
+  display:none;position:sticky;top:0;z-index:50;
+  background:rgba(9,9,15,.97);backdrop-filter:blur(16px);
+  border:1px solid var(--bdr3);border-radius:12px;
+  padding:10px 12px;margin-bottom:10px;
+  flex-direction:row;align-items:center;gap:8px;
+  animation:fadeUp .2s ease;
+}
+.bulk-bar.show{display:flex}
+.bulk-count{font-size:12px;font-weight:800;color:var(--gold);flex:1}
+.bulk-btn{font-family:inherit;font-size:10px;font-weight:800;padding:7px 12px;border-radius:8px;cursor:pointer;border:none;transition:all .15s}
+.bulk-done-btn{background:rgba(0,201,122,.15);color:var(--grn);border:1px solid var(--grn)}
+.bulk-del-btn{background:rgba(255,68,102,.15);color:var(--red);border:1px solid var(--red)}
+.bulk-cancel-btn{background:var(--sf3);color:var(--t2)}
+
+/* ══ ALL TASKS LIST ══ */
+.tli{background:var(--sf1);border:1px solid var(--bdr2);border-radius:11px;padding:10px 12px;margin-bottom:7px;display:flex;align-items:flex-start;gap:9px;animation:fadeUp .25s ease;transition:all .18s}
+.tli.done-i{opacity:.5}
+.tli.selected-i{border-color:var(--gold);background:rgba(245,166,35,.05)}
+.tli-sel{width:18px;height:18px;border-radius:5px;border:2px solid var(--bdr2);flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:10px;font-weight:900;color:transparent;transition:all .18s;margin-top:1px}
+.tli-sel.checked{background:var(--gold);border-color:var(--gold);color:#000}
+.tli-chk{width:18px;height:18px;border-radius:50%;border:2px solid;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:9px;font-weight:900;color:transparent;margin-top:1px;transition:all .18s}
+.tli-chk.chk{color:#000}
+.tli-body{flex:1;min-width:0}
+.tli-name{font-size:12px;font-weight:700;color:var(--t1)}
+.tli.done-i .tli-name{text-decoration:line-through}
+.tli-meta{font-size:9px;color:var(--t2);font-weight:600;margin-top:2px}
+.tli-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+.tag{font-size:8px;font-weight:800;padding:2px 7px;border-radius:99px}
+.tag-p{color:#000}
+.tag-c{background:rgba(255,255,255,.05);color:var(--t2)}
+.pdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:6px}
+.tli-right{display:flex;flex-direction:column;gap:3px;align-items:flex-end}
+.tli-time{font-size:9px;font-weight:700;color:var(--t3)}
+.del-btn{background:none;border:none;color:var(--t3);font-size:13px;cursor:pointer;padding:3px;transition:color .18s;border-radius:5px}
+.del-btn:hover{color:var(--red);background:rgba(255,68,102,.1)}
+
+/* ══ PEOPLE PAGE ══ */
+.p-cards{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.p-card{background:var(--sf1);border:1px solid var(--bdr2);border-radius:14px;padding:12px;cursor:pointer;transition:all .18s;position:relative;overflow:hidden;animation:fadeUp .3s ease}
+.p-card:active{transform:scale(.97)}
+.p-card-av{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:7px}
+.p-card-name{font-size:13px;font-weight:900;color:var(--t1)}
+.p-card-role{font-size:8px;color:var(--t2);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-top:1px}
+.p-card-stats{display:flex;gap:8px;margin-top:7px}
+.p-cs{text-align:center}
+.p-cs-v{font-size:14px;font-weight:900}
+.p-cs-l{font-size:7px;color:var(--t3);font-weight:600}
+.p-prog{height:3px;background:var(--sf3);border-radius:99px;overflow:hidden;margin-top:7px}
+.p-prog-f{height:100%;border-radius:99px;transition:width .5s ease}
+.p-card-glow{position:absolute;top:-20px;right:-20px;width:70px;height:70px;border-radius:50%;opacity:.1}
+
+/* ══ DASHBOARD ══ */
+.dash-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
+.dash-card{background:var(--sf1);border:1px solid var(--bdr2);border-radius:13px;padding:12px;animation:fadeUp .3s ease}
+.dc-icon{font-size:20px;margin-bottom:5px}
+.dc-val{font-size:22px;font-weight:900}
+.dc-lbl{font-size:9px;color:var(--t2);font-weight:600;margin-top:2px}
+.heatmap-wrap{background:var(--sf1);border:1px solid var(--bdr2);border-radius:14px;padding:12px;margin-bottom:10px}
+.hm-title{font-size:10px;font-weight:800;color:var(--t2);margin-bottom:8px;letter-spacing:.5px}
+.hm-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:4px}
+.hm-cell{aspect-ratio:1;border-radius:5px;background:var(--sf3);cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:transparent}
+.hm-cell.h1{background:rgba(245,166,35,.2);color:var(--gold)}.hm-cell.h2{background:rgba(245,166,35,.4);color:var(--gold)}.hm-cell.h3{background:rgba(245,166,35,.7);color:#000}.hm-cell.hd{background:rgba(0,201,122,.6);color:#000}.hm-cell.hc{border:1.5px solid var(--red)}.hm-cell:hover{transform:scale(1.1)}
+
+/* ══ ELON PAGE ══ */
+.elon-header{background:linear-gradient(135deg,rgba(245,166,35,.1),rgba(45,107,228,.08));border:1px solid var(--bdr3);border-radius:14px;padding:12px;margin-bottom:12px}
+.elon-title{font-size:14px;font-weight:900;color:var(--gold);margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.elon-sub{font-size:10px;color:var(--t2);font-weight:600;line-height:1.5}
+.elon-block{background:var(--sf1);border:1px solid var(--bdr2);border-radius:11px;padding:10px 12px;margin-bottom:6px;display:flex;gap:10px;align-items:flex-start;animation:fadeUp .3s ease;border-left:3px solid}
+.eb-time{min-width:48px;text-align:right;flex-shrink:0}
+.eb-time-main{font-size:12px;font-weight:900;color:var(--gold)}
+.eb-time-dur{font-size:8px;color:var(--t3);font-weight:700;margin-top:1px}
+.eb-body{flex:1;min-width:0}
+.eb-name{font-size:12px;font-weight:800;color:var(--t1)}
+.eb-desc{font-size:9px;color:var(--t2);font-weight:600;margin-top:2px;line-height:1.4}
+.eb-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+.eb-tag{font-size:8px;font-weight:800;padding:2px 7px;border-radius:99px;background:rgba(255,255,255,.05);color:var(--t2)}
+.elon-rule{background:rgba(245,166,35,.06);border:1px solid var(--bdr2);border-radius:10px;padding:8px 12px;margin-bottom:6px;display:flex;gap:8px;align-items:center}
+.rule-num{width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,var(--gold3),var(--gold));display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#000;flex-shrink:0}
+.rule-text{font-size:10px;font-weight:600;color:var(--t1);line-height:1.4}
+
+/* ══ SHEET ══ */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;opacity:0;pointer-events:none;transition:opacity .25s}
+.overlay.open{opacity:1;pointer-events:all}
+.sheet{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateY(100%);width:100%;max-width:480px;background:var(--sf1);border:1px solid var(--bdr3);border-radius:20px 20px 0 0;padding:0 14px 32px;z-index:201;transition:transform .3s cubic-bezier(.32,.72,0,1);max-height:92vh;overflow-y:auto}
+.sheet.open{transform:translateX(-50%) translateY(0)}
+.sh-handle{width:36px;height:4px;background:var(--sf4);border-radius:99px;margin:12px auto 14px}
+.sh-title{font-size:15px;font-weight:900;color:var(--t1);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.fld{margin-bottom:10px}
+.fld label{display:block;font-size:8px;font-weight:900;color:var(--t3);letter-spacing:.9px;text-transform:uppercase;margin-bottom:5px}
+.fld input,.fld select,.fld textarea{width:100%;background:var(--sf2);border:1px solid var(--bdr2);border-radius:10px;color:var(--t1);font-family:inherit;font-size:12px;font-weight:600;padding:9px 12px;outline:none;transition:border-color .2s,box-shadow .2s}
+.fld input:focus,.fld select:focus,.fld textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(245,166,35,.1)}
+.fld input::placeholder,.fld textarea::placeholder{color:var(--t3);font-weight:500}
+.fld textarea{resize:none;height:56px}
+.fld select option{background:var(--sf2)}
+.fld-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pers-toggle{display:flex;gap:6px;flex-wrap:wrap}
+.ptog{display:flex;align-items:center;gap:5px;background:var(--sf2);border:1.5px solid var(--bdr2);border-radius:8px;padding:6px 10px;cursor:pointer;transition:all .15s;font-size:11px;font-weight:700;color:var(--t2)}
+.prio-row{display:flex;gap:5px}
+.pr-btn{flex:1;text-align:center;background:var(--sf2);border:1.5px solid var(--bdr2);border-radius:8px;padding:7px 4px;cursor:pointer;font-size:10px;font-weight:800;color:var(--t2);font-family:inherit;transition:all .15s}
+.sub-btn{width:100%;padding:13px;border-radius:12px;background:linear-gradient(135deg,var(--gold3),var(--gold2));border:none;color:#000;font-family:inherit;font-size:13px;font-weight:900;cursor:pointer;margin-top:6px;box-shadow:0 4px 16px rgba(245,166,35,.35);transition:transform .15s}
+.sub-btn:active{transform:scale(.98)}
+
+/* ══ CONFIRM DIALOG ══ */
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:400;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .2s}
+.confirm-overlay.open{opacity:1;pointer-events:all}
+.confirm-box{background:var(--sf1);border:1px solid var(--bdr3);border-radius:16px;padding:20px;width:100%;max-width:320px;text-align:center}
+.confirm-icon{font-size:32px;margin-bottom:10px}
+.confirm-title{font-size:15px;font-weight:900;color:var(--t1);margin-bottom:6px}
+.confirm-msg{font-size:11px;color:var(--t2);font-weight:600;line-height:1.5;margin-bottom:16px}
+.confirm-btns{display:flex;gap:8px}
+.confirm-cancel{flex:1;padding:10px;border-radius:10px;background:var(--sf3);border:1px solid var(--bdr2);color:var(--t2);font-family:inherit;font-size:12px;font-weight:800;cursor:pointer}
+.confirm-ok{flex:1;padding:10px;border-radius:10px;background:var(--red);border:none;color:#fff;font-family:inherit;font-size:12px;font-weight:900;cursor:pointer}
+
+/* ══ FAB + BOTTOM NAV ══ */
+.fab{position:fixed;bottom:88px;right:16px;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--gold3),var(--gold2));border:none;color:#000;font-size:28px;cursor:pointer;z-index:90;box-shadow:0 5px 18px rgba(245,166,35,.5);display:flex;align-items:center;justify-content:center;transition:transform .18s}
+.fab:active{transform:scale(.9)}
+.bnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;z-index:100;background:rgba(9,9,15,.97);backdrop-filter:blur(20px);border-top:1px solid var(--bdr3);display:flex;box-shadow:0 -4px 20px rgba(0,0,0,.5)}
+.bni{flex:1;display:flex;flex-direction:column;align-items:center;padding:9px 4px 11px;gap:3px;cursor:pointer;background:none;border:none;color:var(--t3);font-family:inherit;transition:color .18s}
+.bni.active{color:var(--gold)}
+.bni-ic{font-size:18px;line-height:1}
+.bni-lb{font-size:8px;font-weight:800;letter-spacing:.3px}
+
+/* ══ TOAST ══ */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--gold);color:#000;padding:8px 20px;border-radius:99px;font-size:11px;font-weight:900;opacity:0;transition:all .25s;z-index:300;white-space:nowrap;pointer-events:none;box-shadow:0 4px 16px rgba(245,166,35,.4)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.empty{text-align:center;padding:36px 20px;color:var(--t3)}
+.empty .ei{font-size:32px;display:block;margin-bottom:8px;opacity:.4}
+.empty p{font-size:12px;font-weight:600}
+.sec-title{font-size:10px;font-weight:900;color:var(--t2);letter-spacing:.6px;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--bdr2)}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:99px}
+
+/* Select mode toggle */
+.sel-mode-btn{background:var(--sf2);border:1.5px solid var(--bdr2);border-radius:18px;color:var(--t2);font-family:inherit;font-size:9px;font-weight:800;padding:5px 10px;cursor:pointer;transition:all .15s;flex-shrink:0;white-space:nowrap}
+.sel-mode-btn.active{background:rgba(245,166,35,.15);border-color:var(--gold);color:var(--gold)}
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-logo">⏱</div>
+  <div class="login-title">हर मिनट कीमती</div>
+  <div class="login-sub">VBE Time Command • Jalipa Cantt</div>
+  <div class="login-card">
+    <div class="sec-title" style="margin-bottom:10px">त्वरित लॉगिन</div>
+    <div class="login-user-chips" id="userChips"></div>
+    <div class="login-divider">या Email से</div>
+    <div class="login-field"><label>Email</label><input type="email" id="loginEmail" placeholder="email@example.com"></div>
+    <div class="login-field"><label>Password</label><input type="password" id="loginPass" placeholder="••••••••"></div>
+    <button class="login-btn" onclick="doLogin()">🔓 लॉगिन करें</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="mainApp" style="display:none">
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-top">
+    <div class="brand">
+      <div class="brand-ico">⏱</div>
+      <div>
+        <h1>हर मिनट कीमती</h1>
+        <p>VBE Time Command</p>
+      </div>
+    </div>
+    <div class="hdr-right">
+      <div class="fb-status"><div class="fb-dot" id="fbDot"></div><span id="fbStatusText">...</span></div>
+      <div>
+        <div class="live-clock" id="liveClock">00:00:00</div>
+        <div class="live-date" id="liveDate">—</div>
+      </div>
+    </div>
+  </div>
+  <div class="day-prog-wrap">
+    <div class="day-prog-bar"><div class="day-prog-fill" id="dayPF" style="width:0%"></div></div>
+    <div class="day-prog-lbl" id="dayPL">0%</div>
+  </div>
+  <div class="stat-strip">
+    <div class="ss"><div class="ss-val" id="hT" style="color:var(--blue2)">—</div><div class="ss-lbl">कुल काम</div></div>
+    <div class="ss"><div class="ss-val" id="hD" style="color:var(--grn)">—</div><div class="ss-lbl">पूरे</div></div>
+    <div class="ss"><div class="ss-val" id="hP" style="color:var(--gold)">—</div><div class="ss-lbl">बाकी</div></div>
+    <div class="ss"><div class="ss-val" id="hPct" style="color:var(--pur)">—</div><div class="ss-lbl">सफलता</div></div>
+  </div>
+  <div class="nav-tabs">
+    <button class="ntab active" onclick="showPage('timeline',this,0)">📅 टाइमलाइन</button>
+    <button class="ntab" onclick="showPage('people',this,1)">👥 टीम</button>
+    <button class="ntab" onclick="showPage('tasks',this,2)">📋 सभी</button>
+    <button class="ntab" onclick="showPage('dashboard',this,3)">📊 रिपोर्ट</button>
+    <button class="ntab" onclick="showPage('elon',this,4)">🚀 Elon</button>
+  </div>
+</div>
+
+<div class="content">
+  <!-- TIMELINE PAGE -->
+  <div class="page active" id="page-timeline">
+    <div class="person-bar" id="persBarTL"></div>
+    <div class="day-nav">
+      <div class="day-nav-inner">
+        <button onclick="changeDay(-1)">‹</button>
+        <div style="flex:1;text-align:center"><div class="day-title" id="dayTitle">आज</div><div class="day-sub" id="daySub">—</div></div>
+        <button onclick="changeDay(1)">›</button>
+      </div>
+      <button class="today-btn" onclick="changeDay(0)">आज</button>
+    </div>
+    <div class="view-toggle">
+      <button class="vtab active" id="vt-grid" onclick="switchView('grid')">⊞ घंटे देखें</button>
+      <button class="vtab" id="vt-tl" onclick="switchView('timeline')">↕ टाइमलाइन</button>
+    </div>
+    <div id="viewGrid"><div class="hour-grid" id="hourGrid"></div></div>
+    <div id="viewTimeline" style="display:none">
+      <div class="tl-wrap" id="tlWrap"><div class="cur-line" id="curLine" style="top:0;display:none"></div></div>
+    </div>
+  </div>
+
+  <!-- PEOPLE PAGE -->
+  <div class="page" id="page-people">
+    <div class="p-cards" id="pCards"></div>
+    <div id="pDetail" style="display:none">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <button onclick="closePDetail()" style="background:var(--sf2);border:1px solid var(--bdr2);border-radius:8px;color:var(--t2);font-size:11px;font-weight:700;padding:6px 10px;cursor:pointer;font-family:inherit">← वापस</button>
+        <div style="font-size:14px;font-weight:900;flex:1" id="pDetailName"></div>
+      </div>
+      <div id="pDetailList"></div>
+    </div>
+  </div>
+
+  <!-- ALL TASKS PAGE -->
+  <div class="page" id="page-tasks">
+    <div style="display:flex;gap:6px;margin-bottom:10px;align-items:center">
+      <div class="filter-bar" id="filterBar" style="margin-bottom:0;flex:1"></div>
+      <button class="sel-mode-btn" id="selModeBtn" onclick="toggleSelMode()">☑ चुनें</button>
+    </div>
+    <!-- BULK ACTIONS -->
+    <div class="bulk-bar" id="bulkBar">
+      <div class="bulk-count" id="bulkCount">0 चुने</div>
+      <button class="bulk-btn bulk-done-btn" onclick="bulkDone()">✅ पूरे करें</button>
+      <button class="bulk-btn bulk-del-btn" onclick="bulkDelete()">🗑 हटाएं</button>
+      <button class="bulk-btn bulk-cancel-btn" onclick="toggleSelMode()">✕</button>
+    </div>
+    <div id="allList"></div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="page" id="page-dashboard">
+    <div class="dash-grid" id="dashGrid"></div>
+    <div class="heatmap-wrap">
+      <div class="hm-title">⏰ 24 घंटे — आज का घनत्व</div>
+      <div class="hm-grid" id="hmGrid"></div>
+      <div style="display:flex;gap:10px;margin-top:8px;font-size:8px;color:var(--t3);font-weight:700;flex-wrap:wrap">
+        <span>■ खाली</span><span style="color:rgba(245,166,35,.5)">■ 1</span><span style="color:rgba(245,166,35,.8)">■ 2</span><span style="color:var(--gold)">■ 3+</span><span style="color:var(--grn)">■ पूरे</span>
+      </div>
+    </div>
+    <div id="pBreakdown"></div>
+  </div>
+
+  <!-- ELON PAGE -->
+  <div class="page" id="page-elon">
+    <div class="elon-header">
+      <div class="elon-title">🚀 Elon Musk की Time Blocking विधि</div>
+      <div class="elon-sub">एलन मस्क अपने दिन को <strong style="color:var(--gold)">5-मिनट blocks</strong> में बांटते हैं। हर block में सिर्फ एक काम। SpaceX, Tesla, X — तीनों एक साथ चलाने का रहस्य।</div>
+    </div>
+    <div class="sec-title">⚡ Elon के 6 कठोर नियम</div>
+    <div id="elonRules"></div>
+    <div class="sec-title" style="margin-top:14px">📅 Vikram का Elon-Style आदर्श दिन</div>
+    <div style="font-size:9px;color:var(--t2);font-weight:600;margin-bottom:8px">जलीपा कैंट — VBE के लिए</div>
+    <div id="elonSchedule"></div>
+    <div class="sec-title" style="margin-top:14px">💡 अपनाने का तरीका</div>
+    <div style="background:rgba(245,166,35,.06);border:1px solid var(--bdr3);border-radius:12px;padding:12px;font-size:10px;color:var(--t2);font-weight:600;line-height:1.7;margin-bottom:20px">
+      📌 हर सुबह 5 बजे <strong style="color:var(--gold)">अगले दिन का plan</strong> — इस app में डालें<br>
+      📌 हर काम को time block दें — भले ही 5 मिनट हो<br>
+      📌 <strong style="color:var(--gold)">Deep Work</strong> सुबह 5-9 बजे — GeM, Finance<br>
+      📌 Meeting सिर्फ Fixed Slots — बाकी वक्त काम<br>
+      📌 रात को 15 मिनट <strong style="color:var(--gold)">Audit</strong> — क्या पूरा, क्यों नहीं
+    </div>
+  </div>
+</div>
+
+<button class="fab" onclick="openSheet()">+</button>
+<div class="bnav">
+  <button class="bni active" id="bn0" onclick="showPage('timeline',null,0)"><span class="bni-ic">📅</span><span class="bni-lb">टाइमलाइन</span></button>
+  <button class="bni" id="bn1" onclick="showPage('people',null,1)"><span class="bni-ic">👥</span><span class="bni-lb">टीम</span></button>
+  <button class="bni" id="bn2" onclick="showPage('tasks',null,2)"><span class="bni-ic">📋</span><span class="bni-lb">सभी</span></button>
+  <button class="bni" id="bn3" onclick="showPage('dashboard',null,3)"><span class="bni-ic">📊</span><span class="bni-lb">रिपोर्ट</span></button>
+  <button class="bni" id="bn4" onclick="showPage('elon',null,4)"><span class="bni-ic">🚀</span><span class="bni-lb">Elon</span></button>
+</div>
+
+</div><!-- /mainApp -->
+
+<!-- ADD TASK SHEET -->
+<div class="overlay" id="overlay" onclick="closeSheet()"></div>
+<div class="sheet" id="sheet">
+  <div class="sh-handle"></div>
+  <div class="sh-title">➕ नया कार्य जोड़ें</div>
+  <div class="fld"><label>काम का नाम *</label><input type="text" id="fName" placeholder="जैसे: GeM बोली, स्टॉक चेक, डिलीवरी..."></div>
+  <div class="fld"><label>किसे सौंपें *</label><div class="pers-toggle" id="fPersTog"></div></div>
+  <div class="fld-row">
+    <div class="fld"><label>दिनांक</label><input type="date" id="fDate"></div>
+    <div class="fld"><label>समय शुरू</label><input type="time" id="fTime"></div>
+  </div>
+  <div class="fld-row">
+    <div class="fld"><label>अवधि (मिनट)</label><input type="number" id="fDur" min="5" max="480" value="30"></div>
+    <div class="fld"><label>श्रेणी</label>
+      <select id="fCat">
+        <option value="gem">📋 GeM बोली</option><option value="supply">📦 सप्लाई</option>
+        <option value="accounts">💰 हिसाब</option><option value="canteen">🍽️ कैंटीन</option>
+        <option value="field">🏗️ फील्ड</option><option value="personal">👤 व्यक्तिगत</option>
+        <option value="other">📌 अन्य</option>
+      </select>
+    </div>
+  </div>
+  <div class="fld"><label>प्राथमिकता</label>
+    <div class="prio-row" id="fPrioRow">
+      <button class="pr-btn" data-p="high" style="border-color:var(--red);background:rgba(255,68,102,.12);color:var(--red)" onclick="selPrio(this,'high')">🔴 जरूरी</button>
+      <button class="pr-btn" data-p="med" onclick="selPrio(this,'med')">🟡 सामान्य</button>
+      <button class="pr-btn" data-p="low" onclick="selPrio(this,'low')">🟢 बाद में</button>
+    </div>
+  </div>
+  <div class="fld"><label>नोट</label><textarea id="fNote" placeholder="अतिरिक्त जानकारी..."></textarea></div>
+  <button class="sub-btn" onclick="addTask()">✅ कार्य जोड़ें</button>
+</div>
+
+<!-- CONFIRM DIALOG -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-icon" id="confirmIcon">🗑️</div>
+    <div class="confirm-title" id="confirmTitle">पक्का करें</div>
+    <div class="confirm-msg" id="confirmMsg">क्या आप यह हटाना चाहते हैं?</div>
+    <div class="confirm-btns">
+      <button class="confirm-cancel" onclick="closeConfirm()">रद्द करें</button>
+      <button class="confirm-ok" id="confirmOkBtn">हटाएं</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- FIREBASE SDK -->
+<script type="module">
+import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import{getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import{getFirestore,collection,query,orderBy,onSnapshot,addDoc,updateDoc,deleteDoc,doc,writeBatch,serverTimestamp,where}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+/* ══ FIREBASE INIT ══ */
+const firebaseConfig={
+  apiKey:"AIzaSyBCe5DKNKcthOl4umprfRm2QBfbVaFORg8",
+  authDomain:"vbe-order-tracker-60324.firebaseapp.com",
+  projectId:"vbe-order-tracker-60324",
+  storageBucket:"vbe-order-tracker-60324.firebasestorage.app",
+  messagingSenderId:"894023456122",
+  appId:"1:894023456122:web:6ee548f0913c887c67f2c3"
+};
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const db=getFirestore(app);
+const COLL='vbe_tasks';
+
+/* ══ KNOWN USERS ══ */
+// UIDs from Firebase Authentication (screenshot May 9, 2026)
+const KNOWN_USERS=[
+  {email:'vikram@vbe.in',   name:'विक्रम', emoji:'👑', pid:'vikram',  uid:'CrWrobyeWHY1ZLrLwKcncW0U9K03'},
+  {email:'manoj@vbe.in',    name:'मनोज',   emoji:'⚙️', pid:'manoj',   uid:'gdn0jahlzGOuWKaOyxsTht07mus2'},
+  {email:'kailash@vbe.in',  name:'कैलाश', emoji:'📊', pid:'kailash', uid:'pFslWWEvLiRjr7YFq51TqwfOpFp2'},
+  {email:'ravi@vbe.in',     name:'रवि',    emoji:'🚚', pid:'ravi',    uid:'xY7dwh799LZrRIY7dK2CHVc5H262'},
+];
+
+/* ══ APP STATE ══ */
+const PERSONS=[
+  {id:'vikram', name:'विक्रम', role:'मालिक/CEO',     emoji:'👑', color:'#f5a623', bg:'rgba(245,166,35,.15)'},
+  {id:'manoj',  name:'मनोज',   role:'फील्ड मैनेजर', emoji:'⚙️', color:'#00c97a', bg:'rgba(0,201,122,.15)'},
+  {id:'kailash',name:'कैलाश', role:'GeM/हिसाब',     emoji:'📊', color:'#4a84f3', bg:'rgba(74,132,243,.15)'},
+  {id:'ravi',   name:'रवि',    role:'सप्लाई',        emoji:'🚚', color:'#9b6bff', bg:'rgba(155,107,255,.15)'},
+];
+const CATS={gem:{label:'📋 GeM',color:'#4a84f3'},supply:{label:'📦 सप्लाई',color:'#00c97a'},accounts:{label:'💰 हिसाब',color:'#f5a623'},canteen:{label:'🍽️ कैंटीन',color:'#ff4466'},field:{label:'🏗️ फील्ड',color:'#9b6bff'},personal:{label:'👤 व्यक्तिगत',color:'#00b8d9'},other:{label:'📌 अन्य',color:'#7878a0'}};
+const DAYS=['रविवार','सोमवार','मंगलवार','बुधवार','गुरुवार','शुक्रवार','शनिवार'];
+const MONTHS=['जनवरी','फरवरी','मार्च','अप्रैल','मई','जून','जुलाई','अगस्त','सितंबर','अक्टूबर','नवंबर','दिसंबर'];
+
+let tasks=[];
+let curPage='timeline';
+let curDayOff=0;
+let selPerson='all';
+let curView='grid';
+let taskFlt='all';
+let fSelPersons=['vikram'];
+let fSelPrio='high';
+let selMode=false;
+let selectedIds=new Set();
+let unsubTasks=null;
+let confirmCallback=null;
+let currentUser=null;
+
+/* ══ UTILS ══ */
+const getKey=(off=0)=>{const d=new Date();d.setDate(d.getDate()+off);return d.toISOString().slice(0,10)};
+const dayTasks=(off=curDayOff)=>tasks.filter(t=>t.date===getKey(off));
+const pColor=(pid)=>PERSONS.find(p=>p.id===pid)?.color||'#f5a623';
+const pName=(pid)=>PERSONS.find(p=>p.id===pid)?.name||pid;
+const pEmoji=(pid)=>PERSONS.find(p=>p.id===pid)?.emoji||'👤';
+function hexRGB(h){const r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);return`${r},${g},${b}`}
+function fmtDate(off=0){const d=new Date();d.setDate(d.getDate()+off);return`${DAYS[d.getDay()]}, ${d.getDate()} ${MONTHS[d.getMonth()]}`}
+function showToast(msg,bg='var(--gold)'){const t=document.getElementById('toast');t.textContent=msg;t.style.background=bg;t.style.color=bg.includes('grn')||bg==='var(--gold)'?'#000':'#fff';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)}
+function setFbStatus(s){const dot=document.getElementById('fbDot'),txt=document.getElementById('fbStatusText');dot.className='fb-dot '+s;txt.textContent=s==='online'?'Live':s==='error'?'Error':'...'}
+
+/* ══ CLOCK ══ */
+function updateClock(){
+  const n=new Date();
+  document.getElementById('liveClock').textContent=`${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}:${String(n.getSeconds()).padStart(2,'0')}`;
+  document.getElementById('liveDate').textContent=fmtDate(0);
+  const pct=((n.getHours()*60+n.getMinutes())/(24*60)*100).toFixed(1);
+  document.getElementById('dayPF').style.width=pct+'%';
+  document.getElementById('dayPL').textContent=Math.round(pct)+'%';
+  updateHeaderStats();
+  if(curPage==='timeline') updateCurLine();
+}
+setInterval(updateClock,1000); updateClock();
+
+function updateCurLine(){
+  if(curView!=='timeline'||curDayOff!==0){document.getElementById('curLine').style.display='none';return}
+  const n=new Date(),START=5;
+  const cl=document.getElementById('curLine');
+  cl.style.display='block';
+  const off=(n.getHours()-START)*60+n.getMinutes();
+  if(off<0){cl.style.display='none';return}
+  cl.style.top=(off/60*72)+'px';
+}
+
+function updateHeaderStats(){
+  const total=tasks.length,done=tasks.filter(t=>t.done).length;
+  document.getElementById('hT').textContent=total;
+  document.getElementById('hD').textContent=done;
+  document.getElementById('hP').textContent=total-done;
+  document.getElementById('hPct').textContent=total?Math.round(done/total*100)+'%':'0%';
+}
+
+/* ══ FIREBASE AUTH ══ */
+// UID → personId mapping
+const UID_TO_PID={
+  'CrWrobyeWHY1ZLrLwKcncW0U9K03':'vikram',
+  'gdn0jahlzGOuWKaOyxsTht07mus2':'manoj',
+  'pFslWWEvLiRjr7YFq51TqwfOpFp2':'kailash',
+  'xY7dwh799LZrRIY7dK2CHVc5H262':'ravi',
+  'FqJeXbb3YJfSER09jtXLosCSpVy2':'vikram',
+  'tjkS5tg2vMflpndGHSQRjFYgRv03':'vikram',
+  '0CXFV9vDMSW7LBi0mLS9bW480mh1':'vikram',
+};
+
+// Build known user chips
+const chips=document.getElementById('userChips');
+KNOWN_USERS.forEach(u=>{
+  const p=PERSONS.find(x=>x.id===u.pid);
+  const d=document.createElement('div');d.className='user-chip';
+  d.innerHTML=`<div class="uc-av" style="background:${p?.bg||'#222'};border:2px solid ${p?.color||'#444'}">${u.emoji}</div><div style="flex:1"><div class="uc-name">${u.name}</div><div class="uc-role">${p?.role||''}</div></div><div style="font-size:10px;color:var(--t3);font-weight:700">${u.email}</div>`;
+  d.onclick=()=>{document.getElementById('loginEmail').value=u.email;document.getElementById('loginPass').focus()};
+  chips.appendChild(d);
+});
+
+window.doLogin=async function(){
+  const em=document.getElementById('loginEmail').value.trim();
+  const pw=document.getElementById('loginPass').value;
+  const err=document.getElementById('loginErr');
+  err.textContent='लॉगिन हो रहा है...';
+  try{
+    await signInWithEmailAndPassword(auth,em,pw);
+    err.textContent='';
+  }catch(e){
+    err.textContent='❌ गलत email/password';
+    document.getElementById('loginPass').style.animation='shakeX .4s ease';
+    setTimeout(()=>document.getElementById('loginPass').style.animation='',500);
+  }
+};
+
+onAuthStateChanged(auth,user=>{
+  if(user){
+    currentUser=user;
+    // Auto-set logged-in person as default assignee
+    const myPid=UID_TO_PID[user.uid]||'vikram';
+    fSelPersons=[myPid];
+    selPerson=myPid;
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('mainApp').style.display='block';
+    startFirestore();
+    renderElon();
+  } else {
+    document.getElementById('loginScreen').classList.remove('hidden');
+    document.getElementById('mainApp').style.display='none';
+    if(unsubTasks){unsubTasks();unsubTasks=null}
+    tasks=[];
+  }
+});
+
+/* ══ FIRESTORE REAL-TIME ══ */
+function startFirestore(){
+  setFbStatus('loading');
+  if(unsubTasks) unsubTasks();
+  const q=query(collection(db,COLL),orderBy('createdAt','desc'));
+  unsubTasks=onSnapshot(q,snap=>{
+    tasks=snap.docs.map(d=>({id:d.id,...d.data()}));
+    setFbStatus('online');
+    updateHeaderStats();
+    refresh();
+  },err=>{
+    console.error(err);
+    setFbStatus('error');
+    showToast('Firebase error: '+err.code,'var(--red)');
+  });
+}
+
+/* ══ PAGES ══ */
+window.showPage=function(name,tabEl,navIdx){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  if(tabEl){document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('active'));tabEl.classList.add('active')}
+  for(let i=0;i<5;i++) document.getElementById('bn'+i)?.classList.remove('active');
+  if(navIdx!==undefined) document.getElementById('bn'+navIdx)?.classList.add('active');
+  curPage=name;
+  if(name==='timeline') renderTimeline();
+  else if(name==='people') renderPeople();
+  else if(name==='tasks') renderAllTasks();
+  else if(name==='dashboard') renderDashboard();
+  else if(name==='elon') renderElon();
+};
+
+window.switchView=function(v){
+  curView=v;
+  document.getElementById('viewGrid').style.display=v==='grid'?'block':'none';
+  document.getElementById('viewTimeline').style.display=v==='timeline'?'block':'none';
+  document.getElementById('vt-grid').classList.toggle('active',v==='grid');
+  document.getElementById('vt-tl').classList.toggle('active',v==='timeline');
+  if(v==='grid') renderHourGrid();else renderTimelineView();
+};
+
+/* ══ PERSON BAR ══ */
+function buildPersonBar(cid){
+  const bar=document.getElementById(cid);if(!bar)return;bar.innerHTML='';
+  const ac=makeChip('all','🌐','सभी',null,selPerson==='all');
+  ac.onclick=()=>{selPerson='all';renderTimeline()};bar.appendChild(ac);
+  PERSONS.forEach(p=>{
+    const cnt=dayTasks().filter(t=>t.persons?.includes(p.id)).length;
+    const c=makeChip(p.id,p.emoji,p.name,p.color,selPerson===p.id,cnt);
+    c.onclick=()=>{selPerson=p.id;renderTimeline()};bar.appendChild(c);
+  });
+}
+function makeChip(id,em,nm,color,active,cnt){
+  const div=document.createElement('div');div.className='pchip';
+  const c=color||'#f5a623';
+  if(active){div.style.borderColor=c;div.style.background=`rgba(${hexRGB(c)},.12)`}
+  div.innerHTML=`<div class="pav" style="background:${c}">${em}</div><span class="pnm" style="color:${active?c:'var(--t2)'}">${nm}</span>${cnt!==undefined?`<span class="pct">${cnt}</span>`:''}`;
+  return div;
+}
+
+/* ══ DAY ══ */
+window.changeDay=function(dir){curDayOff=dir===0?0:curDayOff+dir;renderTimeline()};
+function setDayHeader(){
+  const lbs={'-1':'बीता कल','0':'आज','1':'कल'};
+  document.getElementById('dayTitle').textContent=lbs[curDayOff]||`${curDayOff>0?'+':''}${curDayOff} दिन`;
+  document.getElementById('daySub').textContent=fmtDate(curDayOff);
+}
+
+/* ══ TIMELINE PAGE ══ */
+function renderTimeline(){buildPersonBar('persBarTL');setDayHeader();if(curView==='grid')renderHourGrid();else renderTimelineView()}
+
+function renderHourGrid(){
+  const grid=document.getElementById('hourGrid');grid.innerHTML='';
+  const now=new Date(),curH=now.getHours();
+  const dt=dayTasks().filter(t=>selPerson==='all'||t.persons?.includes(selPerson));
+  for(let h=0;h<24;h++){
+    const ht=dt.filter(t=>parseInt(t.time?.split(':')[0]??'-1')===h);
+    const allDone=ht.length>0&&ht.every(t=>t.done);
+    const bl=document.createElement('div');bl.className='hg-block';
+    if(h===curH&&curDayOff===0) bl.classList.add('cur-hour');
+    if(ht.length>0&&!allDone) bl.classList.add('has-task');
+    if(allDone) bl.classList.add('all-done');
+    const ap=h===0?'12AM':h<12?h+'AM':h===12?'12PM':(h-12)+'PM';
+    const th=ht.slice(0,2).map(t=>{const cl=t.persons?.[0]?pColor(t.persons[0]):'#f5a623';return`<div class="hg-task-dot" style="color:${t.done?'var(--grn)':cl}">${t.done?'✓':pEmoji(t.persons?.[0]||'')} ${t.name}</div>`}).join('');
+    bl.innerHTML=`
+      ${h===curH&&curDayOff===0?'<div class="hg-cur-dot"></div>':''}
+      <span class="hg-ampm">${ap}</span>
+      <div class="hg-time">${String(h).padStart(2,'0')}:00</div>
+      <div class="hg-tasks">${th}</div>
+      ${ht.length>2?`<div class="hg-count-badge">+${ht.length-2}</div>`:''}
+      ${ht.length>0&&ht.length<=2?`<div class="hg-count-badge" style="color:${allDone?'var(--grn)':'var(--blue2)'}">${ht.length}काम</div>`:''}
+    `;
+    bl.onclick=()=>{openSheet();document.getElementById('fTime').value=String(h).padStart(2,'0')+':00'};
+    // Long press for quick task list of that hour
+    bl.oncontextmenu=(e)=>{e.preventDefault();showHourTasks(h,ht)};
+    grid.appendChild(bl);
+  }
+}
+
+function showHourTasks(h,ht){
+  if(!ht.length) return;
+  const ap=h===0?'12AM':h<12?h+'AM':h===12?'12PM':(h-12)+'PM';
+  showConfirm(`${String(h).padStart(2,'0')}:00 (${ap}) के काम`,
+    ht.map(t=>`${t.done?'✅':'⏳'} ${t.name}`).join('\n'),
+    null, '📋', 'बंद करें'
+  );
+}
+
+function renderTimelineView(){
+  const wrap=document.getElementById('tlWrap');
+  const cl=document.getElementById('curLine');
+  wrap.innerHTML='';wrap.appendChild(cl);
+  const START=5,END=23;
+  const dt=dayTasks().filter(t=>selPerson==='all'||t.persons?.includes(selPerson));
+  const now=new Date();
+  for(let h=START;h<=END;h++){
+    const row=document.createElement('div');row.className='tl-row';
+    if(h===now.getHours()&&curDayOff===0) row.classList.add('cur-hr');
+    const ap=h===0?'12AM':h<12?h+'AM':h===12?'12PM':(h-12)+'PM';
+    const lbl=document.createElement('div');lbl.className='tl-label';lbl.innerHTML=`<div class="tl-h">${String(h).padStart(2,'0')}</div><div>${ap}</div>`;
+    row.appendChild(lbl);
+    const slots=document.createElement('div');slots.className='tl-slots';
+    dt.filter(t=>parseInt(t.time?.split(':')[0]??'-1')===h).forEach(t=>slots.appendChild(buildTBlock(t)));
+    const ghost=document.createElement('div');ghost.className='tl-add-ghost';ghost.innerHTML='+ नया काम';
+    ghost.onclick=()=>{openSheet();document.getElementById('fTime').value=String(h).padStart(2,'0')+':00'};
+    slots.appendChild(ghost);
+    row.appendChild(slots);wrap.appendChild(row);
+  }
+  updateCurLine();
+}
+
+function buildTBlock(t){
+  const clr=t.persons?.[0]?pColor(t.persons[0]):'#f5a623';
+  const cat=CATS[t.cat]||CATS.other;
+  const div=document.createElement('div');
+  div.className='t-block'+(t.done?' done':'');
+  div.style.background=t.done?'rgba(0,201,122,.06)':`rgba(${hexRGB(clr)},.07)`;
+  div.style.borderLeftColor=t.done?'var(--grn)':clr;
+  div.innerHTML=`
+    <div class="t-chk" style="border-color:${t.done?'var(--grn)':clr};background:${t.done?'var(--grn)':'transparent'}">${t.done?'✓':''}</div>
+    <div class="t-body">
+      <div class="t-name" style="color:${t.done?'var(--t2)':'var(--t1)'}">${t.name}</div>
+      <div class="t-meta">${(t.persons||[]).map(pid=>`<span style="color:${pColor(pid)};font-weight:800">${pEmoji(pid)} ${pName(pid)}</span>`).join(' · ')}${t.time?' · '+t.time:''} · ${cat.label}</div>
+    </div>
+    <div class="t-dur" style="color:${clr}">${t.duration}म</div>
+    <button class="t-del" title="हटाएं">🗑</button>
+  `;
+  div.querySelector('.t-chk').onclick=e=>{e.stopPropagation();toggleTask(t.id)};
+  div.querySelector('.t-del').onclick=e=>{e.stopPropagation();confirmDeleteTask(t.id,t.name)};
+  div.onclick=()=>toggleTask(t.id);
+  return div;
+}
+
+/* ══ PEOPLE PAGE ══ */
+function renderPeople(){
+  const cards=document.getElementById('pCards');cards.innerHTML='';cards.style.display='grid';
+  document.getElementById('pDetail').style.display='none';
+  PERSONS.forEach(p=>{
+    const pt=tasks.filter(t=>t.persons?.includes(p.id));
+    const td=dayTasks().filter(t=>t.persons?.includes(p.id)).length;
+    const done=pt.filter(t=>t.done).length;
+    const pct=pt.length?Math.round(done/pt.length*100):0;
+    const card=document.createElement('div');card.className='p-card';card.style.borderColor=`rgba(${hexRGB(p.color)},.25)`;
+    card.innerHTML=`
+      <div class="p-card-glow" style="background:${p.color}"></div>
+      <div class="p-card-av" style="background:${p.bg};border:1.5px solid rgba(${hexRGB(p.color)},.3)">${p.emoji}</div>
+      <div class="p-card-name">${p.name}</div><div class="p-card-role">${p.role}</div>
+      <div class="p-card-stats">
+        <div class="p-cs"><div class="p-cs-v" style="color:${p.color}">${pt.length}</div><div class="p-cs-l">कुल</div></div>
+        <div class="p-cs"><div class="p-cs-v" style="color:var(--grn)">${done}</div><div class="p-cs-l">पूरे</div></div>
+        <div class="p-cs"><div class="p-cs-v" style="color:var(--gold)">${td}</div><div class="p-cs-l">आज</div></div>
+      </div>
+      <div class="p-prog"><div class="p-prog-f" style="width:${pct}%;background:${p.color}"></div></div>
+      <div style="font-size:8px;color:var(--t3);font-weight:700;margin-top:4px;text-align:right">${pct}% पूर्ण</div>
+    `;
+    card.onclick=()=>showPersonDetail(p);cards.appendChild(card);
+  });
+}
+function showPersonDetail(p){
+  document.getElementById('pCards').style.display='none';
+  document.getElementById('pDetail').style.display='block';
+  document.getElementById('pDetailName').textContent=`${p.emoji} ${p.name} के काम`;
+  const list=document.getElementById('pDetailList');
+  const pt=tasks.filter(t=>t.persons?.includes(p.id)).sort((a,b)=>a.date>b.date?1:-1);
+  list.innerHTML='';
+  if(!pt.length){list.innerHTML='<div class="empty"><span class="ei">📭</span><p>कोई काम नहीं</p></div>';return}
+  pt.forEach(t=>list.appendChild(buildTLI(t)));
+}
+window.closePDetail=function(){document.getElementById('pDetail').style.display='none';document.getElementById('pCards').style.display='grid'};
+
+/* ══ ALL TASKS ══ */
+window.toggleSelMode=function(){
+  selMode=!selMode;selectedIds.clear();
+  const btn=document.getElementById('selModeBtn');
+  btn.classList.toggle('active',selMode);
+  btn.textContent=selMode?'✕ रद्द':'☑ चुनें';
+  document.getElementById('bulkBar').classList.toggle('show',false);
+  renderAllTasks();
+};
+
+function renderAllTasks(){
+  const bar=document.getElementById('filterBar');bar.innerHTML='';
+  const filters=[{id:'all',lb:'सभी'},{id:'today',lb:'📅 आज'},{id:'pending',lb:'⏳ बाकी'},{id:'done',lb:'✅ पूरे'},
+    ...PERSONS.map(p=>({id:'p:'+p.id,lb:p.emoji+' '+p.name})),
+    ...Object.entries(CATS).map(([k,v])=>({id:'c:'+k,lb:v.label}))];
+  filters.forEach(f=>{
+    const b=document.createElement('button');b.className='fbtn'+(taskFlt===f.id?' active':'');b.textContent=f.lb;
+    b.onclick=()=>{taskFlt=f.id;renderAllTasks()};bar.appendChild(b);
+  });
+  let list=[...tasks];
+  if(taskFlt==='today') list=list.filter(t=>t.date===getKey(0));
+  else if(taskFlt==='pending') list=list.filter(t=>!t.done);
+  else if(taskFlt==='done') list=list.filter(t=>t.done);
+  else if(taskFlt.startsWith('p:')) list=list.filter(t=>t.persons?.includes(taskFlt.slice(2)));
+  else if(taskFlt.startsWith('c:')) list=list.filter(t=>t.cat===taskFlt.slice(2));
+  list.sort((a,b)=>({high:0,med:1,low:2}[a.prio]||1)-({high:0,med:1,low:2}[b.prio]||1)||(a.date>b.date?1:-1));
+  const div=document.getElementById('allList');
+  if(!list.length){div.innerHTML='<div class="empty"><span class="ei">📭</span><p>कोई काम नहीं मिला</p></div>';return}
+  div.innerHTML='';list.forEach(t=>div.appendChild(buildTLI(t)));
+  updateBulkBar();
+}
+
+function buildTLI(t){
+  const pdc={high:'var(--red)',med:'var(--gold)',low:'var(--grn)'}[t.prio]||'var(--t3)';
+  const cat=CATS[t.cat]||CATS.other;
+  const isSelected=selectedIds.has(t.id);
+  const div=document.createElement('div');
+  div.className='tli'+(t.done?' done-i':'')+(isSelected?' selected-i':'');
+  div.innerHTML=`
+    ${selMode?`<div class="tli-sel${isSelected?' checked':''}" title="चुनें">✓</div>`:'<div class="pdot" style="background:'+pdc+'"></div>'}
+    <div class="tli-chk${t.done?' chk':''}" style="border-color:${t.done?'var(--grn)':'var(--t3)'};background:${t.done?'var(--grn)':'transparent'};color:${t.done?'#000':'transparent'}">✓</div>
+    <div class="tli-body">
+      <div class="tli-name">${t.name}</div>
+      <div class="tli-meta">📅 ${t.date}${t.time?' · ⏰ '+t.time:''} · ${t.duration}मिनट</div>
+      <div class="tli-tags">
+        ${(t.persons||[]).map(pid=>{const p=PERSONS.find(x=>x.id===pid);return p?`<span class="tag tag-p" style="background:${p.color}">${p.emoji} ${p.name}</span>`:''}).join('')}
+        <span class="tag tag-c">${cat.label}</span>
+      </div>
+    </div>
+    <div class="tli-right">
+      <div class="tli-time">${t.time||'—'}</div>
+      <button class="del-btn" title="हटाएं">🗑</button>
+    </div>
+  `;
+  if(selMode){
+    const sel=div.querySelector('.tli-sel');
+    sel.onclick=e=>{e.stopPropagation();toggleSelect(t.id,div,sel)};
+    div.onclick=()=>toggleSelect(t.id,div,sel);
+  } else {
+    div.querySelector('.tli-chk').onclick=e=>{e.stopPropagation();toggleTask(t.id)};
+  }
+  div.querySelector('.del-btn').onclick=e=>{e.stopPropagation();confirmDeleteTask(t.id,t.name)};
+  return div;
+}
+
+function toggleSelect(id,div,sel){
+  if(selectedIds.has(id)){selectedIds.delete(id);div.classList.remove('selected-i');sel.classList.remove('checked')}
+  else{selectedIds.add(id);div.classList.add('selected-i');sel.classList.add('checked')}
+  updateBulkBar();
+}
+function updateBulkBar(){
+  const bar=document.getElementById('bulkBar');
+  if(selMode&&selectedIds.size>0){bar.classList.add('show');document.getElementById('bulkCount').textContent=selectedIds.size+' चुने'}
+  else bar.classList.remove('show');
+}
+
+window.bulkDone=async function(){
+  if(!selectedIds.size) return;
+  const count=selectedIds.size;
+  const batch=writeBatch(db);
+  selectedIds.forEach(id=>batch.update(doc(db,COLL,id),{done:true}));
+  await batch.commit();
+  selectedIds.clear();
+  selMode=false;
+  document.getElementById('selModeBtn').classList.remove('active');
+  document.getElementById('selModeBtn').textContent='☑ चुनें';
+  document.getElementById('bulkBar').classList.remove('show');
+  renderAllTasks();
+  showToast('✅ '+count+' काम पूरे किए!');
+};
+
+window.bulkDelete=function(){
+  if(!selectedIds.size) return;
+  const count=selectedIds.size;
+  const idsToDelete=[...selectedIds];
+  showConfirm('Bulk Delete',count+' काम हटाने हैं? यह वापस नहीं होगा!',async()=>{
+    const batch=writeBatch(db);
+    idsToDelete.forEach(id=>batch.delete(doc(db,COLL,id)));
+    await batch.commit();
+    selectedIds.clear();
+    selMode=false;
+    document.getElementById('selModeBtn').classList.remove('active');
+    document.getElementById('selModeBtn').textContent='☑ चुनें';
+    document.getElementById('bulkBar').classList.remove('show');
+    renderAllTasks();
+    showToast('🗑️ '+count+' काम हटाए गए','var(--red)');
+  });
+};
+
+/* ══ DASHBOARD ══ */
+function renderDashboard(){
+  const td=dayTasks(),done=td.filter(t=>t.done).length;
+  const mins=td.reduce((a,t)=>a+parseInt(t.duration||0),0);
+  document.getElementById('dashGrid').innerHTML=`
+    <div class="dash-card"><div class="dc-icon">📅</div><div class="dc-val" style="color:var(--blue2)">${td.length}</div><div class="dc-lbl">आज के काम</div></div>
+    <div class="dash-card"><div class="dc-icon">✅</div><div class="dc-val" style="color:var(--grn)">${done}</div><div class="dc-lbl">पूरे हुए</div></div>
+    <div class="dash-card"><div class="dc-icon">⏳</div><div class="dc-val" style="color:var(--gold)">${td.length-done}</div><div class="dc-lbl">बाकी हैं</div></div>
+    <div class="dash-card"><div class="dc-icon">⏱</div><div class="dc-val" style="color:var(--pur)">${mins}म</div><div class="dc-lbl">व्यस्त समय</div></div>
+  `;
+  const hg=document.getElementById('hmGrid');hg.innerHTML='';const now=new Date();
+  for(let h=0;h<24;h++){
+    const ht=td.filter(t=>parseInt(t.time?.split(':')[0]??'-1')===h);
+    const dne=ht.filter(t=>t.done).length;
+    const cell=document.createElement('div');cell.className='hm-cell';
+    if(dne===ht.length&&ht.length>0)cell.classList.add('hd');
+    else if(ht.length>=3)cell.classList.add('h3');else if(ht.length===2)cell.classList.add('h2');else if(ht.length===1)cell.classList.add('h1');
+    if(h===now.getHours()&&curDayOff===0)cell.classList.add('hc');
+    cell.textContent=h;cell.title=`${h}:00 — ${ht.length} काम`;
+    cell.onclick=()=>{selPerson='all';curDayOff=0;switchView('timeline');showPage('timeline',document.querySelectorAll('.ntab')[0],0)};
+    hg.appendChild(cell);
+  }
+  const pb=document.getElementById('pBreakdown');pb.innerHTML='';
+  PERSONS.forEach(p=>{
+    const pt=td.filter(t=>t.persons?.includes(p.id));if(!pt.length)return;
+    const pd=pt.filter(t=>t.done).length,pp=pt.length?Math.round(pd/pt.length*100):0;
+    const d=document.createElement('div');d.style='background:var(--sf1);border:1px solid var(--bdr2);border-radius:12px;padding:10px 12px;margin-bottom:8px';
+    d.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px"><div style="display:flex;align-items:center;gap:8px"><div style="background:${p.bg};width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px">${p.emoji}</div><div><div style="font-size:12px;font-weight:800">${p.name}</div><div style="font-size:8px;color:var(--t3);font-weight:600">${pt.length} काम · ${pd} पूरे</div></div></div><div style="font-size:17px;font-weight:900;color:${p.color}">${pp}%</div></div><div style="height:4px;background:var(--sf3);border-radius:99px;overflow:hidden"><div style="height:100%;width:${pp}%;background:${p.color};border-radius:99px;transition:width .5s"></div></div>`;
+    pb.appendChild(d);
+  });
+}
+
+/* ══ ELON PAGE ══ */
+window.renderElon=function(){
+  const rules=[{n:'1',r:'हर 5 मिनट एक block — wastage नहीं'},{n:'2',r:'Deep Work सुबह 5-9 बजे — GeM, Finance, Strategy'},{n:'3',r:'Meeting = 5 या 10 मिनट। 1 घंटे की meeting बंद'},{n:'4',r:'एक काम खत्म बिना दूसरा नहीं — No switching'},{n:'5',r:'हर रात अगले दिन का plan तैयार करें'},{n:'6',r:'जो block में नहीं — होगा नहीं। लिखो तो करो'}];
+  document.getElementById('elonRules').innerHTML=rules.map(r=>`<div class="elon-rule"><div class="rule-num">${r.n}</div><div class="rule-text">${r.r}</div></div>`).join('');
+  const sch=[{t:'04:30',d:'30म',n:'उठना + Cold Water + Activation',c:'#4a84f3',tags:['सेहत'],desc:'पहला घंटा सिर्फ अपने लिए'},{t:'05:00',d:'90म',n:'Deep Work — GeM Bids / Finance',c:'#f5a623',tags:['GeM','हिसाब'],desc:'कठिन काम — दिमाग ताज़ा, कोई distraction नहीं'},{t:'06:30',d:'30म',n:'Email + WhatsApp — सिर्फ एक बार',c:'#9b6bff',tags:['Communication'],desc:'एक बार में सब reply — फिर phone बंद'},{t:'07:00',d:'30म',n:'टीम Standup — 4 लोग × 5 मिनट',c:'#00c97a',tags:['टीम'],desc:'विक्रम+मनोज+कैलाश+रवि का दिन plan'},{t:'07:30',d:'90म',n:'Field + Supply + Delivery',c:'#ff4466',tags:['फील्ड','सप्लाई'],desc:'Jalipa units, Jaisalmer z01-z04'},{t:'09:00',d:'60म',n:'GeM Bids — Kailash के साथ',c:'#f5a623',tags:['GeM'],desc:'Active bids, new tenders, documents'},{t:'10:00',d:'30म',n:'Accounts — Vyapar / Firebase',c:'#4a84f3',tags:['हिसाब'],desc:'Receivables, payments, daily ledger'},{t:'10:30',d:'30म',n:'Lunch + Short Rest',c:'#00c97a',tags:['सेहत','परिवार'],desc:''},{t:'11:00',d:'90म',n:'Deep Work 2 — Strategy + Growth',c:'#f5a623',tags:['Strategy'],desc:'नए contracts, firm expansion, VBE growth'},{t:'12:30',d:'60म',n:'Vendor + Party Meetings (max 3)',c:'#9b6bff',tags:['Meeting'],desc:'20 मिनट max per meeting — agenda fixed'},{t:'13:30',d:'60म',n:'Amul Parlour + Sabji Express',c:'#ff4466',tags:['Retail'],desc:'Stock, sales, staff issues'},{t:'14:30',d:'60म',n:'177 Wet Canteen + Military Units',c:'#00c97a',tags:['कैंटीन','Army'],desc:'Unit relations, orders, complaints'},{t:'15:30',d:'30म',n:'Walk + Think — अकेले',c:'#4a84f3',tags:['सेहत'],desc:'दिमाग reset — ideas आते हैं'},{t:'16:00',d:'60म',n:'Manoj + Ravi Debrief',c:'#00c97a',tags:['टीम'],desc:'Field + Supply का दिन-review'},{t:'17:00',d:'30म',n:'Kailash — Accounts Day-close',c:'#f5a623',tags:['हिसाब'],desc:'आज का financial summary'},{t:'17:30',d:'60म',n:'परिवार — Bhavyansa + Bhavika',c:'#ff4466',tags:['परिवार'],desc:'यह block सबसे ज़रूरी — protect करें'},{t:'18:30',d:'30म',n:'Dinner',c:'#00c97a',tags:['सेहत'],desc:''},{t:'19:00',d:'60म',n:'Next Day Planning — इस app में',c:'#f5a623',tags:['Planning'],desc:'कल के सभी blocks, tasks assign करें'},{t:'20:00',d:'60म',n:'Reading / AI Learning',c:'#9b6bff',tags:['Learning'],desc:'Psychology of Money, AI books, Anthropic'},{t:'21:00',d:'7घं',n:'नींद — 7 घंटे',c:'#4a84f3',tags:['सेहत'],desc:'Sleep = best productivity tool'}];
+  document.getElementById('elonSchedule').innerHTML=sch.map(s=>`<div class="elon-block" style="border-left-color:${s.c}"><div class="eb-time"><div class="eb-time-main">${s.t}</div><div class="eb-time-dur">${s.d}</div></div><div class="eb-body"><div class="eb-name">${s.n}</div>${s.desc?`<div class="eb-desc">${s.desc}</div>`:''}<div class="eb-tags">${s.tags.map(t=>`<span class="eb-tag">${t}</span>`).join('')}</div></div></div>`).join('');
+};
+
+/* ══ ADD TASK ══ */
+window.openSheet=function(){
+  document.getElementById('fDate').value=getKey(curDayOff);
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('sheet').classList.add('open');
+  buildSheetPersons();
+  setTimeout(()=>document.getElementById('fName').focus(),200);
+};
+window.closeSheet=function(){document.getElementById('overlay').classList.remove('open');document.getElementById('sheet').classList.remove('open')};
+
+function buildSheetPersons(){
+  fSelPersons=['vikram'];fSelPrio='high';
+  const wrap=document.getElementById('fPersTog');wrap.innerHTML='';
+  PERSONS.forEach(p=>{
+    const d=document.createElement('div');d.className='ptog';
+    const active=fSelPersons.includes(p.id);
+    if(active){d.style.borderColor=p.color;d.style.background=p.bg;d.style.color=p.color}
+    d.innerHTML=`<span>${p.emoji}</span><span>${p.name}</span>`;
+    d.onclick=()=>{
+      if(fSelPersons.includes(p.id)){fSelPersons=fSelPersons.filter(x=>x!==p.id);d.style.borderColor='var(--bdr2)';d.style.background='var(--sf2)';d.style.color='var(--t2)'}
+      else{fSelPersons.push(p.id);d.style.borderColor=p.color;d.style.background=p.bg;d.style.color=p.color}
+    };
+    wrap.appendChild(d);
+  });
+  // reset prio
+  document.querySelectorAll('.pr-btn').forEach(b=>{b.style.borderColor='var(--bdr2)';b.style.background='var(--sf2)';b.style.color='var(--t2)'});
+  const highBtn=document.querySelector('.pr-btn[data-p="high"]');
+  if(highBtn){highBtn.style.borderColor='var(--red)';highBtn.style.background='rgba(255,68,102,.12)';highBtn.style.color='var(--red)'}
+}
+
+window.selPrio=function(el,p){
+  fSelPrio=p;
+  const clrs={high:'var(--red)',med:'var(--gold)',low:'var(--grn)'};
+  const bgs={high:'rgba(255,68,102,.12)',med:'rgba(245,166,35,.12)',low:'rgba(0,201,122,.12)'};
+  document.querySelectorAll('.pr-btn').forEach(b=>{b.style.borderColor='var(--bdr2)';b.style.background='var(--sf2)';b.style.color='var(--t2)'});
+  el.style.borderColor=clrs[p];el.style.background=bgs[p];el.style.color=clrs[p];
+};
+
+window.addTask=async function(){
+  const name=document.getElementById('fName').value.trim();
+  if(!name){showToast('❌ काम का नाम लिखें','var(--red)');return}
+  if(!fSelPersons.length){showToast('❌ एक व्यक्ति चुनें','var(--red)');return}
+  const taskData={
+    name,persons:fSelPersons,
+    date:document.getElementById('fDate').value||getKey(0),
+    time:document.getElementById('fTime').value||null,
+    duration:parseInt(document.getElementById('fDur').value)||30,
+    cat:document.getElementById('fCat').value,
+    prio:fSelPrio,
+    note:document.getElementById('fNote').value.trim(),
+    done:false,
+    createdAt:serverTimestamp(),
+    createdBy:currentUser?.uid||'unknown',
+  };
+  try{
+    await addDoc(collection(db,COLL),taskData);
+    closeSheet();
+    document.getElementById('fName').value='';document.getElementById('fNote').value='';document.getElementById('fTime').value='';
+    showToast('✅ काम जोड़ा गया!');
+  }catch(e){showToast('❌ Error: '+e.message,'var(--red)')}
+};
+
+async function toggleTask(id){
+  const t=tasks.find(x=>x.id===id);if(!t)return;
+  try{
+    await updateDoc(doc(db,COLL,id),{done:!t.done});
+    showToast(!t.done?'✅ पूरा हुआ!':'↩️ वापस लिया',!t.done?'var(--grn)':'var(--gold)');
+  }catch(e){showToast('❌ Error','var(--red)')}
+}
+
+function confirmDeleteTask(id,name){
+  showConfirm('कार्य हटाएं',`"${name}" हटाना चाहते हैं?`,async()=>{
+    try{await deleteDoc(doc(db,COLL,id));showToast('🗑️ हटाया गया','var(--red)')}
+    catch(e){showToast('❌ Error','var(--red)')}
+  });
+}
+
+/* ══ CONFIRM DIALOG ══ */
+function showConfirm(title,msg,callback,icon='🗑️',okText='हटाएं'){
+  document.getElementById('confirmTitle').textContent=title;
+  document.getElementById('confirmMsg').textContent=msg;
+  document.getElementById('confirmIcon').textContent=icon;
+  const okBtn=document.getElementById('confirmOkBtn');
+  okBtn.textContent=okText;
+  okBtn.style.display=callback?'block':'none';
+  confirmCallback=callback;
+  document.getElementById('confirmOverlay').classList.add('open');
+}
+window.closeConfirm=function(){document.getElementById('confirmOverlay').classList.remove('open');confirmCallback=null};
+document.getElementById('confirmOkBtn').onclick=async function(){
+  if(confirmCallback){await confirmCallback()}
+  closeConfirm();
+};
+
+function refresh(){
+  if(curPage==='timeline') renderTimeline();
+  else if(curPage==='people') renderPeople();
+  else if(curPage==='tasks') renderAllTasks();
+  else if(curPage==='dashboard') renderDashboard();
+}
+
+setInterval(()=>{if(curPage==='timeline')renderTimeline()},60000);
+</script>
+</body>
+</html>

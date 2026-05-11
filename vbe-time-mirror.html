@@ -1,0 +1,2256 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a0a0f">
+<title>VBE • समय दर्पण — हर मिनट कीमती</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;700&family=Tiro+Devanagari+Hindi:ital@0;1&family=Noto+Sans+Devanagari:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/*══════════════════════════════════════════════════════
+  VBE TIME MIRROR — समय का दर्पण
+  Design philosophy: हर मिनट का हिसाब, हर मिनट का मान
+  Inspired by: Sunsama (rituals), Motion (auto-schedule),
+  Amie (beauty), Linear (precision), Things 3 (calm)
+══════════════════════════════════════════════════════*/
+:root{
+  /* INK — deep ink black palette, not flat gray */
+  --ink-0:#06060a;
+  --ink-1:#0b0b12;
+  --ink-2:#13131c;
+  --ink-3:#1c1c28;
+  --ink-4:#272735;
+  --ink-5:#3a3a4d;
+
+  /* GOLD — VBE signature, but refined */
+  --gold:#f5b240;
+  --gold-soft:#ffc870;
+  --gold-deep:#c88515;
+  --gold-amber:rgba(245,178,64,.12);
+  --gold-glow:rgba(245,178,64,.35);
+
+  /* SEMANTICS */
+  --emerald:#34d399;
+  --emerald-soft:rgba(52,211,153,.14);
+  --ruby:#fb7185;
+  --ruby-soft:rgba(251,113,133,.14);
+  --sky:#60a5fa;
+  --sky-soft:rgba(96,165,250,.14);
+  --violet:#a78bfa;
+  --violet-soft:rgba(167,139,250,.14);
+  --rose:#f472b6;
+  --rose-soft:rgba(244,114,182,.14);
+
+  /* TEXT */
+  --t-100:#fafaff;
+  --t-200:#e0e0ee;
+  --t-300:#a8a8be;
+  --t-400:#6e6e85;
+  --t-500:#454560;
+  --t-600:#2a2a3c;
+
+  /* BORDERS */
+  --bd-1:rgba(255,255,255,.04);
+  --bd-2:rgba(255,255,255,.08);
+  --bd-3:rgba(255,255,255,.14);
+  --bd-gold:rgba(245,178,64,.22);
+  --bd-gold-2:rgba(245,178,64,.45);
+
+  /* FONTS */
+  --font-display:'Instrument Serif','Tiro Devanagari Hindi',serif;
+  --font-sans:'Geist','Noto Sans Devanagari',-apple-system,sans-serif;
+  --font-mono:'Geist Mono','JetBrains Mono',monospace;
+  --font-hindi:'Noto Sans Devanagari','Geist',sans-serif;
+}
+
+/*══════ RESET + BASE ══════*/
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{overscroll-behavior:none}
+body{
+  font-family:var(--font-sans);
+  background:var(--ink-0);
+  color:var(--t-100);
+  min-height:100vh;
+  padding-bottom:88px;
+  font-feature-settings:"ss01","cv11","tnum";
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+/* Ambient atmosphere — subtle aurora */
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 80% 40% at 20% -5%,rgba(245,178,64,.10) 0%,transparent 55%),
+    radial-gradient(ellipse 60% 35% at 90% 0%,rgba(96,165,250,.08) 0%,transparent 55%),
+    radial-gradient(ellipse 70% 50% at 50% 110%,rgba(167,139,250,.06) 0%,transparent 60%);
+}
+/* Grain texture */
+body::after{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.04;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+button,input,textarea,select{font-family:inherit;color:inherit;background:none;border:none;outline:none}
+button{cursor:pointer}
+
+/*══════ HEADER — Premium command bar ══════*/
+.hdr{
+  position:sticky;top:0;z-index:90;
+  background:linear-gradient(180deg,rgba(6,6,10,.96) 0%,rgba(6,6,10,.86) 80%,transparent 100%);
+  backdrop-filter:blur(24px) saturate(150%);
+  -webkit-backdrop-filter:blur(24px) saturate(150%);
+  padding:14px 16px 10px;
+}
+.hdr-row1{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.brand-wrap{display:flex;align-items:center;gap:11px}
+.brand-mark{
+  width:38px;height:38px;border-radius:11px;
+  background:
+    radial-gradient(circle at 30% 25%,var(--gold-soft),var(--gold-deep) 80%);
+  display:grid;place-items:center;
+  font-size:18px;
+  box-shadow:0 6px 20px rgba(245,178,64,.30),inset 0 1px 0 rgba(255,255,255,.25);
+  position:relative;
+}
+.brand-mark::after{
+  content:'';position:absolute;inset:-2px;border-radius:13px;
+  background:linear-gradient(135deg,var(--gold-soft),transparent 60%);
+  opacity:.4;z-index:-1;filter:blur(6px);
+}
+.brand-text h1{
+  font-family:var(--font-display);
+  font-size:22px;font-weight:400;line-height:1;letter-spacing:-.5px;
+  font-style:italic;
+  background:linear-gradient(180deg,var(--t-100) 0%,var(--t-200) 100%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.brand-text h1 .accent{
+  font-style:normal;font-family:var(--font-hindi);font-weight:700;font-size:14px;
+  color:var(--gold);margin-left:5px;letter-spacing:0;
+  -webkit-text-fill-color:var(--gold);
+}
+.brand-text .tagline{
+  font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--t-400);margin-top:2px;
+}
+
+.clock-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:1px}
+.clock-now{
+  font-family:var(--font-mono);
+  font-size:22px;font-weight:700;letter-spacing:-.5px;
+  color:var(--t-100);font-variant-numeric:tabular-nums;line-height:1;
+}
+.clock-now .sec{color:var(--gold);font-size:14px;margin-left:1px}
+.clock-meta{display:flex;align-items:center;gap:6px;font-size:9px;color:var(--t-400);font-weight:600;margin-top:3px}
+.clock-meta .live-dot{width:5px;height:5px;border-radius:50%;background:var(--emerald);box-shadow:0 0 8px var(--emerald);animation:livePulse 2s infinite}
+@keyframes livePulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* Day Pulse — slim arc showing day progress */
+.day-pulse{
+  display:flex;align-items:center;gap:10px;margin-bottom:12px;
+  padding:8px 12px;border-radius:14px;
+  background:linear-gradient(135deg,rgba(255,255,255,.025),rgba(255,255,255,.005));
+  border:1px solid var(--bd-1);
+}
+.dp-ring{position:relative;width:34px;height:34px;flex-shrink:0}
+.dp-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.dp-ring circle{fill:none;stroke-width:3.5;stroke-linecap:round}
+.dp-ring .bg{stroke:var(--ink-3)}
+.dp-ring .fg{stroke:url(#dpGrad);transition:stroke-dashoffset 1s linear}
+.dp-pct{
+  position:absolute;inset:0;display:grid;place-items:center;
+  font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--gold);
+}
+.dp-text{flex:1;min-width:0}
+.dp-headline{font-size:12px;font-weight:700;color:var(--t-200);font-family:var(--font-hindi)}
+.dp-headline .strong{color:var(--gold)}
+.dp-sub{font-size:9.5px;color:var(--t-400);font-weight:500;margin-top:2px;font-family:var(--font-hindi)}
+
+/* Quick metric chips */
+.metric-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:2px}
+.mtr{
+  background:rgba(255,255,255,.02);
+  border:1px solid var(--bd-1);
+  border-radius:11px;padding:7px 8px;text-align:center;
+  position:relative;overflow:hidden;
+}
+.mtr.live::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,var(--gold-amber),transparent 60%);
+  pointer-events:none;
+}
+.mtr-v{font-family:var(--font-mono);font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1;position:relative}
+.mtr-l{font-size:8px;color:var(--t-400);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-top:3px;position:relative;font-family:var(--font-sans)}
+.mtr.live .mtr-v{color:var(--gold)}
+.mtr.done .mtr-v{color:var(--emerald)}
+.mtr.pend .mtr-v{color:var(--sky)}
+.mtr.streak .mtr-v{color:var(--rose)}
+
+/*══════ NAV TABS ══════*/
+.nav{
+  display:flex;gap:4px;margin-top:10px;padding:3px;
+  background:var(--ink-2);border-radius:11px;border:1px solid var(--bd-1);
+}
+.nav-tab{
+  flex:1;padding:8px 6px;border-radius:8px;
+  font-size:11px;font-weight:700;color:var(--t-400);
+  font-family:var(--font-hindi);letter-spacing:.2px;
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  transition:all .18s ease;position:relative;
+}
+.nav-tab .ic{font-size:13px}
+.nav-tab.active{background:var(--ink-4);color:var(--t-100);box-shadow:0 1px 0 rgba(255,255,255,.04) inset, 0 4px 12px rgba(0,0,0,.4)}
+.nav-tab.active .ic{filter:drop-shadow(0 0 6px var(--gold-glow))}
+
+/*══════ CONTENT ══════*/
+.content{position:relative;z-index:1;padding:14px 14px 24px}
+.page{display:none;animation:slideUp .3s cubic-bezier(.32,.72,0,1)}
+.page.active{display:block}
+@keyframes slideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/*══════ PAGE 1: NOW (THE MIRROR) — Current minute spotlight ══════*/
+.now-stage{
+  position:relative;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%,rgba(245,178,64,.10),transparent 70%),
+    linear-gradient(180deg,var(--ink-2),var(--ink-1));
+  border:1px solid var(--bd-gold);
+  border-radius:22px;padding:18px 16px 16px;margin-bottom:14px;
+  overflow:hidden;
+}
+.now-stage::before{
+  content:'';position:absolute;top:-1px;left:20%;right:20%;height:2px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  filter:blur(1px);
+}
+.ns-header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:14px}
+.ns-label{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--gold);padding:4px 9px;border-radius:99px;
+  background:var(--gold-amber);border:1px solid var(--bd-gold);
+}
+.ns-label::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--gold);box-shadow:0 0 8px var(--gold);animation:livePulse 1.5s infinite}
+.ns-minute-wrap{display:flex;flex-direction:column;align-items:flex-end}
+.ns-minute{
+  font-family:var(--font-mono);font-size:32px;font-weight:700;line-height:1;
+  background:linear-gradient(180deg,var(--gold-soft),var(--gold));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  letter-spacing:-1px;font-variant-numeric:tabular-nums;
+}
+.ns-minute-sub{font-size:9px;color:var(--t-400);font-weight:700;letter-spacing:1px;margin-top:2px;text-transform:uppercase}
+
+.ns-question{
+  font-family:var(--font-display);font-style:italic;font-size:18px;
+  color:var(--t-200);margin-bottom:4px;letter-spacing:-.2px;line-height:1.3;
+}
+.ns-question .gold{color:var(--gold);font-style:normal;font-family:var(--font-hindi);font-weight:700;font-size:16px}
+.ns-prompt{font-size:11px;color:var(--t-400);font-weight:500;margin-bottom:14px;font-family:var(--font-hindi);line-height:1.5}
+
+/* Current Task highlight (if any) */
+.current-task{
+  background:linear-gradient(135deg,rgba(255,255,255,.04),rgba(255,255,255,.01));
+  border:1px solid var(--bd-2);border-left:3px solid var(--gold);
+  border-radius:12px;padding:12px 13px;margin-bottom:12px;
+  display:flex;align-items:center;gap:11px;
+}
+.ct-icon{
+  width:38px;height:38px;border-radius:10px;
+  background:var(--gold-amber);border:1px solid var(--bd-gold);
+  display:grid;place-items:center;font-size:18px;flex-shrink:0;
+}
+.ct-body{flex:1;min-width:0}
+.ct-title{font-size:13px;font-weight:700;color:var(--t-100);font-family:var(--font-hindi);line-height:1.3;margin-bottom:2px}
+.ct-meta{font-size:9.5px;color:var(--t-400);font-family:var(--font-mono);font-weight:500;display:flex;align-items:center;gap:8px}
+.ct-meta .dot{width:3px;height:3px;border-radius:50%;background:var(--t-500)}
+.ct-progress{margin-top:8px;height:3px;background:var(--ink-3);border-radius:99px;overflow:hidden}
+.ct-progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-soft));border-radius:99px;transition:width 1s linear}
+
+/* No current task state */
+.no-current{
+  text-align:center;padding:18px 12px;
+  border:1.5px dashed var(--bd-2);border-radius:12px;
+  background:rgba(255,255,255,.01);
+}
+.no-current-ico{font-size:28px;margin-bottom:6px;opacity:.5}
+.no-current-txt{font-size:11px;color:var(--t-400);font-family:var(--font-hindi);font-weight:600;margin-bottom:10px}
+
+/* Quick log buttons — biggest interaction surface */
+.quick-log{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.ql-btn{
+  padding:13px 10px;border-radius:13px;
+  font-size:12px;font-weight:700;font-family:var(--font-hindi);
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  border:1px solid;
+  transition:transform .15s ease,box-shadow .15s ease;
+}
+.ql-btn:active{transform:scale(.96)}
+.ql-btn .ic{font-size:16px}
+.ql-btn.primary{
+  background:linear-gradient(135deg,var(--gold-soft),var(--gold-deep));
+  color:#1a1305;border-color:var(--gold);
+  box-shadow:0 6px 18px rgba(245,178,64,.30),inset 0 1px 0 rgba(255,255,255,.3);
+}
+.ql-btn.primary:active{box-shadow:0 3px 10px rgba(245,178,64,.20)}
+.ql-btn.secondary{
+  background:rgba(255,255,255,.04);
+  color:var(--t-200);border-color:var(--bd-2);
+}
+.ql-btn.success{background:var(--emerald-soft);color:var(--emerald);border-color:rgba(52,211,153,.35)}
+
+/*══════ TIME RIVER — The flowing minutes view ══════*/
+.river-wrap{margin-bottom:14px}
+.river-header{
+  display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;
+}
+.river-title{
+  font-family:var(--font-display);font-style:italic;font-size:18px;
+  color:var(--t-100);letter-spacing:-.3px;
+}
+.river-title .small{font-family:var(--font-hindi);font-style:normal;font-size:11px;color:var(--t-400);font-weight:600;display:block;margin-top:1px;letter-spacing:0}
+.river-modes{display:flex;gap:2px;background:var(--ink-2);border:1px solid var(--bd-1);border-radius:9px;padding:2px}
+.rm-btn{
+  padding:5px 9px;font-size:10px;font-weight:700;color:var(--t-400);
+  border-radius:7px;font-family:var(--font-hindi);transition:all .15s;
+}
+.rm-btn.active{background:var(--ink-4);color:var(--t-100)}
+
+.river{
+  background:var(--ink-1);border:1px solid var(--bd-1);
+  border-radius:18px;overflow:hidden;position:relative;
+}
+
+/* The vertical river of 5-minute blocks */
+.river-track{position:relative;padding:0}
+
+/* 5-minute slot — past / now / future */
+.slot{
+  display:flex;align-items:stretch;
+  min-height:54px;
+  border-bottom:1px solid var(--bd-1);
+  position:relative;
+  transition:background .2s ease;
+}
+.slot:last-child{border-bottom:none}
+
+.slot-time{
+  width:62px;flex-shrink:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  border-right:1px solid var(--bd-1);
+  padding:6px 4px;background:rgba(0,0,0,.15);
+  position:relative;
+}
+.slot-time .hr{font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--t-300);letter-spacing:-.3px;font-variant-numeric:tabular-nums}
+.slot-time .min{font-family:var(--font-mono);font-size:10px;color:var(--t-500);font-weight:600;letter-spacing:.5px}
+.slot-time .ampm{font-size:7.5px;color:var(--t-500);font-weight:800;letter-spacing:.8px;text-transform:uppercase;margin-top:1px}
+
+.slot-content{flex:1;padding:7px 10px;display:flex;flex-direction:column;justify-content:center;gap:4px;min-width:0}
+
+/* Past slot — gentle, reflective */
+.slot.past .slot-time{background:rgba(0,0,0,.25)}
+.slot.past .slot-time .hr{color:var(--t-500)}
+.slot.past:not(.has-entry):hover .slot-content{background:rgba(255,255,255,.015)}
+
+/* The "what did you do?" prompt for past empty slots */
+.slot.past:not(.has-entry) .slot-content{cursor:pointer}
+.slot-reflect{
+  font-size:10px;color:var(--t-500);font-style:italic;
+  font-family:var(--font-display);letter-spacing:.1px;
+  display:flex;align-items:center;gap:6px;
+  opacity:.7;
+}
+.slot-reflect-btn{
+  font-family:var(--font-hindi);font-style:normal;font-size:9.5px;
+  color:var(--gold);font-weight:700;
+  padding:2px 8px;border-radius:99px;
+  background:var(--gold-amber);border:1px solid var(--bd-gold);
+  margin-left:auto;
+}
+
+/* NOW slot — the heartbeat */
+.slot.now{
+  background:linear-gradient(90deg,rgba(245,178,64,.06),transparent 60%);
+}
+.slot.now .slot-time{background:var(--gold-amber)}
+.slot.now .slot-time .hr{color:var(--gold)}
+.slot.now .slot-time .min{color:var(--gold-soft)}
+.slot.now::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:linear-gradient(180deg,var(--gold-soft),var(--gold));
+  box-shadow:0 0 12px var(--gold-glow);
+}
+.slot.now .now-pulse{
+  position:absolute;left:62px;right:0;top:50%;height:1px;
+  background:linear-gradient(90deg,var(--gold),transparent);
+  transform:translateY(-50%);
+}
+
+/* Future slot — slightly muted, planning mode */
+.slot.future .slot-time .hr{color:var(--t-400)}
+
+/* Slot with entry (logged work) */
+.slot-entry{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 9px;border-radius:9px;
+  background:rgba(255,255,255,.025);
+  border:1px solid var(--bd-1);
+  border-left:3px solid var(--sky);
+  font-family:var(--font-hindi);
+}
+.slot-entry.done{border-left-color:var(--emerald);background:var(--emerald-soft);opacity:.95}
+.slot-entry.gold{border-left-color:var(--gold)}
+.slot-entry.violet{border-left-color:var(--violet)}
+.slot-entry.rose{border-left-color:var(--rose)}
+.slot-entry-name{flex:1;font-size:11.5px;font-weight:600;color:var(--t-100);min-width:0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3}
+.slot-entry.done .slot-entry-name{text-decoration:line-through;text-decoration-color:rgba(52,211,153,.6);opacity:.7}
+.slot-entry-dur{font-family:var(--font-mono);font-size:9px;font-weight:700;color:var(--t-400);background:rgba(0,0,0,.25);padding:2px 6px;border-radius:99px;flex-shrink:0;letter-spacing:.3px}
+.slot-entry-chk{
+  width:18px;height:18px;border-radius:50%;
+  border:1.5px solid currentColor;color:var(--sky);
+  display:grid;place-items:center;font-size:10px;font-weight:900;
+  flex-shrink:0;flex-basis:18px;
+}
+.slot-entry.done .slot-entry-chk{background:var(--emerald);color:#06241a;border-color:var(--emerald)}
+.slot-entry-pers{font-size:11px;flex-shrink:0}
+
+/* Tiny check-in stamp */
+.checkin-stamp{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:9px;font-family:var(--font-mono);color:var(--gold);
+  padding:1px 6px;border-radius:99px;background:var(--gold-amber);
+  margin-left:6px;
+}
+
+/* Empty future slot ghost — soft "plan" affordance */
+.slot.future:not(.has-entry) .slot-content{cursor:pointer}
+.slot-plan-ghost{
+  font-size:10px;color:var(--t-500);font-family:var(--font-hindi);font-weight:500;
+  display:flex;align-items:center;gap:6px;opacity:0;transition:opacity .2s;
+  padding:4px 9px;border-radius:8px;
+  border:1px dashed var(--bd-2);
+  align-self:flex-start;
+}
+.slot.future:hover .slot-plan-ghost,
+.slot.future.adj-now .slot-plan-ghost{opacity:.85}
+.slot-plan-ghost .plus{color:var(--gold);font-weight:800}
+
+/*══════ HEAT STRIP — 24 hour density ══════*/
+.heat-strip-wrap{margin-bottom:14px}
+.heat-strip{
+  display:grid;grid-template-columns:repeat(24,1fr);gap:2px;
+  background:var(--ink-1);border:1px solid var(--bd-1);
+  border-radius:14px;padding:11px;
+}
+.heat-cell{
+  aspect-ratio:1/2;border-radius:3px;
+  background:var(--ink-3);position:relative;
+  transition:transform .15s ease;
+  cursor:pointer;
+}
+.heat-cell:active{transform:scale(.85)}
+.heat-cell.has-1{background:rgba(245,178,64,.25)}
+.heat-cell.has-2{background:rgba(245,178,64,.5)}
+.heat-cell.has-3{background:var(--gold)}
+.heat-cell.done{background:var(--emerald)}
+.heat-cell.partial{background:linear-gradient(180deg,var(--emerald) var(--p,50%),var(--gold) var(--p,50%))}
+.heat-cell.now{outline:2px solid var(--gold);outline-offset:1px}
+.heat-labels{display:flex;justify-content:space-between;margin-top:6px;padding:0 2px;font-family:var(--font-mono);font-size:8px;color:var(--t-500);font-weight:600}
+.heat-legend{display:flex;gap:10px;font-size:8.5px;color:var(--t-400);font-weight:600;margin-top:8px;justify-content:center;flex-wrap:wrap;font-family:var(--font-hindi)}
+.heat-legend .lg{display:flex;align-items:center;gap:4px}
+.heat-legend .sq{width:9px;height:9px;border-radius:2px}
+
+/*══════ HOUR GRID — Day overview, premium reimagining ══════*/
+.section-title{
+  display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;
+  font-family:var(--font-display);font-style:italic;font-size:18px;color:var(--t-100);
+  letter-spacing:-.3px;
+}
+.section-title .sub{
+  font-family:var(--font-hindi);font-style:normal;font-size:10px;color:var(--t-400);
+  font-weight:600;letter-spacing:0;
+}
+
+.hour-grid{
+  display:grid;grid-template-columns:repeat(6,1fr);gap:6px;
+  margin-bottom:14px;
+}
+.hg-cell{
+  aspect-ratio:1;border-radius:12px;
+  background:linear-gradient(135deg,var(--ink-2),var(--ink-1));
+  border:1px solid var(--bd-1);
+  padding:7px 5px 6px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;
+  position:relative;overflow:hidden;cursor:pointer;
+  transition:transform .15s ease,border-color .2s ease;
+}
+.hg-cell:active{transform:scale(.94)}
+.hg-cell.has{border-color:var(--bd-2)}
+.hg-cell.now{
+  border-color:var(--gold);
+  background:linear-gradient(135deg,rgba(245,178,64,.08),rgba(245,178,64,.02));
+  box-shadow:0 0 0 1px var(--bd-gold-2) inset, 0 6px 18px rgba(0,0,0,.3);
+}
+.hg-cell.done{border-color:rgba(52,211,153,.45);background:linear-gradient(135deg,rgba(52,211,153,.10),rgba(52,211,153,.02))}
+.hg-cell.past{opacity:.55}
+.hg-cell.past.has{opacity:1}
+.hg-num{
+  font-family:var(--font-mono);font-size:18px;font-weight:700;line-height:1;
+  letter-spacing:-.5px;color:var(--t-200);
+}
+.hg-cell.now .hg-num{color:var(--gold)}
+.hg-cell.done .hg-num{color:var(--emerald)}
+.hg-ap{font-size:7px;font-family:var(--font-mono);font-weight:700;color:var(--t-500);letter-spacing:.6px;margin-top:1px}
+.hg-dots{display:flex;gap:2px;margin-top:auto;height:4px;align-items:flex-end}
+.hg-dots .d{width:4px;height:4px;border-radius:50%;background:var(--sky)}
+.hg-dots .d.done{background:var(--emerald)}
+.hg-dots .d.now{background:var(--gold);box-shadow:0 0 5px var(--gold)}
+.hg-now-mark{
+  position:absolute;top:5px;right:5px;
+  width:6px;height:6px;border-radius:50%;background:var(--gold);
+  box-shadow:0 0 8px var(--gold);animation:livePulse 1.5s infinite;
+}
+
+/*══════ DAILY RITUALS — Sunsama-inspired ══════*/
+.ritual-wrap{
+  background:linear-gradient(180deg,rgba(167,139,250,.06),rgba(167,139,250,.01));
+  border:1px solid rgba(167,139,250,.18);
+  border-radius:16px;padding:13px;margin-bottom:14px;
+  position:relative;overflow:hidden;
+}
+.ritual-wrap::before{
+  content:'';position:absolute;top:-30%;right:-20%;width:60%;height:160%;
+  background:radial-gradient(circle,rgba(167,139,250,.10),transparent 60%);
+  pointer-events:none;
+}
+.ritual-header{display:flex;align-items:center;gap:9px;margin-bottom:10px;position:relative}
+.ritual-icon{
+  width:32px;height:32px;border-radius:9px;
+  background:var(--violet-soft);border:1px solid rgba(167,139,250,.3);
+  display:grid;place-items:center;font-size:15px;
+}
+.ritual-title{font-family:var(--font-display);font-style:italic;font-size:16px;color:var(--t-100);letter-spacing:-.2px}
+.ritual-title .sub{display:block;font-family:var(--font-hindi);font-style:normal;font-size:9.5px;color:var(--t-400);font-weight:600;letter-spacing:0;margin-top:1px}
+.ritual-prompt{
+  font-size:11.5px;font-family:var(--font-hindi);color:var(--t-300);
+  line-height:1.55;margin-bottom:11px;font-weight:500;position:relative;
+}
+.ritual-input{
+  width:100%;background:rgba(0,0,0,.3);border:1px solid var(--bd-2);
+  border-radius:10px;padding:10px 12px;
+  font-size:12px;font-family:var(--font-hindi);font-weight:500;
+  color:var(--t-100);min-height:60px;resize:none;
+  transition:border-color .2s ease;position:relative;
+}
+.ritual-input:focus{border-color:rgba(167,139,250,.5);box-shadow:0 0 0 3px rgba(167,139,250,.10)}
+.ritual-input::placeholder{color:var(--t-500);font-style:italic}
+.ritual-btn-row{display:flex;gap:7px;margin-top:9px;position:relative}
+.ritual-btn{
+  flex:1;padding:9px 10px;border-radius:9px;
+  font-size:11px;font-weight:700;font-family:var(--font-hindi);
+  border:1px solid;display:flex;align-items:center;justify-content:center;gap:5px;
+  transition:transform .12s ease;
+}
+.ritual-btn:active{transform:scale(.97)}
+.ritual-btn.save{background:linear-gradient(135deg,var(--violet),#8b5cf6);color:#fff;border-color:var(--violet);box-shadow:0 4px 14px rgba(167,139,250,.3)}
+.ritual-btn.skip{background:rgba(255,255,255,.03);color:var(--t-400);border-color:var(--bd-2)}
+
+/*══════ MOMENTUM CARD — gamified streak feedback ══════*/
+.momentum{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;
+}
+.mom-card{
+  background:linear-gradient(135deg,var(--ink-2),var(--ink-1));
+  border:1px solid var(--bd-1);border-radius:14px;padding:12px;
+  position:relative;overflow:hidden;
+}
+.mom-card.fire::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at 80% 20%,rgba(244,114,182,.10),transparent 60%);
+}
+.mom-card.gold::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at 20% 80%,rgba(245,178,64,.10),transparent 60%);
+}
+.mom-icon{font-size:22px;margin-bottom:6px;position:relative}
+.mom-val{
+  font-family:var(--font-mono);font-size:26px;font-weight:700;
+  line-height:1;letter-spacing:-1px;position:relative;
+}
+.mom-card.fire .mom-val{color:var(--rose)}
+.mom-card.gold .mom-val{color:var(--gold)}
+.mom-label{font-size:10px;color:var(--t-400);font-weight:600;margin-top:4px;position:relative;font-family:var(--font-hindi)}
+.mom-trend{position:absolute;top:10px;right:10px;font-size:9px;font-family:var(--font-mono);font-weight:700}
+.mom-trend.up{color:var(--emerald)}
+.mom-trend.down{color:var(--ruby)}
+
+/*══════ TEAM CIRCLE — who's on what right now ══════*/
+.team-circle{
+  background:var(--ink-1);border:1px solid var(--bd-1);
+  border-radius:16px;padding:13px;margin-bottom:14px;
+}
+.tc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
+.tc-title{font-family:var(--font-display);font-style:italic;font-size:16px;color:var(--t-100);letter-spacing:-.2px}
+.tc-title .sub{display:block;font-family:var(--font-hindi);font-style:normal;font-size:9.5px;color:var(--t-400);font-weight:600;margin-top:1px}
+.tc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}
+.tc-person{
+  display:flex;align-items:center;gap:9px;
+  padding:9px 10px;border-radius:11px;
+  background:rgba(255,255,255,.02);border:1px solid var(--bd-1);
+  transition:transform .15s ease;
+}
+.tc-person:active{transform:scale(.97)}
+.tc-av{
+  width:30px;height:30px;border-radius:9px;flex-shrink:0;
+  display:grid;place-items:center;font-size:14px;
+  position:relative;
+}
+.tc-av::after{
+  content:'';position:absolute;bottom:-1px;right:-1px;
+  width:9px;height:9px;border-radius:50%;
+  border:2px solid var(--ink-1);
+}
+.tc-av.busy::after{background:var(--gold);box-shadow:0 0 6px var(--gold)}
+.tc-av.free::after{background:var(--emerald)}
+.tc-av.off::after{background:var(--t-500)}
+.tc-info{flex:1;min-width:0}
+.tc-name{font-size:11.5px;font-weight:700;color:var(--t-100);font-family:var(--font-hindi);line-height:1.2}
+.tc-status{font-size:9px;color:var(--t-400);font-weight:600;margin-top:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--font-hindi)}
+.tc-count{
+  font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--gold);
+  padding:2px 7px;border-radius:99px;background:var(--gold-amber);flex-shrink:0;
+}
+
+/*══════ FAB — float action ══════*/
+.fab{
+  position:fixed;bottom:88px;right:18px;z-index:80;
+  width:58px;height:58px;border-radius:50%;
+  background:radial-gradient(circle at 30% 25%,var(--gold-soft),var(--gold-deep));
+  display:grid;place-items:center;font-size:24px;color:#1a1305;font-weight:300;
+  box-shadow:
+    0 10px 28px rgba(245,178,64,.45),
+    0 4px 12px rgba(0,0,0,.35),
+    inset 0 2px 0 rgba(255,255,255,.35);
+  transition:transform .15s ease;
+}
+.fab:active{transform:scale(.92)}
+
+/*══════ BOTTOM NAV ══════*/
+.bnav{
+  position:fixed;bottom:0;left:0;right:0;z-index:85;
+  background:rgba(6,6,10,.96);backdrop-filter:blur(20px) saturate(150%);
+  border-top:1px solid var(--bd-1);
+  display:grid;grid-template-columns:repeat(5,1fr);
+  padding:6px 4px calc(6px + env(safe-area-inset-bottom));
+}
+.bni{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding:8px 2px 6px;border-radius:10px;
+  color:var(--t-400);transition:color .15s;
+}
+.bni .ic{font-size:18px;transition:transform .15s,filter .15s}
+.bni .lb{font-size:9px;font-weight:700;font-family:var(--font-hindi);letter-spacing:.2px}
+.bni.active{color:var(--gold)}
+.bni.active .ic{transform:translateY(-2px);filter:drop-shadow(0 0 8px var(--gold-glow))}
+
+/*══════ MODAL — Bottom sheet ══════*/
+.sheet-ovl{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,.65);backdrop-filter:blur(8px);
+  opacity:0;pointer-events:none;transition:opacity .25s;
+  display:flex;align-items:flex-end;justify-content:center;
+}
+.sheet-ovl.open{opacity:1;pointer-events:all}
+.sheet{
+  width:100%;max-width:520px;
+  background:var(--ink-1);
+  border:1px solid var(--bd-2);
+  border-radius:24px 24px 0 0;
+  max-height:90vh;display:flex;flex-direction:column;
+  transform:translateY(100%);transition:transform .35s cubic-bezier(.32,.72,0,1);
+  overflow:hidden;
+}
+.sheet-ovl.open .sheet{transform:none}
+.sheet-handle{width:42px;height:4px;background:var(--ink-5);border-radius:99px;margin:10px auto 6px;flex-shrink:0}
+.sheet-header{padding:8px 18px 14px;border-bottom:1px solid var(--bd-1);flex-shrink:0}
+.sheet-title{font-family:var(--font-display);font-style:italic;font-size:22px;color:var(--t-100);letter-spacing:-.3px}
+.sheet-title .sub{display:block;font-family:var(--font-hindi);font-style:normal;font-size:11px;color:var(--t-400);font-weight:600;margin-top:2px}
+.sheet-body{padding:14px 18px 24px;overflow-y:auto;flex:1}
+
+.field{margin-bottom:13px}
+.field label{display:block;font-size:9.5px;font-weight:800;color:var(--t-400);letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px;font-family:var(--font-sans)}
+.field input[type="text"],.field input[type="date"],.field input[type="time"],.field input[type="number"],.field textarea,.field select{
+  width:100%;padding:11px 13px;border-radius:11px;
+  background:var(--ink-2);border:1px solid var(--bd-2);
+  font-size:13px;font-family:var(--font-hindi);font-weight:500;
+  color:var(--t-100);transition:all .18s ease;
+}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-amber)}
+.field textarea{resize:none;min-height:70px;font-family:var(--font-hindi)}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+
+.pers-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.pers-pill{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:9px 4px;border-radius:11px;
+  background:var(--ink-2);border:1.5px solid var(--bd-2);
+  transition:all .18s ease;
+}
+.pers-pill .em{font-size:18px}
+.pers-pill .nm{font-size:9.5px;font-weight:700;font-family:var(--font-hindi);color:var(--t-300)}
+.pers-pill.on{background:var(--gold-amber);border-color:var(--gold);}
+.pers-pill.on .nm{color:var(--gold)}
+
+.prio-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.prio-pill{
+  padding:9px 6px;border-radius:11px;
+  background:var(--ink-2);border:1.5px solid var(--bd-2);
+  font-size:11px;font-weight:700;font-family:var(--font-hindi);
+  color:var(--t-300);display:flex;align-items:center;justify-content:center;gap:5px;
+  transition:all .18s ease;
+}
+.prio-pill.on[data-p="high"]{background:var(--ruby-soft);border-color:var(--ruby);color:var(--ruby)}
+.prio-pill.on[data-p="med"]{background:var(--gold-amber);border-color:var(--gold);color:var(--gold)}
+.prio-pill.on[data-p="low"]{background:var(--emerald-soft);border-color:var(--emerald);color:var(--emerald)}
+
+.sheet-submit{
+  width:100%;padding:14px;border-radius:13px;
+  background:linear-gradient(135deg,var(--gold-soft),var(--gold-deep));
+  color:#1a1305;font-size:13.5px;font-weight:800;font-family:var(--font-hindi);
+  box-shadow:0 6px 20px rgba(245,178,64,.35),inset 0 1px 0 rgba(255,255,255,.3);
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  margin-top:6px;
+  transition:transform .15s ease;
+}
+.sheet-submit:active{transform:scale(.97)}
+
+/*══════ HOUR DETAIL — 60 minute deep view ══════*/
+.hd-body{padding:14px 16px 24px}
+.hd-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px}
+.hd-stat{
+  background:var(--ink-2);border:1px solid var(--bd-1);
+  border-radius:10px;padding:8px 4px;text-align:center;
+}
+.hd-stat-v{font-family:var(--font-mono);font-size:14px;font-weight:700;line-height:1}
+.hd-stat-l{font-size:8px;color:var(--t-400);font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin-top:3px;font-family:var(--font-sans)}
+.hd-stat.done .hd-stat-v{color:var(--emerald)}
+.hd-stat.free .hd-stat-v{color:var(--sky)}
+.hd-stat.busy .hd-stat-v{color:var(--gold)}
+
+/* 60-min strip — premium minute-level view */
+.min60{position:relative;background:var(--ink-2);border:1px solid var(--bd-1);border-radius:14px;overflow:hidden}
+.min60-row{display:flex;align-items:center;height:18px;border-bottom:1px solid var(--bd-1);position:relative;padding-left:50px}
+.min60-row.m5{border-bottom-color:rgba(255,255,255,.05)}
+.min60-row.m15{background:rgba(255,255,255,.012)}
+.min60-row.m30{background:rgba(255,255,255,.025)}
+.min60-row:last-child{border-bottom:none}
+.min60-row .lbl{
+  position:absolute;left:0;top:0;bottom:0;width:46px;
+  display:flex;align-items:center;justify-content:flex-end;padding-right:6px;
+  font-family:var(--font-mono);font-size:9.5px;font-weight:700;color:var(--t-500);
+  font-variant-numeric:tabular-nums;letter-spacing:-.2px;
+  border-right:1px solid var(--bd-1);background:var(--ink-2);
+}
+.min60-row.m0 .lbl{color:var(--gold);font-weight:800}
+.min60-row.m15 .lbl,.min60-row.m30 .lbl{color:var(--t-400)}
+
+.min-task{
+  position:absolute;left:54px;right:8px;
+  background:var(--sky-soft);border:1px solid var(--sky);border-left-width:3px;
+  border-radius:8px;padding:5px 9px;
+  display:flex;align-items:center;gap:7px;
+  font-family:var(--font-hindi);
+  z-index:5;cursor:pointer;
+  transition:transform .12s ease;
+  box-shadow:0 3px 10px rgba(0,0,0,.3);
+}
+.min-task:active{transform:scale(.98)}
+.min-task.done{background:var(--emerald-soft);border-color:var(--emerald);opacity:.92}
+.min-task.done .name{text-decoration:line-through;opacity:.7}
+.min-task.gold{background:var(--gold-amber);border-color:var(--gold)}
+.min-task.violet{background:var(--violet-soft);border-color:var(--violet)}
+.min-task.rose{background:var(--rose-soft);border-color:var(--rose)}
+.min-task .chk{
+  width:15px;height:15px;border-radius:50%;border:1.5px solid currentColor;
+  display:grid;place-items:center;font-size:9px;font-weight:900;color:transparent;
+  flex-shrink:0;
+}
+.min-task.done .chk{background:var(--emerald);color:#06241a;border-color:var(--emerald)}
+.min-task .name{flex:1;font-size:11px;font-weight:700;color:var(--t-100);min-width:0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25}
+.min-task .dur{font-family:var(--font-mono);font-size:9px;font-weight:700;color:var(--t-200);background:rgba(0,0,0,.3);padding:1px 6px;border-radius:99px;flex-shrink:0}
+
+/* Now line on 60-min */
+.min60-now{
+  position:absolute;left:54px;right:0;height:2px;
+  background:var(--gold);box-shadow:0 0 8px var(--gold-glow);
+  z-index:8;pointer-events:none;
+}
+.min60-now::before{
+  content:'';position:absolute;left:-5px;top:-3px;width:8px;height:8px;border-radius:50%;
+  background:var(--gold);box-shadow:0 0 8px var(--gold);
+}
+.min60-now::after{
+  content:'अभी';position:absolute;right:6px;top:-9px;
+  background:var(--gold);color:#1a1305;font-size:8.5px;font-weight:900;
+  padding:2px 7px;border-radius:99px;letter-spacing:.5px;font-family:var(--font-hindi);
+}
+
+/*══════ TOAST ══════*/
+.toast{
+  position:fixed;bottom:108px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--ink-3);color:var(--t-100);
+  border:1px solid var(--bd-2);
+  padding:11px 18px;border-radius:13px;
+  font-size:12px;font-weight:700;font-family:var(--font-hindi);
+  box-shadow:0 12px 32px rgba(0,0,0,.5);
+  opacity:0;pointer-events:none;
+  transition:opacity .25s ease,transform .25s ease;
+  z-index:300;
+}
+.toast.show{opacity:1;transform:translateX(-50%)}
+
+/* Login screen */
+.login{
+  position:fixed;inset:0;z-index:500;
+  background:radial-gradient(ellipse at top,rgba(245,178,64,.06),transparent 60%),var(--ink-0);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;
+}
+.login.hidden{display:none}
+.login-mark{width:72px;height:72px;border-radius:20px;background:radial-gradient(circle at 30% 25%,var(--gold-soft),var(--gold-deep));display:grid;place-items:center;font-size:36px;box-shadow:0 8px 32px rgba(245,178,64,.4);margin-bottom:20px}
+.login-h{font-family:var(--font-display);font-style:italic;font-size:30px;color:var(--t-100);letter-spacing:-.5px;margin-bottom:4px;text-align:center}
+.login-h .accent{font-style:normal;font-family:var(--font-hindi);color:var(--gold);font-weight:700;font-size:22px}
+.login-sub{font-size:11px;color:var(--t-400);font-weight:600;margin-bottom:30px;font-family:var(--font-hindi);text-align:center}
+.login-card{background:var(--ink-1);border:1px solid var(--bd-2);border-radius:18px;padding:20px;width:100%;max-width:360px}
+.user-chip{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;border-radius:11px;
+  background:var(--ink-2);border:1.5px solid var(--bd-2);
+  margin-bottom:7px;cursor:pointer;transition:all .18s;
+}
+.user-chip:active,.user-chip:hover{border-color:var(--gold);background:var(--gold-amber)}
+.uc-em{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:17px;flex-shrink:0}
+.uc-name{font-family:var(--font-hindi);font-size:13px;font-weight:700;color:var(--t-100)}
+.uc-role{font-size:9.5px;color:var(--t-400);font-weight:600;font-family:var(--font-hindi)}
+.uc-mail{font-size:9.5px;color:var(--t-500);font-weight:600;font-family:var(--font-mono);margin-left:auto}
+.login-or{display:flex;align-items:center;gap:8px;margin:12px 0;font-size:9px;color:var(--t-500);font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.login-or::before,.login-or::after{content:'';flex:1;height:1px;background:var(--bd-2)}
+.login-submit{
+  width:100%;padding:13px;border-radius:12px;margin-top:6px;
+  background:linear-gradient(135deg,var(--gold-soft),var(--gold-deep));color:#1a1305;
+  font-size:13px;font-weight:800;font-family:var(--font-hindi);
+  box-shadow:0 6px 20px rgba(245,178,64,.3);
+}
+.login-err{font-size:10px;color:var(--ruby);font-weight:700;text-align:center;margin-top:10px;min-height:14px;font-family:var(--font-hindi)}
+
+/* Empty state */
+.empty{padding:40px 20px;text-align:center}
+.empty .ico{font-size:42px;opacity:.4;margin-bottom:10px}
+.empty .txt{font-size:12px;color:var(--t-400);font-family:var(--font-hindi);font-weight:600;line-height:1.5}
+
+/* Hidden by default */
+.hidden{display:none !important}
+
+/* Spinner */
+.spin{width:30px;height:30px;border:3px solid var(--ink-3);border-top-color:var(--gold);border-radius:50%;animation:rot .7s linear infinite;margin:30px auto}
+@keyframes rot{to{transform:rotate(360deg)}}
+
+</style>
+</head>
+<body>
+
+<!-- ═════════════ LOGIN SCREEN ═════════════ -->
+<div class="login" id="loginScreen">
+  <div class="login-mark">⏳</div>
+  <div class="login-h"><em>हर मिनट</em> <span class="accent">कीमती</span></div>
+  <div class="login-sub">VBE • समय का दर्पण</div>
+  <div class="login-card">
+    <div id="userChips"></div>
+    <div class="login-or">या email से</div>
+    <div class="field"><label>Email</label><input type="email" id="loginEmail" placeholder="you@vbe.in"></div>
+    <div class="field"><label>Password</label><input type="password" id="loginPass" placeholder="••••••••"></div>
+    <button class="login-submit" onclick="doLogin()">प्रवेश करें</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- ═════════════ MAIN APP ═════════════ -->
+<div id="app" class="hidden">
+
+  <!-- HEADER -->
+  <header class="hdr">
+    <div class="hdr-row1">
+      <div class="brand-wrap">
+        <div class="brand-mark">⏳</div>
+        <div class="brand-text">
+          <h1><em>VBE</em> <span class="accent">समय दर्पण</span></h1>
+          <div class="tagline" id="dayLabel">सोमवार · 11 मई</div>
+        </div>
+      </div>
+      <div class="clock-wrap">
+        <div class="clock-now" id="clockNow">09:37<span class="sec">:28</span></div>
+        <div class="clock-meta"><span class="live-dot"></span><span id="liveStatus">LIVE</span></div>
+      </div>
+    </div>
+
+    <!-- DAY PULSE -->
+    <div class="day-pulse">
+      <div class="dp-ring">
+        <svg viewBox="0 0 40 40">
+          <defs>
+            <linearGradient id="dpGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#ffc870"/>
+              <stop offset="100%" stop-color="#c88515"/>
+            </linearGradient>
+          </defs>
+          <circle class="bg" cx="20" cy="20" r="16"/>
+          <circle class="fg" id="dpFg" cx="20" cy="20" r="16" stroke-dasharray="100.5" stroke-dashoffset="60"/>
+        </svg>
+        <div class="dp-pct" id="dpPct">40%</div>
+      </div>
+      <div class="dp-text">
+        <div class="dp-headline" id="dpHeadline">दिन का <span class="strong">40%</span> बीत चुका</div>
+        <div class="dp-sub" id="dpSub">14 घंटे 23 मिनट बाकी • अभी सुबह का सुनहरा वक्त</div>
+      </div>
+    </div>
+
+    <!-- METRIC ROW -->
+    <div class="metric-row">
+      <div class="mtr live"><div class="mtr-v" id="mLive">1</div><div class="mtr-l">अभी</div></div>
+      <div class="mtr done"><div class="mtr-v" id="mDone">0</div><div class="mtr-l">पूरे</div></div>
+      <div class="mtr pend"><div class="mtr-v" id="mPend">8</div><div class="mtr-l">बाकी</div></div>
+      <div class="mtr streak"><div class="mtr-v" id="mStreak">3🔥</div><div class="mtr-l">दिन</div></div>
+    </div>
+
+    <!-- NAV TABS -->
+    <nav class="nav">
+      <button class="nav-tab active" data-page="now" onclick="goTo('now')"><span class="ic">🪞</span><span>अभी</span></button>
+      <button class="nav-tab" data-page="day" onclick="goTo('day')"><span class="ic">📅</span><span>दिन</span></button>
+      <button class="nav-tab" data-page="team" onclick="goTo('team')"><span class="ic">👥</span><span>टीम</span></button>
+      <button class="nav-tab" data-page="report" onclick="goTo('report')"><span class="ic">📊</span><span>रिपोर्ट</span></button>
+      <button class="nav-tab" data-page="elon" onclick="goTo('elon')"><span class="ic">🚀</span><span>Elon</span></button>
+    </nav>
+  </header>
+
+  <!-- CONTENT -->
+  <main class="content">
+
+    <!-- ═════ PAGE: NOW (THE MIRROR) ═════ -->
+    <section class="page active" id="p-now">
+
+      <!-- THE NOW STAGE — current minute spotlight -->
+      <div class="now-stage">
+        <div class="ns-header">
+          <div class="ns-label">अभी इस पल</div>
+          <div class="ns-minute-wrap">
+            <div class="ns-minute" id="nsMinute">09:37</div>
+            <div class="ns-minute-sub" id="nsMinSub">सोमवार सुबह</div>
+          </div>
+        </div>
+        <div class="ns-question" id="nsQuestion"><em>आप</em> <span class="gold">क्या</span> <em>कर रहे हैं?</em></div>
+        <div class="ns-prompt" id="nsPrompt">हर मिनट का अपना मान है। एक टैप में दर्ज करें कि आप अभी क्या कर रहे हैं — बाद में पता चलेगा कि दिन कहाँ गया।</div>
+
+        <div id="currentTaskBox">
+          <!-- Filled by JS — either current task or no-current state -->
+        </div>
+
+        <div class="quick-log">
+          <button class="ql-btn primary" onclick="openLogNow()">
+            <span class="ic">⚡</span><span>अभी का काम दर्ज करें</span>
+          </button>
+          <button class="ql-btn secondary" onclick="openCheckin()">
+            <span class="ic">✏️</span><span>Check-in</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- TIME RIVER — flowing minutes view -->
+      <div class="river-wrap">
+        <div class="river-header">
+          <div class="river-title">
+            <em>समय की धारा</em>
+            <span class="small">पीछे क्या किया • आगे क्या करोगे</span>
+          </div>
+          <div class="river-modes">
+            <button class="rm-btn active" data-mode="5">5 मिनट</button>
+            <button class="rm-btn" data-mode="15">15 मिनट</button>
+          </div>
+        </div>
+        <div class="river">
+          <div class="river-track" id="riverTrack">
+            <!-- Filled by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- HEAT STRIP — 24 hour density at a glance -->
+      <div class="heat-strip-wrap">
+        <div class="section-title">
+          <span><em>24 घंटे एक नज़र में</em></span>
+          <span class="sub">tap किसी घंटे पर</span>
+        </div>
+        <div class="heat-strip" id="heatStrip"></div>
+        <div class="heat-labels">
+          <span>12A</span><span>6A</span><span>12P</span><span>6P</span><span>11P</span>
+        </div>
+        <div class="heat-legend">
+          <span class="lg"><span class="sq" style="background:var(--ink-3)"></span>खाली</span>
+          <span class="lg"><span class="sq" style="background:rgba(245,178,64,.5)"></span>योजना</span>
+          <span class="lg"><span class="sq" style="background:var(--gold)"></span>भरा</span>
+          <span class="lg"><span class="sq" style="background:var(--emerald)"></span>पूरा</span>
+        </div>
+      </div>
+
+      <!-- DAILY RITUAL — Sunsama style prompt -->
+      <div class="ritual-wrap" id="ritualMorning">
+        <div class="ritual-header">
+          <div class="ritual-icon">🌅</div>
+          <div class="ritual-title"><em>सुबह की संकल्प</em><span class="sub">आज सबसे जरूरी 3 काम</span></div>
+        </div>
+        <div class="ritual-prompt">
+          एलन मस्क हर सुबह तय करते हैं कि <strong style="color:var(--gold)">सिर्फ 3 काम</strong> अगर पूरे हो जाएं — दिन सफल। आज के लिए लिखें:
+        </div>
+        <textarea class="ritual-input" id="ritualInput" placeholder="1. GeM बोली ASW जलीपा से पहले&#10;2. Vivek को 50K का transfer&#10;3. नया staff को training"></textarea>
+        <div class="ritual-btn-row">
+          <button class="ritual-btn save" onclick="saveRitual('morning')"><span>✓</span><span>संकल्प पक्का</span></button>
+          <button class="ritual-btn skip" onclick="skipRitual('morning')"><span>बाद में</span></button>
+        </div>
+      </div>
+
+      <!-- MOMENTUM CARDS -->
+      <div class="momentum">
+        <div class="mom-card fire">
+          <div class="mom-icon">🔥</div>
+          <div class="mom-val" id="momStreak">3</div>
+          <div class="mom-label">दिन लगातार</div>
+          <div class="mom-trend up">↑ अच्छा</div>
+        </div>
+        <div class="mom-card gold">
+          <div class="mom-icon">⚡</div>
+          <div class="mom-val" id="momMinutes">147</div>
+          <div class="mom-label">मिनट दर्ज</div>
+          <div class="mom-trend up">↑ 24%</div>
+        </div>
+      </div>
+
+      <!-- TEAM CIRCLE -->
+      <div class="team-circle">
+        <div class="tc-header">
+          <div class="tc-title"><em>टीम — अभी कौन क्या कर रहा</em><span class="sub">live</span></div>
+        </div>
+        <div class="tc-grid" id="teamGrid"></div>
+      </div>
+
+    </section>
+
+    <!-- ═════ PAGE: DAY ═════ -->
+    <section class="page" id="p-day">
+      <div class="section-title">
+        <span><em>आज के 24 घंटे</em></span>
+        <span class="sub">tap किसी घंटे पर — हर मिनट देखें</span>
+      </div>
+      <div class="hour-grid" id="hourGrid"></div>
+
+      <div class="section-title" style="margin-top:18px">
+        <span><em>आज के सब काम</em></span>
+        <span class="sub" id="dayCount">8 कुल</span>
+      </div>
+      <div id="dayList"></div>
+    </section>
+
+    <!-- ═════ PAGE: TEAM ═════ -->
+    <section class="page" id="p-team">
+      <div class="section-title">
+        <span><em>टीम पारदर्शिता</em></span>
+        <span class="sub">हर कोई क्या कर रहा है</span>
+      </div>
+      <div id="teamPage"></div>
+    </section>
+
+    <!-- ═════ PAGE: REPORT ═════ -->
+    <section class="page" id="p-report">
+      <div class="section-title">
+        <span><em>आज का हिसाब</em></span>
+        <span class="sub">मिनट दर मिनट</span>
+      </div>
+      <div id="reportPage"></div>
+    </section>
+
+    <!-- ═════ PAGE: ELON ═════ -->
+    <section class="page" id="p-elon">
+      <div class="section-title">
+        <span><em>Elon विधि</em></span>
+        <span class="sub">5-minute blocks</span>
+      </div>
+      <div id="elonPage"></div>
+    </section>
+
+  </main>
+
+  <!-- FAB -->
+  <button class="fab" onclick="openAddSheet()">+</button>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bnav">
+    <button class="bni active" data-page="now" onclick="goTo('now')"><span class="ic">🪞</span><span class="lb">अभी</span></button>
+    <button class="bni" data-page="day" onclick="goTo('day')"><span class="ic">📅</span><span class="lb">दिन</span></button>
+    <button class="bni" data-page="team" onclick="goTo('team')"><span class="ic">👥</span><span class="lb">टीम</span></button>
+    <button class="bni" data-page="report" onclick="goTo('report')"><span class="ic">📊</span><span class="lb">रिपोर्ट</span></button>
+    <button class="bni" data-page="elon" onclick="goTo('elon')"><span class="ic">🚀</span><span class="lb">Elon</span></button>
+  </nav>
+
+</div><!-- /app -->
+
+<!-- ═════════════ ADD TASK SHEET ═════════════ -->
+<div class="sheet-ovl" id="addSheetOvl" onclick="if(event.target.id==='addSheetOvl')closeAddSheet()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title" id="addSheetTitle"><em>नया काम</em><span class="sub">मिनट दर मिनट दर्ज करें</span></div>
+    </div>
+    <div class="sheet-body">
+      <div class="field">
+        <label>क्या काम?</label>
+        <input type="text" id="fName" placeholder="जैसे: GeM बोली, स्टॉक चेक, Vivek को call…">
+      </div>
+      <div class="field">
+        <label>किसे सौंपें</label>
+        <div class="pers-grid" id="fPers"></div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>तारीख</label>
+          <input type="date" id="fDate">
+        </div>
+        <div class="field">
+          <label>शुरू</label>
+          <input type="time" id="fTime">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>कितने मिनट</label>
+          <input type="number" id="fDur" min="5" max="480" value="30" step="5">
+        </div>
+        <div class="field">
+          <label>श्रेणी</label>
+          <select id="fCat">
+            <option value="gem">📋 GeM बोली</option>
+            <option value="supply">📦 सप्लाई</option>
+            <option value="accounts">💰 हिसाब</option>
+            <option value="canteen">🍽 कैंटीन</option>
+            <option value="field">🏗 फील्ड</option>
+            <option value="personal">👤 व्यक्तिगत</option>
+            <option value="other">📌 अन्य</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>प्राथमिकता</label>
+        <div class="prio-grid" id="fPrio">
+          <button class="prio-pill on" data-p="high" onclick="setPrio('high')">🔴 जरूरी</button>
+          <button class="prio-pill" data-p="med" onclick="setPrio('med')">🟡 सामान्य</button>
+          <button class="prio-pill" data-p="low" onclick="setPrio('low')">🟢 बाद</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>नोट (वैकल्पिक)</label>
+        <textarea id="fNote" placeholder="अतिरिक्त जानकारी…"></textarea>
+      </div>
+      <button class="sheet-submit" onclick="saveTask()"><span>✓</span><span>दर्ज करें</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- ═════════════ HOUR DETAIL SHEET ═════════════ -->
+<div class="sheet-ovl" id="hdOvl" onclick="if(event.target.id==='hdOvl')closeHd()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div class="sheet-title"><em id="hdTitle">09 बजे</em><span class="sub" id="hdSub">9 AM • 1 काम</span></div>
+        <button style="font-size:18px;color:var(--t-300);padding:6px 10px" onclick="closeHd()">✕</button>
+      </div>
+    </div>
+    <div class="hd-body">
+      <div class="hd-stats">
+        <div class="hd-stat busy"><div class="hd-stat-v" id="hdBusy">15</div><div class="hd-stat-l">मि भरे</div></div>
+        <div class="hd-stat free"><div class="hd-stat-v" id="hdFree">45</div><div class="hd-stat-l">मि खाली</div></div>
+        <div class="hd-stat done"><div class="hd-stat-v" id="hdDone">0</div><div class="hd-stat-l">पूरे</div></div>
+        <div class="hd-stat"><div class="hd-stat-v" id="hdTotal">1</div><div class="hd-stat-l">कुल काम</div></div>
+      </div>
+      <div class="min60" id="hdMinStrip"></div>
+      <button class="sheet-submit" style="margin-top:14px" onclick="addTaskInHour()"><span>+</span><span>इस घंटे में नया काम</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- ═════════════ CHECK-IN SHEET ═════════════ -->
+<div class="sheet-ovl" id="ciOvl" onclick="if(event.target.id==='ciOvl')closeCi()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title"><em>Check-in</em><span class="sub" id="ciSub">अभी क्या हुआ?</span></div>
+    </div>
+    <div class="sheet-body">
+      <div class="field">
+        <label>पिछले 5-15 मिनट में क्या किया?</label>
+        <textarea id="ciNote" placeholder="जैसे: Vivek को call की, payment confirm हो गई, अगला step GeM upload" style="min-height:90px"></textarea>
+      </div>
+      <div class="field">
+        <label>किस काम के लिए?</label>
+        <select id="ciTask">
+          <option value="">— कोई specific task नहीं —</option>
+        </select>
+      </div>
+      <button class="sheet-submit" onclick="saveCi()"><span>✓</span><span>Check-in दर्ज</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ═════════════ FIREBASE + APP LOGIC ═════════════ -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, collection, query, orderBy, onSnapshot, addDoc,
+  updateDoc, deleteDoc, doc, serverTimestamp, where }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+/*═══ FIREBASE CONFIG — same project as VBE order tracker ═══*/
+const firebaseConfig = {
+  apiKey:"AIzaSyBCe5DKNKcthOl4umprfRm2QBfbVaFORg8",
+  authDomain:"vbe-order-tracker-60324.firebaseapp.com",
+  projectId:"vbe-order-tracker-60324",
+  storageBucket:"vbe-order-tracker-60324.firebasestorage.app",
+  messagingSenderId:"894023456122",
+  appId:"1:894023456122:web:6ee548f0913c887c67f2c3"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const COLL = 'vbe_tasks';           // same task collection
+const RITUAL_COLL = 'vbe_rituals';  // morning/evening reflections
+const CI_COLL = 'vbe_checkins';     // standalone check-ins (5-min reflections)
+
+/*═══ PEOPLE & CATS ═══*/
+const PERSONS = [
+  { id:'vikram',  name:'विक्रम', role:'मालिक/CEO',     em:'👑', color:'#f5b240', bg:'rgba(245,178,64,.15)' },
+  { id:'manoj',   name:'मनोज',   role:'फील्ड मैनेजर',  em:'⚙️', color:'#34d399', bg:'rgba(52,211,153,.15)' },
+  { id:'kailash', name:'कैलाश',  role:'GeM/हिसाब',     em:'📊', color:'#60a5fa', bg:'rgba(96,165,250,.15)' },
+  { id:'ravi',    name:'रवि',    role:'सप्लाई',        em:'🚚', color:'#a78bfa', bg:'rgba(167,139,250,.15)' },
+];
+const KNOWN_USERS = [
+  { email:'vikram@vbe.in',  name:'विक्रम', em:'👑', pid:'vikram',  uid:'CrWrobyeWHY1ZLrLwKcncW0U9K03' },
+  { email:'manoj@vbe.in',   name:'मनोज',   em:'⚙️', pid:'manoj',   uid:'gdn0jahlzGOuWKaOyxsTht07mus2' },
+  { email:'kailash@vbe.in', name:'कैलाश', em:'📊', pid:'kailash', uid:'pFslWWEvLiRjr7YFq51TqwfOpFp2' },
+  { email:'ravi@vbe.in',    name:'रवि',    em:'🚚', pid:'ravi',    uid:'xY7dwh799LZrRIY7dK2CHVc5H262' },
+];
+const UID_TO_PID = {
+  'CrWrobyeWHY1ZLrLwKcncW0U9K03':'vikram',
+  'gdn0jahlzGOuWKaOyxsTht07mus2':'manoj',
+  'pFslWWEvLiRjr7YFq51TqwfOpFp2':'kailash',
+  'xY7dwh799LZrRIY7dK2CHVc5H262':'ravi',
+  'tjkS5tg2vMflpndGHSQRjFYgRv03':'vikram',
+  'FqJeXbb3YJfSER09jtXLosCSpVy2':'vikram',
+  '0CXFV9vDMSW7LBi0mLS9bW480mh1':'vikram',
+};
+const CATS = {
+  gem:     { em:'📋', label:'GeM',       color:'sky' },
+  supply:  { em:'📦', label:'सप्लाई',    color:'gold' },
+  accounts:{ em:'💰', label:'हिसाब',     color:'gold' },
+  canteen: { em:'🍽', label:'कैंटीन',    color:'rose' },
+  field:   { em:'🏗', label:'फील्ड',     color:'violet' },
+  personal:{ em:'👤', label:'व्यक्तिगत', color:'sky' },
+  other:   { em:'📌', label:'अन्य',      color:'sky' },
+};
+const DAYS = ['रविवार','सोमवार','मंगलवार','बुधवार','गुरुवार','शुक्रवार','शनिवार'];
+const MONTHS = ['जनवरी','फरवरी','मार्च','अप्रैल','मई','जून','जुलाई','अगस्त','सितंबर','अक्टूबर','नवंबर','दिसंबर'];
+
+/*═══ STATE ═══*/
+let tasks = [];
+let rituals = [];
+let standaloneCheckins = [];
+let curPage = 'now';
+let curUser = null;
+let curPid = 'vikram';
+let unsubTasks = null;
+let unsubRituals = null;
+let unsubCi = null;
+let riverMode = 5;
+let sheetSelPersons = ['vikram'];
+let sheetPrio = 'high';
+let sheetForHour = null;
+
+/*═══ UTILS ═══*/
+const $ = (id) => document.getElementById(id);
+const pad = (n) => String(n).padStart(2,'0');
+const todayKey = () => { const d=new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; };
+const ampm = (h) => h===0?'12 AM':h<12?h+' AM':h===12?'12 PM':(h-12)+' PM';
+const ampmShort = (h) => h===0?'12A':h<12?h+'A':h===12?'12P':(h-12)+'P';
+const greetByHour = (h) => h<5?'देर रात':h<12?'सुबह':h<16?'दोपहर':h<19?'शाम':'रात';
+
+function fmtDate(d=new Date()){ return `${DAYS[d.getDay()]} · ${d.getDate()} ${MONTHS[d.getMonth()]}` }
+function timeAgo(iso){
+  if(!iso) return '';
+  const ms = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(ms/60000), h = Math.floor(ms/3600000), d = Math.floor(ms/86400000);
+  if(m<1) return 'अभी';
+  if(m<60) return `${m}मि पहले`;
+  if(h<24) return `${h}घं ${m%60}मि पहले`;
+  return `${d}दिन पहले`;
+}
+function toast(msg, type='gold'){
+  const t = $('toast');
+  t.textContent = msg;
+  t.style.borderColor = type==='success' ? 'rgba(52,211,153,.5)' : type==='error' ? 'rgba(251,113,133,.5)' : 'var(--bd-gold-2)';
+  t.classList.add('show');
+  clearTimeout(t._tm);
+  t._tm = setTimeout(()=>t.classList.remove('show'), 2400);
+}
+function colorClassFor(cat){
+  return CATS[cat]?.color || 'sky';
+}
+function dayTasksOnly(){
+  const k = todayKey();
+  return tasks.filter(t => t.date === k);
+}
+function tasksForHour(h){
+  return dayTasksOnly().filter(t => {
+    const th = parseInt(t.time?.split(':')[0] ?? '-1');
+    return th === h;
+  });
+}
+function currentMinuteTask(){
+  const now = new Date(); const cm = now.getHours()*60 + now.getMinutes();
+  return dayTasksOnly().find(t=>{
+    if(!t.time) return false;
+    const [h,m] = t.time.split(':').map(Number);
+    const start = h*60 + (m||0);
+    const dur = parseInt(t.duration)||30;
+    return cm >= start && cm < start + dur && !t.done;
+  });
+}
+
+/*═══ LOGIN ═══*/
+function renderUserChips(){
+  const wrap = $('userChips'); wrap.innerHTML = '';
+  KNOWN_USERS.forEach(u=>{
+    const p = PERSONS.find(x=>x.id===u.pid);
+    const d = document.createElement('div');
+    d.className = 'user-chip';
+    d.innerHTML = `
+      <div class="uc-em" style="background:${p?.bg};border:1.5px solid ${p?.color}">${u.em}</div>
+      <div style="flex:1">
+        <div class="uc-name">${u.name}</div>
+        <div class="uc-role">${p?.role||''}</div>
+      </div>
+      <div class="uc-mail">${u.email.split('@')[0]}</div>`;
+    d.onclick = () => { $('loginEmail').value = u.email; $('loginPass').focus(); };
+    wrap.appendChild(d);
+  });
+}
+renderUserChips();
+
+window.doLogin = async function(){
+  const email = $('loginEmail').value.trim();
+  const pass = $('loginPass').value;
+  if(!email || !pass){ $('loginErr').textContent = 'Email और password दोनों भरें'; return; }
+  $('loginErr').textContent = '';
+  try{
+    await signInWithEmailAndPassword(auth, email, pass);
+  }catch(e){
+    $('loginErr').textContent = 'गलत email या password';
+  }
+};
+
+onAuthStateChanged(auth, (user)=>{
+  if(user){
+    curUser = user;
+    curPid = UID_TO_PID[user.uid] || 'vikram';
+    $('loginScreen').classList.add('hidden');
+    $('app').classList.remove('hidden');
+    startListeners();
+    boot();
+  }else{
+    curUser = null;
+    $('loginScreen').classList.remove('hidden');
+    $('app').classList.add('hidden');
+    if(unsubTasks) unsubTasks();
+    if(unsubRituals) unsubRituals();
+    if(unsubCi) unsubCi();
+  }
+});
+
+/*═══ FIRESTORE LISTENERS ═══*/
+function startListeners(){
+  if(unsubTasks) unsubTasks();
+  const q = query(collection(db, COLL), orderBy('time','asc'));
+  unsubTasks = onSnapshot(q, (snap)=>{
+    tasks = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+    rerender();
+  }, (err)=>{
+    console.error('Tasks listener:', err);
+    toast('Connection error: ' + err.code, 'error');
+  });
+
+  if(unsubRituals) unsubRituals();
+  const rq = query(collection(db, RITUAL_COLL), where('date','==',todayKey()));
+  unsubRituals = onSnapshot(rq, (snap)=>{
+    rituals = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+    renderRitual();
+  }, ()=>{});
+
+  if(unsubCi) unsubCi();
+  const cq = query(collection(db, CI_COLL), where('date','==',todayKey()), orderBy('time','desc'));
+  unsubCi = onSnapshot(cq, (snap)=>{
+    standaloneCheckins = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+    if(curPage==='now') renderRiver();
+  }, ()=>{ standaloneCheckins = []; });
+}
+
+/*═══ BOOT ═══*/
+function boot(){
+  setInterval(tickClock, 1000);
+  tickClock();
+  goTo('now');
+}
+
+function tickClock(){
+  const n = new Date();
+  $('clockNow').innerHTML = `${pad(n.getHours())}:${pad(n.getMinutes())}<span class="sec">:${pad(n.getSeconds())}</span>`;
+  $('dayLabel').textContent = fmtDate(n);
+
+  // Day progress
+  const pct = ((n.getHours()*60 + n.getMinutes()) / 1440) * 100;
+  const circ = 100.5; // 2*pi*16
+  $('dpFg').setAttribute('stroke-dashoffset', circ - (circ * pct / 100));
+  $('dpPct').textContent = Math.round(pct) + '%';
+  const remainMin = 1440 - (n.getHours()*60 + n.getMinutes());
+  const rh = Math.floor(remainMin/60), rm = remainMin%60;
+  $('dpHeadline').innerHTML = `दिन का <span class="strong">${Math.round(pct)}%</span> बीत चुका`;
+  $('dpSub').textContent = `${rh} घंटे ${rm} मिनट बाकी • अभी ${greetByHour(n.getHours())} का वक्त`;
+
+  // Current minute spotlight
+  $('nsMinute').textContent = `${pad(n.getHours())}:${pad(n.getMinutes())}`;
+  $('nsMinSub').textContent = `${DAYS[n.getDay()]} ${greetByHour(n.getHours())}`;
+
+  if(curPage==='now'){
+    updateMetrics();
+    renderCurrentTaskBox();
+  }
+}
+
+function updateMetrics(){
+  const dt = dayTasksOnly();
+  const done = dt.filter(t=>t.done).length;
+  const pend = dt.length - done;
+  const live = currentMinuteTask() ? 1 : 0;
+  $('mLive').textContent = live;
+  $('mDone').textContent = done;
+  $('mPend').textContent = pend;
+}
+
+function renderCurrentTaskBox(){
+  const box = $('currentTaskBox');
+  const ct = currentMinuteTask();
+  if(ct){
+    const [h,m] = ct.time.split(':').map(Number);
+    const startMin = h*60 + (m||0);
+    const dur = parseInt(ct.duration)||30;
+    const now = new Date();
+    const cm = now.getHours()*60 + now.getMinutes();
+    const elapsed = cm - startMin;
+    const pct = Math.min(100, (elapsed / dur) * 100);
+    const cat = CATS[ct.cat] || CATS.other;
+    box.innerHTML = `
+      <div class="current-task">
+        <div class="ct-icon">${cat.em}</div>
+        <div class="ct-body">
+          <div class="ct-title">${escapeHtml(ct.name)}</div>
+          <div class="ct-meta">
+            <span>${ct.time} – ${pad(Math.floor((startMin+dur)/60))}:${pad((startMin+dur)%60)}</span>
+            <span class="dot"></span>
+            <span>${dur}मि</span>
+            <span class="dot"></span>
+            <span>${Math.round(pct)}% बीता</span>
+          </div>
+          <div class="ct-progress"><div class="ct-progress-fill" style="width:${pct}%"></div></div>
+        </div>
+      </div>
+      <div class="quick-log" style="margin-top:0;margin-bottom:0">
+        <button class="ql-btn success" onclick="markDone('${ct.id}')"><span class="ic">✓</span><span>पूरा हुआ</span></button>
+        <button class="ql-btn secondary" onclick="addCheckinForTask('${ct.id}')"><span class="ic">📝</span><span>Check-in</span></button>
+      </div>
+    `;
+    $('nsQuestion').innerHTML = `<em>अभी:</em> <span class="gold">${escapeHtml(ct.name.slice(0,30))}</span>`;
+    $('nsPrompt').textContent = 'इस काम पर ध्यान केंद्रित रखें। पूरा होते ही टैप करें।';
+  } else {
+    box.innerHTML = `
+      <div class="no-current">
+        <div class="no-current-ico">⏳</div>
+        <div class="no-current-txt">अभी कोई scheduled काम नहीं — पल खाली है</div>
+      </div>`;
+    $('nsQuestion').innerHTML = `<em>आप</em> <span class="gold">क्या</span> <em>कर रहे हैं?</em>`;
+    $('nsPrompt').textContent = 'हर मिनट का अपना मान है। एक टैप में दर्ज करें कि आप अभी क्या कर रहे हैं।';
+  }
+}
+
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+
+/*═══ NAV ═══*/
+window.goTo = function(page){
+  curPage = page;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  $(`p-${page}`).classList.add('active');
+  document.querySelectorAll('.nav-tab, .bni').forEach(b=>{
+    b.classList.toggle('active', b.dataset.page === page);
+  });
+  rerender();
+};
+
+function rerender(){
+  updateMetrics();
+  renderCurrentTaskBox();
+  if(curPage==='now'){
+    renderRiver();
+    renderHeatStrip();
+    renderTeamCircle();
+    renderRitual();
+    renderMomentum();
+  }else if(curPage==='day'){
+    renderHourGrid();
+    renderDayList();
+  }else if(curPage==='team'){
+    renderTeamPage();
+  }else if(curPage==='report'){
+    renderReport();
+  }else if(curPage==='elon'){
+    renderElon();
+  }
+}
+
+/*═══ TIME RIVER — the core view ═══*/
+document.querySelectorAll('.rm-btn').forEach(b=>{
+  b.onclick = ()=>{
+    document.querySelectorAll('.rm-btn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    riverMode = parseInt(b.dataset.mode);
+    renderRiver();
+  };
+});
+
+function renderRiver(){
+  const track = $('riverTrack');
+  if(!track) return;
+  track.innerHTML = '';
+  const now = new Date();
+  const curMin = now.getHours()*60 + now.getMinutes();
+
+  // Show 6 slots before current + 1 current + 5 slots after = 12 slots total
+  const slotMin = riverMode; // 5 or 15
+  const slotsBack = 6, slotsForward = 5;
+  // Snap current to slot grid: floor to slot boundary
+  const curSlotStart = Math.floor(curMin / slotMin) * slotMin;
+  const startSlot = curSlotStart - slotsBack * slotMin;
+  const endSlot = curSlotStart + slotsForward * slotMin;
+
+  for(let m = startSlot; m <= endSlot; m += slotMin){
+    if(m < 0 || m >= 1440) continue;
+    const sh = Math.floor(m / 60);
+    const smm = m % 60;
+    const isNow = (m === curSlotStart);
+    const isPast = (m < curSlotStart);
+    const isFuture = (m > curSlotStart);
+    const isAdjNow = Math.abs(m - curSlotStart) === slotMin;
+
+    // Find tasks that start within this slot range
+    const slotTasks = dayTasksOnly().filter(t=>{
+      if(!t.time) return false;
+      const [h,mm] = t.time.split(':').map(Number);
+      const tMin = h*60 + (mm||0);
+      return tMin >= m && tMin < m + slotMin;
+    });
+    // Also find tasks that overlap (started before but still running)
+    const overlapTasks = dayTasksOnly().filter(t=>{
+      if(!t.time) return false;
+      const [h,mm] = t.time.split(':').map(Number);
+      const tStart = h*60 + (mm||0);
+      const tEnd = tStart + (parseInt(t.duration)||30);
+      return tStart < m && tEnd > m && !slotTasks.find(x=>x.id===t.id);
+    });
+    const allSlotTasks = [...slotTasks, ...overlapTasks];
+
+    // Also find standalone check-ins for past slots
+    const slotCheckins = standaloneCheckins.filter(c=>{
+      const cd = new Date(c.time);
+      const cMin = cd.getHours()*60 + cd.getMinutes();
+      return cMin >= m && cMin < m + slotMin;
+    });
+
+    const hasEntry = allSlotTasks.length > 0 || slotCheckins.length > 0;
+
+    const slot = document.createElement('div');
+    slot.className = 'slot' + (isNow ? ' now' : isPast ? ' past' : ' future') + (hasEntry ? ' has-entry' : '') + (isAdjNow ? ' adj-now' : '');
+
+    slot.innerHTML = `
+      <div class="slot-time">
+        <div class="hr">${pad(sh)}</div>
+        <div class="min">:${pad(smm)}</div>
+        <div class="ampm">${sh<12?'AM':'PM'}</div>
+      </div>
+      <div class="slot-content"></div>
+      ${isNow ? '<div class="now-pulse"></div>' : ''}
+    `;
+
+    const content = slot.querySelector('.slot-content');
+
+    if(allSlotTasks.length){
+      allSlotTasks.forEach(t=>{
+        const cat = CATS[t.cat] || CATS.other;
+        const colorCls = colorClassFor(t.cat);
+        const pers = PERSONS.find(p=>p.id===(t.persons?.[0]));
+        const ciCount = Array.isArray(t.checkins) ? t.checkins.length : 0;
+        const lastCi = t.lastCheckinAt ? `<span class="checkin-stamp">📝 ${timeAgo(t.lastCheckinAt)}</span>` : '';
+        const entry = document.createElement('div');
+        entry.className = 'slot-entry ' + colorCls + (t.done ? ' done' : '');
+        entry.innerHTML = `
+          <div class="slot-entry-chk" onclick="event.stopPropagation();markDone('${t.id}')">${t.done?'✓':''}</div>
+          <span class="slot-entry-pers" title="${pers?.name||''}">${pers?.em||'👤'}</span>
+          <div class="slot-entry-name">${escapeHtml(t.name)}${lastCi}</div>
+          <div class="slot-entry-dur">${t.duration||30}मि</div>
+        `;
+        entry.onclick = (e)=>{ e.stopPropagation(); openTaskActions(t); };
+        content.appendChild(entry);
+      });
+    }
+
+    if(slotCheckins.length){
+      slotCheckins.forEach(c=>{
+        const entry = document.createElement('div');
+        entry.className = 'slot-entry gold';
+        entry.innerHTML = `
+          <div class="slot-entry-chk" style="color:var(--gold);background:var(--gold);border-color:var(--gold);color:#1a1305">📝</div>
+          <div class="slot-entry-name">${escapeHtml(c.note||'(no note)')}</div>
+          <div class="slot-entry-dur">log</div>
+        `;
+        content.appendChild(entry);
+      });
+    }
+
+    if(!hasEntry){
+      if(isPast){
+        const r = document.createElement('div');
+        r.className = 'slot-reflect';
+        r.innerHTML = `
+          <span style="opacity:.55">क्या किया?</span>
+          <button class="slot-reflect-btn" onclick="quickLogPast('${pad(sh)}:${pad(smm)}',${slotMin})">+ दर्ज</button>
+        `;
+        content.appendChild(r);
+      }else if(isNow){
+        const r = document.createElement('div');
+        r.className = 'slot-reflect';
+        r.style.opacity = '1';
+        r.innerHTML = `
+          <span style="color:var(--gold);font-family:var(--font-hindi);font-style:normal;font-weight:700">अभी इस पल</span>
+          <button class="slot-reflect-btn" onclick="quickLogPast('${pad(sh)}:${pad(smm)}',${slotMin})">+ शुरू करें</button>
+        `;
+        content.appendChild(r);
+      }else{ // future
+        const r = document.createElement('div');
+        r.className = 'slot-plan-ghost';
+        r.innerHTML = `<span class="plus">+</span><span>योजना बनाएं</span>`;
+        r.onclick = ()=>{ quickLogFuture(`${pad(sh)}:${pad(smm)}`, slotMin); };
+        content.appendChild(r);
+      }
+    }
+
+    track.appendChild(slot);
+  }
+
+  // Auto-scroll to current slot
+  setTimeout(()=>{
+    const nowSlot = track.querySelector('.slot.now');
+    if(nowSlot) nowSlot.scrollIntoView({behavior:'smooth', block:'center'});
+  }, 50);
+}
+
+/*═══ HEAT STRIP ═══*/
+function renderHeatStrip(){
+  const strip = $('heatStrip');
+  if(!strip) return;
+  strip.innerHTML = '';
+  const now = new Date();
+  const curH = now.getHours();
+  for(let h=0; h<24; h++){
+    const ht = tasksForHour(h);
+    const cell = document.createElement('div');
+    cell.className = 'heat-cell';
+    if(h === curH) cell.classList.add('now');
+    if(ht.length === 1) cell.classList.add('has-1');
+    else if(ht.length === 2) cell.classList.add('has-2');
+    else if(ht.length >= 3) cell.classList.add('has-3');
+    const allDone = ht.length>0 && ht.every(t=>t.done);
+    if(allDone) cell.classList.add('done');
+    cell.title = `${pad(h)}:00 — ${ht.length} काम`;
+    cell.onclick = ()=>{ goTo('day'); setTimeout(()=>openHourDetail(h), 200); };
+    strip.appendChild(cell);
+  }
+}
+
+/*═══ TEAM CIRCLE ═══*/
+function renderTeamCircle(){
+  const grid = $('teamGrid');
+  if(!grid) return;
+  grid.innerHTML = '';
+  PERSONS.forEach(p=>{
+    const myTasks = dayTasksOnly().filter(t=>t.persons?.includes(p.id));
+    const ct = myTasks.find(t=>{
+      if(!t.time) return false;
+      const [h,m] = t.time.split(':').map(Number);
+      const s = h*60 + (m||0);
+      const e = s + (parseInt(t.duration)||30);
+      const now = new Date();
+      const cm = now.getHours()*60 + now.getMinutes();
+      return cm >= s && cm < e && !t.done;
+    });
+    const remaining = myTasks.filter(t=>!t.done).length;
+    let statusClass = remaining>0 ? 'busy' : (myTasks.length>0 ? 'free' : 'off');
+    let statusText = ct ? `अभी: ${ct.name.slice(0,20)}` : remaining>0 ? `${remaining} काम बाकी` : myTasks.length ? 'सब पूरे' : 'कोई काम नहीं';
+    const div = document.createElement('div');
+    div.className = 'tc-person';
+    div.innerHTML = `
+      <div class="tc-av ${statusClass}" style="background:${p.bg};border:1.5px solid ${p.color}">${p.em}</div>
+      <div class="tc-info">
+        <div class="tc-name">${p.name}</div>
+        <div class="tc-status">${escapeHtml(statusText)}</div>
+      </div>
+      <div class="tc-count">${myTasks.length}</div>
+    `;
+    grid.appendChild(div);
+  });
+}
+
+/*═══ RITUAL ═══*/
+function renderRitual(){
+  const r = rituals.find(x=>x.type==='morning');
+  const wrap = $('ritualMorning');
+  if(!wrap) return;
+  if(r && r.text){
+    wrap.innerHTML = `
+      <div class="ritual-header">
+        <div class="ritual-icon">✨</div>
+        <div class="ritual-title"><em>आज के 3 संकल्प</em><span class="sub">${timeAgo(r.savedAt)}</span></div>
+      </div>
+      <div style="font-size:12px;font-family:var(--font-hindi);color:var(--t-200);line-height:1.7;white-space:pre-wrap;background:rgba(0,0,0,.25);border-radius:11px;padding:11px;border:1px solid var(--bd-1)">${escapeHtml(r.text)}</div>
+      <div class="ritual-btn-row">
+        <button class="ritual-btn skip" onclick="editRitual('morning')">✏️ बदलें</button>
+      </div>
+    `;
+  }
+}
+
+window.saveRitual = async function(type){
+  const text = $('ritualInput').value.trim();
+  if(!text){ toast('कुछ लिखें फिर save करें','error'); return; }
+  try{
+    await addDoc(collection(db, RITUAL_COLL), {
+      type, text, date: todayKey(),
+      savedAt: new Date().toISOString(),
+      uid: curUser?.uid, pid: curPid,
+      createdAt: serverTimestamp()
+    });
+    toast('संकल्प पक्का ✓','success');
+  }catch(e){ toast('Save failed: ' + e.message, 'error'); }
+};
+window.skipRitual = function(){ $('ritualMorning').style.display='none'; };
+window.editRitual = function(type){
+  const r = rituals.find(x=>x.type===type);
+  $('ritualMorning').innerHTML = `
+    <div class="ritual-header">
+      <div class="ritual-icon">🌅</div>
+      <div class="ritual-title"><em>सुबह की संकल्प</em><span class="sub">आज सबसे जरूरी 3 काम</span></div>
+    </div>
+    <div class="ritual-prompt">आज के लिए लिखें:</div>
+    <textarea class="ritual-input" id="ritualInput">${escapeHtml(r?.text||'')}</textarea>
+    <div class="ritual-btn-row">
+      <button class="ritual-btn save" onclick="saveRitual('morning')">✓ संकल्प पक्का</button>
+      <button class="ritual-btn skip" onclick="renderRitual()">रद्द</button>
+    </div>
+  `;
+};
+
+/*═══ MOMENTUM ═══*/
+function renderMomentum(){
+  // Simple: count today's tasks + total checkins as minutes
+  const dt = dayTasksOnly();
+  const totalCheckins = dt.reduce((a,t)=>a+(t.checkins?.length||0),0) + standaloneCheckins.length;
+  const totalDoneMin = dt.filter(t=>t.done).reduce((a,t)=>a+(parseInt(t.duration)||0),0);
+  $('momMinutes').textContent = totalDoneMin || totalCheckins*5;
+  // Streak — approximation, would need historical data
+  // For now: number of consecutive days with at least 1 done task (TODO)
+}
+
+/*═══ DAY PAGE — HOUR GRID ═══*/
+function renderHourGrid(){
+  const grid = $('hourGrid');
+  if(!grid) return;
+  grid.innerHTML = '';
+  const now = new Date(); const curH = now.getHours();
+  for(let h=0; h<24; h++){
+    const ht = tasksForHour(h);
+    const cell = document.createElement('div');
+    cell.className = 'hg-cell';
+    if(ht.length) cell.classList.add('has');
+    if(h < curH) cell.classList.add('past');
+    if(h === curH) cell.classList.add('now');
+    const allDone = ht.length>0 && ht.every(t=>t.done);
+    if(allDone) cell.classList.add('done');
+
+    const dots = ht.slice(0,5).map(t=>{
+      const cls = t.done ? 'done' : (h===curH ? 'now' : '');
+      return `<span class="d ${cls}"></span>`;
+    }).join('');
+
+    cell.innerHTML = `
+      ${h===curH ? '<div class="hg-now-mark"></div>' : ''}
+      <div style="display:flex;flex-direction:column;align-items:center">
+        <div class="hg-num">${pad(h)}</div>
+        <div class="hg-ap">${ampmShort(h)}</div>
+      </div>
+      <div class="hg-dots">${dots}</div>
+    `;
+    cell.onclick = ()=>openHourDetail(h);
+    grid.appendChild(cell);
+  }
+
+  $('dayCount').textContent = `${dayTasksOnly().length} कुल · ${dayTasksOnly().filter(t=>t.done).length} पूरे`;
+}
+
+function renderDayList(){
+  const wrap = $('dayList');
+  if(!wrap) return;
+  const list = dayTasksOnly().sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+  if(!list.length){
+    wrap.innerHTML = `<div class="empty"><div class="ico">📋</div><div class="txt">आज के लिए कोई काम नहीं<br>+ बटन से जोड़ें</div></div>`;
+    return;
+  }
+  wrap.innerHTML = list.map(t=>{
+    const cat = CATS[t.cat]||CATS.other;
+    const pers = PERSONS.find(p=>p.id===(t.persons?.[0]));
+    return `
+      <div data-task-id="${t.id}" style="display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:13px;background:var(--ink-1);border:1px solid var(--bd-1);border-left:3px solid ${pers?.color||'var(--gold)'};margin-bottom:7px;cursor:pointer" onclick="openTaskActionsById(this.dataset.taskId)">
+        <div onclick="event.stopPropagation();markDone('${t.id}')" style="width:20px;height:20px;border-radius:50%;border:1.5px solid ${t.done?'var(--emerald)':pers?.color||'var(--gold)'};background:${t.done?'var(--emerald)':'transparent'};display:grid;place-items:center;font-size:10px;color:${t.done?'#06241a':'transparent'};font-weight:900;flex-shrink:0">✓</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12.5px;font-weight:700;font-family:var(--font-hindi);color:var(--t-100);${t.done?'text-decoration:line-through;opacity:.6':''}">${escapeHtml(t.name)}</div>
+          <div style="font-size:9.5px;color:var(--t-400);font-family:var(--font-mono);margin-top:2px;display:flex;gap:6px;align-items:center">
+            <span>${t.time||'--:--'}</span>
+            <span>•</span>
+            <span>${t.duration||30}मि</span>
+            <span>•</span>
+            <span>${pers?.em||'👤'} ${pers?.name||''}</span>
+            ${t.checkins?.length ? `<span style="color:var(--gold)">• 📝${t.checkins.length}</span>`:''}
+          </div>
+        </div>
+        <span style="font-size:10px;color:var(--t-400)">${cat.em}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+/*═══ HOUR DETAIL ═══*/
+let curHourOpen = null;
+window.openHourDetail = function(h){
+  curHourOpen = h;
+  $('hdOvl').classList.add('open');
+  $('hdTitle').textContent = `${pad(h)}:00 — ${pad(h)}:59`;
+  $('hdSub').textContent = `${ampm(h)}`;
+
+  const ht = tasksForHour(h);
+  const busy = ht.reduce((a,t)=>a+(parseInt(t.duration)||0),0);
+  const free = Math.max(0, 60 - busy);
+  const done = ht.filter(t=>t.done).length;
+  $('hdBusy').textContent = busy;
+  $('hdFree').textContent = free;
+  $('hdDone').textContent = done;
+  $('hdTotal').textContent = ht.length;
+
+  // Build 60-min strip
+  const strip = $('hdMinStrip');
+  strip.innerHTML = '';
+  for(let m=0;m<60;m++){
+    const row = document.createElement('div');
+    let cls = 'min60-row';
+    if(m===0) cls += ' m0';
+    else if(m%30===0) cls += ' m30';
+    else if(m%15===0) cls += ' m15';
+    else if(m%5===0) cls += ' m5';
+    row.className = cls;
+    row.innerHTML = `<div class="lbl">${m%5===0||m===0 ? `${pad(h)}:${pad(m)}` : ''}</div>`;
+    strip.appendChild(row);
+  }
+  const ROW_H = 18;
+  ht.forEach(t=>{
+    const [tH,tM] = (t.time||`${pad(h)}:00`).split(':').map(Number);
+    if(tH !== h) return;
+    const startMin = tM||0;
+    const dur = Math.min(parseInt(t.duration)||30, 60-startMin);
+    const colorCls = colorClassFor(t.cat);
+    const top = startMin * ROW_H;
+    const height = Math.max(dur * ROW_H - 2, ROW_H - 2);
+    const band = document.createElement('div');
+    band.className = 'min-task ' + colorCls + (t.done?' done':'');
+    band.style.top = top + 'px';
+    band.style.height = height + 'px';
+    band.innerHTML = `
+      <div class="chk" onclick="event.stopPropagation();markDone('${t.id}')">${t.done?'✓':''}</div>
+      <div class="name">${escapeHtml(t.name)}</div>
+      <div class="dur">${dur}मि</div>
+    `;
+    band.onclick = ()=>openTaskActions(t);
+    strip.appendChild(band);
+  });
+
+  // Now indicator
+  const now = new Date();
+  if(now.getHours() === h){
+    const line = document.createElement('div');
+    line.className = 'min60-now';
+    line.style.top = (now.getMinutes() * ROW_H) + 'px';
+    strip.appendChild(line);
+  }
+};
+window.closeHd = ()=> $('hdOvl').classList.remove('open');
+window.addTaskInHour = function(){
+  closeHd();
+  sheetForHour = curHourOpen;
+  openAddSheet();
+  $('fTime').value = `${pad(curHourOpen)}:00`;
+};
+
+/*═══ TEAM PAGE ═══*/
+function renderTeamPage(){
+  const wrap = $('teamPage');
+  if(!wrap) return;
+  wrap.innerHTML = PERSONS.map(p=>{
+    const myTasks = dayTasksOnly().filter(t=>t.persons?.includes(p.id));
+    const done = myTasks.filter(t=>t.done).length;
+    const totalCi = myTasks.reduce((a,t)=>a+(t.checkins?.length||0),0);
+    const pct = myTasks.length ? Math.round(done/myTasks.length*100) : 0;
+    return `
+      <div style="background:var(--ink-1);border:1px solid var(--bd-1);border-radius:14px;padding:14px;margin-bottom:10px;border-left:3px solid ${p.color}">
+        <div style="display:flex;align-items:center;gap:11px;margin-bottom:11px">
+          <div style="width:44px;height:44px;border-radius:12px;background:${p.bg};border:1.5px solid ${p.color};display:grid;place-items:center;font-size:22px">${p.em}</div>
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:800;font-family:var(--font-hindi);color:var(--t-100)">${p.name}</div>
+            <div style="font-size:10px;color:var(--t-400);font-family:var(--font-hindi);font-weight:600">${p.role}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-family:var(--font-mono);font-size:18px;font-weight:700;color:${p.color}">${pct}%</div>
+            <div style="font-size:8.5px;color:var(--t-400);font-weight:700;letter-spacing:.5px;text-transform:uppercase">पूर्ण</div>
+          </div>
+        </div>
+        <div style="height:4px;background:var(--ink-3);border-radius:99px;overflow:hidden;margin-bottom:9px">
+          <div style="height:100%;width:${pct}%;background:${p.color};border-radius:99px;transition:width .5s"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;font-size:9.5px">
+          <div style="text-align:center"><div style="font-family:var(--font-mono);font-weight:700;color:var(--t-100);font-size:13px">${myTasks.length}</div><div style="color:var(--t-400);font-family:var(--font-hindi);margin-top:2px">कुल</div></div>
+          <div style="text-align:center"><div style="font-family:var(--font-mono);font-weight:700;color:var(--emerald);font-size:13px">${done}</div><div style="color:var(--t-400);font-family:var(--font-hindi);margin-top:2px">पूरे</div></div>
+          <div style="text-align:center"><div style="font-family:var(--font-mono);font-weight:700;color:var(--gold);font-size:13px">${myTasks.length-done}</div><div style="color:var(--t-400);font-family:var(--font-hindi);margin-top:2px">बाकी</div></div>
+          <div style="text-align:center"><div style="font-family:var(--font-mono);font-weight:700;color:var(--sky);font-size:13px">${totalCi}</div><div style="color:var(--t-400);font-family:var(--font-hindi);margin-top:2px">📝</div></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+/*═══ REPORT PAGE ═══*/
+function renderReport(){
+  const wrap = $('reportPage');
+  if(!wrap) return;
+  const dt = dayTasksOnly();
+  const done = dt.filter(t=>t.done);
+  const totalMin = dt.reduce((a,t)=>a+(parseInt(t.duration)||0),0);
+  const doneMin = done.reduce((a,t)=>a+(parseInt(t.duration)||0),0);
+  const allCi = [
+    ...standaloneCheckins.map(c=>({...c, source:'standalone'})),
+    ...dt.flatMap(t=>(t.checkins||[]).map(c=>({...c, taskName:t.name, source:'task'})))
+  ].sort((a,b)=>new Date(b.time||0)-new Date(a.time||0));
+
+  // Category breakdown
+  const byCat = {};
+  dt.forEach(t=>{ byCat[t.cat||'other'] = (byCat[t.cat||'other']||0) + (parseInt(t.duration)||0); });
+
+  wrap.innerHTML = `
+    <div style="background:linear-gradient(135deg,var(--ink-2),var(--ink-1));border:1px solid var(--bd-1);border-radius:16px;padding:16px;margin-bottom:14px">
+      <div style="font-family:var(--font-display);font-style:italic;font-size:20px;color:var(--t-100);margin-bottom:14px">आज का सारांश</div>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:9px">
+        <div style="padding:11px;border-radius:11px;background:rgba(0,0,0,.25);border:1px solid var(--bd-1)">
+          <div style="font-family:var(--font-mono);font-size:24px;font-weight:700;color:var(--emerald);line-height:1">${doneMin}<span style="font-size:14px;color:var(--t-400)">मि</span></div>
+          <div style="font-size:10px;color:var(--t-400);font-family:var(--font-hindi);font-weight:600;margin-top:3px">काम पूरे हुए</div>
+        </div>
+        <div style="padding:11px;border-radius:11px;background:rgba(0,0,0,.25);border:1px solid var(--bd-1)">
+          <div style="font-family:var(--font-mono);font-size:24px;font-weight:700;color:var(--gold);line-height:1">${allCi.length}</div>
+          <div style="font-size:10px;color:var(--t-400);font-family:var(--font-hindi);font-weight:600;margin-top:3px">Check-ins दर्ज</div>
+        </div>
+      </div>
+    </div>
+
+    ${Object.keys(byCat).length ? `
+    <div style="background:var(--ink-1);border:1px solid var(--bd-1);border-radius:14px;padding:14px;margin-bottom:14px">
+      <div style="font-size:12px;font-weight:700;color:var(--t-300);font-family:var(--font-hindi);margin-bottom:10px">श्रेणी के हिसाब से समय</div>
+      ${Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([k,v])=>{
+        const cat = CATS[k]||CATS.other;
+        const pct = totalMin ? Math.round(v/totalMin*100) : 0;
+        return `
+          <div style="margin-bottom:9px">
+            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span style="font-family:var(--font-hindi);color:var(--t-200)">${cat.em} ${cat.label}</span><span style="font-family:var(--font-mono);color:var(--t-400)">${v} मि</span></div>
+            <div style="height:5px;background:var(--ink-3);border-radius:99px;overflow:hidden"><div style="height:100%;width:${pct}%;background:var(--gold);border-radius:99px"></div></div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+    ` : ''}
+
+    <div style="font-family:var(--font-display);font-style:italic;font-size:18px;color:var(--t-100);margin-bottom:10px">📝 आज की check-ins</div>
+    ${allCi.length ? allCi.slice(0,30).map(c=>`
+      <div style="background:var(--ink-1);border:1px solid var(--bd-1);border-radius:11px;padding:11px 13px;margin-bottom:7px;border-left:3px solid var(--gold)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <div style="flex:1;font-size:11.5px;font-family:var(--font-hindi);color:var(--t-100);line-height:1.45">${escapeHtml(c.note||'(no note)')}</div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-family:var(--font-mono);font-size:10px;color:var(--gold);font-weight:700">${new Date(c.time).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:false})}</div>
+            <div style="font-size:8.5px;color:var(--t-500);font-family:var(--font-hindi);margin-top:1px">${timeAgo(c.time)}</div>
+          </div>
+        </div>
+        ${c.taskName ? `<div style="font-size:9.5px;color:var(--t-400);font-family:var(--font-hindi);margin-top:5px">📋 ${escapeHtml(c.taskName)}</div>`:''}
+      </div>
+    `).join('') : '<div class="empty"><div class="ico">📝</div><div class="txt">कोई check-in नहीं आज<br>हर 15-30 मिनट में दर्ज करें</div></div>'}
+  `;
+}
+
+/*═══ ELON PAGE ═══*/
+function renderElon(){
+  const wrap = $('elonPage');
+  if(!wrap) return;
+  wrap.innerHTML = `
+    <div style="background:linear-gradient(135deg,rgba(245,178,64,.08),rgba(96,165,250,.05));border:1px solid var(--bd-gold);border-radius:18px;padding:16px;margin-bottom:14px">
+      <div style="font-family:var(--font-display);font-style:italic;font-size:22px;color:var(--t-100);letter-spacing:-.3px;line-height:1.2;margin-bottom:8px">5-Minute Blocks</div>
+      <div style="font-size:12px;color:var(--t-300);font-family:var(--font-hindi);line-height:1.6">एलन मस्क अपने दिन को <strong style="color:var(--gold)">5-मिनट blocks</strong> में बांटते हैं। हर block में सिर्फ एक काम। SpaceX, Tesla, X — तीनों एक साथ चलाने का यही रहस्य।</div>
+    </div>
+
+    <div style="font-family:var(--font-display);font-style:italic;font-size:18px;color:var(--t-100);margin-bottom:10px">⚡ 6 कठोर नियम</div>
+    ${[
+      ['पहले plan, फिर execute', 'सुबह 5 बजे — अगले 24 घंटे का पूरा schedule। हर block में एक काम।'],
+      ['Deep Work सुबह में', 'सुबह 6-10 बजे सबसे जरूरी काम — GeM, finance, strategy। कोई meeting नहीं।'],
+      ['Meetings minimum', 'अगर meeting जरूरी है — 15 मिनट से ज्यादा नहीं। हर बात पर "क्या यह जरूरी?" पूछो।'],
+      ['Email blocks में', 'दिन में सिर्फ 2-3 बार email check करो। बाकी समय focused काम।'],
+      ['Hard deadlines', 'हर task को time-box करो। 30 मिनट हैं तो 30 मिनट में खत्म।'],
+      ['Daily audit', 'रात 10 बजे 15 मिनट — क्या पूरा हुआ, क्या नहीं, क्यों नहीं। कल का plan लिखो।']
+    ].map(([t,d],i)=>`
+      <div style="display:flex;gap:11px;background:var(--ink-1);border:1px solid var(--bd-1);border-radius:12px;padding:12px;margin-bottom:7px">
+        <div style="width:28px;height:28px;border-radius:8px;background:var(--gold-amber);border:1px solid var(--bd-gold);display:grid;place-items:center;font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--gold);flex-shrink:0">${i+1}</div>
+        <div style="flex:1">
+          <div style="font-size:12px;font-weight:700;color:var(--t-100);font-family:var(--font-hindi);margin-bottom:3px">${t}</div>
+          <div style="font-size:10.5px;color:var(--t-400);font-family:var(--font-hindi);line-height:1.5;font-weight:500">${d}</div>
+        </div>
+      </div>
+    `).join('')}
+
+    <div style="font-family:var(--font-display);font-style:italic;font-size:18px;color:var(--t-100);margin:18px 0 10px">📅 आदर्श दिन — जलीपा कैंट</div>
+    ${[
+      ['05:00','06:00','Plan + Deep Thinking','📋 दिन का schedule लिखो'],
+      ['06:00','09:00','GeM बोली + Strategy','💻 सबसे जरूरी काम पहले'],
+      ['09:00','10:00','Field Inspection','🏗 जलीपा site visit'],
+      ['10:00','13:00','Execution Block','⚙️ Vivek, Manoj के साथ'],
+      ['13:00','14:00','Lunch + Walk','🍽 शरीर का ध्यान'],
+      ['14:00','17:00','Customer + Vendors','📞 calls, follow-ups'],
+      ['17:00','19:00','Office Wrap-up','💰 हिसाब, payments'],
+      ['19:00','21:00','Family Time','👨‍👩‍👧‍👦 कोई काम नहीं'],
+      ['21:00','22:00','Daily Audit','📝 कल का plan']
+    ].map(([s,e,title,note])=>`
+      <div style="display:flex;align-items:center;gap:11px;background:var(--ink-1);border:1px solid var(--bd-1);border-radius:11px;padding:9px 12px;margin-bottom:5px">
+        <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--gold);text-align:center;flex-shrink:0;min-width:75px"><div>${s}</div><div style="font-size:8.5px;color:var(--t-500);margin-top:1px">→ ${e}</div></div>
+        <div style="flex:1">
+          <div style="font-size:11.5px;font-weight:700;color:var(--t-100);font-family:var(--font-hindi)">${title}</div>
+          <div style="font-size:9.5px;color:var(--t-400);font-family:var(--font-hindi);margin-top:1px">${note}</div>
+        </div>
+      </div>
+    `).join('')}
+  `;
+}
+
+/*═══ ADD TASK SHEET ═══*/
+window.openAddSheet = function(){
+  $('addSheetOvl').classList.add('open');
+  $('fDate').value = todayKey();
+  if(sheetForHour !== null){
+    $('fTime').value = `${pad(sheetForHour)}:00`;
+    sheetForHour = null;
+  } else {
+    const now = new Date();
+    $('fTime').value = `${pad(now.getHours())}:${pad(Math.floor(now.getMinutes()/5)*5)}`;
+  }
+  buildSheetPersons();
+  setTimeout(()=>$('fName').focus(), 200);
+};
+window.closeAddSheet = ()=> $('addSheetOvl').classList.remove('open');
+
+function buildSheetPersons(){
+  sheetSelPersons = [curPid];
+  sheetPrio = 'high';
+  const wrap = $('fPers'); wrap.innerHTML = '';
+  PERSONS.forEach(p=>{
+    const d = document.createElement('button');
+    d.className = 'pers-pill' + (sheetSelPersons.includes(p.id)?' on':'');
+    d.innerHTML = `<span class="em">${p.em}</span><span class="nm">${p.name}</span>`;
+    d.onclick = ()=>{
+      if(sheetSelPersons.includes(p.id)) sheetSelPersons = sheetSelPersons.filter(x=>x!==p.id);
+      else sheetSelPersons.push(p.id);
+      d.classList.toggle('on');
+    };
+    wrap.appendChild(d);
+  });
+  document.querySelectorAll('.prio-pill').forEach(b=>b.classList.toggle('on', b.dataset.p==='high'));
+}
+window.setPrio = function(p){
+  sheetPrio = p;
+  document.querySelectorAll('.prio-pill').forEach(b=>b.classList.toggle('on', b.dataset.p===p));
+};
+window.saveTask = async function(){
+  const name = $('fName').value.trim();
+  if(!name){ toast('काम का नाम लिखें','error'); return; }
+  if(!sheetSelPersons.length){ toast('एक व्यक्ति चुनें','error'); return; }
+  const taskData = {
+    name,
+    persons: sheetSelPersons,
+    date: $('fDate').value || todayKey(),
+    time: $('fTime').value || null,
+    duration: parseInt($('fDur').value) || 30,
+    cat: $('fCat').value,
+    prio: sheetPrio,
+    note: $('fNote').value.trim(),
+    done: false,
+    createdAt: serverTimestamp(),
+    createdBy: curUser?.uid || 'unknown',
+  };
+  try{
+    await addDoc(collection(db, COLL), taskData);
+    closeAddSheet();
+    $('fName').value=''; $('fNote').value=''; $('fTime').value='';
+    toast('काम जोड़ा गया ✓','success');
+  }catch(e){ toast('Error: '+e.message,'error'); }
+};
+
+/*═══ QUICK LOG (from river slots) ═══*/
+window.quickLogPast = function(timeStr, dur){
+  $('fTime').value = timeStr;
+  $('fDur').value = dur;
+  openAddSheet();
+  setTimeout(()=>$('fName').focus(), 250);
+};
+window.quickLogFuture = function(timeStr, dur){
+  $('fTime').value = timeStr;
+  $('fDur').value = dur;
+  openAddSheet();
+  setTimeout(()=>$('fName').focus(), 250);
+};
+window.openLogNow = function(){
+  const now = new Date();
+  $('fTime').value = `${pad(now.getHours())}:${pad(Math.floor(now.getMinutes()/5)*5)}`;
+  $('fDur').value = 15;
+  openAddSheet();
+};
+
+/*═══ TASK ACTIONS ═══*/
+window.markDone = async function(id){
+  const t = tasks.find(x=>x.id===id);
+  if(!t) return;
+  try{
+    await updateDoc(doc(db, COLL, id), { done: !t.done, doneAt: !t.done ? new Date().toISOString() : null });
+    toast(t.done?'वापस लिया':'पूरा हुआ ✓', t.done?'gold':'success');
+  }catch(e){ toast('Error','error'); }
+};
+
+window.openTaskActions = function(t){
+  // Quick action sheet — for simplicity, just mark/delete/checkin via prompt
+  // For now, just open the checkin for this task
+  addCheckinForTask(t.id);
+};
+
+window.openTaskActionsById = function(id){
+  const t = tasks.find(x=>x.id===id);
+  if(t) openTaskActions(t);
+};
+
+window.addCheckinForTask = function(taskId){
+  $('ciOvl').classList.add('open');
+  const t = tasks.find(x=>x.id===taskId);
+  $('ciSub').textContent = t ? `${t.name.slice(0,30)} पर` : 'अभी क्या हुआ?';
+  const sel = $('ciTask');
+  sel.innerHTML = '<option value="">— कोई specific task नहीं —</option>';
+  dayTasksOnly().forEach(x=>{
+    const opt = document.createElement('option');
+    opt.value = x.id;
+    opt.textContent = `${x.time||''} ${x.name}`;
+    if(x.id === taskId) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  setTimeout(()=>$('ciNote').focus(), 200);
+};
+
+window.openCheckin = function(){
+  $('ciOvl').classList.add('open');
+  $('ciSub').textContent = 'अभी क्या हुआ?';
+  const sel = $('ciTask');
+  sel.innerHTML = '<option value="">— कोई specific task नहीं —</option>';
+  dayTasksOnly().forEach(x=>{
+    const opt = document.createElement('option');
+    opt.value = x.id;
+    opt.textContent = `${x.time||''} ${x.name}`;
+    sel.appendChild(opt);
+  });
+  setTimeout(()=>$('ciNote').focus(), 200);
+};
+
+window.closeCi = ()=> $('ciOvl').classList.remove('open');
+
+window.saveCi = async function(){
+  const note = $('ciNote').value.trim();
+  const taskId = $('ciTask').value;
+  if(!note){ toast('कुछ लिखें','error'); return; }
+  const now = new Date().toISOString();
+  try{
+    if(taskId){
+      const t = tasks.find(x=>x.id===taskId);
+      const existing = Array.isArray(t.checkins) ? t.checkins : [];
+      const entry = { time: now, note, by: curUser?.email || 'vikram' };
+      await updateDoc(doc(db, COLL, taskId), {
+        checkins: [...existing, entry],
+        lastCheckinAt: now
+      });
+    } else {
+      await addDoc(collection(db, CI_COLL), {
+        note,
+        time: now,
+        date: todayKey(),
+        uid: curUser?.uid,
+        pid: curPid,
+        createdAt: serverTimestamp()
+      });
+    }
+    $('ciNote').value = '';
+    closeCi();
+    toast('Check-in दर्ज ✓','success');
+  }catch(e){ toast('Error: '+e.message,'error'); }
+};
+
+</script>
+
+</body>
+</html>

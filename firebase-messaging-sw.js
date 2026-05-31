@@ -1,18 +1,18 @@
-// ╔══════════════════════════════════════════════════════╗
-// ║  Firebase Messaging Service Worker                  ║
-// ║  Background notifications के लिए — Browser बंद होने ║
-// ║  के बाद भी notifications मिलेंगे                      ║
-// ╚══════════════════════════════════════════════════════╝
-//
-// ⚠️ इस file को website के root पर रखना है (index.html के साथ)
-// GitHub Pages पर: https://vikram7charan-del.github.io/vbe-order-tracker/firebase-messaging-sw.js
-// इस URL को browser में खोलकर check करो — file load होनी चाहिए
+/* ══════════════════════════════════════════════════════════
+   VBE Order Tracker — FCM Background Service Worker
+   ──────────────────────────────────────────────────────────
+   यह फाइल GitHub repo के ROOT में index.html के साथ रखो
+   (नाम बिल्कुल यही: firebase-messaging-sw.js)
 
-// Firebase v10 compat scripts (service worker में module imports नहीं चलते)
+   यह तभी काम करता है जब:
+   1) index.html में VAPID_KEY भरा हो
+   2) कोई server/Cloud Function token पर push भेजे
+   App बंद/background होने पर notification यहीं से दिखती है।
+   ══════════════════════════════════════════════════════════ */
+
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
 
-// Firebase config — same as index.html
 firebase.initializeApp({
   apiKey:            "AIzaSyBCe5DKNKcthOl4umprfRm2QBfbVaFORg8",
   authDomain:        "vbe-order-tracker-60324.firebaseapp.com",
@@ -24,39 +24,26 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Background message handler
-messaging.onBackgroundMessage((payload)=>{
-  console.log('[FCM-SW] Background message:', payload);
-  const title = payload.notification?.title || 'VBE Order Tracker';
+// Background में message आने पर notification दिखाओ
+messaging.onBackgroundMessage(function(payload){
+  const title = (payload.notification && payload.notification.title) || '🔔 VBE Tracker';
   const options = {
-    body: payload.notification?.body || 'नया update',
+    body: (payload.notification && payload.notification.body) || '',
     icon: '/favicon.ico',
     badge: '/favicon.ico',
-    tag: payload.data?.orderId || 'vbe-notif',
-    requireInteraction: payload.data?.priority === 'urgent',
+    tag:  (payload.data && payload.data.orderId) ? 'vbe-' + payload.data.orderId : 'vbe-notif',
     data: payload.data || {}
   };
   self.registration.showNotification(title, options);
 });
 
-// On notification click — open the app
-self.addEventListener('notificationclick', (event)=>{
+// Notification पर tap करने से app खुले
+self.addEventListener('notificationclick', function(event){
   event.notification.close();
-  const orderId = event.notification.data?.orderId;
-  const url = orderId
-    ? `/vbe-order-tracker/#track=${orderId}`
-    : '/vbe-order-tracker/';
   event.waitUntil(
-    clients.matchAll({type:'window', includeUncontrolled:true}).then((clientList)=>{
-      // If app already open — focus it
-      for(const client of clientList){
-        if(client.url.includes('vbe-order-tracker') && 'focus' in client){
-          client.focus();
-          return;
-        }
-      }
-      // Otherwise open new window
-      if(clients.openWindow) return clients.openWindow(url);
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(list){
+      for (const c of list) { if (c.url && 'focus' in c) return c.focus(); }
+      if (clients.openWindow) return clients.openWindow('/');
     })
   );
 });

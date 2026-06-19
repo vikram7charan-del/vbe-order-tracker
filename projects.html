@@ -803,5 +803,57 @@ function notif(msg,type){
   setTimeout(function(){el.classList.remove('show');},2500);
 }
 </script>
+
+<!-- ── Global Navigator ── -->
+<style>
+#vbeNav-fab{position:fixed;bottom:88px;left:16px;z-index:9500;width:46px;height:46px;border-radius:14px;background:rgba(6,6,15,.92);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border:1px solid rgba(245,158,11,.25);box-shadow:0 4px 24px rgba(0,0,0,.55),0 0 0 1px rgba(245,158,11,.08);display:grid;place-items:center;font-size:22px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .15s,box-shadow .15s;}
+#vbeNav-fab:active{transform:scale(.88)}
+#vbeNav-ovl{display:none;position:fixed;inset:0;z-index:9400;background:rgba(0,0,0,.72);backdrop-filter:blur(12px) saturate(120%);-webkit-backdrop-filter:blur(12px) saturate(120%);}
+#vbeNav-ovl.open{display:block}
+#vbeNav-panel{position:absolute;bottom:90px;left:16px;background:rgba(8,11,22,.97);border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:14px 12px 12px;width:210px;box-shadow:0 24px 64px rgba(0,0,0,.75),0 1px 0 rgba(255,255,255,.05) inset;transform-origin:bottom left;animation:vbeNavIn .22s cubic-bezier(.32,.72,0,1) both;}
+@keyframes vbeNavIn{from{opacity:0;transform:scale(.82) translateY(14px)}to{opacity:1;transform:none}}
+#vbeNav-panel h6{font-size:9px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:rgba(255,255,255,.25);font-family:system-ui,-apple-system,sans-serif;margin:0 2px 10px;}
+.vbeNav-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.vbeNav-link{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px 9px;border-radius:12px;text-decoration:none;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);transition:all .14s;-webkit-tap-highlight-color:transparent;}
+.vbeNav-link:active{transform:scale(.94);background:rgba(245,158,11,.1)}
+.vbeNav-link.vbeNav-cur{border-color:rgba(245,158,11,.4);background:rgba(245,158,11,.07);}
+.vbeNav-ico{font-size:22px;line-height:1}
+.vbeNav-lbl{font-size:9.5px;font-weight:700;color:rgba(255,255,255,.6);text-align:center;line-height:1.2;font-family:'Noto Sans Devanagari',system-ui,sans-serif;}
+.vbeNav-link.vbeNav-cur .vbeNav-lbl{color:#f59e0b}
+#vbeNav-close{width:100%;margin-top:8px;padding:8px;border-radius:10px;border:none;background:rgba(255,255,255,.04);font-size:10px;font-weight:700;color:rgba(255,255,255,.25);font-family:system-ui,sans-serif;cursor:pointer;letter-spacing:.5px;-webkit-tap-highlight-color:transparent;}
+#vbeNav-close:active{background:rgba(255,255,255,.08)}
+</style>
+<button id="vbeNav-fab" onclick="vbeNavToggle()" aria-label="App Menu">⚡</button>
+<div id="vbeNav-ovl" onclick="vbeNavClose()">
+  <div id="vbeNav-panel" onclick="event.stopPropagation()">
+    <h6>VBE — सभी Modules</h6>
+    <div class="vbeNav-grid">
+      <a class="vbeNav-link" href="./" id="vnl-orders"><span class="vbeNav-ico">📋</span><span class="vbeNav-lbl">Orders</span></a>
+      <a class="vbeNav-link" href="./vbe-time-master.html" id="vnl-time"><span class="vbeNav-ico">⏱️</span><span class="vbeNav-lbl">कार्य डायरी</span></a>
+      <a class="vbeNav-link" href="./bank.html" id="vnl-bank"><span class="vbeNav-ico">🏦</span><span class="vbeNav-lbl">Bank</span></a>
+      <a class="vbeNav-link" href="./challan.html" id="vnl-challan"><span class="vbeNav-ico">📄</span><span class="vbeNav-lbl">Challan</span></a>
+      <a class="vbeNav-link" href="./clients.html" id="vnl-clients"><span class="vbeNav-ico">👥</span><span class="vbeNav-lbl">Clients</span></a>
+      <a class="vbeNav-link" href="./projects.html" id="vnl-projects"><span class="vbeNav-ico">📁</span><span class="vbeNav-lbl">Projects</span></a>
+      <a class="vbeNav-link" href="./udhari.html" id="vnl-udhari"><span class="vbeNav-ico">💰</span><span class="vbeNav-lbl">उधारी</span></a>
+      <a class="vbeNav-link" href="./vbe-exit.html" id="vnl-exit"><span class="vbeNav-ico">🔐</span><span class="vbeNav-lbl">Exit</span></a>
+    </div>
+    <button id="vbeNav-close" onclick="vbeNavClose()">✕ बंद करें</button>
+  </div>
+</div>
+<script>
+(function(){
+  'use strict';
+  function vbeNavToggle(){ document.getElementById('vbeNav-ovl').classList.toggle('open'); }
+  function vbeNavClose(){ document.getElementById('vbeNav-ovl').classList.remove('open'); }
+  window.vbeNavToggle = vbeNavToggle;
+  window.vbeNavClose = vbeNavClose;
+  try{
+    var p = location.pathname;
+    var map = {'vnl-projects':p.includes('projects'),'vnl-orders':p==='/'||p.endsWith('/index.html'),'vnl-time':p.includes('vbe-time-master'),'vnl-bank':p.includes('bank'),'vnl-challan':p.includes('challan'),'vnl-clients':p.includes('clients'),'vnl-udhari':p.includes('udhari'),'vnl-exit':p.includes('vbe-exit')};
+    Object.keys(map).forEach(function(id){ if(map[id]){ var el=document.getElementById(id); if(el) el.classList.add('vbeNav-cur'); } });
+  }catch(e){}
+})();
+</script>
+
 </body>
 </html>

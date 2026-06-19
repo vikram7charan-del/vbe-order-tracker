@@ -227,7 +227,8 @@ body{font-family:'Noto Sans Devanagari','Segoe UI',sans-serif;min-height:100vh}
 
 /* ── SUPPLIER (dark) ── */
 #supplier{background:#050a14;min-height:100vh;color:#e2e8f0;width:100%;max-width:480px;margin:0 auto;display:none;box-sizing:border-box}
-.s-header{background:linear-gradient(135deg,#0f1e47,#1a0a3a);padding:14px 16px 12px;border-bottom:1px solid #1e3a5f}
+.s-header{background:linear-gradient(135deg,#0a1433,#12073a);padding:14px 16px 12px;border-bottom:1px solid rgba(245,158,11,.15);position:relative;overflow:hidden}
+.s-header::before{content:'';position:absolute;top:-50%;right:-10%;width:50%;height:200%;background:radial-gradient(circle,rgba(245,158,11,.06),transparent 60%);pointer-events:none}
 .s-title{font-size:18px;font-weight:800;background:linear-gradient(90deg,#f59e0b,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .s-sub{font-size:10px;color:#4a6fa5;letter-spacing:2px;margin-bottom:3px}
 .s-note{font-size:10px;color:#334155;margin-top:2px}
@@ -240,8 +241,9 @@ body{font-family:'Noto Sans Devanagari','Segoe UI',sans-serif;min-height:100vh}
 .s-search{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #1e3a5f;background:#0d1526;color:#e2e8f0;font-size:13px;font-family:inherit;outline:none;margin-bottom:8px}
 .s-search::placeholder{color:#334155}
 
-.card{background:#0d1526;border-radius:14px;padding:11px 12px;margin-bottom:8px;border:1px solid #1e3a5f}
-.card.ov{border-color:#7f1d1d}
+.card{background:#0d1526;border-radius:14px;padding:11px 12px;margin-bottom:8px;border:1px solid #1e3a5f;animation:cardIn .25s cubic-bezier(.32,.72,0,1) both}
+@keyframes cardIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.card.ov{border-color:#7f1d1d;background:linear-gradient(135deg,#0d1526,#1a0608)}
 .later-card{border-color:#312e81;background:linear-gradient(135deg,#0d1526,#0f0d1f)}
 .now-card{border-color:#78350f;background:linear-gradient(135deg,#0d1526,#1a0e05);box-shadow:0 0 12px rgba(245,158,11,.15)}
 .tag-b{font-size:9px;background:#1e293b;color:#6366f1;padding:2px 7px;border-radius:5px;font-weight:800}
@@ -1236,6 +1238,53 @@ select option{background:#0d1526}
   <!-- Staff Summary Bar (shows when staff chip selected) -->
   <div id="staff-summary-bar" style="display:none;padding:0 12px 4px"></div>
   <div id="notif-banner" style="display:none;padding:0 12px 6px"></div>
+  <!-- Quick Modules Hub — horizontal scroll strip -->
+  <div style="padding:4px 12px 8px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch">
+    <div style="display:flex;gap:7px;min-width:max-content">
+      <a href="./vbe-time-master.html" style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(239,68,68,.08));border:1px solid rgba(245,158,11,.25);text-decoration:none;min-width:68px;flex-shrink:0;position:relative;overflow:hidden">
+        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#f59e0b,#ef4444)"></div>
+        <span style="font-size:20px">⏱️</span>
+        <span style="font-size:9px;font-weight:800;color:#f59e0b;letter-spacing:.3px">कार्य डायरी</span>
+        <span style="font-size:8px;color:#475569">Time</span>
+      </a>
+      <a href="./bank.html" style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(52,211,153,.10),rgba(16,185,129,.06));border:1px solid rgba(52,211,153,.22);text-decoration:none;min-width:68px;flex-shrink:0;position:relative;overflow:hidden">
+        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#34d399,#10b981)"></div>
+        <span style="font-size:20px">🏦</span>
+        <span style="font-size:9px;font-weight:800;color:#34d399;letter-spacing:.3px">Bank</span>
+        <span style="font-size:8px;color:#475569">Finance</span>
+      </a>
+      <a href="./challan.html" style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(96,165,250,.10),rgba(59,130,246,.06));border:1px solid rgba(96,165,250,.22);text-decoration:none;min-width:68px;flex-shrink:0;position:relative;overflow:hidden">
+        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#60a5fa,#3b82f6)"></div>
+        <span style="font-size:20px">📄</span>
+        <span style="font-size:9px;font-weight:800;color:#60a5fa;letter-spacing:.3px">Challan</span>
+        <span style="font-size:8px;color:#475569">Docs</span>
+      </a>
+      <a href="./clients.html" style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(34,211,238,.10),rgba(8,145,178,.06));border:1px solid rgba(34,211,238,.22);text-decoration:none;min-width:68px;flex-shrink:0;position:relative;overflow:hidden">
+        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#22d3ee,#0891b2)"></div>
+        <span style="font-size:20px">👥</span>
+        <span style="font-size:9px;font-weight:800;color:#22d3ee;letter-spacing:.3px">Clients</span>
+        <span style="font-size:8px;color:#475569">CRM</span>
+      </a>
+      <a href="./projects.html" style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(167,139,250,.10),rgba(139,92,246,.06));border:1px solid rgba(167,139,250,.22);text-decoration:none;min-width:68px;flex-shrink:0;position:relative;overflow:hidden">
+        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#a78bfa,#8b5cf6)"></div>
+        <span style="font-size:20px">📁</span>
+        <span style="font-size:9px;font-weight:800;color:#a78bfa;letter-spacing:.3px">Projects</span>
+        <span style="font-size:8px;color:#475569">Works</span>
+      </a>
+      <a href="./udhari.html" style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(251,191,36,.10),rgba(245,158,11,.06));border:1px solid rgba(251,191,36,.22);text-decoration:none;min-width:68px;flex-shrink:0;position:relative;overflow:hidden">
+        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#fbbf24,#f59e0b)"></div>
+        <span style="font-size:20px">💰</span>
+        <span style="font-size:9px;font-weight:800;color:#fbbf24;letter-spacing:.3px">उधारी</span>
+        <span style="font-size:8px;color:#475569">Ledger</span>
+      </a>
+      <a href="./contacts.html" style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(244,114,182,.10),rgba(236,72,153,.06));border:1px solid rgba(244,114,182,.22);text-decoration:none;min-width:68px;flex-shrink:0;position:relative;overflow:hidden">
+        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#f472b6,#ec4899)"></div>
+        <span style="font-size:20px">📋</span>
+        <span style="font-size:9px;font-weight:800;color:#f472b6;letter-spacing:.3px">Contacts</span>
+        <span style="font-size:8px;color:#475569">People</span>
+      </a>
+    </div>
+  </div>
   <!-- Folder Tabs -->
   <div style="padding:0 12px 6px;display:flex;gap:5px">
     <button onclick="setFolder('active')" id="tab-active" style="flex:1;padding:5px;border-radius:8px;border:none;background:linear-gradient(135deg,#1e3a8a,#312e81);color:#fff;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit">🔥 Active <span id="tab-act-cnt" style="background:#ffffff33;border-radius:5px;padding:1px 5px;font-size:9px">0</span></button>

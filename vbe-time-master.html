@@ -2194,50 +2194,93 @@ function renderReport(){
   const byCat = {};
   dt.forEach(t=>{ byCat[t.cat||'other'] = (byCat[t.cat||'other']||0) + (parseInt(t.duration)||0); });
 
+  const pending = dt.filter(t=>!t.done);
+  const productScore = totalMin > 0 ? Math.min(100, Math.round(doneMin/totalMin*100)) : 0;
+  const catColors = { gem:'#60a5fa', supply:'#34d399', accounts:'#fbbf24', canteen:'#f472b6', field:'#fb923c', personal:'#a78bfa', other:'#64748b' };
+
   wrap.innerHTML = `
-    <div style="background:linear-gradient(135deg,var(--ink-2),var(--ink-1));border:1px solid var(--bd-1);border-radius:16px;padding:16px;margin-bottom:14px">
-      <div style="font-family:var(--font-display);font-style:italic;font-size:20px;color:var(--t-100);margin-bottom:14px">आज का सारांश</div>
-      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:9px">
-        <div style="padding:11px;border-radius:11px;background:rgba(0,0,0,.25);border:1px solid var(--bd-1)">
-          <div style="font-family:var(--font-mono);font-size:24px;font-weight:700;color:var(--emerald);line-height:1">${doneMin}<span style="font-size:14px;color:var(--t-400)">मि</span></div>
-          <div style="font-size:10px;color:var(--t-400);font-family:var(--font-hindi);font-weight:600;margin-top:3px">काम पूरे हुए</div>
+    <!-- Hero Score Card -->
+    <div style="background:linear-gradient(135deg,rgba(245,178,64,.10),rgba(52,211,153,.06));border:1px solid var(--bd-gold);border-radius:20px;padding:16px 16px 14px;margin-bottom:12px;position:relative;overflow:hidden">
+      <div style="position:absolute;top:-30%;right:-10%;width:55%;height:130%;background:radial-gradient(circle,rgba(245,178,64,.08),transparent 60%);pointer-events:none"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div>
+          <div style="font-family:var(--font-display);font-style:italic;font-size:18px;color:var(--t-100);letter-spacing:-.2px">आज का हिसाब</div>
+          <div style="font-size:9px;color:var(--t-400);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-top:2px;font-family:var(--font-sans)">${new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'short'})}</div>
         </div>
-        <div style="padding:11px;border-radius:11px;background:rgba(0,0,0,.25);border:1px solid var(--bd-1)">
-          <div style="font-family:var(--font-mono);font-size:24px;font-weight:700;color:var(--gold);line-height:1">${allCi.length}</div>
-          <div style="font-size:10px;color:var(--t-400);font-family:var(--font-hindi);font-weight:600;margin-top:3px">Check-ins दर्ज</div>
+        <div style="text-align:right">
+          <div style="font-family:var(--font-mono);font-size:36px;font-weight:700;line-height:1;background:linear-gradient(180deg,var(--gold-soft),var(--gold));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">${productScore}<span style="font-size:16px">%</span></div>
+          <div style="font-size:8.5px;color:var(--t-500);font-family:var(--font-hindi);font-weight:600">उत्पादकता</div>
+        </div>
+      </div>
+      <!-- Progress bar -->
+      <div style="height:6px;background:var(--ink-3);border-radius:99px;overflow:hidden;margin-bottom:12px">
+        <div style="height:100%;width:${productScore}%;background:linear-gradient(90deg,var(--gold),var(--emerald));border-radius:99px;transition:width 1s ease"></div>
+      </div>
+      <!-- 4-stat grid -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+        <div style="padding:9px 6px;border-radius:11px;background:rgba(0,0,0,.25);border:1px solid var(--bd-1);text-align:center">
+          <div style="font-family:var(--font-mono);font-size:18px;font-weight:700;color:var(--emerald);line-height:1">${doneMin}</div>
+          <div style="font-size:8px;color:var(--t-500);font-family:var(--font-hindi);font-weight:700;margin-top:2px">मि पूरे</div>
+        </div>
+        <div style="padding:9px 6px;border-radius:11px;background:rgba(0,0,0,.25);border:1px solid var(--bd-1);text-align:center">
+          <div style="font-family:var(--font-mono);font-size:18px;font-weight:700;color:var(--sky);line-height:1">${totalMin}</div>
+          <div style="font-size:8px;color:var(--t-500);font-family:var(--font-hindi);font-weight:700;margin-top:2px">मि planned</div>
+        </div>
+        <div style="padding:9px 6px;border-radius:11px;background:rgba(0,0,0,.25);border:1px solid var(--bd-1);text-align:center">
+          <div style="font-family:var(--font-mono);font-size:18px;font-weight:700;color:var(--gold);line-height:1">${done.length}</div>
+          <div style="font-size:8px;color:var(--t-500);font-family:var(--font-hindi);font-weight:700;margin-top:2px">काम पूरे</div>
+        </div>
+        <div style="padding:9px 6px;border-radius:11px;background:rgba(0,0,0,.25);border:1px solid var(--bd-1);text-align:center">
+          <div style="font-family:var(--font-mono);font-size:18px;font-weight:700;color:var(--rose);line-height:1">${pending.length}</div>
+          <div style="font-size:8px;color:var(--t-500);font-family:var(--font-hindi);font-weight:700;margin-top:2px">बाकी</div>
         </div>
       </div>
     </div>
 
     ${Object.keys(byCat).length ? `
-    <div style="background:var(--ink-1);border:1px solid var(--bd-1);border-radius:14px;padding:14px;margin-bottom:14px">
-      <div style="font-size:12px;font-weight:700;color:var(--t-300);font-family:var(--font-hindi);margin-bottom:10px">श्रेणी के हिसाब से समय</div>
+    <div style="background:var(--ink-1);border:1px solid var(--bd-1);border-radius:16px;padding:14px;margin-bottom:12px">
+      <div style="font-family:var(--font-display);font-style:italic;font-size:16px;color:var(--t-100);margin-bottom:12px">श्रेणीवार समय</div>
       ${Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([k,v])=>{
         const cat = CATS[k]||CATS.other;
         const pct = totalMin ? Math.round(v/totalMin*100) : 0;
+        const col = catColors[k] || '#64748b';
         return `
-          <div style="margin-bottom:9px">
-            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span style="font-family:var(--font-hindi);color:var(--t-200)">${cat.em} ${cat.label}</span><span style="font-family:var(--font-mono);color:var(--t-400)">${v} मि</span></div>
-            <div style="height:5px;background:var(--ink-3);border-radius:99px;overflow:hidden"><div style="height:100%;width:${pct}%;background:var(--gold);border-radius:99px"></div></div>
+          <div style="margin-bottom:10px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+              <div style="display:flex;align-items:center;gap:6px">
+                <span style="font-size:13px">${cat.em}</span>
+                <span style="font-size:11.5px;font-family:var(--font-hindi);color:var(--t-200);font-weight:600">${cat.label}</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:7px">
+                <span style="font-family:var(--font-mono);font-size:10px;color:var(--t-400)">${v}मि</span>
+                <span style="font-family:var(--font-mono);font-size:9px;color:${col};font-weight:700">${pct}%</span>
+              </div>
+            </div>
+            <div style="height:5px;background:var(--ink-3);border-radius:99px;overflow:hidden">
+              <div style="height:100%;width:${pct}%;background:${col};border-radius:99px;box-shadow:0 0 8px ${col}60"></div>
+            </div>
           </div>
         `;
       }).join('')}
     </div>
     ` : ''}
 
-    <div style="font-family:var(--font-display);font-style:italic;font-size:18px;color:var(--t-100);margin-bottom:10px">📝 आज की check-ins</div>
-    ${allCi.length ? allCi.slice(0,30).map(c=>`
-      <div style="background:var(--ink-1);border:1px solid var(--bd-1);border-radius:11px;padding:11px 13px;margin-bottom:7px;border-left:3px solid var(--gold)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div style="font-family:var(--font-display);font-style:italic;font-size:16px;color:var(--t-100)">📝 Check-ins (${allCi.length})</div>
+      ${allCi.length ? `<div style="font-size:9px;color:var(--t-500);font-family:var(--font-mono);font-weight:700">${allCi.length * 5} मि tracked</div>` : ''}
+    </div>
+    ${allCi.length ? allCi.slice(0,30).map((c,i)=>`
+      <div style="background:var(--ink-1);border:1px solid var(--bd-1);border-radius:12px;padding:11px 13px;margin-bottom:6px;border-left:3px solid var(--gold);animation:slideUp .2s ${i*30}ms both">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-          <div style="flex:1;font-size:11.5px;font-family:var(--font-hindi);color:var(--t-100);line-height:1.45">${escapeHtml(c.note||'(no note)')}</div>
+          <div style="flex:1;font-size:11.5px;font-family:var(--font-hindi);color:var(--t-100);line-height:1.5">${escapeHtml(c.note||'(कोई note नहीं)')}</div>
           <div style="text-align:right;flex-shrink:0">
-            <div style="font-family:var(--font-mono);font-size:10px;color:var(--gold);font-weight:700">${new Date(c.time).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:false})}</div>
-            <div style="font-size:8.5px;color:var(--t-500);font-family:var(--font-hindi);margin-top:1px">${timeAgo(c.time)}</div>
+            <div style="font-family:var(--font-mono);font-size:11px;color:var(--gold);font-weight:700">${new Date(c.time).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:false})}</div>
+            <div style="font-size:8px;color:var(--t-500);margin-top:1px;font-family:var(--font-hindi)">${timeAgo(c.time)}</div>
           </div>
         </div>
-        ${c.taskName ? `<div style="font-size:9.5px;color:var(--t-400);font-family:var(--font-hindi);margin-top:5px">📋 ${escapeHtml(c.taskName)}</div>`:''}
+        ${c.taskName ? `<div style="font-size:9.5px;color:var(--gold);opacity:.7;font-family:var(--font-hindi);margin-top:5px;display:flex;align-items:center;gap:4px"><span>📋</span><span>${escapeHtml(c.taskName)}</span></div>`:''}
       </div>
-    `).join('') : '<div class="empty"><div class="ico">📝</div><div class="txt">कोई check-in नहीं आज<br>हर 15-30 मिनट में दर्ज करें</div></div>'}
+    `).join('') : '<div class="empty"><div class="ico">📝</div><div class="txt">कोई check-in नहीं<br>हर 15-30 मिनट में progress दर्ज करें</div></div>'}
   `;
 }
 

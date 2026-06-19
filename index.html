@@ -226,7 +226,18 @@ body{font-family:'Noto Sans Devanagari','Segoe UI',sans-serif;min-height:100vh}
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#1e293b;border-radius:4px}
 
 /* ── SUPPLIER (dark) ── */
-#supplier{background:#050a14;min-height:100vh;color:#e2e8f0;width:100%;max-width:480px;margin:0 auto;display:none;box-sizing:border-box}
+#supplier{
+  background:#050a14;min-height:100vh;color:#e2e8f0;width:100%;max-width:480px;margin:0 auto;display:none;box-sizing:border-box;
+  position:relative;
+}
+#supplier::before{
+  content:'';position:fixed;top:0;left:50%;transform:translateX(-50%);
+  width:480px;height:100vh;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 70% 30% at 80% 0%,rgba(245,158,11,.06),transparent 60%),
+    radial-gradient(ellipse 50% 25% at 10% 20%,rgba(99,102,241,.05),transparent 55%);
+}
+#supplier > *{position:relative;z-index:1}
 .s-header{background:linear-gradient(135deg,#0a1433,#12073a);padding:14px 16px 12px;border-bottom:1px solid rgba(245,158,11,.15);position:relative;overflow:hidden}
 .s-header::before{content:'';position:absolute;top:-50%;right:-10%;width:50%;height:200%;background:radial-gradient(circle,rgba(245,158,11,.06),transparent 60%);pointer-events:none}
 .s-title{font-size:18px;font-weight:800;background:linear-gradient(90deg,#f59e0b,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
@@ -1038,23 +1049,24 @@ select option{background:#0d1526}
 /* HEADER PEEK LINE (pull-down) */
 .mb-peek-bar{
   position:sticky;top:0;z-index:30;
-  background:linear-gradient(180deg,#0f1e47 0%,rgba(15,30,71,0.95) 100%);
-  border-bottom:1px solid #1e3a5f;
-  padding:4px 0;
+  background:linear-gradient(180deg,rgba(10,16,40,.97) 0%,rgba(10,16,40,.92) 100%);
+  border-bottom:1px solid rgba(245,158,11,.15);
+  padding:5px 16px;
   cursor:pointer;
   display:flex;align-items:center;justify-content:center;
-  gap:6px;
+  gap:8px;
   transition:all 0.2s;
-  backdrop-filter:blur(8px);
+  backdrop-filter:blur(16px) saturate(160%);
+  -webkit-backdrop-filter:blur(16px) saturate(160%);
 }
-.mb-peek-bar:active{background:#1e3a5f}
+.mb-peek-bar:active{background:rgba(245,158,11,.06)}
 .mb-peek-line{
-  width:36px;height:4px;
-  background:linear-gradient(90deg,#d4a017,#8b6914);
-  border-radius:2px;
+  flex:1;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(245,158,11,.3),transparent);
 }
 .mb-peek-label{
-  font-size:9px;color:#94a3b8;font-weight:700;letter-spacing:0.8px;
+  font-size:9px;color:rgba(245,158,11,.7);font-weight:800;letter-spacing:1.2px;
+  text-transform:uppercase;font-family:'Segoe UI',system-ui,sans-serif;
 }
 
 /* ═══════════════════════════════════════════════════

@@ -891,6 +891,71 @@ button{cursor:pointer}
 .spin{width:30px;height:30px;border:3px solid var(--ink-3);border-top-color:var(--gold);border-radius:50%;animation:rot .7s linear infinite;margin:30px auto}
 @keyframes rot{to{transform:rotate(360deg)}}
 
+/*══════ FOCUS TIMER — Elon Block Timer ══════*/
+.focus-timer-wrap{
+  background:linear-gradient(135deg,rgba(245,178,64,.06),rgba(96,165,250,.04));
+  border:1px solid var(--bd-gold);border-radius:22px;
+  padding:20px 16px;margin-bottom:16px;text-align:center;position:relative;overflow:hidden;
+}
+.focus-timer-wrap::before{
+  content:'';position:absolute;top:-40%;left:-20%;width:140%;height:80%;
+  background:radial-gradient(circle,rgba(245,178,64,.06),transparent 60%);pointer-events:none;
+}
+.ft-label{font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;
+  color:var(--gold);margin-bottom:12px;font-family:var(--font-sans);display:flex;align-items:center;justify-content:center;gap:6px}
+.ft-label::before,.ft-label::after{content:'';flex:1;height:1px;background:var(--bd-gold)}
+.ft-ring-wrap{position:relative;width:148px;height:148px;margin:0 auto 14px}
+.ft-ring-wrap svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ft-ring-bg{fill:none;stroke:var(--ink-3);stroke-width:7}
+.ft-ring-fg{fill:none;stroke-width:7;stroke-linecap:round;transition:stroke-dashoffset .9s linear;stroke:url(#ftGrad)}
+.ft-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.ft-time{font-family:var(--font-mono);font-size:36px;font-weight:700;letter-spacing:-1px;
+  color:var(--t-100);font-variant-numeric:tabular-nums;line-height:1}
+.ft-phase{font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-top:3px;font-family:var(--font-sans)}
+.ft-sessions{display:flex;gap:5px;justify-content:center;margin-bottom:12px}
+.ft-dot{width:10px;height:10px;border-radius:50%;background:var(--ink-4);border:1px solid var(--bd-2);transition:all .3s}
+.ft-dot.done{background:var(--gold);border-color:var(--gold);box-shadow:0 0 8px var(--gold-glow)}
+.ft-dot.break{background:var(--emerald);border-color:var(--emerald)}
+.ft-presets{display:flex;gap:5px;justify-content:center;margin-bottom:12px;flex-wrap:wrap}
+.ft-preset{padding:5px 11px;border-radius:8px;font-size:10px;font-weight:700;font-family:var(--font-mono);
+  background:var(--ink-2);border:1px solid var(--bd-2);color:var(--t-300);transition:all .15s;cursor:pointer}
+.ft-preset.on{background:var(--gold-amber);border-color:var(--bd-gold);color:var(--gold)}
+.ft-controls{display:flex;gap:8px;justify-content:center}
+.ft-btn{padding:11px 20px;border-radius:12px;font-size:13px;font-weight:800;font-family:var(--font-hindi);
+  display:flex;align-items:center;gap:7px;border:1px solid;transition:transform .15s,box-shadow .15s;cursor:pointer}
+.ft-btn:active{transform:scale(.94)}
+.ft-start{background:linear-gradient(135deg,var(--gold-soft),var(--gold-deep));color:#1a1305;
+  border-color:var(--gold);box-shadow:0 6px 20px rgba(245,178,64,.28)}
+.ft-pause{background:var(--ink-3);border-color:var(--bd-2);color:var(--t-200)}
+.ft-reset{background:rgba(255,255,255,.03);border-color:var(--bd-1);color:var(--t-400)}
+.ft-task-wrap{background:rgba(0,0,0,.25);border:1px solid var(--bd-1);border-radius:12px;
+  padding:10px 12px;margin-bottom:12px;text-align:left}
+.ft-task-lbl{font-size:8.5px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--t-500);margin-bottom:5px;font-family:var(--font-sans)}
+.ft-task-select{width:100%;background:transparent;border:none;color:var(--t-200);font-size:12px;
+  font-family:var(--font-hindi);font-weight:600;cursor:pointer;outline:none}
+.ft-task-select option{background:#13131c;color:var(--t-100)}
+.ft-status-bar{margin-top:10px;font-size:10px;font-family:var(--font-hindi);color:var(--t-400);
+  font-weight:600;text-align:center;min-height:18px}
+
+/*══════ EVENING RITUAL ══════*/
+.evening-ritual{
+  background:linear-gradient(135deg,rgba(251,113,133,.06),rgba(245,178,64,.04));
+  border:1px solid rgba(251,113,133,.2);border-radius:16px;padding:13px;margin-bottom:14px;
+  position:relative;overflow:hidden;
+}
+.evening-ritual::before{
+  content:'';position:absolute;top:-30%;left:-20%;width:60%;height:160%;
+  background:radial-gradient(circle,rgba(251,113,133,.08),transparent 60%);pointer-events:none;
+}
+.er-icon{width:32px;height:32px;border-radius:9px;background:var(--ruby-soft);
+  border:1px solid rgba(251,113,133,.3);display:grid;place-items:center;font-size:15px}
+.er-btn-row{display:flex;gap:7px;margin-top:9px;position:relative}
+.er-btn{flex:1;padding:9px 10px;border-radius:9px;font-size:11px;font-weight:700;
+  font-family:var(--font-hindi);border:1px solid;display:flex;align-items:center;justify-content:center;gap:5px;transition:transform .12s ease}
+.er-btn:active{transform:scale(.97)}
+.er-btn.save{background:linear-gradient(135deg,var(--ruby),#e11d48);color:#fff;border-color:var(--ruby);box-shadow:0 4px 14px rgba(251,113,133,.3)}
+.er-btn.skip{background:rgba(255,255,255,.03);color:var(--t-400);border-color:var(--bd-2)}
+
 </style>
 </head>
 <body>
@@ -1053,6 +1118,22 @@ button{cursor:pointer}
         <div class="ritual-btn-row">
           <button class="ritual-btn save" onclick="saveRitual('morning')"><span>✓</span><span>संकल्प पक्का</span></button>
           <button class="ritual-btn skip" onclick="skipRitual('morning')"><span>बाद में</span></button>
+        </div>
+      </div>
+
+      <!-- EVENING REFLECTION -->
+      <div class="evening-ritual" id="ritualEvening" style="display:none">
+        <div class="ritual-header">
+          <div class="er-icon">🌙</div>
+          <div class="ritual-title"><em>शाम की समीक्षा</em><span class="sub">आज क्या पूरा हुआ</span></div>
+        </div>
+        <div class="ritual-prompt" style="font-size:11.5px;font-family:var(--font-hindi);color:var(--t-300);line-height:1.55;margin-bottom:11px;font-weight:500">
+          शाम के <strong style="color:var(--ruby)">5 मिनट</strong> — आज क्या अच्छा हुआ, क्या अटका, कल क्या सुधारना है:
+        </div>
+        <textarea class="ritual-input" id="eveningInput" style="border-color:rgba(251,113,133,.25)" placeholder="1. GeM bid submit हो गई ✓&#10;2. Manoj को अभी brief नहीं कर पाया&#10;3. कल सुबह 8 बजे site visit करना है"></textarea>
+        <div class="er-btn-row">
+          <button class="er-btn save" onclick="saveRitual('evening')"><span>✓</span><span>समीक्षा save</span></button>
+          <button class="er-btn skip" onclick="document.getElementById('ritualEvening').style.display='none'"><span>बंद करें</span></button>
         </div>
       </div>
 
@@ -1811,7 +1892,7 @@ function renderTeamCircle(){
 
 /*═══ RITUAL ═══*/
 function renderRitual(){
-  const r = rituals.find(x=>x.type==='morning');
+  const r = rituals.find(x=>x.type==='morning' && x.date===todayKey());
   const wrap = $('ritualMorning');
   if(!wrap) return;
   if(r && r.text){
@@ -1826,10 +1907,33 @@ function renderRitual(){
       </div>
     `;
   }
+  // Evening ritual — show after 5 PM if not already saved
+  const er = rituals.find(x=>x.type==='evening' && x.date===todayKey());
+  const eveningWrap = $('ritualEvening');
+  if(!eveningWrap) return;
+  const curH = new Date().getHours();
+  if(curH >= 17 && !er){
+    eveningWrap.style.display = 'block';
+  } else if(er && er.text){
+    eveningWrap.style.display = 'block';
+    eveningWrap.innerHTML = `
+      <div class="ritual-header">
+        <div class="er-icon">🌙</div>
+        <div class="ritual-title"><em>शाम की समीक्षा</em><span class="sub">${timeAgo(er.savedAt)}</span></div>
+      </div>
+      <div style="font-size:12px;font-family:var(--font-hindi);color:var(--t-200);line-height:1.7;white-space:pre-wrap;background:rgba(0,0,0,.25);border-radius:11px;padding:11px;border:1px solid rgba(251,113,133,.15)">${escapeHtml(er.text)}</div>
+      <div class="er-btn-row">
+        <button class="er-btn skip" onclick="editRitual('evening')">✏️ बदलें</button>
+      </div>
+    `;
+  } else {
+    eveningWrap.style.display = 'none';
+  }
 }
 
 window.saveRitual = async function(type){
-  const text = $('ritualInput').value.trim();
+  const inputId = type === 'evening' ? 'eveningInput' : 'ritualInput';
+  const text = $(inputId)?.value.trim();
   if(!text){ toast('कुछ लिखें फिर save करें','error'); return; }
   try{
     await addDoc(collection(db, RITUAL_COLL), {
@@ -1838,12 +1942,29 @@ window.saveRitual = async function(type){
       uid: curUser?.uid, pid: curPid,
       createdAt: serverTimestamp()
     });
-    toast('संकल्प पक्का ✓','success');
+    toast(type==='evening' ? 'समीक्षा save ✓' : 'संकल्प पक्का ✓','success');
+    renderRitual();
   }catch(e){ toast('Save failed: ' + e.message, 'error'); }
 };
 window.skipRitual = function(){ $('ritualMorning').style.display='none'; };
 window.editRitual = function(type){
-  const r = rituals.find(x=>x.type===type);
+  const r = rituals.find(x=>x.type===type && x.date===todayKey());
+  if(type==='evening'){
+    const w = $('ritualEvening');
+    if(w) w.innerHTML = `
+      <div class="ritual-header">
+        <div class="er-icon">🌙</div>
+        <div class="ritual-title"><em>शाम की समीक्षा</em><span class="sub">आज का हिसाब</span></div>
+      </div>
+      <div class="ritual-prompt" style="font-size:11.5px;font-family:var(--font-hindi);color:var(--t-300);line-height:1.55;margin-bottom:11px;font-weight:500">आज क्या पूरा हुआ, क्या अटका, कल क्या करना है:</div>
+      <textarea class="ritual-input" id="eveningInput" style="border-color:rgba(251,113,133,.25)">${escapeHtml(r?.text||'')}</textarea>
+      <div class="er-btn-row">
+        <button class="er-btn save" onclick="saveRitual('evening')">✓ समीक्षा save</button>
+        <button class="er-btn skip" onclick="renderRitual()">रद्द</button>
+      </div>
+    `;
+    return;
+  }
   $('ritualMorning').innerHTML = `
     <div class="ritual-header">
       <div class="ritual-icon">🌅</div>
@@ -2120,14 +2241,168 @@ function renderReport(){
   `;
 }
 
+/*═══ FOCUS TIMER STATE ═══*/
+let ftRunning = false, ftInterval = null, ftSecs = 25*60, ftTotal = 25*60;
+let ftSessions = 0, ftPhase = 'focus'; // 'focus' | 'break'
+const CIRCUMFERENCE = 2 * Math.PI * 54; // r=54
+
+function ftUpdateRing(){
+  const fg = document.getElementById('ftRingFg');
+  if(!fg) return;
+  const pct = ftSecs / ftTotal;
+  fg.style.strokeDashoffset = CIRCUMFERENCE * (1 - pct);
+}
+function ftUpdateDisplay(){
+  const el = document.getElementById('ftTimeDisplay');
+  if(!el) return;
+  const m = Math.floor(ftSecs/60), s = ftSecs%60;
+  el.textContent = `${pad(m)}:${pad(s)}`;
+  ftUpdateRing();
+  // Sessions dots
+  const dots = document.querySelectorAll('.ft-dot');
+  dots.forEach((d,i)=>{
+    d.classList.remove('done','break');
+    if(i < ftSessions) d.classList.add('done');
+  });
+  // Status bar
+  const sb = document.getElementById('ftStatusBar');
+  if(sb){
+    if(ftRunning){
+      if(ftPhase==='focus') sb.textContent = '🎯 Focus चल रहा है — phone बंद करो';
+      else sb.textContent = '☕ ब्रेक — 5 मिनट आराम करो';
+    } else {
+      sb.textContent = ftSecs===ftTotal ? '↑ शुरू करो — हर मिनट कीमती है' : '⏸ Paused — resume करें';
+    }
+  }
+}
+function ftTick(){
+  if(ftSecs <= 0){
+    clearInterval(ftInterval); ftRunning = false;
+    if(ftPhase==='focus'){
+      ftSessions++;
+      ftPhase = 'break';
+      ftTotal = 5*60; ftSecs = 5*60;
+      toast('🎉 Focus block पूरा! 5 मिनट ब्रेक लो','success');
+      ftUpdateStartBtn();
+    } else {
+      ftPhase = 'focus';
+      const preset = parseInt(document.getElementById('ftPresetActive')?.dataset?.v||'25');
+      ftTotal = preset*60; ftSecs = preset*60;
+      toast('☕ ब्रेक खत्म! अगला block शुरू करें','info');
+      ftUpdateStartBtn();
+    }
+    ftUpdateDisplay();
+    try{ new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAA...').play(); }catch(e){}
+    return;
+  }
+  ftSecs--;
+  ftUpdateDisplay();
+}
+function ftStart(){
+  if(ftRunning) return;
+  ftRunning = true;
+  ftInterval = setInterval(ftTick, 1000);
+  ftUpdateStartBtn();
+  ftUpdateDisplay();
+}
+function ftPause(){
+  if(!ftRunning) return;
+  clearInterval(ftInterval); ftRunning = false;
+  ftUpdateStartBtn();
+  ftUpdateDisplay();
+}
+function ftReset(){
+  clearInterval(ftInterval); ftRunning = false;
+  const preset = parseInt(document.getElementById('ftPresetActive')?.dataset?.v||'25');
+  ftTotal = preset*60; ftSecs = preset*60;
+  ftPhase = 'focus';
+  ftUpdateStartBtn();
+  ftUpdateDisplay();
+}
+function ftSetPreset(mins){
+  ftReset();
+  ftTotal = mins*60; ftSecs = mins*60;
+  document.querySelectorAll('.ft-preset').forEach(b=>b.classList.toggle('on', parseInt(b.dataset.v)===mins));
+  document.getElementById('ftPresetActive').dataset.v = mins;
+  ftUpdateDisplay();
+}
+function ftUpdateStartBtn(){
+  const btn = document.getElementById('ftStartBtn');
+  if(!btn) return;
+  if(ftRunning){
+    btn.innerHTML = '<span>⏸</span><span>Pause</span>';
+    btn.classList.remove('ft-start'); btn.classList.add('ft-pause');
+    btn.setAttribute('onclick','ftPause()');
+  } else {
+    btn.innerHTML = '<span>▶</span><span>शुरू करें</span>';
+    btn.classList.remove('ft-pause'); btn.classList.add('ft-start');
+    btn.setAttribute('onclick','ftStart()');
+  }
+}
+window.ftStart = ftStart; window.ftPause = ftPause; window.ftReset = ftReset; window.ftSetPreset = ftSetPreset;
+
 /*═══ ELON PAGE ═══*/
 function renderElon(){
   const wrap = $('elonPage');
   if(!wrap) return;
+
+  // Task options for the focus timer
+  const todayTasks = dayTasksOnly().filter(t=>!t.done).slice(0,8);
+  const taskOpts = todayTasks.map(t=>`<option value="${t.id}">${escapeHtml(t.name.slice(0,38))}</option>`).join('');
+
+  const circumStr = CIRCUMFERENCE.toFixed(1);
+  const pct = ftSecs / ftTotal;
+  const offset = (CIRCUMFERENCE * (1-pct)).toFixed(1);
+
   wrap.innerHTML = `
-    <div style="background:linear-gradient(135deg,rgba(245,178,64,.08),rgba(96,165,250,.05));border:1px solid var(--bd-gold);border-radius:18px;padding:16px;margin-bottom:14px">
-      <div style="font-family:var(--font-display);font-style:italic;font-size:22px;color:var(--t-100);letter-spacing:-.3px;line-height:1.2;margin-bottom:8px">5-Minute Blocks</div>
-      <div style="font-size:12px;color:var(--t-300);font-family:var(--font-hindi);line-height:1.6">एलन मस्क अपने दिन को <strong style="color:var(--gold)">5-मिनट blocks</strong> में बांटते हैं। हर block में सिर्फ एक काम। SpaceX, Tesla, X — तीनों एक साथ चलाने का यही रहस्य।</div>
+    <!-- FOCUS TIMER -->
+    <div class="focus-timer-wrap">
+      <div class="ft-label">⚡ Focus Block Timer</div>
+
+      ${taskOpts ? `
+      <div class="ft-task-wrap">
+        <div class="ft-task-lbl">अभी क्या करना है</div>
+        <select class="ft-task-select" id="ftTaskSel">
+          <option value="">— काम चुनें —</option>
+          ${taskOpts}
+        </select>
+      </div>` : ''}
+
+      <div class="ft-ring-wrap">
+        <svg viewBox="0 0 120 120">
+          <defs>
+            <linearGradient id="ftGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#ffc870"/>
+              <stop offset="100%" stop-color="#f59e0b"/>
+            </linearGradient>
+          </defs>
+          <circle class="ft-ring-bg" cx="60" cy="60" r="54"/>
+          <circle class="ft-ring-fg" id="ftRingFg" cx="60" cy="60" r="54"
+            stroke-dasharray="${circumStr}"
+            stroke-dashoffset="${offset}"
+            style="stroke:url(#ftGrad)"/>
+        </svg>
+        <div class="ft-center">
+          <div class="ft-time" id="ftTimeDisplay">${pad(Math.floor(ftSecs/60))}:${pad(ftSecs%60)}</div>
+          <div class="ft-phase">${ftPhase==='focus'?'FOCUS':'BREAK'}</div>
+        </div>
+      </div>
+
+      <div class="ft-presets" id="ftPresetActive" data-v="25">
+        ${[5,10,15,25,30,45].map(m=>`
+          <button class="ft-preset${m===25?' on':''}" data-v="${m}" onclick="ftSetPreset(${m})">${m}मि</button>
+        `).join('')}
+      </div>
+
+      <div class="ft-sessions">
+        ${[0,1,2,3].map(i=>`<div class="ft-dot${i<ftSessions?' done':''}"></div>`).join('')}
+      </div>
+
+      <div class="ft-controls">
+        <button class="ft-btn ft-start" id="ftStartBtn" onclick="ftStart()"><span>▶</span><span>शुरू करें</span></button>
+        <button class="ft-btn ft-reset" onclick="ftReset()"><span>↺</span></button>
+      </div>
+      <div class="ft-status-bar" id="ftStatusBar">↑ शुरू करो — हर मिनट कीमती है</div>
     </div>
 
     <div style="font-family:var(--font-display);font-style:italic;font-size:18px;color:var(--t-100);margin-bottom:10px">⚡ 6 कठोर नियम</div>
@@ -2153,7 +2428,7 @@ function renderElon(){
       ['05:00','06:00','Plan + Deep Thinking','📋 दिन का schedule लिखो'],
       ['06:00','09:00','GeM बोली + Strategy','💻 सबसे जरूरी काम पहले'],
       ['09:00','10:00','Field Inspection','🏗 जलीपा site visit'],
-      ['10:00','13:00','Execution Block','⚙️ Vivek, Manoj के साथ'],
+      ['10:00','13:00','Execution Block','⚙️ Vikram, Manoj के साथ'],
       ['13:00','14:00','Lunch + Walk','🍽 शरीर का ध्यान'],
       ['14:00','17:00','Customer + Vendors','📞 calls, follow-ups'],
       ['17:00','19:00','Office Wrap-up','💰 हिसाब, payments'],
@@ -2169,6 +2444,8 @@ function renderElon(){
       </div>
     `).join('')}
   `;
+  // Sync timer display after render
+  setTimeout(()=>{ ftUpdateDisplay(); ftUpdateStartBtn(); }, 50);
 }
 
 /*═══ ADD TASK SHEET ═══*/

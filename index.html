@@ -1181,59 +1181,26 @@ select option{background:#0d1526}
     <div class="mb-peek-line"></div>
   </div>
   <div class="s-header">
-    <div class="s-sub">OPERATIONS · BARMER REGION · SUPPLY CHAIN</div>
-    <!-- Row 1: Points, Analytics, उपलब्धियां, Staff, Universal Summary -->
-    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-bottom:5px">
-      <button onclick="openRewards()" title="🏆 Reward Points" style="background:linear-gradient(135deg,#f59e0b22,#ef444422);border:1px solid #f59e0b44;color:#f59e0b;border-radius:8px;padding:5px 2px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;text-align:center;line-height:1">🏆</button>
-      <button onclick="openAnalytics()" title="📊 Analytics" style="background:linear-gradient(135deg,#6366f122,#8b5cf622);border:1px solid #6366f144;color:#818cf8;border-radius:8px;padding:5px 2px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;text-align:center;line-height:1">📊</button>
-      <button onclick="openArchive()" id="archive-btn" title="✅ उपलब्धियां" style="position:relative;background:linear-gradient(135deg,#05603a22,#10b98122);border:1px solid #10b98144;color:#10b981;border-radius:8px;padding:5px 2px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;text-align:center;line-height:1">✅<span id="arc-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#10b981;color:#fff;border-radius:50%;width:14px;height:14px;font-size:8px;font-weight:800;align-items:center;justify-content:center;border:1px solid #050a14">0</span></button>
-      <button onclick="openStaffMgr()" id="staff-btn" title="👥 Staff" style="background:#1e293b;border:1px solid #334155;color:#a5b4fc;border-radius:8px;padding:5px 2px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;text-align:center;line-height:1">👥</button>
-      <button onclick="openUniversalSummary()" title="📋 Universal Summary" style="background:linear-gradient(135deg,#0891b222,#22d3ee22);border:1px solid #22d3ee55;color:#22d3ee;border-radius:8px;padding:5px 2px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;text-align:center;line-height:1">📋</button>
-    </div>
-    <!-- Row 2: Field Visit, Contacts, Clients, Projects, Challan, Logout -->
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr auto;gap:3px">
-      <button onclick="openFieldVisit()" style="background:linear-gradient(135deg,#c9a84c22,#8b691422);border:1px solid #c9a84c55;color:#c9a84c;border-radius:9px;padding:6px 1px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;text-align:center;line-height:1.3">🪖<br><span style="font-size:8px">Field</span></button>
-      <button onclick="window.location.href='contacts.html'" style="background:linear-gradient(135deg,#31208122,#6366f122);border:1px solid #6366f144;color:#818cf8;border-radius:9px;padding:6px 1px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;text-align:center;line-height:1.3">📋<br><span style="font-size:8px">Contacts</span></button>
-      <button onclick="window.location.href='clients.html'" style="background:linear-gradient(135deg,#22d3ee22,#0891b222);border:1px solid #22d3ee55;color:#22d3ee;border-radius:9px;padding:6px 1px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;text-align:center;line-height:1.3">👥<br><span style="font-size:8px">Clients</span></button>
-      <button onclick="window.location.href='projects.html'" style="background:linear-gradient(135deg,#f59e0b22,#ef444422);border:1px solid #f59e0b55;color:#f59e0b;border-radius:9px;padding:6px 1px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;text-align:center;line-height:1.3">🏗️<br><span style="font-size:8px">Projects</span></button>
-      <button onclick="window.location.href='challan.html'" style="background:linear-gradient(135deg,#10b98122,#6366f122);border:1px solid #10b98144;color:#10b981;border-radius:9px;padding:6px 1px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;text-align:center;line-height:1.3">🧾<br><span style="font-size:8px">Challan</span></button>
-      <button onclick="if(window._signOut){sessionStorage.removeItem('vbe_auth');window._signOut().then(()=>{window.location.href='vbe-exit.html'});}else{sessionStorage.removeItem('vbe_auth');window.location.href='vbe-exit.html';}" style="background:#1e293b;border:1px solid #334155;color:#64748b;border-radius:9px;padding:6px 8px;font-size:14px;cursor:pointer;font-family:inherit" title="Logout / Security">🔐</button>
-    </div>
-    <!-- Row 3: Time Master + Reckoning + Reminders + बुक अपडेट + Fav + Hidden + Settings + Clock -->
-    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:5px">
-      <button onclick="window.location.href='vbe-time-master.html'" id="btn-time-master" title="हर मिनट कीमती - Time Master" style="background:linear-gradient(135deg,#f59e0b,#ef4444);border:none;color:#fff;border-radius:9px;padding:7px 10px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px;box-shadow:0 3px 10px rgba(245,158,11,.35);position:relative">
-        <span style="font-size:15px">⏰</span>
-        <span id="tm-pending-badge" style="display:none;background:#fff;color:#ef4444;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:900">0</span>
-      </button>
-      <!-- 📒 दिन का हिसाब — आज के silent tasks पर action दो -->
-      <button onclick="openReckoning()" id="btn-reckon" title="दिन का हिसाब — आज जिन पर कुछ नहीं हुआ" style="background:linear-gradient(135deg,#5b21b6,#8b5cf6);border:none;color:#fff;border-radius:9px;padding:7px 10px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:4px;box-shadow:0 3px 10px rgba(139,92,246,.35);position:relative">
-        <span style="font-size:15px">📒</span>
-        <span id="reckon-badge" style="display:none;background:#ef4444;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:900;align-items:center;justify-content:center">0</span>
-      </button>
-      <!-- 📅 Reminder Center — छोटा icon-only -->
-      <button onclick="openReminderCenter()" id="btn-rem-center" title="Reminder Center — सारे reminder tasks देखो / Google Calendar में डालो" style="background:linear-gradient(135deg,#1a73e8,#4285f4);border:none;color:#fff;border-radius:9px;padding:7px 9px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:3px;box-shadow:0 3px 10px rgba(26,115,232,.35);position:relative">
-        <span style="font-size:15px">📅</span>
-        <span id="rem-center-badge" style="display:none;background:#fff;color:#1a73e8;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:900">0</span>
-      </button>
-      <!-- 📖 बुक अपडेट — एक ही जगह से सारे काम देखो + bulk update (अंतरराष्ट्रीय स्तर) -->
-      <button onclick="openBookUpdate()" id="btn-book-update" title="📖 बुक अपडेट — सारे काम एक साथ देखो और यहीं से status/staff/डायरी अपडेट करो" style="flex:1;min-width:130px;background:linear-gradient(135deg,#D4A017,#9c7411);border:none;color:#161b14;border-radius:9px;padding:7px 12px;font-size:13px;font-weight:900;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(212,160,23,.45);position:relative;letter-spacing:.3px">
-        <span style="font-size:16px">📖</span>
-        <span>बुक अपडेट</span>
-        <span id="book-update-badge" style="background:#161b14;color:#D4A017;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:900;min-width:20px;text-align:center">0</span>
-      </button>
-      <!-- ⭐ Favorites Speed-Dial — Google Phone जैसा 1-tap call/WA -->
-      <button onclick="openFavDial()" id="btn-fav-dial" title="⭐ Favorites — एक-tap call & WhatsApp" style="background:linear-gradient(135deg,#b45309,#fbbf24);border:none;color:#1c1917;border-radius:9px;padding:5px 9px;font-size:14px;font-weight:900;cursor:pointer;font-family:inherit;position:relative;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(251,191,36,.35)">
-        <span>⭐</span>
-        <span id="fav-dial-badge" style="display:none;position:absolute;top:-5px;right:-5px;background:#0a0f1e;color:#fbbf24;border-radius:50%;min-width:16px;height:16px;font-size:9px;font-weight:900;align-items:center;justify-content:center;padding:0 3px;border:1px solid #fbbf24">0</span>
-      </button>
-      <!-- 👁️ Hidden Manager — सब hidden cards यहाँ से एक साथ वापस लाओ -->
-      <button onclick="openHiddenManager()" id="btn-hidden-mgr" title="Hidden काम — एक साथ वापस लाओ" style="background:linear-gradient(135deg,#312e81,#6366f1);border:none;color:#fff;border-radius:9px;padding:5px 9px;font-size:14px;cursor:pointer;font-family:inherit;position:relative;display:flex;align-items:center;justify-content:center">
-        <span>👁️</span>
-        <span id="hidden-mgr-badge" style="display:none;position:absolute;top:-5px;right:-5px;background:#fbbf24;color:#1e1b4b;border-radius:50%;min-width:16px;height:16px;font-size:9px;font-weight:900;align-items:center;justify-content:center;padding:0 3px;border:1px solid #050a14">0</span>
-      </button>
-      <button onclick="openFwdPolicy()" title="Forward Policy Settings" style="background:#0d1526;border:1px solid #1e3a5f;color:#94a3b8;border-radius:9px;padding:5px 9px;font-size:14px;cursor:pointer;font-family:inherit">⚙️</button>
-      <div id="live-clock-mini" style="background:#0d1526;border:1px solid #1e3a5f;color:#f59e0b;border-radius:9px;padding:5px 8px;font-size:12px;font-weight:800;display:flex;align-items:center;font-variant-numeric:tabular-nums;letter-spacing:.5px">--:--</div>
-    </div>
+    <div class="s-sub">OPERATIONS · BARMER REGION · SUPPLY CHAIN · <span style="color:rgba(245,158,11,.5);font-size:9px">⚡ सारे फीचर नीचे-बाईं तरफ</span></div>
+  </div>
+  <!-- Badge spans — JS इन्हें update करता है, ये hidden हैं -->
+  <div style="display:none" aria-hidden="true">
+    <button id="archive-btn"></button>
+    <button id="staff-btn"></button>
+    <button id="btn-time-master"></button>
+    <button id="btn-reckon"></button>
+    <button id="btn-rem-center"></button>
+    <button id="btn-book-update"></button>
+    <button id="btn-fav-dial"></button>
+    <button id="btn-hidden-mgr"></button>
+    <span id="arc-badge">0</span>
+    <span id="tm-pending-badge">0</span>
+    <span id="reckon-badge">0</span>
+    <span id="rem-center-badge">0</span>
+    <span id="book-update-badge">0</span>
+    <span id="fav-dial-badge">0</span>
+    <span id="hidden-mgr-badge">0</span>
+    <div id="live-clock-mini">--:--</div>
   </div>
   <!-- Hidden stat counters (कोड चालू रहे, सिर्फ display हटाया) -->
   <div style="display:none">
@@ -1250,53 +1217,6 @@ select option{background:#0d1526}
   <!-- Staff Summary Bar (shows when staff chip selected) -->
   <div id="staff-summary-bar" style="display:none;padding:0 12px 4px"></div>
   <div id="notif-banner" style="display:none;padding:0 12px 6px"></div>
-  <!-- Quick Modules Hub — horizontal scroll strip -->
-  <div style="padding:4px 12px 8px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch">
-    <div style="display:flex;gap:7px;min-width:max-content">
-      <a href="./vbe-time-master.html" style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(239,68,68,.08));border:1px solid rgba(245,158,11,.25);text-decoration:none;min-width:68px;flex-shrink:0;position:relative;overflow:hidden">
-        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#f59e0b,#ef4444)"></div>
-        <span style="font-size:20px">⏱️</span>
-        <span style="font-size:9px;font-weight:800;color:#f59e0b;letter-spacing:.3px">कार्य डायरी</span>
-        <span style="font-size:8px;color:#475569">Time</span>
-      </a>
-      <a href="./bank.html" style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(52,211,153,.10),rgba(16,185,129,.06));border:1px solid rgba(52,211,153,.22);text-decoration:none;min-width:68px;flex-shrink:0;position:relative;overflow:hidden">
-        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#34d399,#10b981)"></div>
-        <span style="font-size:20px">🏦</span>
-        <span style="font-size:9px;font-weight:800;color:#34d399;letter-spacing:.3px">Bank</span>
-        <span style="font-size:8px;color:#475569">Finance</span>
-      </a>
-      <a href="./challan.html" style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(96,165,250,.10),rgba(59,130,246,.06));border:1px solid rgba(96,165,250,.22);text-decoration:none;min-width:68px;flex-shrink:0;position:relative;overflow:hidden">
-        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#60a5fa,#3b82f6)"></div>
-        <span style="font-size:20px">📄</span>
-        <span style="font-size:9px;font-weight:800;color:#60a5fa;letter-spacing:.3px">Challan</span>
-        <span style="font-size:8px;color:#475569">Docs</span>
-      </a>
-      <a href="./clients.html" style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(34,211,238,.10),rgba(8,145,178,.06));border:1px solid rgba(34,211,238,.22);text-decoration:none;min-width:68px;flex-shrink:0;position:relative;overflow:hidden">
-        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#22d3ee,#0891b2)"></div>
-        <span style="font-size:20px">👥</span>
-        <span style="font-size:9px;font-weight:800;color:#22d3ee;letter-spacing:.3px">Clients</span>
-        <span style="font-size:8px;color:#475569">CRM</span>
-      </a>
-      <a href="./projects.html" style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(167,139,250,.10),rgba(139,92,246,.06));border:1px solid rgba(167,139,250,.22);text-decoration:none;min-width:68px;flex-shrink:0;position:relative;overflow:hidden">
-        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#a78bfa,#8b5cf6)"></div>
-        <span style="font-size:20px">📁</span>
-        <span style="font-size:9px;font-weight:800;color:#a78bfa;letter-spacing:.3px">Projects</span>
-        <span style="font-size:8px;color:#475569">Works</span>
-      </a>
-      <a href="./udhari.html" style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(251,191,36,.10),rgba(245,158,11,.06));border:1px solid rgba(251,191,36,.22);text-decoration:none;min-width:68px;flex-shrink:0;position:relative;overflow:hidden">
-        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#fbbf24,#f59e0b)"></div>
-        <span style="font-size:20px">💰</span>
-        <span style="font-size:9px;font-weight:800;color:#fbbf24;letter-spacing:.3px">उधारी</span>
-        <span style="font-size:8px;color:#475569">Ledger</span>
-      </a>
-      <a href="./contacts.html" style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(244,114,182,.10),rgba(236,72,153,.06));border:1px solid rgba(244,114,182,.22);text-decoration:none;min-width:68px;flex-shrink:0;position:relative;overflow:hidden">
-        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#f472b6,#ec4899)"></div>
-        <span style="font-size:20px">📋</span>
-        <span style="font-size:9px;font-weight:800;color:#f472b6;letter-spacing:.3px">Contacts</span>
-        <span style="font-size:8px;color:#475569">People</span>
-      </a>
-    </div>
-  </div>
   <!-- Folder Tabs -->
   <div style="padding:0 12px 6px;display:flex;gap:5px">
     <button onclick="setFolder('active')" id="tab-active" style="flex:1;padding:5px;border-radius:8px;border:none;background:linear-gradient(135deg,#1e3a8a,#312e81);color:#fff;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit">🔥 Active <span id="tab-act-cnt" style="background:#ffffff33;border-radius:5px;padding:1px 5px;font-size:9px">0</span></button>
@@ -3143,6 +3063,7 @@ function renderReckoning(){
       <div style="display:flex;gap:6px">
         <button onclick="reckonCheck('${o.id}')" style="flex:1;background:linear-gradient(135deg,#065f46,#10b981);color:#fff;border:none;border-radius:9px;padding:9px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit">✓ देख लिया</button>
         <button onclick="reckonComment('${o.id}')" style="flex:1;background:linear-gradient(135deg,#5b21b6,#8b5cf6);color:#fff;border:none;border-radius:9px;padding:9px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit">💬 क्या हुआ</button>
+        <button onclick="if(window.kdPickBoard)window.kdPickBoard('${o.id}');else window.kdOpen&&window.kdOpen();" title="📖 डायरी में जोड़ें" style="background:linear-gradient(135deg,#1a2744,#1e3a8a);border:1px solid #1e3a8a88;color:#60a5fa;border-radius:9px;padding:9px 10px;font-size:13px;cursor:pointer;font-family:inherit">📖</button>
         <button onclick="scrollToOrder('${o.id}');closeReckoning();" title="पूरा card खोलो" style="background:#1e293b;border:1px solid #334155;color:#94a3b8;border-radius:9px;padding:9px 11px;font-size:13px;cursor:pointer;font-family:inherit">↗</button>
       </div>
     </div>`;
@@ -5823,7 +5744,7 @@ function openArchive(){
   const sel=document.getElementById('arc-filter-staff');
   const cur=sel.value;
   sel.innerHTML='<option value="">👥 सभी Staff</option>'+
-    _staff.map(s=>`<option value="${s.name}">${s.name}</option>`).join('');
+    (_staff||[]).map(s=>`<option value="${s.name}">${s.name}</option>`).join('');
   if(cur) sel.value=cur;
   renderArchive();
 }
@@ -6956,7 +6877,7 @@ let _anPeriod = 'today';
 
 function openAnalytics(){
   document.getElementById('m-analytics').classList.add('open');
-  anRender();
+  try{ anRender(); }catch(e){ console.warn('anRender error:',e); }
 }
 function closeAnalytics(){
   document.getElementById('m-analytics').classList.remove('open');
@@ -9687,6 +9608,17 @@ window._db=window._db||null;
     </div>
     <button class="kd-x" onclick="kdClose()" aria-label="बंद करें">✕</button>
   </div>
+  <!-- Quick-add bar — हमेशा दिखे, बोर्ड चुनो + काम लिखो -->
+  <div style="display:flex;gap:6px;padding:8px 10px 6px;background:rgba(0,0,0,.3);border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0">
+    <select id="kd-qa-board" style="flex:none;width:90px;background:#0d1829;border:1px solid rgba(255,255,255,.12);border-radius:9px;color:#c4ccd8;font-size:11px;padding:7px 6px;font-family:inherit;outline:none">
+      <option value="gem">💎 Gem</option>
+      <option value="market">🛒 Market</option>
+      <option value="followup">📞 Follow</option>
+      <option value="morning">🌅 आज/कल</option>
+    </select>
+    <input id="kd-qa-inp" placeholder="नया काम लिखें…" style="flex:1;min-width:0;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;color:#e2e8f0;font-size:12px;padding:7px 10px;font-family:inherit;outline:none" onkeydown="if(event.key==='Enter')window.kdQuickAddFree&&window.kdQuickAddFree()">
+    <button onclick="window.kdQuickAddFree&&window.kdQuickAddFree()" style="flex:none;width:36px;background:#D4A017;border:none;border-radius:9px;color:#1a1000;font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center">+</button>
+  </div>
 
   <!-- VIEW 1: 2×2 Grid (default) -->
   <div class="kd-grid-wrap" id="kd-view-grid">
@@ -10161,6 +10093,15 @@ window._db=window._db||null;
     if(inpEl) inpEl.value='';
     renderActive(); save();
   };
+  window.kdQuickAddFree=function(){
+    var sel=document.getElementById('kd-qa-board');
+    var inp=document.getElementById('kd-qa-inp');
+    var k=(sel?sel.value:'gem')||'gem';
+    var v=(inp?inp.value:'').trim();
+    if(!v){ if(inp) inp.focus(); return; }
+    window.kdAdd(k,v,inp);
+    toast('📖 '+def(k).name+' में जोड़ा');
+  };
   window.kdAddFollow=function(){
     var ti=document.getElementById('kd-sinp'), pi=document.getElementById('kd-sphone');
     var v=(ti?ti.value:'').trim(); if(!v){ if(ti)ti.focus(); return; }
@@ -10375,9 +10316,10 @@ window._db=window._db||null;
 #vbeNav-fab:active{transform:scale(.88)}
 #vbeNav-ovl{display:none;position:fixed;inset:0;z-index:9400;background:rgba(0,0,0,.72);backdrop-filter:blur(12px) saturate(120%);-webkit-backdrop-filter:blur(12px) saturate(120%);}
 #vbeNav-ovl.open{display:block}
-#vbeNav-panel{position:absolute;bottom:90px;left:16px;background:rgba(8,11,22,.97);border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:14px 12px 12px;width:210px;box-shadow:0 24px 64px rgba(0,0,0,.75),0 1px 0 rgba(255,255,255,.05) inset;transform-origin:bottom left;animation:vbeNavIn .22s cubic-bezier(.32,.72,0,1) both;}
+#vbeNav-panel{position:absolute;bottom:90px;left:16px;background:rgba(8,11,22,.97);border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:14px 12px 12px;width:252px;max-height:80vh;overflow-y:auto;scrollbar-width:none;box-shadow:0 24px 64px rgba(0,0,0,.75),0 1px 0 rgba(255,255,255,.05) inset;transform-origin:bottom left;animation:vbeNavIn .22s cubic-bezier(.32,.72,0,1) both;}
+#vbeNav-panel::-webkit-scrollbar{display:none}
 @keyframes vbeNavIn{from{opacity:0;transform:scale(.82) translateY(14px)}to{opacity:1;transform:none}}
-#vbeNav-panel h6{font-size:9px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:rgba(255,255,255,.25);font-family:system-ui,-apple-system,sans-serif;margin:0 2px 10px;}
+#vbeNav-panel h6{font-size:9px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:rgba(255,255,255,.25);font-family:system-ui,-apple-system,sans-serif;margin:0 2px 8px;}
 .vbeNav-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
 .vbeNav-link{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px 9px;border-radius:12px;text-decoration:none;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);transition:all .14s;-webkit-tap-highlight-color:transparent;}
 .vbeNav-link:active{transform:scale(.94);background:rgba(245,158,11,.1)}
@@ -10385,13 +10327,34 @@ window._db=window._db||null;
 .vbeNav-ico{font-size:22px;line-height:1}
 .vbeNav-lbl{font-size:9.5px;font-weight:700;color:rgba(255,255,255,.6);text-align:center;line-height:1.2;font-family:'Noto Sans Devanagari',system-ui,sans-serif;}
 .vbeNav-link.vbeNav-cur .vbeNav-lbl{color:#f59e0b}
+.vbeNav-acts{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:10px}
+.vbeNav-act{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px 7px;border-radius:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);color:#e2e8f0;font-size:15px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .14s;font-family:inherit;position:relative}
+.vbeNav-act span{font-size:8px;font-weight:700;color:rgba(255,255,255,.45);text-align:center;font-family:'Noto Sans Devanagari',system-ui,sans-serif;line-height:1}
+.vbeNav-act:active{transform:scale(.92);background:rgba(245,158,11,.12)}
+.vbeNav-div{height:1px;background:rgba(255,255,255,.06);margin:8px 0}
 #vbeNav-close{width:100%;margin-top:8px;padding:8px;border-radius:10px;border:none;background:rgba(255,255,255,.04);font-size:10px;font-weight:700;color:rgba(255,255,255,.25);font-family:system-ui,sans-serif;cursor:pointer;letter-spacing:.5px;-webkit-tap-highlight-color:transparent;}
 #vbeNav-close:active{background:rgba(255,255,255,.08)}
 </style>
 <button id="vbeNav-fab" onclick="vbeNavToggle()" aria-label="App Menu">⚡</button>
 <div id="vbeNav-ovl" onclick="vbeNavClose()">
   <div id="vbeNav-panel" onclick="event.stopPropagation()">
-    <h6>VBE — सभी Modules</h6>
+    <h6>⚡ VBE — त्वरित कार्य</h6>
+    <div class="vbeNav-acts">
+      <button class="vbeNav-act" onclick="vbeNavClose();openBookUpdate()">📖<span>बुक</span></button>
+      <button class="vbeNav-act" onclick="vbeNavClose();openReckoning()">📒<span>हिसाब</span></button>
+      <button class="vbeNav-act" onclick="vbeNavClose();openAnalytics()">📊<span>Analytics</span></button>
+      <button class="vbeNav-act" onclick="vbeNavClose();openArchive()">✅<span>Archive</span></button>
+      <button class="vbeNav-act" onclick="vbeNavClose();openStaffMgr()">👥<span>Staff</span></button>
+      <button class="vbeNav-act" onclick="vbeNavClose();openFieldVisit()">🪖<span>Field</span></button>
+      <button class="vbeNav-act" onclick="vbeNavClose();openReminderCenter()">📅<span>याद</span></button>
+      <button class="vbeNav-act" onclick="vbeNavClose();openFavDial()">⭐<span>Favs</span></button>
+      <button class="vbeNav-act" onclick="vbeNavClose();openHiddenManager()">👁️<span>Hidden</span></button>
+      <button class="vbeNav-act" onclick="vbeNavClose();openUniversalSummary()">📋<span>Summary</span></button>
+      <button class="vbeNav-act" onclick="vbeNavClose();openRewards()">🏆<span>Points</span></button>
+      <button class="vbeNav-act" onclick="vbeNavClose();openFwdPolicy()">⚙️<span>Settings</span></button>
+    </div>
+    <div class="vbeNav-div"></div>
+    <h6>📄 Pages</h6>
     <div class="vbeNav-grid">
       <a class="vbeNav-link" href="./" id="vnl-orders"><span class="vbeNav-ico">📋</span><span class="vbeNav-lbl">Orders</span></a>
       <a class="vbeNav-link" href="./vbe-time-master.html" id="vnl-time"><span class="vbeNav-ico">⏱️</span><span class="vbeNav-lbl">कार्य डायरी</span></a>
@@ -10400,6 +10363,7 @@ window._db=window._db||null;
       <a class="vbeNav-link" href="./clients.html" id="vnl-clients"><span class="vbeNav-ico">👥</span><span class="vbeNav-lbl">Clients</span></a>
       <a class="vbeNav-link" href="./projects.html" id="vnl-projects"><span class="vbeNav-ico">📁</span><span class="vbeNav-lbl">Projects</span></a>
       <a class="vbeNav-link" href="./udhari.html" id="vnl-udhari"><span class="vbeNav-ico">💰</span><span class="vbeNav-lbl">उधारी</span></a>
+      <a class="vbeNav-link" href="./contacts.html" id="vnl-contacts"><span class="vbeNav-ico">📋</span><span class="vbeNav-lbl">Contacts</span></a>
       <a class="vbeNav-link" href="./vbe-exit.html" id="vnl-exit"><span class="vbeNav-ico">🔐</span><span class="vbeNav-lbl">Exit</span></a>
     </div>
     <button id="vbeNav-close" onclick="vbeNavClose()">✕ बंद करें</button>
@@ -10415,7 +10379,7 @@ window._db=window._db||null;
   try{
     var p = location.pathname;
     var isRoot = p==='/' || p.endsWith('/index.html') || p.endsWith('/');
-    var map = {'vnl-orders':isRoot,'vnl-time':p.includes('vbe-time-master'),'vnl-bank':p.includes('bank'),'vnl-challan':p.includes('challan'),'vnl-clients':p.includes('clients'),'vnl-projects':p.includes('projects'),'vnl-udhari':p.includes('udhari'),'vnl-exit':p.includes('vbe-exit')};
+    var map = {'vnl-orders':isRoot,'vnl-time':p.includes('vbe-time-master'),'vnl-bank':p.includes('bank'),'vnl-challan':p.includes('challan'),'vnl-clients':p.includes('clients'),'vnl-projects':p.includes('projects'),'vnl-udhari':p.includes('udhari'),'vnl-contacts':p.includes('contacts'),'vnl-exit':p.includes('vbe-exit')};
     Object.keys(map).forEach(function(id){ if(map[id]){ var el=document.getElementById(id); if(el) el.classList.add('vbeNav-cur'); } });
   }catch(e){}
 })();

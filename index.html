@@ -9524,7 +9524,7 @@ window._db=window._db||null;
 .kd-add{flex:none;display:flex;gap:5px;padding:7px 8px;border-top:1px solid rgba(255,255,255,.05);background:rgba(0,0,0,.25)}
 .kd-add input,.kd-add select{flex:1;min-width:0;border:1px solid rgba(255,255,255,.09);border-radius:8px;padding:7px 9px;font-size:12px;color:#e2e8f0;outline:none;background:rgba(255,255,255,.04);font-family:inherit}
 .kd-add input:focus,.kd-add select:focus{border-color:var(--kdc);background:rgba(255,255,255,.07)}
-.kd-add button{flex:none;border:none;border-radius:8px;background:var(--kdc);color:#fff;font-size:16px;font-weight:900;width:36px;cursor:pointer;font-family:inherit}
+.kd-add button{flex:none;border:none;border-radius:8px;background:linear-gradient(135deg,#D4A017,#b9881f);color:#161b14;font-size:18px;font-weight:900;width:36px;cursor:pointer;font-family:inherit;box-shadow:0 2px 8px rgba(212,160,23,.35)}
 .kd-add button:active{opacity:.8}
 
 /* ══ STACK VIEW — all boards fully expanded ══ */
@@ -9681,6 +9681,16 @@ window._db=window._db||null;
   </div>
 </div>
 
+<!-- "बोर्ड बदलें" sheet — task को एक board से दूसरे में भेजो -->
+<div id="kd-moveboard" class="kd-sheet-bg" onclick="if(event.target===this)kdMoveBoardClose()">
+  <div class="kd-sheet">
+    <h3>🔄 बोर्ड बदलें</h3>
+    <div class="kd-sh-sub" id="kd-mb-task">—</div>
+    <div class="kd-pick-grid" id="kd-mb-btns"></div>
+    <button class="kd-sheet-x" onclick="kdMoveBoardClose()">रद्द करें</button>
+  </div>
+</div>
+
 <!-- "अलार्म / कैलेंडर" sheet -->
 <div id="kd-remind" class="kd-sheet-bg" onclick="if(event.target===this)kdRemindClose()">
   <div class="kd-sheet">
@@ -9710,6 +9720,7 @@ window._db=window._db||null;
   // task = {id,text,done,ts, phone?, day?(YYYY-MM-DD morning), alarmAt?}
   var KD={boards:{}}; KEYS.forEach(function(k){KD.boards[k]=[];});
   var _ready=false, _writing=false, _openBoard=null, _kdView='grid', _focusIdx=0;
+  var _moveKey=null, _moveId=null;
   var LS_KEY='vbe_karya_local';
 
   function lsSave(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(KD)); }catch(e){} }
@@ -9866,7 +9877,8 @@ window._db=window._db||null;
           }
         }
         row2+='<button class="kd-tb mv" onclick="event.stopPropagation();kdMove(\''+_openBoard+'\',\''+x.id+'\',-1)">▲</button>'+
-              '<button class="kd-tb mv" onclick="event.stopPropagation();kdMove(\''+_openBoard+'\',\''+x.id+'\',1)">▼</button>';
+              '<button class="kd-tb mv" onclick="event.stopPropagation();kdMove(\''+_openBoard+'\',\''+x.id+'\',1)">▼</button>'+
+              '<button class="kd-tb" style="background:rgba(99,102,241,.12);color:#818cf8;border:1px solid rgba(99,102,241,.3)" onclick="event.stopPropagation();window.kdMoveBoardOpen(\''+_openBoard+'\',\''+x.id+'\')">🔄 बोर्ड</button>';
       } else {
         row2='<button class="kd-tb restore" onclick="event.stopPropagation();kdToggle(\''+_openBoard+'\',\''+x.id+'\')">↩ वापस लाओ</button>';
       }
@@ -10101,6 +10113,32 @@ window._db=window._db||null;
     if(!v){ if(inp) inp.focus(); return; }
     window.kdAdd(k,v,inp);
     toast('📖 '+def(k).name+' में जोड़ा');
+  };
+  window.kdMoveBoardOpen=function(fromKey,taskId){
+    var t=(KD.boards[fromKey]||[]).find(function(x){return x.id===taskId;}); if(!t) return;
+    _moveKey=fromKey; _moveId=taskId;
+    document.getElementById('kd-mb-task').textContent='"'+t.text.slice(0,55)+(t.text.length>55?'…':'')+'"';
+    document.getElementById('kd-mb-btns').innerHTML=KD_DEF.filter(function(d){return d.key!==fromKey;}).map(function(d){
+      return '<button class="kd-pick-btn" style="background:linear-gradient(135deg,'+d.color+','+d.color+'dd)" onclick="window.kdMoveBoardDo(\''+d.key+'\')"><span class="pi">'+d.icon+'</span>'+d.name+'</button>';
+    }).join('');
+    document.getElementById('kd-moveboard').classList.add('open');
+  };
+  window.kdMoveBoardClose=function(){ document.getElementById('kd-moveboard').classList.remove('open'); _moveKey=null; _moveId=null; };
+  window.kdMoveBoardDo=function(toKey){
+    if(!_moveKey||!_moveId) return;
+    var src=KD.boards[_moveKey]||[];
+    var idx=src.findIndex(function(x){return x.id===_moveId;});
+    if(idx<0){ window.kdMoveBoardClose(); return; }
+    var task=src.splice(idx,1)[0];
+    task.done=false; delete task.doneAt;
+    if(toKey==='morning'&&!task.day) task.day=todayISO();
+    if(toKey!=='morning') delete task.day;
+    if(toKey!=='followup') delete task.phone;
+    KD.boards[toKey]=KD.boards[toKey]||[];
+    KD.boards[toKey].unshift(task);
+    save(); renderActive();
+    toast('🔄 '+def(toKey).name+' में भेजा');
+    window.kdMoveBoardClose();
   };
   window.kdAddFollow=function(){
     var ti=document.getElementById('kd-sinp'), pi=document.getElementById('kd-sphone');

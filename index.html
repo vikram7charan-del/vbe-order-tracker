@@ -9470,38 +9470,8 @@ window._db=window._db||null;
   display:flex;align-items:center;justify-content:center;color:#161b14;font-size:24px;font-weight:900;
   box-shadow:0 4px 14px rgba(0,0,0,.5),0 0 0 4px #0a0f1e;pointer-events:none;line-height:1}
 
-/* बोर्ड कार्ड (preview) */
-.kd-board{background:#fff;border-radius:13px;display:flex;flex-direction:column;overflow:hidden;
-  box-shadow:0 6px 16px rgba(0,0,0,.4);border-top:4px solid var(--kdc)}
-.kd-b-head{flex:none;display:flex;align-items:center;gap:7px;padding:9px 10px 7px;border-bottom:1px solid #eef0ee;cursor:pointer}
-.kd-b-head:active{background:#f6f8f6}
+/* बोर्ड कार्ड icon */
 .kd-b-ic{font-size:17px;line-height:1}
-.kd-b-name{flex:1;min-width:0;font-size:13px;font-weight:800;color:#1c2630;font-family:'Mukta',sans-serif;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.kd-b-open{font-size:9px;color:#9aa19a;font-weight:700;flex:none}
-.kd-b-count{background:#f1f3f1;color:var(--kdc);border-radius:9px;padding:1px 8px;font-size:12px;font-weight:900;min-width:22px;text-align:center}
-.kd-b-list{flex:1;overflow-y:auto;padding:6px 7px;-webkit-overflow-scrolling:touch}
-.kd-b-list::-webkit-scrollbar{width:5px}.kd-b-list::-webkit-scrollbar-thumb{background:#cfd5cf;border-radius:3px}
-.kd-empty{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#b6bcb6;cursor:pointer}
-.kd-empty .kd-em-ch{font-size:30px;color:#d6dbd6}
-.kd-empty .kd-em-tx{font-size:11px;color:#9aa19a;font-weight:600}
-.kd-more{text-align:center;font-size:10px;color:var(--kdc);font-weight:800;padding:6px 0 2px;cursor:pointer}
-
-/* preview की छोटी row */
-.kd-prow{display:flex;align-items:center;gap:5px;padding:4px 3px;border-bottom:1px dashed #eef0ee;font-size:11.5px}
-.kd-prow:last-child{border-bottom:none}
-.kd-prow.done{opacity:.45;text-decoration:line-through}
-.kd-prow .kd-psn{font-weight:900;color:var(--kdc);min-width:15px;text-align:right;font-variant-numeric:tabular-nums}
-.kd-prow .kd-ptx{flex:1;min-width:0;color:#222;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'Mukta',sans-serif}
-
-/* नया काम जोड़ने की row */
-.kd-add{flex:none;display:flex;gap:5px;padding:7px 8px;border-top:1px solid #eef0ee;background:#fafbfa}
-.kd-add input,.kd-add select{flex:1;min-width:0;border:1px solid #d8ddd8;border-radius:8px;padding:7px 9px;font-size:12.5px;
-  font-family:'Mukta',sans-serif;color:#222;outline:none;background:#fff}
-.kd-add input:focus,.kd-add select:focus{border-color:var(--kdc)}
-.kd-add button{flex:none;border:none;border-radius:8px;background:var(--kdc);color:#fff;font-size:16px;font-weight:900;
-  width:36px;cursor:pointer;font-family:inherit;line-height:1}
-.kd-add button:active{opacity:.85}
 
 /* ───── Single board (full page) ───── */
 #kd-single .kd-s-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;background:#0d1320;padding:10px 10px 16px}
@@ -9550,6 +9520,92 @@ window._db=window._db||null;
 
 /* main-app card का 📖 डायरी बटन */
 .mb-rail-kd{background:linear-gradient(135deg,#D4A017,#9c7411)!important;color:#161b14!important}
+
+/* ══ VIEW SWITCHER BAR ══ */
+.kd-view-bar{display:flex;gap:2px;background:rgba(255,255,255,.06);border-radius:10px;padding:3px;flex-shrink:0}
+.kd-vb{width:30px;height:30px;border:none;border-radius:7px;background:none;color:#6b7280;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;font-weight:700}
+.kd-vb.active{background:rgba(212,160,23,.22);color:#D4A017}
+.kd-vb:active{opacity:.7}
+
+/* ══ DARK GLASS BOARD CARDS (modernized grid) ══ */
+.kd-board{background:linear-gradient(150deg,#0f1929,#0a1120);border-radius:14px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.05);border-top:3px solid var(--kdc)}
+.kd-b-head{flex:none;display:flex;align-items:center;gap:7px;padding:10px 10px 8px;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;background:rgba(255,255,255,.015)}
+.kd-b-head:active{background:rgba(255,255,255,.04)}
+.kd-b-name{flex:1;min-width:0;font-size:13px;font-weight:800;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kd-b-open{font-size:9px;color:#475569;font-weight:700;flex:none}
+.kd-b-count{background:rgba(255,255,255,.08);color:var(--kdc);border-radius:9px;padding:1px 8px;font-size:12px;font-weight:900;min-width:22px;text-align:center;border:1px solid rgba(255,255,255,.08)}
+.kd-b-list{flex:1;overflow-y:auto;padding:6px 7px;-webkit-overflow-scrolling:touch}
+.kd-b-list::-webkit-scrollbar{width:3px}.kd-b-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:3px}
+.kd-empty{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;cursor:pointer}
+.kd-empty .kd-em-ch{font-size:26px;opacity:.35}
+.kd-empty .kd-em-tx{font-size:10.5px;color:#475569;font-weight:600}
+.kd-more{text-align:center;font-size:10px;color:var(--kdc);font-weight:800;padding:5px 0 2px;cursor:pointer;opacity:.8}
+.kd-prow{display:flex;align-items:center;gap:5px;padding:5px 3px;border-bottom:1px solid rgba(255,255,255,.04);font-size:11px}
+.kd-prow:last-child{border-bottom:none}
+.kd-prow.done{opacity:.35}
+.kd-prow .kd-psn{font-weight:900;color:var(--kdc);min-width:15px;text-align:right;font-variant-numeric:tabular-nums;opacity:.6}
+.kd-prow .kd-ptx{flex:1;min-width:0;color:#c4ccd8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kd-add{flex:none;display:flex;gap:5px;padding:7px 8px;border-top:1px solid rgba(255,255,255,.05);background:rgba(0,0,0,.25)}
+.kd-add input,.kd-add select{flex:1;min-width:0;border:1px solid rgba(255,255,255,.09);border-radius:8px;padding:7px 9px;font-size:12px;color:#e2e8f0;outline:none;background:rgba(255,255,255,.04);font-family:inherit}
+.kd-add input:focus,.kd-add select:focus{border-color:var(--kdc);background:rgba(255,255,255,.07)}
+.kd-add button{flex:none;border:none;border-radius:8px;background:var(--kdc);color:#fff;font-size:16px;font-weight:900;width:36px;cursor:pointer;font-family:inherit}
+.kd-add button:active{opacity:.8}
+
+/* ══ STACK VIEW — all boards fully expanded ══ */
+.kd-stack-wrap{flex:1;overflow-y:auto;padding:10px 12px 16px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch}
+.kd-stack-wrap::-webkit-scrollbar{width:3px}.kd-stack-wrap::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:3px}
+.kd-lb{border-radius:14px;overflow:hidden;background:linear-gradient(150deg,#0f1929,#0a1120);border:1px solid rgba(255,255,255,.05);box-shadow:0 4px 16px rgba(0,0,0,.35)}
+.kd-lb-head{display:flex;align-items:center;gap:9px;padding:13px 14px;cursor:pointer;border-left:3px solid var(--kdc,#D4A017);transition:background .15s}
+.kd-lb-head:active{background:rgba(255,255,255,.03)}
+.kd-lb-ic{font-size:19px}
+.kd-lb-name{flex:1;font-size:14px;font-weight:800;color:#e2e8f0}
+.kd-lb-cnt{border-radius:9px;padding:2px 9px;font-size:12px;font-weight:900;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.07);color:var(--kdc,#D4A017)}
+.kd-lb-arr{font-size:16px;color:#475569;transition:transform .2s;line-height:1}
+.kd-lb-arr.open{transform:rotate(90deg)}
+.kd-lb-body{display:none;border-top:1px solid rgba(255,255,255,.05)}
+.kd-lb-body.open{display:block}
+.kd-lb-task{display:flex;align-items:flex-start;gap:9px;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;transition:background .1s}
+.kd-lb-task:last-child{border-bottom:none}
+.kd-lb-task:active{background:rgba(255,255,255,.02)}
+.kd-lb-task.done{opacity:.38}
+.kd-lb-chk{width:18px;height:18px;border-radius:5px;border:1.5px solid rgba(255,255,255,.18);flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:11px;transition:all .15s;pointer-events:none}
+.kd-lb-chk.on{border-color:var(--kdc,#D4A017);background:var(--kdc,#D4A017);color:#fff}
+.kd-lb-num{font-size:11px;font-weight:800;color:#475569;min-width:18px;text-align:right;margin-top:3px;font-variant-numeric:tabular-nums}
+.kd-lb-txt{flex:1;font-size:13px;color:#c4ccd8;line-height:1.45;word-break:break-word}
+.kd-lb-task.done .kd-lb-txt{text-decoration:line-through}
+.kd-lb-add{display:flex;gap:6px;padding:8px 12px 10px;border-top:1px solid rgba(255,255,255,.05);background:rgba(0,0,0,.2)}
+.kd-lb-add input{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:7px 10px;font-size:12px;color:#e2e8f0;outline:none;font-family:inherit}
+.kd-lb-add input:focus{border-color:var(--kdc,#D4A017);background:rgba(255,255,255,.07)}
+.kd-lb-add button{border:none;border-radius:8px;width:34px;font-size:16px;font-weight:900;cursor:pointer;background:var(--kdc,#D4A017);color:#fff}
+
+/* ══ FOCUS VIEW — one board at a time ══ */
+.kd-focus-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.kd-focus-nav{flex:none;display:flex;align-items:center;gap:12px;padding:8px 12px 6px;justify-content:center}
+.kd-fn-btn{width:38px;height:38px;border:1px solid rgba(255,255,255,.1);border-radius:11px;background:rgba(255,255,255,.04);color:#94a3b8;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.kd-fn-btn:active{background:rgba(255,255,255,.1);color:#e2e8f0}
+.kd-fn-dots{display:flex;gap:7px;align-items:center}
+.kd-fn-dot{height:7px;border-radius:4px;background:rgba(255,255,255,.15);transition:all .25s cubic-bezier(.34,1.56,.64,1);cursor:pointer;width:7px}
+.kd-fn-dot.active{background:var(--kdc,#D4A017);width:22px}
+.kd-focus-board{flex:1;overflow-y:auto;padding:8px 12px 4px;-webkit-overflow-scrolling:touch}
+.kd-focus-board::-webkit-scrollbar{width:3px}.kd-focus-board::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:3px}
+.kd-focus-hdr{display:flex;align-items:center;gap:10px;padding:14px 14px 12px;border-radius:12px;margin-bottom:8px;border-left:3px solid var(--kdc,#D4A017);background:rgba(15,25,41,.8)}
+.kd-focus-hdr-ic{font-size:22px}
+.kd-focus-hdr-name{font-size:16px;font-weight:800;color:#f1f5f9}
+.kd-focus-hdr-cnt{margin-left:auto;font-size:12px;font-weight:800;color:var(--kdc,#D4A017);background:rgba(255,255,255,.07);padding:3px 10px;border-radius:8px}
+.kd-ft{display:flex;align-items:flex-start;gap:10px;padding:13px 14px;border-radius:12px;background:rgba(13,20,34,.8);border:1px solid rgba(255,255,255,.06);margin-bottom:7px;transition:opacity .2s;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.kd-ft:active{background:rgba(255,255,255,.03)}
+.kd-ft.done{opacity:.38}
+.kd-ft-chk{width:22px;height:22px;border-radius:7px;border:1.5px solid rgba(255,255,255,.18);flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .15s;pointer-events:none}
+.kd-ft-chk.on{background:var(--kdc,#D4A017);border-color:var(--kdc,#D4A017);color:#fff}
+.kd-ft-num{font-size:12px;font-weight:900;color:#475569;min-width:20px;text-align:right;margin-top:4px;font-variant-numeric:tabular-nums}
+.kd-ft-text{flex:1;font-size:14px;color:#e2e8f0;line-height:1.5;font-weight:500}
+.kd-ft.done .kd-ft-text{text-decoration:line-through;color:#475569}
+.kd-focus-add{flex:none;display:flex;gap:8px;padding:10px 12px 14px;border-top:1px solid rgba(255,255,255,.06);background:rgba(0,0,0,.2)}
+.kd-focus-add input{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 12px;font-size:13px;color:#e2e8f0;outline:none;font-family:inherit}
+.kd-focus-add input:focus{border-color:var(--kdc,#D4A017);background:rgba(255,255,255,.07)}
+.kd-focus-add button{border:none;border-radius:10px;width:44px;font-size:18px;font-weight:900;cursor:pointer;background:var(--kdc,#D4A017);color:#fff}
+.kd-focus-empty{text-align:center;padding:40px 20px;color:#475569;font-size:13px}
+.kd-focus-empty .kd-fe-ic{font-size:40px;display:block;margin-bottom:8px;opacity:.4}
 </style>
 
 <!-- बायीं तरफ़ का डायरी बटन (हमेशा दिखे) -->
@@ -9565,12 +9621,19 @@ window._db=window._db||null;
     <span class="kd-h-ic">📖</span>
     <div style="flex:1;min-width:0">
       <div class="kd-h-ti">कार्य डायरी</div>
-      <div class="kd-h-sub">किसी भी डायरी पर टैप → पूरा पेज खुलेगा</div>
+      <div class="kd-h-sub" id="kd-h-sub-txt">⊞ Grid · ☰ Stack · ◈ Focus</div>
     </div>
     <span class="kd-h-pend" id="kd-head-pend">0</span>
+    <div class="kd-view-bar">
+      <button class="kd-vb active" id="kd-vb-grid" onclick="kdSetView('grid')" title="Grid View">⊞</button>
+      <button class="kd-vb" id="kd-vb-stack" onclick="kdSetView('stack')" title="सब एक साथ देखें">☰</button>
+      <button class="kd-vb" id="kd-vb-focus" onclick="kdSetView('focus')" title="एक-एक करके">◈</button>
+    </div>
     <button class="kd-x" onclick="kdClose()" aria-label="बंद करें">✕</button>
   </div>
-  <div class="kd-grid-wrap">
+
+  <!-- VIEW 1: 2×2 Grid (default) -->
+  <div class="kd-grid-wrap" id="kd-view-grid">
     <div class="kd-grid" id="kd-grid">
       <div class="kd-board" id="kd-board-gem"></div>
       <div class="kd-board" id="kd-board-market"></div>
@@ -9579,6 +9642,21 @@ window._db=window._db||null;
       <div class="kd-plus">+</div>
     </div>
   </div>
+
+  <!-- VIEW 2: Stack — all boards fully expanded -->
+  <div class="kd-stack-wrap" id="kd-view-stack" style="display:none"></div>
+
+  <!-- VIEW 3: Focus — one board at a time -->
+  <div class="kd-focus-wrap" id="kd-view-focus" style="display:none">
+    <div class="kd-focus-nav">
+      <button class="kd-fn-btn" onclick="kdFocusPrev()">‹</button>
+      <div class="kd-fn-dots" id="kd-fn-dots"></div>
+      <button class="kd-fn-btn" onclick="kdFocusNext()">›</button>
+    </div>
+    <div class="kd-focus-board" id="kd-focus-board"></div>
+    <div class="kd-focus-add" id="kd-focus-add"></div>
+  </div>
+
   <div class="kd-sync" id="kd-sync">☁️ सर्वर से जुड़ रहा है…</div>
 </div>
 
@@ -9640,7 +9718,7 @@ window._db=window._db||null;
 
   // task = {id,text,done,ts, phone?, day?(YYYY-MM-DD morning), alarmAt?}
   var KD={boards:{}}; KEYS.forEach(function(k){KD.boards[k]=[];});
-  var _ready=false, _writing=false, _openBoard=null;
+  var _ready=false, _writing=false, _openBoard=null, _kdView='grid', _focusIdx=0;
   var LS_KEY='vbe_karya_local';
 
   function lsSave(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(KD)); }catch(e){} }
@@ -9806,9 +9884,118 @@ window._db=window._db||null;
     }).join('');
   }
 
+  // ════════ VIEW SWITCHER ════════
+  window.kdSetView=function(v){
+    _kdView=v;
+    ['grid','stack','focus'].forEach(function(m){
+      var el=document.getElementById('kd-view-'+m);
+      if(el) el.style.display=(m===v?'':'none');
+      if(m==='grid' && el) el.style.display=(v==='grid'?'':'none');
+      var btn=document.getElementById('kd-vb-'+m);
+      if(btn){ btn.classList.toggle('active',m===v); }
+    });
+    var subs={grid:'⊞ सभी एक नजर में',stack:'☰ सब खुला हुआ देखें',focus:'◈ एक-एक करके'};
+    var sub=document.getElementById('kd-h-sub-txt');
+    if(sub) sub.textContent=subs[v]||'';
+    if(v==='grid') renderGrid();
+    else if(v==='stack') renderStack();
+    else if(v==='focus') renderFocus();
+  };
+
+  // ════════ STACK VIEW render ════════
+  function renderStack(){
+    var wrap=document.getElementById('kd-view-stack'); if(!wrap) return;
+    wrap.innerHTML=KD_DEF.map(function(d){
+      var list=KD.boards[d.key]||[];
+      var pend=list.filter(function(t){return !t.done;}).length;
+      var rows=list.map(function(t,i){
+        return '<div class="kd-lb-task'+(t.done?' done':'')+'" onclick="kdToggle(\''+d.key+'\',\''+t.id+'\')">'+
+          '<div class="kd-lb-chk'+(t.done?' on':'')+'">'+(t.done?'✓':'')+'</div>'+
+          '<div class="kd-lb-num">'+(i+1)+'</div>'+
+          '<div class="kd-lb-txt">'+escH(t.text)+'</div>'+
+        '</div>';
+      }).join('');
+      var emptyRow=list.length===0?'<div style="padding:16px 14px;text-align:center;color:#475569;font-size:12px">कोई काम नहीं — नीचे जोड़ें</div>':'';
+      var addInp=d.key==='followup'?
+        '<input id="kd-lb-inp-'+d.key+'" placeholder="नाम / काम…" onkeydown="if(event.key===\'Enter\')kdAdd(\''+d.key+'\',this.value,this)">':
+        '<input id="kd-lb-inp-'+d.key+'" placeholder="नया काम…" onkeydown="if(event.key===\'Enter\')kdAdd(\''+d.key+'\',this.value,this)">';
+      return '<div class="kd-lb" style="--kdc:'+d.color+'">'+
+        '<div class="kd-lb-head" onclick="kdLbToggle(this)">'+
+          '<span class="kd-lb-ic">'+d.icon+'</span>'+
+          '<span class="kd-lb-name">'+d.name+'</span>'+
+          '<span class="kd-lb-cnt">'+pend+'</span>'+
+          '<span class="kd-lb-arr open">›</span>'+
+        '</div>'+
+        '<div class="kd-lb-body open">'+
+          emptyRow+rows+
+          '<div class="kd-lb-add">'+addInp+
+            '<button onclick="kdAdd(\''+d.key+'\',document.getElementById(\'kd-lb-inp-'+d.key+'\').value,document.getElementById(\'kd-lb-inp-'+d.key+'\'))">+</button>'+
+          '</div>'+
+        '</div>'+
+      '</div>';
+    }).join('');
+    setBadges();
+  }
+  window.kdLbToggle=function(hdr){
+    var body=hdr.nextElementSibling;
+    var arr=hdr.querySelector('.kd-lb-arr');
+    if(!body) return;
+    var open=body.classList.toggle('open');
+    if(arr) arr.classList.toggle('open',open);
+  };
+
+  // ════════ FOCUS VIEW render ════════
+  function renderFocus(){
+    var d=KD_DEF[_focusIdx]||KD_DEF[0];
+    var list=KD.boards[d.key]||[];
+    var pend=list.filter(function(t){return !t.done;}).length;
+
+    // dots
+    var dots=document.getElementById('kd-fn-dots');
+    if(dots) dots.innerHTML=KD_DEF.map(function(dd,i){
+      return '<div class="kd-fn-dot'+(i===_focusIdx?' active':'')+'" style="'+(i===_focusIdx?'--kdc:'+dd.color+';background:'+dd.color:'')+';" onclick="kdFocusGo('+i+')"></div>';
+    }).join('');
+
+    // board header + tasks
+    var board=document.getElementById('kd-focus-board');
+    if(!board) return;
+    var rows=list.length===0?
+      '<div class="kd-focus-empty"><span class="kd-fe-ic">✓</span>कोई लंबित काम नहीं</div>':
+      list.map(function(t,i){
+        return '<div class="kd-ft'+(t.done?' done':'')+'" onclick="kdToggle(\''+d.key+'\',\''+t.id+'\')">'+
+          '<div class="kd-ft-chk'+(t.done?' on':'')+'">'+(t.done?'✓':'')+'</div>'+
+          '<div class="kd-ft-num">'+(i+1)+'</div>'+
+          '<div class="kd-ft-text">'+escH(t.text)+'</div>'+
+        '</div>';
+      }).join('');
+    board.innerHTML=
+      '<div class="kd-focus-hdr" style="--kdc:'+d.color+'">'+
+        '<span class="kd-focus-hdr-ic">'+d.icon+'</span>'+
+        '<span class="kd-focus-hdr-name">'+d.name+'</span>'+
+        '<span class="kd-focus-hdr-cnt">'+pend+' लंबित</span>'+
+      '</div>'+rows;
+    board.style.setProperty('--kdc',d.color);
+
+    // add bar
+    var addEl=document.getElementById('kd-focus-add');
+    if(addEl){
+      addEl.style.setProperty('--kdc',d.color);
+      addEl.innerHTML='<input id="kd-ft-inp" placeholder="नया काम जोड़ें…" onkeydown="if(event.key===\'Enter\')kdAdd(\''+d.key+'\',this.value,this)">'+
+        '<button onclick="kdAdd(\''+d.key+'\',document.getElementById(\'kd-ft-inp\').value,document.getElementById(\'kd-ft-inp\'))">+</button>';
+    }
+    setBadges();
+  }
+  window.kdFocusPrev=function(){ _focusIdx=(_focusIdx-1+KD_DEF.length)%KD_DEF.length; renderFocus(); };
+  window.kdFocusNext=function(){ _focusIdx=(_focusIdx+1)%KD_DEF.length; renderFocus(); };
+  window.kdFocusGo=function(i){ _focusIdx=i; renderFocus(); };
+
   function renderActive(){
     if(document.getElementById('kd-single').classList.contains('open')) renderSingle();
-    if(document.getElementById('kd-overlay').classList.contains('open')) renderGrid();
+    if(document.getElementById('kd-overlay').classList.contains('open')){
+      if(_kdView==='stack') renderStack();
+      else if(_kdView==='focus') renderFocus();
+      else renderGrid();
+    }
     setBadges();
   }
 

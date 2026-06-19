@@ -850,6 +850,40 @@ button{cursor:pointer}
 .empty .ico{font-size:42px;opacity:.4;margin-bottom:10px}
 .empty .txt{font-size:12px;color:var(--t-400);font-family:var(--font-hindi);font-weight:600;line-height:1.5}
 
+/* ── BACK LINK ── */
+.back-link-inline{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:9px;font-weight:700;color:var(--t-500);
+  text-decoration:none;font-family:var(--font-hindi);
+  padding:2px 8px;border-radius:6px;
+  background:rgba(255,255,255,.03);border:1px solid var(--bd-1);
+  transition:all .15s;letter-spacing:.2px;
+}
+.back-link-inline:active{background:var(--gold-amber);color:var(--gold);border-color:var(--bd-gold)}
+
+/* ── DURATION CHIPS ── */
+.dur-chips{display:flex;gap:5px;flex-wrap:wrap;margin-top:2px}
+.dur-chip{
+  padding:7px 12px;border-radius:9px;font-size:12px;font-weight:700;
+  background:var(--ink-2);border:1.5px solid var(--bd-2);color:var(--t-300);
+  font-family:var(--font-mono);transition:all .15s;cursor:pointer;
+}
+.dur-chip.on{background:var(--gold-amber);border-color:var(--gold);color:var(--gold)}
+.dur-chip:active{transform:scale(.93)}
+
+/* ── TASK ACTION SHEET ── */
+.ta-btn{
+  width:100%;padding:13px 16px;border-radius:12px;margin-bottom:8px;
+  font-size:13px;font-weight:700;font-family:var(--font-hindi);
+  display:flex;align-items:center;gap:10px;border:1px solid;
+  transition:transform .12s ease;cursor:pointer;
+}
+.ta-btn:active{transform:scale(.98)}
+.ta-done{background:var(--emerald-soft);border-color:rgba(52,211,153,.4);color:var(--emerald)}
+.ta-ci{background:var(--gold-amber);border-color:var(--bd-gold);color:var(--gold)}
+.ta-del{background:var(--ruby-soft);border-color:rgba(251,113,133,.3);color:var(--ruby)}
+.ta-meta-row{font-size:10px;color:var(--t-400);font-family:var(--font-mono);padding:0 2px 10px;font-weight:600;line-height:1.5}
+
 /* Hidden by default */
 .hidden{display:none !important}
 
@@ -886,7 +920,10 @@ button{cursor:pointer}
         <div class="brand-mark">⏳</div>
         <div class="brand-text">
           <h1><em>VBE</em> <span class="accent">समय दर्पण</span></h1>
-          <div class="tagline" id="dayLabel">सोमवार · 11 मई</div>
+          <div style="display:flex;align-items:center;gap:7px;margin-top:2px">
+            <div class="tagline" id="dayLabel">सोमवार · 11 मई</div>
+            <a href="./" class="back-link-inline">← मुख्य ऐप</a>
+          </div>
         </div>
       </div>
       <div class="clock-wrap">
@@ -1129,23 +1166,30 @@ button{cursor:pointer}
           <input type="time" id="fTime">
         </div>
       </div>
-      <div class="field-row">
-        <div class="field">
-          <label>कितने मिनट</label>
-          <input type="number" id="fDur" min="5" max="480" value="30" step="5">
+      <div class="field">
+        <label>कितने मिनट</label>
+        <input type="hidden" id="fDur" value="30">
+        <div class="dur-chips" id="durChips">
+          <button type="button" class="dur-chip" data-v="5"   onclick="setDur(5)">5मि</button>
+          <button type="button" class="dur-chip" data-v="15"  onclick="setDur(15)">15मि</button>
+          <button type="button" class="dur-chip on" data-v="30" onclick="setDur(30)">30मि</button>
+          <button type="button" class="dur-chip" data-v="45"  onclick="setDur(45)">45मि</button>
+          <button type="button" class="dur-chip" data-v="60"  onclick="setDur(60)">60मि</button>
+          <button type="button" class="dur-chip" data-v="90"  onclick="setDur(90)">90मि</button>
+          <button type="button" class="dur-chip" data-v="120" onclick="setDur(120)">2घं</button>
         </div>
-        <div class="field">
-          <label>श्रेणी</label>
-          <select id="fCat">
-            <option value="gem">📋 GeM बोली</option>
-            <option value="supply">📦 सप्लाई</option>
-            <option value="accounts">💰 हिसाब</option>
-            <option value="canteen">🍽 कैंटीन</option>
-            <option value="field">🏗 फील्ड</option>
-            <option value="personal">👤 व्यक्तिगत</option>
-            <option value="other">📌 अन्य</option>
-          </select>
-        </div>
+      </div>
+      <div class="field">
+        <label>श्रेणी</label>
+        <select id="fCat">
+          <option value="gem">📋 GeM बोली</option>
+          <option value="supply">📦 सप्लाई</option>
+          <option value="accounts">💰 हिसाब</option>
+          <option value="canteen">🍽 कैंटीन</option>
+          <option value="field">🏗 फील्ड</option>
+          <option value="personal">👤 व्यक्तिगत</option>
+          <option value="other">📌 अन्य</option>
+        </select>
       </div>
       <div class="field">
         <label>प्राथमिकता</label>
@@ -1206,6 +1250,29 @@ button{cursor:pointer}
         </select>
       </div>
       <button class="sheet-submit" onclick="saveCi()"><span>✓</span><span>Check-in दर्ज</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- ═════════════ TASK ACTION SHEET ═════════════ -->
+<div class="sheet-ovl" id="taOvl" onclick="if(event.target.id==='taOvl')closeTa()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title" id="taTitle"><em>काम</em></div>
+      <div class="ta-meta-row" id="taMeta"></div>
+    </div>
+    <div class="sheet-body" style="padding:10px 18px 30px">
+      <button class="ta-btn ta-done" id="taDoneBtn" onclick="taDone()">
+        <span style="font-size:16px">✓</span><span id="taDoneLabel">पूरा हुआ</span>
+      </button>
+      <button class="ta-btn ta-ci" onclick="taCi()">
+        <span style="font-size:16px">📝</span><span>Check-in जोड़ें</span>
+      </button>
+      <div style="height:1px;background:var(--bd-1);margin:4px 0 12px"></div>
+      <button class="ta-btn ta-del" onclick="taDel()">
+        <span style="font-size:16px">🗑️</span><span>यह काम हटाएं</span>
+      </button>
     </div>
   </div>
 </div>
@@ -1357,6 +1424,11 @@ function renderUserChips(){
   });
 }
 renderUserChips();
+
+// Enter key on task name → save
+document.getElementById('fName').addEventListener('keydown', e=>{
+  if(e.key==='Enter'){ e.preventDefault(); if(window.saveTask) window.saveTask(); }
+});
 
 window.doLogin = async function(){
   const email = $('loginEmail').value.trim();
@@ -1841,24 +1913,38 @@ function renderDayList(){
     wrap.innerHTML = `<div class="empty"><div class="ico">📋</div><div class="txt">आज के लिए कोई काम नहीं<br>+ बटन से जोड़ें</div></div>`;
     return;
   }
+  const prioColors = { high:'var(--ruby)', med:'var(--gold)', low:'var(--emerald)' };
+  const nowMin = new Date().getHours()*60 + new Date().getMinutes();
   wrap.innerHTML = list.map(t=>{
     const cat = CATS[t.cat]||CATS.other;
-    const pers = PERSONS.find(p=>p.id===(t.persons?.[0]));
+    const allPers = (t.persons||[]).map(pid=>PERSONS.find(p=>p.id===pid)).filter(Boolean);
+    const prioColor = prioColors[t.prio]||'var(--gold)';
+    const [th,tm] = (t.time||'0:0').split(':').map(Number);
+    const tStart = th*60+(tm||0), tEnd = tStart+(parseInt(t.duration)||30);
+    const isLive = nowMin>=tStart && nowMin<tEnd && !t.done;
+    const borderColor = isLive ? 'var(--gold)' : t.done ? 'rgba(52,211,153,.45)' : prioColor;
+    const cardBg = isLive
+      ? 'linear-gradient(90deg,rgba(245,178,64,.06),var(--ink-1))'
+      : t.done ? 'rgba(52,211,153,.03)' : 'var(--ink-1)';
+    const persEmojis = allPers.map(p=>`<span title="${p.name}" style="font-size:13px">${p.em}</span>`).join('');
     return `
-      <div data-task-id="${t.id}" style="display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:13px;background:var(--ink-1);border:1px solid var(--bd-1);border-left:3px solid ${pers?.color||'var(--gold)'};margin-bottom:7px;cursor:pointer" onclick="openTaskActionsById(this.dataset.taskId)">
-        <div onclick="event.stopPropagation();markDone('${t.id}')" style="width:20px;height:20px;border-radius:50%;border:1.5px solid ${t.done?'var(--emerald)':pers?.color||'var(--gold)'};background:${t.done?'var(--emerald)':'transparent'};display:grid;place-items:center;font-size:10px;color:${t.done?'#06241a':'transparent'};font-weight:900;flex-shrink:0">✓</div>
+      <div data-task-id="${t.id}" style="display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:13px;background:${cardBg};border:1px solid var(--bd-1);border-left:3px solid ${borderColor};margin-bottom:7px;cursor:pointer;transition:opacity .2s" onclick="openTaskActionsById(this.dataset.taskId)">
+        <button type="button" onclick="event.stopPropagation();markDone('${t.id}')" style="width:22px;height:22px;border-radius:50%;border:1.5px solid ${t.done?'var(--emerald)':prioColor};background:${t.done?'var(--emerald)':'transparent'};display:grid;place-items:center;font-size:11px;color:${t.done?'#06241a':'transparent'};font-weight:900;flex-shrink:0;cursor:pointer;transition:all .15s">✓</button>
         <div style="flex:1;min-width:0">
-          <div style="font-size:12.5px;font-weight:700;font-family:var(--font-hindi);color:var(--t-100);${t.done?'text-decoration:line-through;opacity:.6':''}">${escapeHtml(t.name)}</div>
-          <div style="font-size:9.5px;color:var(--t-400);font-family:var(--font-mono);margin-top:2px;display:flex;gap:6px;align-items:center">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;flex-wrap:wrap">
+            <span style="font-size:12.5px;font-weight:700;font-family:var(--font-hindi);color:var(--t-100);${t.done?'text-decoration:line-through;opacity:.5':''}">${escapeHtml(t.name)}</span>
+            ${isLive?`<span style="font-size:8px;background:var(--gold);color:#1a1305;padding:1px 6px;border-radius:4px;font-weight:800;font-family:var(--font-mono);letter-spacing:.5px">LIVE</span>`:''}
+          </div>
+          <div style="font-size:9.5px;color:var(--t-400);font-family:var(--font-mono);display:flex;gap:5px;align-items:center;flex-wrap:wrap">
             <span>${t.time||'--:--'}</span>
-            <span>•</span>
+            <span style="color:var(--t-600)">·</span>
             <span>${t.duration||30}मि</span>
-            <span>•</span>
-            <span>${pers?.em||'👤'} ${pers?.name||''}</span>
-            ${t.checkins?.length ? `<span style="color:var(--gold)">• 📝${t.checkins.length}</span>`:''}
+            <span style="color:var(--t-600)">·</span>
+            <span style="font-family:var(--font-hindi)">${cat.em} ${cat.label}</span>
+            ${allPers.length?`<span style="color:var(--t-600)">·</span><span>${persEmojis}</span>`:''}
+            ${t.checkins?.length?`<span style="color:var(--gold)">· 📝×${t.checkins.length}</span>`:''}
           </div>
         </div>
-        <span style="font-size:10px;color:var(--t-400)">${cat.em}</span>
       </div>
     `;
   }).join('');
@@ -2086,6 +2172,13 @@ function renderElon(){
 }
 
 /*═══ ADD TASK SHEET ═══*/
+/*═══ DURATION CHIPS ═══*/
+function setDur(v){
+  $('fDur').value = v;
+  document.querySelectorAll('.dur-chip').forEach(c=>c.classList.toggle('on', parseInt(c.dataset.v)===v));
+}
+window.setDur = setDur;
+
 window.openAddSheet = function(){
   $('addSheetOvl').classList.add('open');
   $('fDate').value = todayKey();
@@ -2096,6 +2189,7 @@ window.openAddSheet = function(){
     const now = new Date();
     $('fTime').value = `${pad(now.getHours())}:${pad(Math.floor(now.getMinutes()/5)*5)}`;
   }
+  setDur(30);
   buildSheetPersons();
   setTimeout(()=>$('fName').focus(), 200);
 };
@@ -2177,15 +2271,48 @@ window.markDone = async function(id){
   }catch(e){ toast('Error','error'); }
 };
 
+/*═══ TASK ACTION SHEET ═══*/
+let _taTask = null;
 window.openTaskActions = function(t){
-  // Quick action sheet — for simplicity, just mark/delete/checkin via prompt
-  // For now, just open the checkin for this task
-  addCheckinForTask(t.id);
+  _taTask = t;
+  $('taOvl').classList.add('open');
+  $('taTitle').innerHTML = `<em>${escapeHtml(t.name)}</em>`;
+  const cat = CATS[t.cat]||CATS.other;
+  const allPers = (t.persons||[]).map(pid=>PERSONS.find(p=>p.id===pid)).filter(Boolean);
+  $('taMeta').textContent = `${cat.em} ${cat.label} · ${t.time||'--:--'} · ${t.duration||30}मि${allPers.length?' · '+allPers.map(p=>p.name).join(', '):''}`;
+  const btn = $('taDoneBtn');
+  const lbl = $('taDoneLabel');
+  if(t.done){
+    btn.className='ta-btn'; btn.style.cssText='width:100%;padding:13px 16px;border-radius:12px;margin-bottom:8px;font-size:13px;font-weight:700;font-family:var(--font-hindi);display:flex;align-items:center;gap:10px;border:1px solid var(--bd-2);background:var(--ink-2);color:var(--t-400);transition:transform .12s;cursor:pointer';
+    lbl.textContent='वापस खोलें';
+  }else{
+    btn.className='ta-btn ta-done'; btn.style.cssText='';
+    lbl.textContent='पूरा हुआ ✓';
+  }
 };
-
 window.openTaskActionsById = function(id){
   const t = tasks.find(x=>x.id===id);
   if(t) openTaskActions(t);
+};
+window.closeTa = ()=>{ $('taOvl').classList.remove('open'); _taTask=null; };
+window.taDone = async function(){
+  if(!_taTask) return;
+  await markDone(_taTask.id);
+  closeTa();
+};
+window.taCi = function(){
+  const id = _taTask?.id;
+  closeTa();
+  if(id) setTimeout(()=>addCheckinForTask(id), 200);
+};
+window.taDel = async function(){
+  if(!_taTask) return;
+  if(!confirm(`"${_taTask.name}" — यह काम हटाएं?`)) return;
+  try{
+    await deleteDoc(doc(db, COLL, _taTask.id));
+    closeTa();
+    toast('काम हटा दिया ✓','success');
+  }catch(e){ toast('Error: '+e.message,'error'); }
 };
 
 window.addCheckinForTask = function(taskId){

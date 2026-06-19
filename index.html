@@ -3863,20 +3863,23 @@ async function mbSetStage(orderId, stageId){
 
 // Toggle peek header — FIXED v2: सही show/hide
 function mbTogglePeekHeader(){
-  const hdr = document.querySelector('.s-header');
-  if(!hdr) return;
-  const cs = window.getComputedStyle(hdr);
-  const isHidden = (hdr.style.display==='none') || (cs.display==='none');
-  if(isHidden){
-    hdr.style.display = 'block';
-    // visual feedback peek bar पर
+  try{
+    const hdr = document.querySelector('.s-header');
+    if(!hdr) return;
+    const cs = window.getComputedStyle(hdr);
+    const isHidden = (hdr.style.display==='none') || (cs.display==='none');
     const peekLabel = document.querySelector('.mb-peek-label');
-    if(peekLabel) peekLabel.textContent = '⏳ VBE समय दर्पण · tap to hide';
-  } else {
-    hdr.style.display = 'none';
-    const peekLabel = document.querySelector('.mb-peek-label');
-    if(peekLabel) peekLabel.textContent = '⏳ VBE समय दर्पण · tap to show menu';
-  }
+    const peekArrow = document.querySelector('.mb-peek-bar span[style*="color:#d4a017"]');
+    if(isHidden){
+      hdr.style.display = 'block';
+      if(peekLabel) peekLabel.textContent = '⏳ VBE समय दर्पण · मेनू बंद करें';
+      if(peekArrow) peekArrow.textContent = '▲';
+    } else {
+      hdr.style.display = 'none';
+      if(peekLabel) peekLabel.textContent = '⏳ VBE समय दर्पण · मेनू खोलें ▼';
+      if(peekArrow) peekArrow.textContent = '▼';
+    }
+  }catch(e){ console.warn('peek toggle error:',e); }
 }
 
 function renderList(){
@@ -9252,7 +9255,16 @@ window._db=window._db||null;
 .bk-ab.fwd{background:#0a1f3d;color:#60a5fa;border:1px solid #1e3a8a66}
 .bk-ab.diary{background:linear-gradient(135deg,#D4A017,#9c7411);color:#161b14}
 .bk-ab.diaryon{background:#1a1405;color:#D4A017;border:1px solid #D4A01766}
+.bk-ab.note{background:#111b2e;color:#94a3b8;border:1px solid #243049}
+.bk-ab.noteon{background:#0f2040;color:#60a5fa;border:1px solid #1e3a8a}
+.bk-ab.prio{background:#1a0a0a;color:#f87171;border:1px solid #7f1d1d55}
+.bk-ab.prioon{background:rgba(239,68,68,.15);color:#f87171;border:1px solid #ef444488}
 .bk-ab:active{opacity:.8}
+/* inline note box */
+.bk-note-box{margin:6px 0 0 32px;background:#0a1424;border:1px solid #1e3a5f;border-radius:8px;padding:0;
+  max-height:0;overflow:hidden;transition:max-height .25s ease,padding .25s}
+.bk-note-box.open{max-height:120px;padding:2px}
+.bk-note-inp{width:100%;background:none;border:none;color:#c4ccd8;font-family:inherit;font-size:12px;padding:8px;resize:none;outline:none;min-height:60px;line-height:1.5}
 .bk-empty{text-align:center;color:#475569;padding:50px 20px;font-size:13px}
 .bk-foot{flex:none;padding:8px 11px calc(8px + env(safe-area-inset-bottom));background:#0A2540;
   border-top:1px solid #1f4a6e;text-align:center;font-size:10px;color:#7f9bc0;font-weight:700}
@@ -9358,31 +9370,43 @@ window._db=window._db||null;
       : '<button class="bk-ab diary" onclick="bkDiaryAdd(\''+o.id+'\')">📖 डायरी +</button>';
 
     var phone=o.phone||o.staffCall||'';
-    var callBtn = phone ? '<button class="bk-ab call" onclick="bkCall(\''+o.id+'\')">📞</button>' : '';
-    var waBtn   = o.phone ? '<button class="bk-ab wa" onclick="bkWA(\''+o.id+'\')">🟢</button>' : '';
+    var callBtn = phone ? '<button class="bk-ab call" onclick="bkCall(\''+o.id+'\')">📞 कॉल</button>' : '';
+    var waBtn   = o.phone ? '<button class="bk-ab wa" onclick="bkWA(\''+o.id+'\')">🟢 WA</button>' : '';
 
     var dt=orderDate(o);
     var dstr=dt.toLocaleDateString('hi-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:true});
+    var noteId='bk-note-'+o.id.replace(/[^a-z0-9]/gi,'');
+    var hasNote=!!(o.bkNote&&o.bkNote.trim());
+    var isPrio=!!(o.bkPrio);
+    var noteBtn='<button class="bk-ab '+(hasNote?'noteon':'note')+'" onclick="bkToggleNote(\''+o.id+'\')" title="नोट जोड़ें">'+(hasNote?'📝 नोट':'📝')+'</button>';
+    var prioBtn='<button class="bk-ab '+(isPrio?'prioon':'prio')+'" onclick="bkTogglePrio(\''+o.id+'\')" title="जरूरी">🚨'+(isPrio?' जरूरी':'')+'</button>';
+    var overdueMs=Date.now()-dt.getTime();
+    var overdueHrs=Math.floor(overdueMs/3600000);
+    var overdueStr=o.stage!=='delivered'&&overdueHrs>48?'<span style="color:#f87171;font-weight:800;font-size:10px">⏳ '+overdueHrs+'h</span>':'';
 
-    return '<div class="bk-row'+(o.stage==='delivered'?' bk-deliv':'')+'">'+
-      '<div class="bk-acc" style="background:'+sc+'"></div>'+
+    return '<div class="bk-row'+(o.stage==='delivered'?' bk-deliv':'')+(isPrio?' bk-prio':'')+'">'+
+      '<div class="bk-acc" style="background:'+(isPrio?'#ef4444':sc)+'"></div>'+
       '<div class="bk-r-top">'+
         '<span class="bk-sn">'+sn+'</span>'+
-        '<span class="bk-task">'+esc(task)+(o.qty?' · '+esc(o.qty):'')+'</span>'+
+        '<span class="bk-task">'+esc(task)+(o.qty?' · '+esc(o.qty):'')+(isPrio?' 🚨':'')+'</span>'+
       '</div>'+
       '<div class="bk-r-meta">'+
         (o.staff?'<span class="bk-staff" style="background:'+sc+'22;color:'+sc+';border:1px solid '+sc+'55">👤 '+esc(o.staff)+'</span>':'<span class="bk-staff" style="background:#33415522;color:#64748b;border:1px solid #33415555">👤 कोई नहीं</span>')+
         (o.customer?'<span class="bk-party">🏢 '+esc(o.customer)+'</span>':'')+
         (cat?'<span class="bk-cat" style="background:'+cat.color+'22;color:'+cat.color+'">'+cat.emoji+' '+esc(cat.label)+'</span>':'')+
         '<span class="bk-date">🗓 '+dstr+'</span>'+
+        overdueStr+
       '</div>'+
       '<div class="bk-stat-lbl">स्थिति — टैप करके बदलो:</div>'+
       '<div class="bk-steps">'+steps+'</div>'+
       '<div class="bk-acts">'+
-        diaBtn+
-        '<button class="bk-ab fwd" onclick="bkFwd(\''+o.id+'\')" title="+24 घंटे आगे">⏩+24h</button>'+
-        callBtn+waBtn+
+        diaBtn+prioBtn+
+        '<button class="bk-ab fwd" onclick="bkFwd(\''+o.id+'\')" title="+24h">⏩+24h</button>'+
+        callBtn+waBtn+noteBtn+
         '<button class="bk-ab edit" onclick="bkEdit(\''+o.id+'\')">✏️ खोलो</button>'+
+      '</div>'+
+      '<div class="bk-note-box'+(hasNote?' open':'')+'" id="'+noteId+'">'+
+        '<textarea class="bk-note-inp" placeholder="यहाँ नोट लिखें…" onblur="bkSaveNote(\''+o.id+'\',this.value)" onchange="bkSaveNote(\''+o.id+'\',this.value)">'+esc(o.bkNote||'')+'</textarea>'+
       '</div>'+
     '</div>';
   }
@@ -9412,6 +9436,26 @@ window._db=window._db||null;
   window.bkEdit=function(id){ bkClose(); setTimeout(function(){ if(window.editOrder) window.editOrder(id); },150); };
   window.bkDiaryAdd=function(id){ if(window.kdPickBoard) window.kdPickBoard(id); };
   window.bkDiaryRemove=function(id){ if(window.kdRemoveByOrder) window.kdRemoveByOrder(id); setTimeout(bkRender,120); };
+  window.bkToggleNote=function(id){
+    var noteId='bk-note-'+id.replace(/[^a-z0-9]/gi,'');
+    var box=document.getElementById(noteId);
+    if(box){ box.classList.toggle('open'); if(box.classList.contains('open')) box.querySelector('textarea').focus(); }
+  };
+  window.bkSaveNote=function(id,val){
+    var o=(window._orders||[]).find(function(x){return x.id===id;});
+    if(!o) return;
+    o.bkNote=val||'';
+    // Save to Firestore if available
+    try{ if(window._updateDoc&&window._doc&&window._db) window._updateDoc(window._doc(window._db,'vbe_orders',id),{bkNote:val||''}); }catch(e){}
+    setTimeout(bkRender,200);
+  };
+  window.bkTogglePrio=function(id){
+    var o=(window._orders||[]).find(function(x){return x.id===id;});
+    if(!o) return;
+    o.bkPrio=!o.bkPrio;
+    try{ if(window._updateDoc&&window._doc&&window._db) window._updateDoc(window._doc(window._db,'vbe_orders',id),{bkPrio:!!o.bkPrio}); }catch(e){}
+    setTimeout(bkRender,120);
+  };
 
   window.openBookUpdate=function(){
     BK_OPEN=true;
@@ -9474,31 +9518,42 @@ window._db=window._db||null;
 .kd-b-ic{font-size:17px;line-height:1}
 
 /* ───── Single board (full page) ───── */
-#kd-single .kd-s-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;background:#0d1320;padding:10px 10px 16px}
-.kd-task{background:#fff;border-radius:11px;margin-bottom:8px;padding:8px 9px;box-shadow:0 2px 8px rgba(0,0,0,.25);
-  border-left:4px solid var(--kdc)}
-.kd-task.done{opacity:.55}
+#kd-single .kd-s-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;background:#0a0f1e;padding:10px 10px 16px}
+#kd-single .kd-s-body::-webkit-scrollbar{width:3px}
+#kd-single .kd-s-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:3px}
+.kd-task{background:linear-gradient(150deg,#0f1929,#0a1120);border-radius:11px;margin-bottom:7px;padding:10px 10px;
+  box-shadow:0 2px 12px rgba(0,0,0,.3);border-left:4px solid var(--kdc);border:1px solid rgba(255,255,255,.05);border-left:4px solid var(--kdc)}
 .kd-t-top{display:flex;align-items:flex-start;gap:7px}
-.kd-sn{flex:none;font-size:13px;font-weight:900;color:var(--kdc);min-width:20px;text-align:right;padding-top:1px;font-variant-numeric:tabular-nums}
-.kd-chk{flex:none;width:20px;height:20px;border-radius:6px;border:2px solid #c3c9c3;background:#fff;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;margin-top:1px}
+.kd-sn{flex:none;font-size:12px;font-weight:900;color:var(--kdc);min-width:20px;text-align:right;padding-top:2px;font-variant-numeric:tabular-nums;opacity:.7}
+.kd-chk{flex:none;width:20px;height:20px;border-radius:6px;border:1.5px solid rgba(255,255,255,.2);background:transparent;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;margin-top:1px;transition:all .15s}
 .kd-chk.on{background:var(--kdc);border-color:var(--kdc)}
-.kd-tx{flex:1;min-width:0;font-size:13.5px;color:#1a1a1a;line-height:1.4;word-break:break-word;cursor:text;font-family:'Mukta',sans-serif;font-weight:600}
-.kd-task.done .kd-tx{text-decoration:line-through}
-.kd-meta{font-size:10px;color:#8a9088;margin:5px 0 0 27px;display:flex;flex-wrap:wrap;gap:5px 9px;align-items:center}
-.kd-meta .kd-late{color:#dc2626;font-weight:800}
-.kd-meta .kd-daychip{background:#eef3ff;color:#1e40af;border-radius:6px;padding:1px 7px;font-weight:800;cursor:pointer}
-.kd-meta .kd-alarmon{color:#b45309;font-weight:800}
+.kd-tx{flex:1;min-width:0;font-size:13.5px;color:#e2e8f0;line-height:1.4;word-break:break-word;cursor:text;font-weight:600}
+.kd-meta{font-size:10px;color:#6b7a8d;margin:5px 0 0 27px;display:flex;flex-wrap:wrap;gap:5px 9px;align-items:center}
+.kd-meta .kd-late{color:#f87171;font-weight:800}
+.kd-meta .kd-daychip{background:rgba(59,130,246,.15);color:#60a5fa;border-radius:6px;padding:1px 7px;font-weight:800;cursor:pointer;border:1px solid rgba(59,130,246,.25)}
+.kd-meta .kd-alarmon{color:#fbbf24;font-weight:800}
 .kd-trow2{display:flex;flex-wrap:wrap;gap:5px;margin:7px 0 0 27px}
 .kd-tb{border:none;border-radius:7px;padding:5px 9px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;
   display:inline-flex;align-items:center;gap:3px;line-height:1}
-.kd-tb.rem{background:#fff7ed;color:#b45309;border:1px solid #fdba74}
-.kd-tb.call{background:#ecfdf5;color:#047857;border:1px solid #6ee7b7}
-.kd-tb.wa{background:#dcfce7;color:#15803d;border:1px solid #86efac}
-.kd-tb.ph{background:#eff6ff;color:#1d4ed8;border:1px solid #93c5fd}
-.kd-tb.mv{background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;padding:5px 8px}
-.kd-tb.del{background:#fef2f2;color:#dc2626;border:1px solid #fecaca}
+.kd-tb.rem{background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.25)}
+.kd-tb.call{background:rgba(52,211,153,.1);color:#34d399;border:1px solid rgba(52,211,153,.25)}
+.kd-tb.wa{background:rgba(74,222,128,.1);color:#4ade80;border:1px solid rgba(74,222,128,.25)}
+.kd-tb.ph{background:rgba(96,165,250,.1);color:#60a5fa;border:1px solid rgba(96,165,250,.25)}
+.kd-tb.mv{background:rgba(255,255,255,.05);color:#64748b;border:1px solid rgba(255,255,255,.1);padding:5px 8px}
+.kd-tb.restore{background:rgba(52,211,153,.12);color:#34d399;border:1px solid rgba(52,211,153,.3)}
 .kd-tb:active{opacity:.8}
+/* done task */
+.kd-task.done{opacity:.55;background:rgba(52,211,153,.04)!important;border-left-color:#34d399}
+.kd-task.done .kd-tx{text-decoration:line-through;color:#64748b}
+/* completed section header */
+.kd-done-hdr{display:flex;align-items:center;gap:8px;padding:10px 0 6px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.kd-done-hdr-label{font-size:11px;font-weight:800;color:#34d399;letter-spacing:.6px}
+.kd-done-hdr-cnt{background:rgba(52,211,153,.12);color:#34d399;border-radius:8px;padding:1px 8px;font-size:11px;font-weight:900}
+.kd-done-hdr-arr{font-size:12px;color:#34d399;transition:transform .2s;margin-left:auto}
+.kd-done-hdr-arr.open{transform:rotate(90deg)}
+.kd-done-body{display:none}
+.kd-done-body.open{display:block}
 .kd-s-empty{text-align:center;color:#64748b;padding:50px 20px;font-size:13px}
 
 /* bottom sheets (pick + remind) */
@@ -9626,8 +9681,9 @@ window._db=window._db||null;
     <span class="kd-h-pend" id="kd-head-pend">0</span>
     <div class="kd-view-bar">
       <button class="kd-vb active" id="kd-vb-grid" onclick="kdSetView('grid')" title="Grid View">⊞</button>
-      <button class="kd-vb" id="kd-vb-stack" onclick="kdSetView('stack')" title="सब एक साथ देखें">☰</button>
+      <button class="kd-vb" id="kd-vb-stack" onclick="kdSetView('stack')" title="सब खुला देखें">☰</button>
       <button class="kd-vb" id="kd-vb-focus" onclick="kdSetView('focus')" title="एक-एक करके">◈</button>
+      <button class="kd-vb" id="kd-vb-timeline" onclick="kdSetView('timeline')" title="Timeline">⏱</button>
     </div>
     <button class="kd-x" onclick="kdClose()" aria-label="बंद करें">✕</button>
   </div>
@@ -9645,6 +9701,9 @@ window._db=window._db||null;
 
   <!-- VIEW 2: Stack — all boards fully expanded -->
   <div class="kd-stack-wrap" id="kd-view-stack" style="display:none"></div>
+
+  <!-- VIEW 4: Timeline — all tasks newest first -->
+  <div class="kd-stack-wrap" id="kd-view-timeline" style="display:none"></div>
 
   <!-- VIEW 3: Focus — one board at a time -->
   <div class="kd-focus-wrap" id="kd-view-focus" style="display:none">
@@ -9843,63 +9902,95 @@ window._db=window._db||null;
     }
 
     var body=document.getElementById('kd-s-body');
-    if(list.length===0){ body.innerHTML='<div class="kd-s-empty">अभी कोई काम नहीं।<br>ऊपर बॉक्स में लिखकर + दबाएँ।</div>'; return; }
+    // Split: pending first, done at bottom
+    var pending=list.filter(function(x){return !x.done;});
+    var done=list.filter(function(x){return x.done;});
+    if(pending.length===0 && done.length===0){ body.innerHTML='<div class="kd-s-empty">अभी कोई काम नहीं।<br>ऊपर बॉक्स में लिखकर + दबाएँ।</div>'; return; }
     var t=todayISO();
-    body.innerHTML=list.map(function(x,i){
-      var meta='<span>🗓 जोड़ा: '+addedStr(x.ts)+'</span><span>· '+ageStr(x.ts)+'</span>';
+
+    function taskCard(x,i,isDone){
+      var meta='<span>🗓 '+addedStr(x.ts)+'</span><span>· '+ageStr(x.ts)+'</span>';
       if(_openBoard==='morning' && x.day){
         var df=dayDiff(x.day,t);
-        meta+='<span class="kd-daychip" onclick="kdChangeDay(\''+x.id+'\')">📅 '+fmtDay(x.day)+'</span>';
-        if(!x.done && df<0) meta+='<span class="kd-late">⏳ '+(-df)+' दिन लेट</span>';
+        meta+='<span class="kd-daychip" onclick="event.stopPropagation();kdChangeDay(\''+x.id+'\')">📅 '+fmtDay(x.day)+'</span>';
+        if(!isDone && df<0) meta+='<span class="kd-late">⏳ '+(-df)+' दिन लेट</span>';
         if(x._fwd) meta+='<span class="kd-late">↪ आगे बढ़ा</span>';
-      } else if(!x.done){
+      } else if(!isDone){
         var dd=Math.floor((Date.now()-(x.ts||Date.now()))/86400000);
         if(dd>=2) meta+='<span class="kd-late">⏳ '+dd+' दिन से लंबित</span>';
       }
       if(x.alarmAt) meta+='<span class="kd-alarmon">⏰ लगा है</span>';
+      if(isDone && x.doneAt) meta+='<span style="color:#34d399">✓ '+addedStr(x.doneAt)+'</span>';
 
-      var row2='<button class="kd-tb rem" onclick="kdRemindOpen(\''+_openBoard+'\',\''+x.id+'\')">⏰📅 याद</button>';
-      if(_openBoard==='followup'){
-        if(x.phone){
-          row2+='<button class="kd-tb call" onclick="kdCall(\''+x.id+'\')">📞 कॉल</button>'+
-                '<button class="kd-tb wa" onclick="kdWA(\''+x.id+'\')">🟢 WhatsApp</button>';
-        } else {
-          row2+='<button class="kd-tb ph" onclick="kdSetPhone(\''+x.id+'\')">📱 नंबर जोड़ें</button>';
+      var row2='';
+      if(!isDone){
+        row2='<button class="kd-tb rem" onclick="kdRemindOpen(\''+_openBoard+'\',\''+x.id+'\')">⏰ याद</button>';
+        if(_openBoard==='followup'){
+          if(x.phone){
+            row2+='<button class="kd-tb call" onclick="kdCall(\''+x.id+'\')">📞 कॉल</button>'+
+                  '<button class="kd-tb wa" onclick="kdWA(\''+x.id+'\')">🟢 WA</button>';
+          } else {
+            row2+='<button class="kd-tb ph" onclick="kdSetPhone(\''+x.id+'\')">📱 नंबर जोड़ें</button>';
+          }
         }
+        row2+='<button class="kd-tb mv" onclick="event.stopPropagation();kdMove(\''+_openBoard+'\',\''+x.id+'\',-1)">▲</button>'+
+              '<button class="kd-tb mv" onclick="event.stopPropagation();kdMove(\''+_openBoard+'\',\''+x.id+'\',1)">▼</button>';
+      } else {
+        row2='<button class="kd-tb restore" onclick="event.stopPropagation();kdToggle(\''+_openBoard+'\',\''+x.id+'\')">↩ वापस लाओ</button>';
       }
-      row2+='<button class="kd-tb mv" onclick="kdMove(\''+_openBoard+'\',\''+x.id+'\',-1)">▲</button>'+
-            '<button class="kd-tb mv" onclick="kdMove(\''+_openBoard+'\',\''+x.id+'\',1)">▼</button>'+
-            '<button class="kd-tb del" onclick="kdDel(\''+_openBoard+'\',\''+x.id+'\')">✕ हटाओ</button>';
-
-      var phoneLine = (_openBoard==='followup' && x.phone) ? '<span>📱 '+escH(x.phone)+'</span>' : '';
-      return '<div class="kd-task'+(x.done?' done':'')+'" style="--kdc:'+d.color+'">'+
+      var phoneLine=(_openBoard==='followup'&&x.phone)?'<span>📱 '+escH(x.phone)+'</span>':'';
+      return '<div class="kd-task'+(isDone?' done':'')+'" style="--kdc:'+d.color+'">'+
         '<div class="kd-t-top">'+
           '<span class="kd-sn">'+(i+1)+'.</span>'+
-          '<span class="kd-chk'+(x.done?' on':'')+'" onclick="kdToggle(\''+_openBoard+'\',\''+x.id+'\')">'+(x.done?'✓':'')+'</span>'+
+          '<span class="kd-chk'+(isDone?' on':'')+'" onclick="event.stopPropagation();kdToggle(\''+_openBoard+'\',\''+x.id+'\')">'+(isDone?'✓':'')+'</span>'+
           '<span class="kd-tx" onclick="kdEdit(\''+_openBoard+'\',\''+x.id+'\')">'+escH(x.text)+'</span>'+
         '</div>'+
         '<div class="kd-meta">'+meta+phoneLine+'</div>'+
-        '<div class="kd-trow2">'+row2+'</div>'+
+        (row2?'<div class="kd-trow2">'+row2+'</div>':'')+
       '</div>';
-    }).join('');
+    }
+
+    var html=pending.map(function(x,i){return taskCard(x,i+1,false);}).join('');
+    if(pending.length===0) html='<div class="kd-s-empty" style="padding:20px">सभी काम पूरे हो गए! 🎉</div>';
+
+    if(done.length>0){
+      html+='<div class="kd-done-hdr" onclick="kdToggleDoneSection(this)">'+
+        '<span class="kd-done-hdr-label">✅ पूरे हुए काम</span>'+
+        '<span class="kd-done-hdr-cnt">'+done.length+'</span>'+
+        '<span class="kd-done-hdr-arr">›</span>'+
+      '</div>'+
+      '<div class="kd-done-body" id="kd-done-body">'+
+        done.map(function(x,i){return taskCard(x,i+1,true);}).join('')+
+      '</div>';
+    }
+    body.innerHTML=html;
   }
+  window.kdToggleDoneSection=function(hdr){
+    var body=document.getElementById('kd-done-body');
+    var arr=hdr.querySelector('.kd-done-hdr-arr');
+    if(!body) return;
+    var open=body.classList.toggle('open');
+    if(arr) arr.classList.toggle('open',open);
+  };
 
   // ════════ VIEW SWITCHER ════════
   window.kdSetView=function(v){
     _kdView=v;
-    ['grid','stack','focus'].forEach(function(m){
+    // grid view uses kd-view-grid (kd-grid-wrap), others use their own containers
+    var allViews=['grid','stack','focus','timeline'];
+    allViews.forEach(function(m){
       var el=document.getElementById('kd-view-'+m);
       if(el) el.style.display=(m===v?'':'none');
-      if(m==='grid' && el) el.style.display=(v==='grid'?'':'none');
       var btn=document.getElementById('kd-vb-'+m);
-      if(btn){ btn.classList.toggle('active',m===v); }
+      if(btn) btn.classList.toggle('active',m===v);
     });
-    var subs={grid:'⊞ सभी एक नजर में',stack:'☰ सब खुला हुआ देखें',focus:'◈ एक-एक करके'};
+    var subs={grid:'⊞ Grid — सभी एक नजर में',stack:'☰ Stack — सब खुला देखें',focus:'◈ Focus — एक-एक करके',timeline:'⏱ Timeline — नया सबसे ऊपर'};
     var sub=document.getElementById('kd-h-sub-txt');
     if(sub) sub.textContent=subs[v]||'';
     if(v==='grid') renderGrid();
     else if(v==='stack') renderStack();
     else if(v==='focus') renderFocus();
+    else if(v==='timeline') renderTimeline();
   };
 
   // ════════ STACK VIEW render ════════
@@ -9989,11 +10080,59 @@ window._db=window._db||null;
   window.kdFocusNext=function(){ _focusIdx=(_focusIdx+1)%KD_DEF.length; renderFocus(); };
   window.kdFocusGo=function(i){ _focusIdx=i; renderFocus(); };
 
+  // ════════ TIMELINE VIEW render ════════
+  function renderTimeline(){
+    var wrap=document.getElementById('kd-view-timeline'); if(!wrap) return;
+    // Collect ALL tasks from all boards with board info, sort by ts descending
+    var all=[];
+    KD_DEF.forEach(function(d){
+      (KD.boards[d.key]||[]).forEach(function(t){
+        all.push({task:t,board:d});
+      });
+    });
+    all.sort(function(a,b){ return (b.task.ts||0)-(a.task.ts||0); });
+    if(all.length===0){
+      wrap.innerHTML='<div style="padding:40px 20px;text-align:center;color:#475569;font-size:13px">कोई काम नहीं।</div>';
+      setBadges(); return;
+    }
+    // Group by date
+    var groups={}, groupOrder=[];
+    all.forEach(function(item){
+      var dk=item.task.ts?new Date(item.task.ts).toLocaleDateString('hi-IN',{day:'numeric',month:'short',year:'numeric'}):'पुराना';
+      if(!groups[dk]){groups[dk]=[];groupOrder.push(dk);}
+      groups[dk].push(item);
+    });
+    wrap.innerHTML=groupOrder.map(function(dk){
+      var items=groups[dk];
+      var rows=items.map(function(item){
+        var t=item.task,d=item.board;
+        var isDone=!!t.done;
+        return '<div class="kd-lb-task'+(isDone?' done':'')+'" style="--kdc:'+d.color+'" onclick="kdToggle(\''+d.key+'\',\''+t.id+'\')">'+
+          '<div class="kd-lb-chk'+(isDone?' on':'')+'">'+(isDone?'✓':'')+'</div>'+
+          '<div style="display:flex;flex-direction:column;flex:1;min-width:0">'+
+            '<div style="font-size:13px;color:'+(isDone?'#475569':'#c4ccd8')+(isDone?';text-decoration:line-through':'')+';line-height:1.4">'+escH(t.text)+'</div>'+
+            '<div style="font-size:10px;margin-top:3px;display:flex;gap:6px;align-items:center">'+
+              '<span style="background:'+d.color+'22;color:'+d.color+';border-radius:5px;padding:1px 7px;font-weight:800;border:1px solid '+d.color+'55">'+d.icon+' '+d.name+'</span>'+
+              (isDone?'<span style="color:#34d399">✓ पूरा</span>':'<span style="color:#64748b">लंबित</span>')+
+            '</div>'+
+          '</div>'+
+          (isDone?'<button class="kd-tb restore" style="flex-shrink:0;font-size:10px" onclick="event.stopPropagation();kdToggle(\''+d.key+'\',\''+t.id+'\')">↩</button>':'')+
+        '</div>';
+      }).join('');
+      return '<div style="margin-bottom:10px">'+
+        '<div style="font-size:10px;font-weight:800;color:#D4A017;letter-spacing:1px;padding:8px 2px 4px">🗓 '+dk+'</div>'+
+        '<div class="kd-lb" style="--kdc:#D4A017">'+rows+'</div>'+
+      '</div>';
+    }).join('');
+    setBadges();
+  }
+
   function renderActive(){
     if(document.getElementById('kd-single').classList.contains('open')) renderSingle();
     if(document.getElementById('kd-overlay').classList.contains('open')){
       if(_kdView==='stack') renderStack();
       else if(_kdView==='focus') renderFocus();
+      else if(_kdView==='timeline') renderTimeline();
       else renderGrid();
     }
     setBadges();
@@ -10037,10 +10176,15 @@ window._db=window._db||null;
     KD.boards.morning.unshift({id:uid(),text:v,done:false,ts:Date.now(),day:(ds?ds.value:todayISO())});
     if(ti)ti.value=''; renderActive(); save();
   };
-  window.kdToggle=function(k,id){ var t=(KD.boards[k]||[]).find(function(x){return x.id===id;}); if(!t)return; t.done=!t.done; renderActive(); save(); };
-  window.kdDel=function(k,id){ KD.boards[k]=(KD.boards[k]||[]).filter(function(x){return x.id!==id;}); renderActive(); save(); };
+  window.kdToggle=function(k,id){
+    var t=(KD.boards[k]||[]).find(function(x){return x.id===id;}); if(!t)return;
+    t.done=!t.done;
+    if(t.done) t.doneAt=Date.now(); else delete t.doneAt;
+    renderActive(); save();
+  };
+  window.kdDel=function(k,id){ /* delete disabled — tasks are kept as done */ };
   window.kdMove=function(k,id,dir){ var a=KD.boards[k]||[]; var i=a.findIndex(function(x){return x.id===id;}); if(i<0)return; var j=i+dir; if(j<0||j>=a.length)return; var tmp=a[i];a[i]=a[j];a[j]=tmp; renderActive(); save(); };
-  window.kdEdit=function(k,id){ var t=(KD.boards[k]||[]).find(function(x){return x.id===id;}); if(!t)return; var v=prompt('काम बदलें:',t.text); if(v===null)return; v=v.trim(); if(v===''){window.kdDel(k,id);return;} t.text=v; renderActive(); save(); };
+  window.kdEdit=function(k,id){ var t=(KD.boards[k]||[]).find(function(x){return x.id===id;}); if(!t)return; var v=prompt('काम बदलें:',t.text); if(v===null)return; v=v.trim(); if(v==='') return; t.text=v; renderActive(); save(); };
   window.kdSetPhone=function(id){ var t=(KD.boards.followup||[]).find(function(x){return x.id===id;}); if(!t)return; var p=prompt('मोबाइल नंबर:',t.phone||''); if(p===null)return; t.phone=p.replace(/[^0-9+]/g,'')||undefined; renderActive(); save(); };
   window.kdChangeDay=function(id){
     var t=(KD.boards.morning||[]).find(function(x){return x.id===id;}); if(!t)return;

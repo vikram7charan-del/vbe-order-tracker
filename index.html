@@ -4053,12 +4053,15 @@ async function mbSetStage(orderId, stageId){
     if(window._sfx) window._sfx.chime();
     if(navigator.vibrate) navigator.vibrate([50,30,80,30,120]);
     notif('🎉 Order Delivered! शानदार काम!','ok');
+    // Auto WA prompt on delivery
+    if(o.phone) showWaPrompt(o.id,'delivered');
   } else {
     if(window._sfx) window._sfx.tick();
     if(typeof notif==='function') notif('✅ Stage → '+STAGES.find(s=>s.id===stageId)?.hi,'ok');
-    // ↩ Undo available for 5 seconds
     _lastUndo={type:'stage', order:{...o, stage:oldStage, timeline:o.timeline||[]}, oldStage};
     showUndoToast('Stage → '+(STAGES.find(s=>s.id===stageId)?.hi||stageId)+' — वापस जाना हो?');
+    // Auto WA prompt on dispatch
+    if(stageId==='dispatched' && o.phone) showWaPrompt(o.id,'dispatched');
   }
 }
 
@@ -4395,6 +4398,145 @@ window.exportWASummary=function(){
   window.open(waUrl,'_blank');
   notif('📊 WhatsApp summary खुल रहा है','ok');
 };
+
+// ══ WHATSAPP AUTO-SEND ══
+var _waBarTimer=null;
+function showWaPrompt(orderId, stage){
+  clearTimeout(_waBarTimer);
+  var bar=document.getElementById('vbe-wa-bar');
+  var msg=document.getElementById('vbe-wa-msg');
+  var btn=document.getElementById('vbe-wa-send');
+  if(!bar||!msg||!btn) return;
+  var o=_orders.find(function(x){return x.id===orderId;});
+  if(!o||!o.phone) return;
+  var stgLabel=stage==='delivered'?'🎉 Delivered':'🚛 Dispatched';
+  msg.textContent=stgLabel+' — '+( o.customer||'')+(o.item?' · '+o.item:'')+' — Customer को notify करें?';
+  btn.onclick=function(){ bar.style.display='none'; sendWA(orderId); };
+  bar.style.display='flex';
+  _waBarTimer=setTimeout(function(){ bar.style.display='none'; },10000);
+}
+
+// ══ AI SMART SUGGESTIONS (local, no API) ══
+// Uses historical order data to suggest item, staff, deadline
+
+// Item datalist for add form
+function buildItemDatalist(){
+  var dl=document.getElementById('f-it-dl');
+  if(!dl){ dl=document.createElement('datalist'); dl.id='f-it-dl'; document.body.appendChild(dl); }
+  var items=new Set();
+  (_orders||[]).forEach(function(o){ if(o.item&&o.item.trim()) items.add(o.item.trim()); });
+  dl.innerHTML=[...items].slice(0,40).map(function(i){ return '<option value="'+esc(i)+'">'; }).join('');
+  var fit=document.getElementById('f-it'); if(fit) fit.setAttribute('list','f-it-dl');
+}
+
+// Smart staff suggestion: based on category → most common staff for that category
+function aiSuggestStaff(category){
+  if(!_orders||!category) return null;
+  var counts={};
+  _orders.filter(function(o){ return o.category===category&&o.staff; }).forEach(function(o){
+    counts[o.staff]=(counts[o.staff]||0)+1;
+  });
+  var best=Object.entries(counts).sort(function(a,b){return b[1]-a[1];})[0];
+  return best?best[0]:null;
+}
+
+// Smart deadline: suggest based on similar items (avg days from creation to deadline)
+function aiSuggestDeadlineDays(item){
+  if(!_orders||!item) return null;
+  var itLower=item.toLowerCase();
+  var similar=_orders.filter(function(o){
+    return o.item&&o.item.toLowerCase().includes(itLower.slice(0,4))&&o.createdAt&&o.deadline;
+  });
+  if(!similar.length) return null;
+  var avgMs=similar.reduce(function(s,o){return s+(new Date(o.deadline)-new Date(o.createdAt));},0)/similar.length;
+  var days=Math.round(avgMs/86400000);
+  return days>0&&days<30?days:null;
+}
+
+// Customer repeat detector: when customer field loses focus, check for repeat customer
+function aiCustomerHint(name){
+  if(!name||!_orders) return;
+  var past=_orders.filter(function(o){return (o.customer||'').toLowerCase()===name.toLowerCase();});
+  var hint=document.getElementById('f-cu-hint');
+  if(!hint){ hint=document.createElement('div'); hint.id='f-cu-hint';
+    hint.style.cssText='font-size:10px;color:#10b981;margin-top:4px;display:none;padding:5px 8px;background:#052e16;border-radius:7px;border:1px solid #16a34a55'; }
+  var cuEl=document.getElementById('f-cu'); if(cuEl&&!document.getElementById('f-cu-hint')) cuEl.parentNode.appendChild(hint);
+  if(!past.length){ hint.style.display='none'; return; }
+  var last=past.sort(function(a,b){return new Date(b.deadline||0)-new Date(a.deadline||0);})[0];
+  hint.style.display='block';
+  hint.innerHTML='🔄 Repeat customer · '+past.length+' orders'+(last?' · आखिरी: <b>'+esc(last.item||'')+'</b>':'')+
+    ' <button onclick="aiSmartFill(\''+esc(name)+'\')" style="margin-left:6px;background:#16a34a;border:none;border-radius:5px;color:#fff;font-size:9px;font-weight:800;padding:2px 6px;cursor:pointer;font-family:inherit">⚡ Smart Fill</button>';
+}
+
+// Smart Fill: fill form from most recent order of this customer
+window.aiSmartFill=function(name){
+  var past=(_orders||[]).filter(function(o){return (o.customer||'').toLowerCase()===name.toLowerCase();});
+  if(!past.length) return;
+  var last=past.sort(function(a,b){return new Date(b.createdAt||0)-new Date(a.createdAt||0);})[0];
+  var fields={f_it:last.item,f_qt:last.qty,f_ph:last.phone,f_no:'',f_st:last.staff,f_sph:last.staffPhone};
+  Object.entries(fields).forEach(function(pair){ var el=document.getElementById(pair[0].replace('_','-')); if(el&&pair[1]) el.value=pair[1]; });
+  if(last.category && typeof setFormCategory==='function') setFormCategory(last.category);
+  if(last.priority){ var pr=document.getElementById('f-pr'); if(pr) pr.value=last.priority; }
+  // Suggest deadline
+  var days=aiSuggestDeadlineDays(last.item)||3;
+  var dl=new Date(); dl.setDate(dl.getDate()+days); dl.setHours(17,0,0,0);
+  var dlEl=document.getElementById('f-dl'); if(dlEl) dlEl.value=dl.toISOString().slice(0,16);
+  notif('⚡ Smart Fill — '+last.item+' · '+days+'d deadline suggest किया','ok');
+};
+
+// Category-based staff AI suggestion
+function aiCategoryStaffSuggest(category){
+  var suggest=aiSuggestStaff(category);
+  var stEl=document.getElementById('f-st');
+  if(!stEl||!suggest) return;
+  if(!stEl.value||stEl.value===suggest) return; // already set
+  var hint=document.getElementById('f-staff-hint');
+  if(!hint){ hint=document.createElement('div'); hint.id='f-staff-hint';
+    hint.style.cssText='font-size:10px;color:#818cf8;margin-top:3px;display:none;cursor:pointer;padding:3px 6px;background:#1e1b4b44;border-radius:5px;border:1px solid #4c1d9544';
+    stEl.parentNode.appendChild(hint); }
+  hint.style.display='block';
+  hint.innerHTML='🤖 AI suggest: <b>'+esc(suggest)+'</b> ('+category+' pattern से) <button onclick="document.getElementById(\'f-st\').value=\''+esc(suggest)+'\';this.closest(\'div\').style.display=\'none\'" style="margin-left:4px;background:#6366f1;border:none;border-radius:4px;color:#fff;font-size:9px;font-weight:800;padding:2px 5px;cursor:pointer;font-family:inherit">Apply</button>';
+}
+
+// Hook into form events — wire up AI after orders load
+function wireAIFormHooks(){
+  var cuEl=document.getElementById('f-cu');
+  if(cuEl&&!cuEl._aiHooked){
+    cuEl._aiHooked=true;
+    cuEl.addEventListener('blur',function(){ aiCustomerHint(cuEl.value.trim()); });
+    cuEl.addEventListener('input',function(){
+      clearTimeout(cuEl._aiTimer);
+      cuEl._aiTimer=setTimeout(function(){ aiCustomerHint(cuEl.value.trim()); },500);
+    });
+  }
+  buildItemDatalist();
+}
+// Wire after Firebase ready
+document.addEventListener('fbReady',function(){
+  setTimeout(wireAIFormHooks,2000);
+});
+// Also wire when add form opens
+var _origOpenAdd=window.openAdd;
+window.openAdd=function(){
+  if(_origOpenAdd) _origOpenAdd.apply(this,arguments);
+  setTimeout(wireAIFormHooks,200);
+  // Reset hints
+  var h=document.getElementById('f-cu-hint'); if(h) h.style.display='none';
+  var sh=document.getElementById('f-staff-hint'); if(sh) sh.style.display='none';
+};
+
+// Voice input on search bar
+(function(){
+  var swrap=document.getElementById('srch-wrap');
+  if(!swrap) return;
+  var vbtn=document.createElement('button');
+  vbtn.textContent='🎤';
+  vbtn.title='Voice search';
+  vbtn.style.cssText='background:transparent;border:1px solid #334155;border-radius:7px;color:#10b981;padding:4px 7px;font-size:13px;cursor:pointer;margin-left:4px;flex-shrink:0';
+  vbtn.onclick=function(){ if(typeof voiceInput==='function') voiceInput('srch'); };
+  swrap.style.display='flex'; swrap.style.alignItems='center';
+  swrap.appendChild(vbtn);
+})();
 
 // ══ UNDO SYSTEM ══
 var _lastUndo=null, _undoTimer=null, _undoCountdown=null;
@@ -7999,6 +8141,8 @@ function updateCategoryChipCounts(){
 function setFormCategory(cat){
   _formCategory = cat;
   document.getElementById('f-cat').value = cat;
+  // AI staff suggestion based on category
+  if(cat && typeof aiCategoryStaffSuggest==='function') aiCategoryStaffSuggest(cat);
   document.querySelectorAll('.cat-btn').forEach(b=>{
     b.style.background='#1e293b';
     b.style.color='#94a3b8';
@@ -8265,6 +8409,8 @@ renderAll = function(){
   _origRenderAll();
   updateCategoryChipCounts();
   renderTopWorkers();
+  // Rebuild AI item datalist whenever orders update
+  if(typeof buildItemDatalist==='function') buildItemDatalist();
 };
 
 // ─── Initialize new features once Firebase is ready ───
@@ -11515,6 +11661,14 @@ window._db=window._db||null;
   <button onclick="bulkForward24h()" style="background:linear-gradient(135deg,#1e3a8a,#3b82f6);color:#fff">⏩+24h</button>
   <button onclick="bulkDelete()" style="background:rgba(239,68,68,.2);color:#f87171;border:1px solid rgba(239,68,68,.4)">🗑 Delete</button>
   <button onclick="toggleBulkMode()" style="background:#1e293b;color:#64748b;border:1px solid #334155">✕</button>
+</div>
+
+<!-- ══ WA AUTO-SEND BAR ══ -->
+<div id="vbe-wa-bar" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:440px;background:#052e16;border:1px solid #16a34a;border-radius:14px;padding:10px 14px;z-index:999994;align-items:center;gap:8px;box-shadow:0 8px 32px rgba(0,0,0,.6);font-family:'Noto Sans Devanagari',system-ui,sans-serif">
+  <span style="font-size:16px">📱</span>
+  <span id="vbe-wa-msg" style="flex:1;font-size:11px;color:#bbf7d0"></span>
+  <button id="vbe-wa-send" style="background:#16a34a;border:none;border-radius:8px;color:#fff;font-size:11px;font-weight:800;padding:6px 12px;cursor:pointer;font-family:inherit;white-space:nowrap">WhatsApp भेजो</button>
+  <button onclick="document.getElementById('vbe-wa-bar').style.display='none'" style="background:transparent;border:none;color:#4ade80;font-size:16px;cursor:pointer;line-height:1;padding:0 2px">✕</button>
 </div>
 
 <!-- ══ UNDO BAR ══ -->

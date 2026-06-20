@@ -10066,7 +10066,7 @@ window._db=window._db||null;
       '</div>';
     }
 
-    var html=pending.map(function(x,i){return taskCard(x,i+1,false);}).join('');
+    var html=pending.map(function(x,i){return taskCard(x,i,false);}).join('');
     if(pending.length===0) html='<div class="kd-s-empty" style="padding:20px">सभी काम पूरे हो गए! 🎉</div>';
 
     if(done.length>0){
@@ -10076,7 +10076,7 @@ window._db=window._db||null;
         '<span class="kd-done-hdr-arr">›</span>'+
       '</div>'+
       '<div class="kd-done-body" id="kd-done-body">'+
-        done.map(function(x,i){return taskCard(x,i+1,true);}).join('')+
+        done.map(function(x,i){return taskCard(x,i,true);}).join('')+
       '</div>';
     }
     body.innerHTML=html;
@@ -10304,13 +10304,20 @@ window._db=window._db||null;
 
   function _kdDragEnd(e){
     document.removeEventListener('touchmove',_kdDragMove);
-    if(!_drgGhost){ _cleanup(); return; }
-    _drgGhost.style.visibility='hidden';
-    var el=document.elementFromPoint(e.changedTouches[0].clientX,e.changedTouches[0].clientY);
-    _drgGhost.style.visibility='visible';
-    var target=el; while(target&&!target.dataset.tid) target=target.parentElement;
     document.querySelectorAll('.kd-drag-over').forEach(function(x){x.classList.remove('kd-drag-over');});
-    if(target&&target!==_drgEl&&target.dataset.bid===_drgKey&&_drgKey&&_drgId){
+    if(!_drgGhost||!_drgKey||!_drgId){ _cleanup(); return; }
+    var endY=e.changedTouches[0].clientY;
+    // Find closest task card by vertical center (reliable on mobile)
+    var allCards=Array.prototype.slice.call(document.querySelectorAll('[data-tid][data-bid="'+_drgKey+'"]'));
+    var target=null, minDist=Infinity;
+    allCards.forEach(function(card){
+      if(card===_drgEl) return;
+      var rect=card.getBoundingClientRect();
+      var mid=(rect.top+rect.bottom)/2;
+      var dist=Math.abs(endY-mid);
+      if(dist<minDist){ minDist=dist; target=card; }
+    });
+    if(target){
       var arr=KD.boards[_drgKey]||[];
       var fi=arr.findIndex(function(x){return x.id===_drgId;});
       var ti=arr.findIndex(function(x){return x.id===target.dataset.tid;});
@@ -10703,7 +10710,7 @@ window._db=window._db||null;
     <h6>⚡ VBE — त्वरित कार्य</h6>
     <div class="vbeNav-acts">
       <button class="vbeNav-act" onclick="vbeNavClose();openBookUpdate()">📖<span>बुक</span></button>
-      <button class="vbeNav-act" onclick="vbeNavClose();openReckoning()">📒<span>हिसाब</span></button>
+      <button class="vbeNav-act" onclick="vbeNavClose();openReckoning()">📒<span>दिन हिसाब</span></button>
       <button class="vbeNav-act" onclick="vbeNavClose();openAnalytics()">📊<span>Analytics</span></button>
       <button class="vbeNav-act" onclick="vbeNavClose();openArchive()">✅<span>Archive</span></button>
       <button class="vbeNav-act" onclick="vbeNavClose();openStaffMgr()">👥<span>Staff</span></button>

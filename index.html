@@ -1129,9 +1129,101 @@ select option{background:#0d1526}
 .mb-time-seg-btn{border-radius:9px}
 .mb-sec-title{margin-bottom:7px}
 
+/* ── PIN LOCK ── */
+#vbe-pin-lock{position:fixed;inset:0;background:#050a14;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Noto Sans Devanagari',system-ui,sans-serif}
+.pin-logo{font-size:52px;margin-bottom:6px}
+.pin-brand{font-size:20px;font-weight:800;background:linear-gradient(90deg,#f59e0b,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:1px}
+.pin-sub{font-size:10px;color:#334155;letter-spacing:3px;margin-top:2px;margin-bottom:28px}
+.pin-title{font-size:13px;color:#64748b;margin-bottom:16px}
+.pin-dots{display:flex;gap:14px;margin-bottom:28px}
+.pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid #1e3a5f;background:transparent;transition:background .15s,border-color .15s}
+.pin-dot.filled{background:linear-gradient(135deg,#f59e0b,#ef4444);border-color:#f59e0b}
+.pin-pad{display:grid;grid-template-columns:repeat(3,72px);gap:10px;margin-bottom:16px}
+.pin-key{height:60px;border-radius:14px;border:1px solid #1e3a5f;background:#0d1526;color:#e2e8f0;font-size:22px;font-weight:700;cursor:pointer;transition:background .1s,transform .1s;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent}
+.pin-key:active{background:#1e3a5f;transform:scale(.93)}
+.pin-key.del{font-size:18px;color:#64748b}
+.pin-key.zero{grid-column:2}
+.pin-err{font-size:12px;color:#ef4444;min-height:18px;margin-bottom:4px;font-weight:600;animation:pinShake .3s}
+@keyframes pinShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+
 </style>
 </head>
 <body>
+
+<!-- ═══════════ PIN LOCK (सबसे पहले दिखता है) ═══════════ -->
+<div id="vbe-pin-lock">
+  <div class="pin-logo">🔒</div>
+  <div class="pin-brand">VBE PORTAL</div>
+  <div class="pin-sub">BARMER OPERATIONS · SECURED</div>
+  <div class="pin-title">सुरक्षा PIN दर्ज करें</div>
+  <div class="pin-dots">
+    <div class="pin-dot" id="pd0"></div>
+    <div class="pin-dot" id="pd1"></div>
+    <div class="pin-dot" id="pd2"></div>
+    <div class="pin-dot" id="pd3"></div>
+  </div>
+  <div class="pin-err" id="pin-err"></div>
+  <div class="pin-pad">
+    <button class="pin-key" onclick="_pinKey(1)">1</button>
+    <button class="pin-key" onclick="_pinKey(2)">2</button>
+    <button class="pin-key" onclick="_pinKey(3)">3</button>
+    <button class="pin-key" onclick="_pinKey(4)">4</button>
+    <button class="pin-key" onclick="_pinKey(5)">5</button>
+    <button class="pin-key" onclick="_pinKey(6)">6</button>
+    <button class="pin-key" onclick="_pinKey(7)">7</button>
+    <button class="pin-key" onclick="_pinKey(8)">8</button>
+    <button class="pin-key" onclick="_pinKey(9)">9</button>
+    <button class="pin-key zero" onclick="_pinKey(0)">0</button>
+    <button class="pin-key del" onclick="_pinDel()">⌫</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  var _pin='';
+  var _correct=(9^8^7^6).toString()+''+(8*1).toString()+(7*1).toString()+(6*1).toString(); // '9876' obfuscated
+  _correct='9876';
+  // Session में पहले से verify हो तो सीधे unlock
+  if(sessionStorage.getItem('vbe_pin_ok')==='1'){
+    document.getElementById('vbe-pin-lock').style.display='none';
+    return;
+  }
+  window._pinKey=function(d){
+    if(_pin.length>=4) return;
+    _pin+=d;
+    _updateDots();
+    if(_pin.length===4) setTimeout(_pinCheck,120);
+  };
+  window._pinDel=function(){
+    _pin=_pin.slice(0,-1);
+    _updateDots();
+    document.getElementById('pin-err').textContent='';
+  };
+  function _updateDots(){
+    for(var i=0;i<4;i++){
+      document.getElementById('pd'+i).classList.toggle('filled',i<_pin.length);
+    }
+  }
+  function _pinCheck(){
+    if(_pin===_correct){
+      sessionStorage.setItem('vbe_pin_ok','1');
+      var el=document.getElementById('vbe-pin-lock');
+      el.style.transition='opacity .4s';
+      el.style.opacity='0';
+      setTimeout(function(){ el.style.display='none'; },400);
+    } else {
+      document.getElementById('pin-err').textContent='❌ गलत PIN — फिर से कोशिश करें';
+      var dots=document.querySelectorAll('.pin-dot');
+      dots.forEach(function(d){ d.style.background='#ef4444'; d.style.borderColor='#ef4444'; });
+      setTimeout(function(){
+        _pin='';
+        _updateDots();
+        dots.forEach(function(d){ d.style.background=''; d.style.borderColor=''; });
+      },700);
+    }
+  }
+})();
+</script>
 
 <div id="loading">
   <div class="spin"></div>

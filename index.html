@@ -10031,13 +10031,17 @@ window._db=window._db||null;
         row2='<button class="kd-tb restore" onclick="event.stopPropagation();kdToggle(\''+_openBoard+'\',\''+x.id+'\')">↩ वापस लाओ</button>';
       }
       var phoneLine=(_openBoard==='followup'&&x.phone)?'<span>📱 '+escH(x.phone)+'</span>':'';
-      return '<div class="kd-task'+(isDone?' done':'')+'" style="--kdc:'+d.color+'">'+
+      var srcBadge=x.srcId
+        ?'<span style="font-size:9px;background:rgba(59,130,246,.1);color:#60a5fa;border:1px solid rgba(59,130,246,.25);border-radius:5px;padding:1px 6px;flex-shrink:0">🔗 VBE</span> '
+        :'<span style="font-size:9px;background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.3);border-radius:5px;padding:1px 6px;flex-shrink:0">📝 डायरी</span> ';
+      var cardExtra=x.srcId?'':'border-left:3px solid rgba(239,68,68,.5);';
+      return '<div class="kd-task'+(isDone?' done':'')+'" style="--kdc:'+d.color+';'+cardExtra+'">'+
         '<div class="kd-t-top">'+
           '<span class="kd-sn">'+(i+1)+'.</span>'+
           '<span class="kd-chk'+(isDone?' on':'')+'" onclick="event.stopPropagation();kdToggle(\''+_openBoard+'\',\''+x.id+'\')">'+(isDone?'✓':'')+'</span>'+
           '<span class="kd-tx" onclick="kdEdit(\''+_openBoard+'\',\''+x.id+'\')">'+escH(x.text)+'</span>'+
         '</div>'+
-        '<div class="kd-meta">'+meta+phoneLine+'</div>'+
+        '<div class="kd-meta">'+srcBadge+meta+phoneLine+'</div>'+
         (row2?'<div class="kd-trow2">'+row2+'</div>':'')+
       '</div>';
     }
@@ -10090,14 +10094,28 @@ window._db=window._db||null;
     var wrap=document.getElementById('kd-view-stack'); if(!wrap) return;
     wrap.innerHTML=KD_DEF.map(function(d){
       var list=KD.boards[d.key]||[];
-      var pend=list.filter(function(t){return !t.done;}).length;
-      var rows=list.map(function(t,i){
-        return '<div class="kd-lb-task'+(t.done?' done':'')+'" onclick="kdToggle(\''+d.key+'\',\''+t.id+'\')">'+
-          '<div class="kd-lb-chk'+(t.done?' on':'')+'">'+(t.done?'✓':'')+'</div>'+
+      var pendingLb=list.filter(function(t){return !t.done;});
+      var doneLb=list.filter(function(t){return t.done;});
+      var pend=pendingLb.length;
+      function lbCard(t,i,isDone){
+        var srcDot=t.srcId?'':'<span style="width:7px;height:7px;border-radius:50%;background:#ef4444;display:inline-block;flex-shrink:0;margin-right:4px;vertical-align:middle" title="📝 डायरी नोट"></span>';
+        return '<div class="kd-lb-task'+(isDone?' done':'')+'" onclick="kdToggle(\''+d.key+'\',\''+t.id+'\')">'+
+          '<div class="kd-lb-chk'+(isDone?' on':'')+'">'+(isDone?'✓':'')+'</div>'+
           '<div class="kd-lb-num">'+(i+1)+'</div>'+
-          '<div class="kd-lb-txt">'+escH(t.text)+'</div>'+
+          '<div class="kd-lb-txt">'+srcDot+escH(t.text)+'</div>'+
         '</div>';
-      }).join('');
+      }
+      var rows=pendingLb.map(function(t,i){return lbCard(t,i,false);}).join('');
+      var doneHtml='';
+      if(doneLb.length>0){
+        doneHtml='<div class="kd-done-hdr" onclick="window.kdLbToggleDone(this)" style="padding:4px 14px;margin:4px 0 0">'+
+          '<span class="kd-done-hdr-label">✅ पूरे ('+doneLb.length+')</span>'+
+          '<span class="kd-done-hdr-arr">›</span>'+
+        '</div>'+
+        '<div class="kd-lb-done-body" style="display:none">'+
+          doneLb.map(function(t,i){return lbCard(t,i,true);}).join('')+
+        '</div>';
+      }
       var emptyRow=list.length===0?'<div style="padding:16px 14px;text-align:center;color:#475569;font-size:12px">कोई काम नहीं — नीचे जोड़ें</div>':'';
       var addInp=d.key==='followup'?
         '<input id="kd-lb-inp-'+d.key+'" placeholder="नाम / काम…" onkeydown="if(event.key===\'Enter\')kdAdd(\''+d.key+'\',this.value,this)">':
@@ -10110,7 +10128,7 @@ window._db=window._db||null;
           '<span class="kd-lb-arr open">›</span>'+
         '</div>'+
         '<div class="kd-lb-body open">'+
-          emptyRow+rows+
+          emptyRow+rows+doneHtml+
           '<div class="kd-lb-add">'+addInp+
             '<button onclick="kdAdd(\''+d.key+'\',document.getElementById(\'kd-lb-inp-'+d.key+'\').value,document.getElementById(\'kd-lb-inp-'+d.key+'\'))">+</button>'+
           '</div>'+
@@ -10142,15 +10160,28 @@ window._db=window._db||null;
     // board header + tasks
     var board=document.getElementById('kd-focus-board');
     if(!board) return;
-    var rows=list.length===0?
+    var pendFocus=list.filter(function(t){return !t.done;});
+    var doneFocus=list.filter(function(t){return t.done;});
+    function focusCard(t,i,isDone){
+      var srcDot=t.srcId?'':'<span style="width:7px;height:7px;border-radius:50%;background:#ef4444;display:inline-block;flex-shrink:0;margin-right:4px;vertical-align:middle" title="📝 डायरी"></span>';
+      return '<div class="kd-ft'+(isDone?' done':'')+'" onclick="kdToggle(\''+d.key+'\',\''+t.id+'\')">'+
+        '<div class="kd-ft-chk'+(isDone?' on':'')+'">'+(isDone?'✓':'')+'</div>'+
+        '<div class="kd-ft-num">'+(i+1)+'</div>'+
+        '<div class="kd-ft-text">'+srcDot+escH(t.text)+'</div>'+
+      '</div>';
+    }
+    var rows=pendFocus.length===0?
       '<div class="kd-focus-empty"><span class="kd-fe-ic">✓</span>कोई लंबित काम नहीं</div>':
-      list.map(function(t,i){
-        return '<div class="kd-ft'+(t.done?' done':'')+'" onclick="kdToggle(\''+d.key+'\',\''+t.id+'\')">'+
-          '<div class="kd-ft-chk'+(t.done?' on':'')+'">'+(t.done?'✓':'')+'</div>'+
-          '<div class="kd-ft-num">'+(i+1)+'</div>'+
-          '<div class="kd-ft-text">'+escH(t.text)+'</div>'+
-        '</div>';
-      }).join('');
+      pendFocus.map(function(t,i){return focusCard(t,i,false);}).join('');
+    if(doneFocus.length>0){
+      rows+='<div class="kd-done-hdr" onclick="window.kdLbToggleDone(this)" style="padding:4px 10px;margin-top:8px">'+
+        '<span class="kd-done-hdr-label">✅ पूरे ('+doneFocus.length+')</span>'+
+        '<span class="kd-done-hdr-arr">›</span>'+
+      '</div>'+
+      '<div class="kd-lb-done-body" style="display:none">'+
+        doneFocus.map(function(t,i){return focusCard(t,i,true);}).join('')+
+      '</div>';
+    }
     board.innerHTML=
       '<div class="kd-focus-hdr" style="--kdc:'+d.color+'">'+
         '<span class="kd-focus-hdr-ic">'+d.icon+'</span>'+
@@ -10171,6 +10202,13 @@ window._db=window._db||null;
   window.kdFocusPrev=function(){ _focusIdx=(_focusIdx-1+KD_DEF.length)%KD_DEF.length; renderFocus(); };
   window.kdFocusNext=function(){ _focusIdx=(_focusIdx+1)%KD_DEF.length; renderFocus(); };
   window.kdFocusGo=function(i){ _focusIdx=i; renderFocus(); };
+  window.kdLbToggleDone=function(hdr){
+    var body=hdr.nextElementSibling; if(!body) return;
+    var arr=hdr.querySelector('.kd-done-hdr-arr');
+    var open=body.style.display==='block';
+    body.style.display=open?'none':'block';
+    if(arr) arr.classList.toggle('open',!open);
+  };
 
   // ════════ TIMELINE VIEW render ════════
   function renderTimeline(){
@@ -10342,10 +10380,10 @@ window._db=window._db||null;
   // ════════ "किस डायरी में जोड़ें?" (main app card से) ════════
   var _pickText=null, _pickSrcId=null;
   function orderToText(o){
-    var txt=(o.customer||'').trim();
     var item=(o.item||'').trim();
-    if(item && item!==txt) txt = txt ? (txt+' — '+item) : item;
-    if(!txt) txt='(बिना नाम का काम)';
+    var customer=(o.customer||'').trim();
+    var txt=item||customer||'(बिना नाम का काम)';
+    if(item && customer && item!==customer) txt=item+' — '+customer;
     return txt;
   }
   window.kdPickBoard=function(orderId){

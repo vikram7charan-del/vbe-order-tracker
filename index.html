@@ -674,6 +674,9 @@ select option{background:#0d1526}
 .mb-card.mb-overdue{border-color:rgba(220,80,60,.55);box-shadow:0 12px 30px rgba(0,0,0,.5), 0 0 16px rgba(192,57,43,.15)}
 .mb-card.mb-now{border-color:rgba(245,158,11,.55);box-shadow:0 12px 30px rgba(0,0,0,.5), 0 0 16px rgba(245,158,11,.18)}
 .mb-card.mb-later{border-color:rgba(99,102,241,.45)}
+/* Due-soon pulse — deadline < 2h */
+.mb-card.mb-due-soon{border-color:rgba(251,146,60,.7);animation:due-soon-pulse 2s ease-in-out infinite}
+@keyframes due-soon-pulse{0%,100%{box-shadow:0 12px 30px rgba(0,0,0,.5),0 0 0 0 rgba(251,146,60,.0)}50%{box-shadow:0 12px 30px rgba(0,0,0,.5),0 0 0 6px rgba(251,146,60,.25)}}
 
 .mb-strip{
   background:linear-gradient(90deg,rgba(212,160,23,0.22),rgba(212,160,23,0.04) 75%);
@@ -1209,6 +1212,8 @@ select option{background:#0d1526}
 .cp-row .cp-stg{font-size:10px;font-weight:800;white-space:nowrap}
 .cp-row .cp-tl{font-size:9px;color:#64748b;white-space:nowrap}
 .cp-row.cp-overdue .cp-customer{color:#fca5a5}
+.cp-row.cp-due-soon{border-left:2px solid #fb923c}
+.cp-row.cp-due-soon .cp-tl{color:#fb923c;font-weight:800;animation:due-soon-pulse 2s ease-in-out infinite}
 .cp-row.cp-now .cp-accent{box-shadow:0 0 6px #f59e0b}
 #vbe-compact-toggle{background:transparent;border:1px solid #1e3a5f;color:#64748b;border-radius:8px;padding:4px 8px;font-size:15px;cursor:pointer;transition:all .2s;line-height:1}
 #vbe-compact-toggle.active{background:#1e3a5f;color:#e2e8f0;border-color:#3b82f6}
@@ -1428,7 +1433,8 @@ select option{background:#0d1526}
   </div>
   <!-- Search Bar (hidden by default, toggle से खुलेगा) -->
   <div id="srch-wrap" style="display:none;padding:0 12px 6px">
-    <input class="s-search" id="srch" placeholder="🔍 Search customer / item / order ID..." oninput="renderList()" style="margin-bottom:0"/>
+    <input class="s-search" id="srch" placeholder="🔍 Search customer / item / order ID..." oninput="renderList();updateSearchSuggestions()" list="srch-suggestions" autocomplete="off" style="margin-bottom:0"/>
+    <datalist id="srch-suggestions"></datalist>
   </div>
   <!-- Top Workers Quick Cards — Vikram, Manoj, Kailash, Koda के live stats + filter access -->
   <div id="top-workers-row" style="padding:10px 12px 6px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:4px"></div>
@@ -1436,7 +1442,10 @@ select option{background:#0d1526}
   <div id="staff-summary-bar" style="display:none;padding:0 12px 4px"></div>
   <div id="notif-banner" style="display:none;padding:0 12px 6px"></div>
   <!-- Live Summary Bar -->
-  <div id="vbe-sum-bar" style="display:none;padding:3px 14px 5px;font-size:11px;color:#64748b;letter-spacing:.2px;border-bottom:1px solid #0d1a2e"></div>
+  <div id="vbe-sum-bar" style="display:none;padding:3px 14px 5px;font-size:11px;color:#64748b;letter-spacing:.2px;border-bottom:1px solid #0d1a2e;display:flex;align-items:center;justify-content:space-between;gap:6px">
+    <span id="vbe-sum-text" style="flex:1"></span>
+    <button onclick="exportWASummary()" title="WhatsApp पर आज का summary भेजो" style="flex-shrink:0;background:linear-gradient(135deg,#065f46,#10b981);border:none;border-radius:8px;padding:3px 8px;color:#fff;font-size:10px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap">📊 WA</button>
+  </div>
   <!-- Folder Tabs -->
   <div style="padding:0 12px 6px;display:flex;gap:5px">
     <button onclick="setFolder('active')" id="tab-active" style="flex:1;padding:5px;border-radius:8px;border:none;background:linear-gradient(135deg,#1e3a8a,#312e81);color:#fff;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit">🔥 Active <span id="tab-act-cnt" style="background:#ffffff33;border-radius:5px;padding:1px 5px;font-size:9px">0</span></button>
@@ -3408,14 +3417,17 @@ function renderStats(){
   if(tl) tl.textContent=later;
   // ── Dynamic tab title ──
   document.title = ov>0 ? '('+ov+'⚠️) VBE Portal' : 'VBE Portal · Barmer';
+  // ── App Badge (home screen icon) ──
+  updateAppBadge(ov);
   // ── Summary bar ──
   const sb=document.getElementById('vbe-sum-bar');
-  if(sb){
-    sb.innerHTML=(ov>0?'<span style="color:#f87171;font-weight:800">⚠️ '+ov+' Overdue</span>':'<span style="color:#22c55e;font-weight:700">✅ No Overdue</span>')
-      +(todayCnt>0?' <span style="color:#fbbf24">· 📅 '+todayCnt+' आज</span>':'')
-      +' <span style="color:#64748b">· 📦 '+(act+now)+' Active</span>';
-    sb.style.display='block';
-  }
+  const sbt=document.getElementById('vbe-sum-text');
+  const summaryHtml=(ov>0?'<span style="color:#f87171;font-weight:800">⚠️ '+ov+' Overdue</span>':'<span style="color:#22c55e;font-weight:700">✅ Clear</span>')
+    +(todayCnt>0?' <span style="color:#fbbf24">· 📅 '+todayCnt+' आज</span>':'')
+    +' <span style="color:#64748b">· 📦 '+(act+now)+' Active</span>';
+  if(sbt) sbt.innerHTML=summaryHtml;
+  else if(sb) sb.innerHTML=summaryHtml;
+  if(sb) sb.style.display='flex';
 }
 
 // ═══════════════════════════════════════════════════════
@@ -4203,6 +4215,7 @@ function openSwipeActions(orderId){
     +(nextStg?'<button onclick="window._swAct(\'stage\',\''+orderId+'\',\''+nextStg.id+'\')" style="display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;margin-bottom:8px;border-radius:12px;border:1px solid #1e3a5f;background:#0a0f1e;color:#e2e8f0;font-size:14px;font-family:inherit;cursor:pointer">'+nextStg.emoji+' Stage बढ़ाओ → '+nextStg.hi+'</button>':'')
     +'<button onclick="window._swAct(\'fwd\',\''+orderId+'\')" style="display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;margin-bottom:8px;border-radius:12px;border:1px solid #1e3a5f;background:#0a0f1e;color:#e2e8f0;font-size:14px;font-family:inherit;cursor:pointer">⏩ +24h आगे बढ़ाओ</button>'
     +(o.phone?'<button onclick="window._swAct(\'wa\',\''+orderId+'\')" style="display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;margin-bottom:8px;border-radius:12px;border:1px solid #1e3a5f;background:#0a0f1e;color:#e2e8f0;font-size:14px;font-family:inherit;cursor:pointer">📱 WhatsApp भेजो</button>':'')
+    +'<button onclick="window._swAct(\'share\',\''+orderId+'\')" style="display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;margin-bottom:8px;border-radius:12px;border:1px solid #1e3a5f;background:#0a0f1e;color:#e2e8f0;font-size:14px;font-family:inherit;cursor:pointer">🔗 Share / Copy</button>'
     +'<button onclick="window._swAct(\'del\',\''+orderId+'\')" style="display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;margin-bottom:8px;border-radius:12px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.05);color:#f87171;font-size:14px;font-family:inherit;cursor:pointer">🗑️ Delete करो</button>'
     +'<button onclick="document.getElementById(\'vbe-swipe-bg\').style.display=\'\'" style="width:100%;padding:11px;border-radius:12px;border:1px solid #1e3a5f;background:transparent;color:#64748b;font-size:14px;font-family:inherit;cursor:pointer;margin-top:4px">रद्द</button>'
     +'</div>';
@@ -4213,6 +4226,21 @@ function openSwipeActions(orderId){
     else if(action==='fwd') quickForward(oid,24);
     else if(action==='wa') sendWA(oid);
     else if(action==='del') delOrder(oid);
+    else if(action==='share'){
+      var ord=_orders.find(function(x){return x.id===oid;}); if(!ord)return;
+      var stg2=STAGES.find(function(s){return s.id===ord.stage;})||{};
+      var dl2=ord.deadline?new Date(ord.deadline).toLocaleString('hi-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:true}):'-';
+      var txt2='📦 '+( ord.item||'')+'\n👤 '+(ord.customer||'')+(ord.staff?'\n🧑 Staff: '+ord.staff:'')
+               +'\n🚦 Status: '+(stg2.hi||ord.stage)+'\n📅 Deadline: '+dl2+(ord.note?'\n📝 '+ord.note:'')
+               +'\n🔗 Track: '+location.origin+location.pathname+'?track='+(ord.id||'');
+      if(navigator.share){
+        navigator.share({title:'VBE Order — '+(ord.customer||''),text:txt2}).catch(function(){});
+      } else {
+        navigator.clipboard.writeText(txt2).then(function(){
+          notif('📋 Order copied — WA में paste करो','ok');
+        }).catch(function(){ notif('❌ Copy नहीं हुआ','warn'); });
+      }
+    }
   };
   bg.addEventListener('click',function(e){ if(e.target===bg) bg.style.display=''; },{once:true});
 }
@@ -4292,6 +4320,64 @@ const _sfx=(function(){
   };
 })();
 window._sfx=_sfx;
+
+// ══ APP BADGE API — home screen icon पर overdue count ══
+function updateAppBadge(count){
+  if('setAppBadge' in navigator){
+    if(count>0) navigator.setAppBadge(count).catch(function(){});
+    else navigator.clearAppBadge().catch(function(){});
+  }
+}
+
+// ══ SEARCH AUTOCOMPLETE ══
+function updateSearchSuggestions(){
+  var dl=document.getElementById('srch-suggestions');
+  if(!dl||!_orders) return;
+  var q=(document.getElementById('srch')?.value||'').toLowerCase().trim();
+  if(!q){ dl.innerHTML=''; return; }
+  var seen=new Set();
+  var opts='';
+  _orders.forEach(function(o){
+    var c=(o.customer||'').toLowerCase();
+    var it=(o.item||'').toLowerCase();
+    if(c.includes(q)&&!seen.has(o.customer)){ seen.add(o.customer); opts+='<option value="'+esc(o.customer||'')+'">'; }
+    if(it.includes(q)&&!seen.has(o.item)){ seen.add(o.item); opts+='<option value="'+esc(o.item||'')+'">'; }
+  });
+  dl.innerHTML=opts;
+}
+
+// ══ KEYBOARD SHORTCUTS ══
+document.addEventListener('keydown',function(e){
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return;
+  if(e.altKey||e.metaKey||e.ctrlKey){
+    if(e.key==='n'){ e.preventDefault(); if(typeof openAdd==='function') openAdd(); }
+    if(e.key==='f'){ e.preventDefault(); var s=document.getElementById('srch-wrap'); var i=document.getElementById('srch'); if(s&&i){ s.style.display='block'; i.focus(); } }
+    if(e.key==='1'){ e.preventDefault(); setFolder('active'); }
+    if(e.key==='2'){ e.preventDefault(); setFolder('now'); }
+    if(e.key==='3'){ e.preventDefault(); setFolder('later'); }
+    if(e.key==='c'){ e.preventDefault(); if(typeof toggleCompactMode==='function') toggleCompactMode(); }
+  }
+  if(e.key==='Escape'){ var b=document.getElementById('vbe-swipe-bg'); if(b) b.style.display=''; }
+});
+
+// ══ WHATSAPP DAILY SUMMARY ══
+window.exportWASummary=function(){
+  if(!_orders) return;
+  var now=new Date();
+  var active=_orders.filter(function(o){ return o.stage!=='delivered'; });
+  var overdue=active.filter(function(o){ return !o.isLater&&new Date(o.deadline)<now; });
+  var today=active.filter(function(o){ var d=new Date(o.deadline); return !o.isLater&&d>=now&&d.toDateString()===now.toDateString(); });
+  var upcoming=active.filter(function(o){ return !o.isLater&&new Date(o.deadline)>now&&new Date(o.deadline).toDateString()!==now.toDateString(); });
+  var lines=['📊 *VBE Order Summary* — '+now.toLocaleDateString('hi-IN',{day:'numeric',month:'long',weekday:'long'}),''];
+  if(overdue.length){ lines.push('⚠️ *OVERDUE ('+overdue.length+'):*'); overdue.forEach(function(o){ lines.push('  • '+( o.customer||'')+(o.item?' — '+o.item:'')+(o.staff?' ['+o.staff+']':'')); }); lines.push(''); }
+  if(today.length){ lines.push('📅 *आज का काम ('+today.length+'):*'); today.forEach(function(o){ var stg=STAGES.find(function(s){return s.id===o.stage;})||{}; lines.push('  • '+(o.customer||'')+(o.item?' — '+o.item:'')+(stg.hi?' → '+stg.hi:'')+(o.staff?' ['+o.staff+']':'')); }); lines.push(''); }
+  if(upcoming.length){ lines.push('🕐 *आगे का काम ('+upcoming.length+'):*'); upcoming.slice(0,5).forEach(function(o){ lines.push('  • '+(o.customer||'')+(o.item?' — '+o.item:'')); }); if(upcoming.length>5) lines.push('  ... और '+( upcoming.length-5)+' orders'); lines.push(''); }
+  lines.push('_VBE Barmer • Jalipa Cantt_');
+  var txt=lines.join('\n');
+  var waUrl='https://wa.me/?text='+encodeURIComponent(txt);
+  window.open(waUrl,'_blank');
+  notif('📊 WhatsApp summary खुल रहा है','ok');
+};
 
 // ══ TAB SWIPE (olist background) ══
 (function(){
@@ -4380,6 +4466,7 @@ function renderList(){
       const aut=mbAutoEmoji((o.item||'')+' '+(o.note||''));
       let cls='cp-row';
       if(tl.over&&!o.isLater&&!o.isNow) cls+=' cp-overdue';
+      else { const ml=(o.deadline?new Date(o.deadline)-new Date():Infinity)/60000; if(ml>0&&ml<120&&!o.isLater) cls+=' cp-due-soon'; }
       if(o.isNow) cls+=' cp-now';
       return `<div class="${cls}" onclick="mbToggleCard('${o.id}',event)" id="mb-card-${o.id}">
         <div class="cp-accent" style="background:${sc}"></div>
@@ -4422,6 +4509,10 @@ function renderList(){
     // Card class
     let cardCls = 'mb-card';
     if(tl.over && !o.isLater && !o.isNow) cardCls += ' mb-overdue';
+    else {
+      const minsLeft = o.deadline ? (new Date(o.deadline)-new Date())/60000 : Infinity;
+      if(minsLeft>0 && minsLeft<120 && !o.isLater) cardCls += ' mb-due-soon';
+    }
     if(o.isNow) cardCls += ' mb-now';
     if(o.isLater) cardCls += ' mb-later';
     if(o.isHidden) cardCls += ' mb-hidden';

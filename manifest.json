@@ -1,0 +1,27 @@
+{
+  "name": "VBE Order Tracker",
+  "short_name": "VBE Portal",
+  "description": "Vande Bharat Enterprises — Field Operations, Barmer",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#050a14",
+  "theme_color": "#050a14",
+  "orientation": "portrait-primary",
+  "lang": "hi",
+  "categories": ["business", "productivity"],
+  "icons": [
+    {
+      "src": "vbe-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "vbe-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

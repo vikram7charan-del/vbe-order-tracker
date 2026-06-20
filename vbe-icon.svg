@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="100" fill="#050a14"/>
+  <rect x="16" y="16" width="480" height="480" rx="88" fill="#0d1526"/>
+  <rect x="24" y="24" width="464" height="464" rx="80" fill="none" stroke="#1e3a5f" stroke-width="3"/>
+  <!-- Decorative top line -->
+  <rect x="64" y="120" width="384" height="3" rx="1.5" fill="url(#topBar)"/>
+  <!-- VBE text -->
+  <text x="256" y="240" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="144" fill="url(#goldGrad)" letter-spacing="4">VBE</text>
+  <!-- Subtitle -->
+  <text x="256" y="295" text-anchor="middle" font-family="Arial,sans-serif" font-weight="700" font-size="38" fill="#3b82f6" letter-spacing="10">ORDER</text>
+  <text x="256" y="340" text-anchor="middle" font-family="Arial,sans-serif" font-weight="700" font-size="38" fill="#3b82f6" letter-spacing="5">TRACKER</text>
+  <!-- Bottom rule -->
+  <rect x="80" y="375" width="352" height="3" rx="1.5" fill="url(#topBar)" opacity=".6"/>
+  <!-- Location text -->
+  <text x="256" y="415" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" fill="#4a6fa5" letter-spacing="12">BARMER</text>
+  <!-- Gradient defs -->
+  <defs>
+    <linearGradient id="goldGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#ef4444"/>
+    </linearGradient>
+    <linearGradient id="topBar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#ef4444" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+</svg>

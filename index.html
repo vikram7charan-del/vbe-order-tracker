@@ -3,8 +3,14 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
-<title>Field Portal</title>
+<title>VBE Portal — Barmer Operations</title>
 <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+<link rel="manifest" href="manifest.json"/>
+<meta name="theme-color" content="#050a14"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="VBE Portal"/>
+<link rel="apple-touch-icon" href="vbe-icon.svg"/>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700;800&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Rozha+One&family=Mukta:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 
@@ -1145,6 +1151,31 @@ select option{background:#0d1526}
 .pin-key.zero{grid-column:2}
 .pin-err{font-size:12px;color:#ef4444;min-height:18px;margin-bottom:4px;font-weight:600;animation:pinShake .3s}
 @keyframes pinShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+
+/* ══ CUSTOM DIALOG SYSTEM ══ */
+#vbe-dlg-bg{display:none;position:fixed;inset:0;z-index:999990;background:rgba(0,0,0,.88);align-items:flex-end;justify-content:center}
+#vbe-dlg-bg.vd-open{display:flex;animation:dlgFadeIn .18s ease}
+@keyframes dlgFadeIn{from{opacity:0}to{opacity:1}}
+#vbe-dlg-box{background:#0d1526;border-radius:20px 20px 0 0;padding:22px 18px 38px;width:100%;max-width:480px;border:1px solid #1e3a5f;border-bottom:none;font-family:'Noto Sans Devanagari',system-ui,sans-serif;animation:dlgSlideUp .22s ease}
+@keyframes dlgSlideUp{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
+#vbe-dlg-icon{font-size:32px;text-align:center;margin-bottom:10px}
+#vbe-dlg-msg{font-size:14px;color:#e2e8f0;margin-bottom:18px;line-height:1.65;white-space:pre-wrap;text-align:center}
+#vbe-dlg-inp{display:none;width:100%;padding:11px 13px;border-radius:10px;border:1px solid #1e3a5f;background:#0a0f1e;color:#e2e8f0;font-size:14px;font-family:inherit;outline:none;margin-bottom:16px;box-sizing:border-box;-webkit-appearance:none}
+#vbe-dlg-inp:focus{border-color:#3b82f6}
+#vbe-dlg-btns{display:flex;gap:10px}
+.vdb-yes{flex:1;padding:13px;border-radius:12px;border:none;background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.vdb-no{flex:1;padding:13px;border-radius:12px;border:1px solid #1e3a5f;background:transparent;color:#94a3b8;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.vdb-ok{flex:1;padding:13px;border-radius:12px;border:none;background:#1e3a5f;color:#e2e8f0;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+
+/* ══ OFFLINE BANNER ══ */
+#vbe-offline-bar{display:none;position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#7f1d1d;color:#fca5a5;font-size:11px;font-weight:700;text-align:center;padding:6px 12px;z-index:999980;letter-spacing:.5px;border-bottom:1px solid #991b1b}
+
+/* ══ INSTALL PROMPT ══ */
+#vbe-install-bar{display:none;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#0d1526;border-top:1px solid #1e3a5f;padding:10px 14px;z-index:9600;align-items:center;gap:10px;font-family:'Noto Sans Devanagari',system-ui,sans-serif}
+#vbe-install-bar.show{display:flex}
+#vbe-install-bar span{flex:1;font-size:12px;color:#94a3b8;line-height:1.4}
+#vbe-install-bar button{background:linear-gradient(135deg,#f59e0b,#ef4444);border:none;border-radius:10px;color:#fff;font-size:12px;font-weight:700;padding:8px 14px;cursor:pointer;white-space:nowrap;font-family:inherit}
+#vbe-install-bar .vib-close{background:none;color:#475569;font-size:18px;padding:4px 8px;border:none;cursor:pointer}
 
 </style>
 </head>
@@ -3250,7 +3281,7 @@ async function reckonCheck(orderId){
 // 💬 क्या हुआ — छोटा prompt, comment जोड़ो
 async function reckonComment(orderId){
   const o = _orders.find(x=>x.id===orderId); if(!o) return;
-  const msg = prompt('क्या अपडेट है? ('+(o.customer||'')+' — '+(o.item||'')+')');
+  const msg = await vbePrompt('क्या अपडेट है?\n'+(o.customer||'')+' — '+(o.item||''),'','💬');
   if(msg===null) return;
   const txt = (msg||'').trim();
   if(!txt){ return; }
@@ -3787,7 +3818,7 @@ async function openQuickCommentPrompt(orderId){
   const by = await askCommentAuthor(o);
   if(!by) return;
   // Then ask message
-  const msg = prompt('💬 '+by+' का comment लिखो ('+ (o.item||'task') +'):');
+  const msg = await vbePrompt('💬 '+by+' का comment लिखो\n('+( o.item||'task')+')','','💬');
   if(!msg || !msg.trim()) return;
   const timeline = Array.isArray(o.timeline) ? o.timeline.slice() : [];
   timeline.push({
@@ -3918,7 +3949,7 @@ async function mbSetStage(orderId, stageId){
   const o = _orders.find(x=>x.id===orderId);
   if(!o) return;
   if(o.stage===stageId) return; // already on this stage
-  if(!confirm(`Stage बदलें "${STAGES.find(s=>s.id===stageId)?.label}" पर?`)) return;
+  if(!await vbeConfirm(`Stage बदलें?\n→ ${STAGES.find(s=>s.id===stageId)?.emoji||''} ${STAGES.find(s=>s.id===stageId)?.hi||stageId}`,'🚦','हाँ, बदलें','रहने दो')) return;
   const timeline = Array.isArray(o.timeline) ? o.timeline.slice() : [];
   timeline.push({
     stage: stageId,
@@ -4489,12 +4520,11 @@ async function quickForward(id, hours){
 
   // Warning — limit के पास पहुंचने पर
   if(policy.enabled && fwdCount === policy.max){
-    if(!confirm(`⚠️ यह आखिरी forward होगा!\n\n"${o.customer}" को ${fwdCount} बार आगे बढ़ाया जा रहा है (limit: ${policy.max})।\nइसके बाद forward block हो जाएगा।\n\nजारी रखें?`)){
+    if(!await vbeConfirm(`⚠️ आखिरी Forward!\n"${o.customer}" को ${fwdCount} बार बढ़ाया — इसके बाद block होगा।`,'⚠️','जारी रखें','रुको')){
       return;
     }
   } else if(fwdCount >= 4){
-    // Soft warning जब policy off है
-    if(!confirm(`⚠️ यह order ${fwdCount} बार आगे बढ़ाया जा चुका है!\n\n"${o.customer}" को अब priority देनी ज़रूरी है।\n\nफिर भी ${hours}h आगे बढ़ाना है?`)){
+    if(!await vbeConfirm(`"${o.customer}" को ${fwdCount} बार आगे बढ़ाया जा चुका है!\nअब priority देनी ज़रूरी है।\n\nफिर भी ${hours}h आगे बढ़ाएं?`,'⚠️','हाँ, बढ़ाएं','रुको')){
       return;
     }
   }
@@ -4566,7 +4596,7 @@ async function reassignToKoda(id){
   const o = _orders.find(x=>x.id===id);
   if(!o){ notif('❌ Order नहीं मिला','danger'); return; }
   const KODA = { name: 'Koda Swaroop', phone: '7014801350' };
-  if(!confirm(`"${o.customer}" का काम "${o.item}" — Koda Swaroop को असाइन करें?\n📞 ${KODA.phone}`)) return;
+  if(!await vbeConfirm(`"${o.customer}" का काम Koda Swaroop को असाइन करें?\n📞 ${KODA.phone}`,'👥','असाइन करें','रहने दो')) return;
   const timeline = Array.isArray(o.timeline) ? o.timeline.slice() : [];
   timeline.push({
     stage: o.stage,
@@ -4603,7 +4633,7 @@ async function bulkSnoozeAll24h(){
     return;
   }
 
-  if(!confirm(`⚠️ ${pending.length} pending/overdue task को +24 घंटे आगे करना है?\n\nयह सभी कल इसी time पर deadline ले जाएगा।\n\nजारी रखें?`)){
+  if(!await vbeConfirm(`${pending.length} overdue tasks को +24 घंटे आगे बढ़ाएं?\nसभी कल इसी time पर जाएंगे।`,'⏩','हाँ, आगे बढ़ाएं','रुको')){
     return;
   }
 
@@ -5056,20 +5086,18 @@ async function saveFwdPolicyFromUI(){
 }
 
 // Custom forward — कितने भी घंटे या दिन
-function openCustomForward(id){
+async function openCustomForward(id){
   const o = _orders.find(x=>x.id===id);
   if(!o) return;
-  const choice = prompt(
-    `⏩ "${o.customer}" को कितना आगे बढ़ाएं?\n\n`+
-    `घंटे की संख्या लिखो (e.g. 4, 8, 36, 48):\n`+
-    `या दिनों के लिए लिखो: 2d, 3d, 7d\n\n`+
-    `Current deadline: ${new Date(o.deadline).toLocaleString('hi-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}`,
-    '8'
+  const dl=new Date(o.deadline).toLocaleString('hi-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+  const choice = await vbePrompt(
+    `"${o.customer}" को कितना आगे बढ़ाएं?\nघंटे: 4, 8, 36  |  दिन: 2d, 3d, 7d\nDeadline: ${dl}`,
+    '8','⏩'
   );
   if(!choice) return;
   let hours = 0;
   const m = choice.trim().match(/^(\d+)\s*([dh]?)$/i);
-  if(!m){ notif('❌ Invalid input — सिर्फ संख्या या "Nd" लिखो','warn'); return; }
+  if(!m){ notif('❌ सिर्फ संख्या या "Nd" लिखो (e.g. 8 या 2d)','warn'); return; }
   hours = parseInt(m[1]) * (m[2].toLowerCase()==='d' ? 24 : 1);
   if(hours<=0 || hours>24*30){ notif('❌ 1 घंटे से 30 दिन तक ही','warn'); return; }
   quickForward(id, hours);
@@ -5281,7 +5309,7 @@ async function saveOrder(){
   const cu=document.getElementById('f-cu').value.trim();
   const it=document.getElementById('f-it').value.trim();
   const dl=document.getElementById('f-dl').value;
-  if(!cu||!it||!dl){alert('Customer, Item और Deadline जरूरी है!');return;}
+  if(!cu||!it||!dl){await vbeAlert('Customer, Item और Deadline जरूरी है!','⚠️');return;}
   const editId=document.getElementById('f-id').value;
   const staff=document.getElementById('f-st').value;
   const staffSel=document.getElementById('f-st');
@@ -5471,7 +5499,7 @@ function acDiarySkip(){
 }
 
 async function delOrder(id){
-  if(!confirm('Delete करें?')) return;
+  if(!await vbeConfirm('Order delete करें?\nयह action वापस नहीं होगा।','🗑️','Delete','रखें')) return;
   await fbDelete(id);
   notif('🗑️ Deleted','warn');
 }
@@ -5511,7 +5539,7 @@ function copyLink(id,enc){
     const b=document.getElementById('cb_'+id);
     if(b){b.textContent='✅ Copied!';b.classList.add('ok');setTimeout(()=>{b.textContent='🔗 Tracking Link';b.classList.remove('ok');},3000);}
     notif('✅ Tracking link copied! WA से भेजो','ok');
-  }).catch(()=>prompt('Link copy करो:',url));
+  }).catch(()=>vbePrompt('Link copy करो:',url,'🔗'));
 }
 
 function sendWA(id){
@@ -5826,7 +5854,7 @@ async function awardManualPoints(sign=1) {
   const reason = document.getElementById('rp-reason').value.trim() || (sign>0?'Manual reward 🎁':'Points वापस ↩️');
   if (!name) { notif('Staff चुनें!', 'warn'); return; }
   if (pts === 0) { notif('Points डालें!', 'warn'); return; }
-  if(sign<0 && !confirm(`क्या आप ${name} से ${Math.abs(pts)} points वापस लेना चाहते हैं?`)) return;
+  if(sign<0 && !await vbeConfirm(`${name} से ${Math.abs(pts)} points वापस लेना है?`,'↩️','हाँ, वापस लो','रुको')) return;
   await addRewardPoints(name, pts, reason);
   document.getElementById('rp-pts-val').value = '';
   document.getElementById('rp-reason').value = '';
@@ -6114,8 +6142,8 @@ async function addStaff(){
   const wa=document.getElementById('ns-wa').value.trim();
   const call=document.getElementById('ns-call').value.trim()||wa;
   const role=document.getElementById('ns-role').value.trim();
-  if(!name){alert('नाम जरूरी है!');return;}
-  if(wa&&wa.length!==10){alert('WhatsApp number 10 digit होना चाहिए!');return;}
+  if(!name){await vbeAlert('नाम जरूरी है!','⚠️');return;}
+  if(wa&&wa.length!==10){await vbeAlert('WhatsApp number 10 digit होना चाहिए!','⚠️');return;}
   const id='s'+Date.now().toString(36);
   await fbSaveStaff({id,name,wa,call,role});
   ['ns-name','ns-wa','ns-call','ns-role'].forEach(i=>document.getElementById(i).value='');
@@ -6124,7 +6152,7 @@ async function addStaff(){
 
 async function deleteStaff(id){
   const s=_staff.find(x=>x.id===id);
-  if(!confirm((s?.name||'Staff')+' को हटाएं?')) return;
+  if(!await vbeConfirm((s?.name||'Staff')+' को Staff से हटाएं?','👤','हाँ, हटाएं','रहने दो')) return;
   await fbDeleteStaff(id);
   notif('🗑️ Staff हटाया गया','warn');
 }
@@ -6509,7 +6537,7 @@ function fv_renderStaffDetail(){
 }
 
 async function fv_removeAssign(key){
-  if(!confirm('Assignment हटाएं?')) return;
+  if(!await vbeConfirm('Assignment हटाएं?','✕','हटाएं','रखें')) return;
   delete _fv_assigns[key];
   await fv_del('fvhq_assigns',key);
   notif('✕ हटाया','warn');
@@ -7255,7 +7283,7 @@ function setFormCategory(cat){
 let _voiceRecognition = null;
 function voiceInput(targetId){
   if(!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)){
-    alert('🎤 Voice feature आपके browser में नहीं है — Chrome browser इस्तेमाल करें');
+    notif('🎤 Voice feature नहीं है — Chrome इस्तेमाल करें','warn'); return;
     return;
   }
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -7291,38 +7319,45 @@ function voiceInput(targetId){
 function openSnooze(orderId){
   const o = _orders.find(x=>x.id===orderId);
   if(!o) return;
-  // Build snooze options dialog
-  const choice = prompt(
-    `⏰ "${o.customer}" को कब याद दिलाऊं?\n\n`+
-    `1 — 1 घंटे बाद\n`+
-    `2 — 3 घंटे बाद\n`+
-    `3 — कल सुबह 9 बजे\n`+
-    `4 — परसों\n`+
-    `0 — Cancel snooze\n\n`+
-    `Number डालो (1-4 या 0):`,'1');
-  if(!choice) return;
-  let snoozedUntil = null;
   const now = new Date();
-  if(choice==='1'){ snoozedUntil = new Date(now.getTime()+3600000); }
-  else if(choice==='2'){ snoozedUntil = new Date(now.getTime()+3*3600000); }
-  else if(choice==='3'){
-    const t = new Date(now); t.setDate(t.getDate()+1); t.setHours(9,0,0,0);
-    snoozedUntil = t;
+  const opts = [
+    {label:'1 घंटे बाद',icon:'⏰', fn:()=>new Date(now.getTime()+3600000)},
+    {label:'3 घंटे बाद',icon:'⏱️', fn:()=>new Date(now.getTime()+3*3600000)},
+    {label:'कल सुबह 9 बजे',icon:'🌅', fn:()=>{ const t=new Date(now); t.setDate(t.getDate()+1); t.setHours(9,0,0,0); return t; }},
+    {label:'परसों',icon:'📅', fn:()=>{ const t=new Date(now); t.setDate(t.getDate()+2); t.setHours(9,0,0,0); return t; }},
+    {label:'Snooze हटाएं',icon:'🔔', fn:()=>null},
+  ];
+  // Show custom snooze sheet
+  var bg=document.getElementById('vbe-snooze-bg');
+  if(!bg){
+    bg=document.createElement('div');
+    bg.id='vbe-snooze-bg';
+    bg.style.cssText='display:none;position:fixed;inset:0;z-index:999991;background:rgba(0,0,0,.88);align-items:flex-end;justify-content:center';
+    document.body.appendChild(bg);
   }
-  else if(choice==='4'){
-    const t = new Date(now); t.setDate(t.getDate()+2); t.setHours(9,0,0,0);
-    snoozedUntil = t;
-  }
-  else if(choice==='0'){ snoozedUntil = null; }
-  else { notif('⏰ Invalid option','warn'); return; }
-  fbSave({...o, snoozedUntil: snoozedUntil ? snoozedUntil.toISOString() : null}).then(()=>{
-    if(snoozedUntil){
-      const when = snoozedUntil.toLocaleString('hi-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
-      notif('⏰ Snoozed — '+when+' को याद दिलाऊंगा','ok');
-    } else {
-      notif('⏰ Snooze cancel','ok');
-    }
-  });
+  bg.innerHTML='<div style="background:#0d1526;border-radius:20px 20px 0 0;padding:20px 16px 36px;width:100%;max-width:480px;border:1px solid #1e3a5f;border-bottom:none;font-family:inherit">'
+    +'<div style="font-size:13px;color:#94a3b8;text-align:center;margin-bottom:14px">⏰ <b style="color:#e2e8f0">'+o.customer+'</b> को कब याद दिलाऊं?</div>'
+    +opts.map(function(opt,i){
+      return '<button onclick="window._snoozeSet('+orderId+','+i+')" style="display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;margin-bottom:8px;border-radius:12px;border:1px solid #1e3a5f;background:#0a0f1e;color:#e2e8f0;font-size:14px;font-family:inherit;cursor:pointer;text-align:left">'+opt.icon+' '+opt.label+'</button>';
+    }).join('')
+    +'<button onclick="document.getElementById(\'vbe-snooze-bg\').style.display=\'\'" style="width:100%;padding:11px;border-radius:12px;border:1px solid #1e3a5f;background:transparent;color:#64748b;font-size:14px;font-family:inherit;cursor:pointer;margin-top:4px">रद्द</button>'
+    +'</div>';
+  bg.style.display='flex';
+  window._snoozeSet=function(oid, idx){
+    bg.style.display='';
+    const until = opts[idx].fn();
+    const order = _orders.find(x=>x.id===oid);
+    if(!order) return;
+    fbSave({...order, snoozedUntil: until ? until.toISOString() : null}).then(function(){
+      if(until){
+        const when=until.toLocaleString('hi-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+        notif('⏰ Snoozed — '+when+' को याद दिलाऊंगा','ok');
+      } else {
+        notif('🔔 Snooze हटाया','ok');
+      }
+    });
+  };
+  bg.addEventListener('click',function(e){ if(e.target===bg) bg.style.display=''; },{once:true});
 }
 
 // ─── 🌅 DAILY BRIEF — सुबह 9 बजे summary ───
@@ -7955,7 +7990,7 @@ async function cd_deleteContact(unitId,idx){
   var list=(_fv_contacts[unitId]||[]).slice();
   var c=list[idx];
   if(!c) return;
-  if(!confirm(c.name+' delete karen?')) return;
+  if(!await vbeConfirm(c.name+' को delete करें?','🗑️','Delete','रखें')) return;
   list.splice(idx,1);
   try{
     await _setDoc(_doc(_db,'fvhq_contacts',unitId),{list:list});
@@ -8744,7 +8779,7 @@ window.mrMarkPaid=async()=>{
   document.getElementById('mr-d-pnd').textContent='₹0';document.getElementById('mr-d-pm').textContent=mode;mrToast('🎉 Bill Settled!');
 };
 window.mrEditB=()=>{const b=mrBills.find(x=>x.id===mrCurDId);if(!b)return;mrCm('mr-detM');document.getElementById('mr-eid').value=b.id;document.getElementById('mr-addT').textContent='✏️ Edit Bill #'+b.billNo;document.getElementById('mr-f-bn').value=b.billNo||'';document.getElementById('mr-f-dt').value=b.date||'';document.getElementById('mr-f-loc').value=b.location||'';document.getElementById('mr-f-ph').value=b.phone||'';document.getElementById('mr-f-nt').value=b.note||'';document.getElementById('mr-iList').innerHTML='';(b.items&&b.items.length?b.items:[{name:b.itemsRaw||'',qty:1,price:b.total||0}]).forEach(i=>mrAddRow(i.name,i.qty,i.price));mrCalcT();mrOm('mr-addM');};
-window.mrDelB=async()=>{if(!confirm('Delete this bill?'))return;await mrDel(MRC.bills,mrCurDId);mrCm('mr-detM');mrToast('🗑️ Deleted');};
+window.mrDelB=async()=>{if(!await vbeConfirm('Bill delete करें?','🗑️','Delete','रखें'))return;await mrDel(MRC.bills,mrCurDId);mrCm('mr-detM');mrToast('🗑️ Deleted');};
 
 function mrGetMsg(type){
   const b=mrBills.find(x=>x.id===mrCurDId);if(!b)return{text:'',phone:''};
@@ -8801,7 +8836,7 @@ window.mrToggleDay=async ds=>{const s=mrStaff.find(x=>x.id===mrCurStId);if(!s)re
 function mrRenderAdvHist(s){document.getElementById('mr-sd-advhist').innerHTML=(s.advances&&s.advances.length)?s.advances.slice().reverse().map(a=>`<div style="background:#111827;border:1px solid #2d3f5e;border-radius:10px;padding:10px 12px;margin-bottom:5px;display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:11px;font-weight:700">${a.note||'Advance'}</div><div style="font-size:10px;color:#64748b">${mrFmtS(a.date)}</div></div><div style="font-size:12px;font-weight:700;color:${a.amount>0?'#ef4444':'#22c55e'}">${a.amount>0?'−':'+'} ₹${Math.abs(a.amount).toLocaleString('hi')}</div></div>`).join(''):`<div style="font-size:11px;color:#64748b;text-align:center;padding:8px">No advances</div>`;}
 window.mrAddAdvance=async(type=1)=>{const s=mrStaff.find(x=>x.id===mrCurStId);if(!s)return;const amt=parseFloat(document.getElementById('mr-sadv-amt').value)||0;if(!amt){mrToast('❌ Amount required',true);return;}const note=document.getElementById('mr-sadv-note').value.trim()||(type===1?'Advance':'Salary Payment');s.advances=s.advances||[];s.advances.push({amount:type===1?amt:-amt,note,date:mrToday(),createdAt:Date.now()});if(type===-1){const ct={id:'c'+Date.now(),type:'out',date:mrToday(),amount:amt,category:'Staff Salary',note:`${s.name} — ${note}`,createdAt:Date.now()};await mrSet(MRC.cash,ct.id,ct);}await mrSet(MRC.staff,s.id,s);const earned=mrCalcEarned(s),adv=(s.advances||[]).reduce((sm,a)=>sm+a.amount,0);document.getElementById('mr-sd-adv').textContent='₹'+adv.toLocaleString('hi');document.getElementById('mr-sd-net').textContent='₹'+(earned-adv).toLocaleString('hi');mrRenderAdvHist(s);document.getElementById('mr-sadv-amt').value='';document.getElementById('mr-sadv-note').value='';mrToast('✅ Saved!');};
 window.mrEditStaff=()=>{const s=mrStaff.find(x=>x.id===mrCurStId);if(!s)return;mrCm('mr-sdetM');document.getElementById('mr-seid').value=s.id;document.getElementById('mr-staffT').textContent='Edit Staff';document.getElementById('mr-s-nm').value=s.name||'';document.getElementById('mr-s-ph').value=s.phone||'';document.getElementById('mr-s-role').value=s.role||'Cook';document.getElementById('mr-s-sal').value=s.salary||'';document.getElementById('mr-s-jd').value=s.joiningDate||'';document.getElementById('mr-s-nt').value=s.note||'';mrOm('mr-staffM');};
-window.mrDelStaff=async()=>{if(!confirm('Remove this staff member?'))return;await mrDel(MRC.staff,mrCurStId);mrCm('mr-sdetM');mrToast('🗑️ Removed');};
+window.mrDelStaff=async()=>{if(!await vbeConfirm('Staff member हटाएं?','👤','हटाएं','रखें'))return;await mrDel(MRC.staff,mrCurStId);mrCm('mr-sdetM');mrToast('🗑️ Removed');};
 
 // Expose Firebase globals for MR (VBE already sets these)
 window._collection=window._collection||((...a)=>eval('collection')(...a));
@@ -10249,11 +10284,11 @@ window._db=window._db||null;
   };
 
   // ════════ SET POSITION (serial number tap) ════════
-  window.kdSetPos=function(k,id){
+  window.kdSetPos=async function(k,id){
     var arr=KD.boards[k]||[];
     var pend=arr.filter(function(x){return !x.done;});
     var curP=pend.findIndex(function(x){return x.id===id;})+1;
-    var newPStr=window.prompt('किस नंबर पर रखें? (1–'+pend.length+')\nअभी: '+curP+' नंबर पर है',''+curP);
+    var newPStr=await vbePrompt('किस नंबर पर रखें? (1–'+pend.length+')\nअभी '+curP+' नंबर पर है',''+curP,'🔢');
     if(!newPStr) return;
     var newP=parseInt(newPStr);
     if(isNaN(newP)||newP<1||newP>pend.length) return;
@@ -10494,12 +10529,12 @@ window._db=window._db||null;
   };
   window.kdDel=function(k,id){ /* delete disabled — tasks are kept as done */ };
   window.kdMove=function(k,id,dir){ var a=KD.boards[k]||[]; var i=a.findIndex(function(x){return x.id===id;}); if(i<0)return; var j=i+dir; if(j<0||j>=a.length)return; var tmp=a[i];a[i]=a[j];a[j]=tmp; renderActive(); save(); };
-  window.kdEdit=function(k,id){ var t=(KD.boards[k]||[]).find(function(x){return x.id===id;}); if(!t)return; var v=prompt('काम बदलें:',t.text); if(v===null)return; v=v.trim(); if(v==='') return; t.text=v; renderActive(); save(); };
-  window.kdSetPhone=function(id){ var t=(KD.boards.followup||[]).find(function(x){return x.id===id;}); if(!t)return; var p=prompt('मोबाइल नंबर:',t.phone||''); if(p===null)return; t.phone=p.replace(/[^0-9+]/g,'')||undefined; renderActive(); save(); };
-  window.kdChangeDay=function(id){
+  window.kdEdit=async function(k,id){ var t=(KD.boards[k]||[]).find(function(x){return x.id===id;}); if(!t)return; var v=await vbePrompt('काम बदलें:',t.text,'✏️'); if(v===null)return; v=v.trim(); if(v==='') return; t.text=v; renderActive(); save(); };
+  window.kdSetPhone=async function(id){ var t=(KD.boards.followup||[]).find(function(x){return x.id===id;}); if(!t)return; var p=await vbePrompt('मोबाइल नंबर:',t.phone||'','📞'); if(p===null)return; t.phone=p.replace(/[^0-9+]/g,'')||undefined; renderActive(); save(); };
+  window.kdChangeDay=async function(id){
     var t=(KD.boards.morning||[]).find(function(x){return x.id===id;}); if(!t)return;
     var tIso=todayISO(), lines=[]; for(var i=0;i<7;i++){ var dd=isoToDate(tIso); dd.setDate(dd.getDate()+i); var iso=dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0'); lines.push((i+1)+') '+fmtDay(iso)); }
-    var ans=prompt('किस दिन?\n'+lines.join('\n')+'\n\n1-7 में से नंबर लिखें:', '2');
+    var ans=await vbePrompt('किस दिन?\n'+lines.join('\n')+'\n\n1-7 नंबर लिखें:', '2','📅');
     if(ans===null)return; var n=parseInt(ans,10); if(!(n>=1&&n<=7))return;
     var dd=isoToDate(tIso); dd.setDate(dd.getDate()+(n-1));
     t.day=dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0'); t._fwd=false;
@@ -10610,7 +10645,7 @@ window._db=window._db||null;
   function remDate(){ var v=document.getElementById('kd-rem-dt').value; if(!v)return null; var d=new Date(v); return isNaN(d)?null:d; }
   function gfmt(d){ return d.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,''); }
   window.kdGCal=function(){
-    var t=remTask(), d=remDate(); if(!t){return;} if(!d){alert('समय चुनें');return;}
+    var t=remTask(), d=remDate(); if(!t){return;} if(!d){toast('⏰ पहले समय चुनें');return;}
     var end=new Date(d.getTime()+15*60000);
     var title=encodeURIComponent('📖 '+t.text);
     var det=encodeURIComponent('VBE कार्य डायरी'+(t.phone?'\n📞 '+t.phone:''));
@@ -10619,7 +10654,7 @@ window._db=window._db||null;
     window.open(url,'_blank'); window.kdRemindClose(); toast('📅 Google Calendar खोला');
   };
   window.kdICS=function(){
-    var t=remTask(), d=remDate(); if(!t){return;} if(!d){alert('समय चुनें');return;}
+    var t=remTask(), d=remDate(); if(!t){return;} if(!d){toast('⏰ पहले समय चुनें');return;}
     var end=new Date(d.getTime()+15*60000);
     var ics=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//VBE//Karya Diary//HI','CALSCALE:GREGORIAN','BEGIN:VEVENT',
       'UID:'+t.id+'@vbe','DTSTAMP:'+gfmt(new Date()),'DTSTART:'+gfmt(d),'DTEND:'+gfmt(end),
@@ -10633,7 +10668,7 @@ window._db=window._db||null;
       setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },1500);
       t.alarmAt=d.getTime(); save(); renderActive();
       toast('⏰ Alarm फ़ाइल बनी — खोलकर Calendar/Clock में डालें');
-    }catch(e){ alert('Alarm file नहीं बनी'); }
+    }catch(e){ toast('❌ Alarm file नहीं बनी'); }
     window.kdRemindClose();
   };
 
@@ -10737,6 +10772,108 @@ window._db=window._db||null;
     </div>
     <button id="vbeNav-close" onclick="vbeNavClose()">✕ बंद करें</button>
   </div>
+<!-- ══ OFFLINE BANNER ══ -->
+<div id="vbe-offline-bar">🔴 Internet नहीं — Offline Mode</div>
+
+<!-- ══ INSTALL PROMPT ══ -->
+<div id="vbe-install-bar">
+  <span>📱 <b>Home Screen पर Add करें</b> — App की तरह खुलेगा</span>
+  <button onclick="vbeInstall()">Install</button>
+  <button class="vib-close" onclick="document.getElementById('vbe-install-bar').remove()">✕</button>
+</div>
+
+<!-- ══ CUSTOM DIALOG SYSTEM ══ -->
+<div id="vbe-dlg-bg">
+  <div id="vbe-dlg-box">
+    <div id="vbe-dlg-icon"></div>
+    <div id="vbe-dlg-msg"></div>
+    <input id="vbe-dlg-inp" type="text" autocomplete="off"/>
+    <div id="vbe-dlg-btns"></div>
+  </div>
+</div>
+
+<script>
+// ══ DIALOG SYSTEM ══
+(function(){
+  var _bg=null, _resolve=null;
+  function _bg_(){ return _bg||(_bg=document.getElementById('vbe-dlg-bg')); }
+  function _close(val){
+    _bg_().classList.remove('vd-open');
+    setTimeout(function(){ _bg_().style.display=''; },200);
+    if(typeof _resolve==='function'){ _resolve(val); _resolve=null; }
+  }
+  window.vbeAlert=function(msg,icon){
+    icon=icon||'ℹ️';
+    return new Promise(function(res){
+      _resolve=res;
+      document.getElementById('vbe-dlg-icon').textContent=icon;
+      document.getElementById('vbe-dlg-msg').textContent=msg;
+      document.getElementById('vbe-dlg-inp').style.display='none';
+      var b=document.getElementById('vbe-dlg-btns');
+      b.innerHTML='<button class="vdb-ok" onclick="_vbeDlgClose(undefined)">ठीक है</button>';
+      _bg_().classList.add('vd-open');
+      _bg_().style.display='flex';
+    });
+  };
+  window.vbeConfirm=function(msg,icon,yesLabel,noLabel){
+    icon=icon||'❓'; yesLabel=yesLabel||'हाँ'; noLabel=noLabel||'नहीं';
+    return new Promise(function(res){
+      _resolve=res;
+      document.getElementById('vbe-dlg-icon').textContent=icon;
+      document.getElementById('vbe-dlg-msg').textContent=msg;
+      document.getElementById('vbe-dlg-inp').style.display='none';
+      var b=document.getElementById('vbe-dlg-btns');
+      b.innerHTML='<button class="vdb-no" onclick="_vbeDlgClose(false)">'+noLabel+'</button><button class="vdb-yes" onclick="_vbeDlgClose(true)">'+yesLabel+'</button>';
+      _bg_().classList.add('vd-open');
+      _bg_().style.display='flex';
+    });
+  };
+  window.vbePrompt=function(msg,def,icon){
+    icon=icon||'✏️'; def=def||'';
+    return new Promise(function(res){
+      _resolve=res;
+      document.getElementById('vbe-dlg-icon').textContent=icon;
+      document.getElementById('vbe-dlg-msg').textContent=msg;
+      var inp=document.getElementById('vbe-dlg-inp');
+      inp.style.display='block';
+      inp.value=def;
+      var b=document.getElementById('vbe-dlg-btns');
+      b.innerHTML='<button class="vdb-no" onclick="_vbeDlgClose(null)">रद्द</button><button class="vdb-yes" onclick="_vbeDlgClose(document.getElementById(\'vbe-dlg-inp\').value)">ठीक है</button>';
+      _bg_().classList.add('vd-open');
+      _bg_().style.display='flex';
+      setTimeout(function(){ inp.focus(); },250);
+    });
+  };
+  window._vbeDlgClose=_close;
+  // Close on background tap
+  document.getElementById('vbe-dlg-bg').addEventListener('click',function(e){
+    if(e.target===this) _close(null);
+  });
+})();
+
+// ══ OFFLINE BANNER ══
+(function(){
+  var bar=document.getElementById('vbe-offline-bar');
+  function upd(){ bar.style.display=navigator.onLine?'none':'block'; }
+  upd();
+  window.addEventListener('online', upd);
+  window.addEventListener('offline', upd);
+})();
+
+// ══ PWA INSTALL PROMPT ══
+var _pwaPrompt=null;
+window.addEventListener('beforeinstallprompt',function(e){
+  e.preventDefault(); _pwaPrompt=e;
+  var bar=document.getElementById('vbe-install-bar');
+  if(bar && sessionStorage.getItem('vbe_install_dismissed')!=='1') bar.classList.add('show');
+});
+window.vbeInstall=function(){
+  if(_pwaPrompt){ _pwaPrompt.prompt(); _pwaPrompt.userChoice.then(function(r){ if(r.outcome==='accepted') document.getElementById('vbe-install-bar').remove(); _pwaPrompt=null; }); }
+  else { document.getElementById('vbe-install-bar').remove(); }
+  sessionStorage.setItem('vbe_install_dismissed','1');
+};
+</script>
+
 </div>
 <script>
 (function(){

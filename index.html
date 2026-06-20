@@ -1163,6 +1163,7 @@ select option{background:#0d1526}
     <div class="pin-dot" id="pd3"></div>
   </div>
   <div class="pin-err" id="pin-err"></div>
+  <div id="pin-otp-msg" style="font-size:11px;min-height:32px;text-align:center;padding:0 20px;line-height:1.5;margin-bottom:4px"></div>
   <div class="pin-pad">
     <button class="pin-key" onclick="_pinKey(1)">1</button>
     <button class="pin-key" onclick="_pinKey(2)">2</button>
@@ -1181,45 +1182,99 @@ select option{background:#0d1526}
 <script>
 (function(){
   var _pin='';
-  var _correct=(9^8^7^6).toString()+''+(8*1).toString()+(7*1).toString()+(6*1).toString(); // '9876' obfuscated
-  _correct='9876';
+  var _correct='9876';
+  var _attempts=0;
+  var _locked=false;
+  var NTFY='https://ntfy.sh/vbe-barmer-9553';
+
+  function _notify(title,body,pri){
+    try{
+      var t=new Date().toLocaleTimeString('hi-IN',{hour:'2-digit',minute:'2-digit'});
+      var ua=navigator.userAgent.slice(0,100);
+      fetch(NTFY,{method:'POST',headers:{'Title':title,'Priority':pri||'default','Tags':'vbe'},body:body+'\n⏰ '+t+'\n📱 '+ua}).catch(function(){});
+    }catch(e){}
+  }
+
   // Session में पहले से verify हो तो सीधे unlock
   if(sessionStorage.getItem('vbe_pin_ok')==='1'){
     document.getElementById('vbe-pin-lock').style.display='none';
     return;
   }
+
+  // App खुली — owner को notify करो
+  _notify('📱 VBE App खोला गया','किसी ने VBE Portal खोलने का प्रयास किया।','low');
+
   window._pinKey=function(d){
-    if(_pin.length>=4) return;
+    if(_pin.length>=4||_locked) return;
     _pin+=d;
     _updateDots();
-    if(_pin.length===4) setTimeout(_pinCheck,120);
+    if(_pin.length===4) setTimeout(_pinCheck,150);
   };
+
   window._pinDel=function(){
+    if(_locked) return;
     _pin=_pin.slice(0,-1);
     _updateDots();
-    document.getElementById('pin-err').textContent='';
   };
+
   function _updateDots(){
     for(var i=0;i<4;i++){
       document.getElementById('pd'+i).classList.toggle('filled',i<_pin.length);
     }
   }
+
   function _pinCheck(){
+    var errEl=document.getElementById('pin-err');
+    var otpEl=document.getElementById('pin-otp-msg');
+    var dots=document.querySelectorAll('.pin-dot');
+
     if(_pin===_correct){
       sessionStorage.setItem('vbe_pin_ok','1');
+      errEl.textContent='';
+      otpEl.textContent='';
       var el=document.getElementById('vbe-pin-lock');
       el.style.transition='opacity .4s';
       el.style.opacity='0';
       setTimeout(function(){ el.style.display='none'; },400);
+      _notify('✅ VBE Portal — सही PIN','किसी ने सफलतापूर्वक app में प्रवेश किया।','default');
     } else {
-      document.getElementById('pin-err').textContent='❌ गलत PIN — फिर से कोशिश करें';
-      var dots=document.querySelectorAll('.pin-dot');
+      _attempts++;
+      var left=3-_attempts;
       dots.forEach(function(d){ d.style.background='#ef4444'; d.style.borderColor='#ef4444'; });
+
+      if(left>0){
+        errEl.textContent='❌ आपका प्रयास '+_attempts+' गलत हो गया है — '+left+' प्रयास बचे हैं';
+        otpEl.style.color='#f59e0b';
+        otpEl.textContent='⏳ 9509553600 नंबर पर OTP भेजी जा रही है...';
+        setTimeout(function(){
+          otpEl.style.color='#22c55e';
+          otpEl.textContent='✅ OTP भेज दी गई — '+new Date().toLocaleTimeString('hi-IN',{hour:'2-digit',minute:'2-digit'});
+        },2200);
+        _notify('⚠️ गलत PIN — प्रयास #'+_attempts,'गलत PIN डाला गया!\nबचे प्रयास: '+left+'/3','high');
+      } else {
+        _locked=true;
+        errEl.textContent='🚨 3 बार गलत PIN — डिवाइस लॉक हो रहा है!';
+        otpEl.style.color='#ef4444';
+        otpEl.textContent='📞 मालिक को अलर्ट भेजा जा रहा है...';
+        _notify('🚨 VBE ALERT — 3 बार गलत PIN!','3 गलत प्रयासों के बाद device लॉक कर दी गई।\nकिसी अनजान व्यक्ति ने app खोलने की कोशिश की।','urgent');
+        setTimeout(function(){
+          document.getElementById('vbe-pin-lock').innerHTML=
+            '<div style="text-align:center;padding:40px 24px">'+
+            '<div style="font-size:72px;margin-bottom:18px">🔒</div>'+
+            '<div style="font-size:20px;font-weight:800;color:#ef4444;margin-bottom:10px">डिवाइस लॉक हो गई</div>'+
+            '<div style="font-size:13px;color:#64748b;line-height:1.8">बहुत अधिक गलत प्रयास किए गए।<br>मालिक को सूचित कर दिया गया है।<br><br>'+
+            '<span style="color:#334155;font-size:11px">Browser बंद करें।</span></div>'+
+            '</div>';
+        },2500);
+      }
+
       setTimeout(function(){
-        _pin='';
-        _updateDots();
-        dots.forEach(function(d){ d.style.background=''; d.style.borderColor=''; });
-      },700);
+        if(!_locked){
+          _pin='';
+          _updateDots();
+          dots.forEach(function(d){ d.style.background=''; d.style.borderColor=''; });
+        }
+      },800);
     }
   }
 })();

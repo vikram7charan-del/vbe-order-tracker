@@ -1219,6 +1219,13 @@ select option{background:#0d1526}
 #vbe-compact-toggle.active{background:#1e3a5f;color:#e2e8f0;border-color:#3b82f6}
 /* Tab swipe animation hint */
 .olist-swipe-hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:28px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:10}
+/* ── Bulk selection ── */
+.mb-card.bulk-sel{border-color:#6366f1;box-shadow:0 0 0 2px #6366f155,0 12px 30px rgba(0,0,0,.5)}
+.bulk-ovl{position:absolute;top:8px;right:44px;z-index:12;width:22px;height:22px;border-radius:50%;background:#0d1526;border:2px solid #334155;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .15s;pointer-events:none}
+.mb-card.bulk-sel .bulk-ovl{background:#6366f1;border-color:#818cf8;color:#fff}
+#vbe-bulk-bar{display:none;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#0d1526;border-top:2px solid #6366f1;padding:10px 12px 20px;z-index:999994;align-items:center;gap:6px;font-family:'Noto Sans Devanagari',system-ui,sans-serif}
+#vbe-bulk-bar.show{display:flex}
+#vbe-bulk-bar button{flex:1;padding:9px 6px;border-radius:10px;border:none;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit}
 
 </style>
 </head>
@@ -1404,6 +1411,7 @@ select option{background:#0d1526}
   <div class="s-header" style="display:flex;align-items:center;justify-content:space-between;gap:8px">
     <div class="s-sub" style="flex:1">OPERATIONS · BARMER REGION · SUPPLY CHAIN · <span style="color:rgba(245,158,11,.5);font-size:9px">⚡ सारे फीचर नीचे-बाईं तरफ</span></div>
     <button id="vbe-compact-toggle" onclick="toggleCompactMode()" title="Compact / Card view">☰</button>
+    <button id="vbe-bulk-toggle" onclick="toggleBulkMode()" title="Bulk select">⊡</button>
     <button onclick="openAdd()" style="flex-shrink:0;background:linear-gradient(135deg,#f59e0b,#ef4444);border:none;border-radius:50%;width:34px;height:34px;color:#fff;font-size:22px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(239,68,68,.5);line-height:1">+</button>
   </div>
   <!-- Badge spans — JS इन्हें update करता है, ये hidden हैं -->
@@ -1511,7 +1519,10 @@ select option{background:#0d1526}
   <div class="mbox" onclick="event.stopPropagation()">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
       <div style="font-weight:800;font-size:15px;color:#c7d2fe" id="m-title">📥 नया Order</div>
-      <button onclick="closeAdd()" style="background:transparent;border:none;color:#475569;font-size:22px;cursor:pointer;line-height:1">✕</button>
+      <div style="display:flex;gap:6px;align-items:center">
+        <button onclick="openTplSheet()" style="background:#1e1b4b;border:1px solid #4c1d95;border-radius:8px;color:#a78bfa;font-size:11px;font-weight:700;padding:5px 9px;cursor:pointer;font-family:inherit">📋 Template</button>
+        <button onclick="closeAdd()" style="background:transparent;border:none;color:#475569;font-size:22px;cursor:pointer;line-height:1">✕</button>
+      </div>
     </div>
     <div style="display:grid;gap:10px">
       <!-- ── PARTY SEARCH / ADD ── -->
@@ -3466,10 +3477,11 @@ function mbStripClass(tl){
 
 // Toggle card expand
 function mbToggleCard(id, e){
+  if(_bulkMode){ toggleBulkSel(id); return; }
   if(e){
     // Don't toggle if clicked on a button or input
     const tag = (e.target.tagName||'').toLowerCase();
-    if(tag==='button' || tag==='input' || tag==='a' || e.target.closest('button,input,a')) return;
+    if(tag==='button' || tag==='input' || tag==='a' || tag==='label' || e.target.closest('button,input,a,label')) return;
   }
   const card = document.getElementById('mb-card-'+id);
   if(card) card.classList.toggle('mb-expanded');
@@ -4464,6 +4476,138 @@ window.openClientHistory=function(name){
   bg.addEventListener('click',function(e){ if(e.target===bg) bg.style.display=''; },{once:true});
 };
 
+// ══ BULK SELECTION ══
+var _bulkMode=false, _bulkSel=new Set();
+function toggleBulkMode(){
+  _bulkMode=!_bulkMode;
+  _bulkSel.clear();
+  var bar=document.getElementById('vbe-bulk-bar');
+  var btn=document.getElementById('vbe-bulk-toggle');
+  if(bar) bar.classList.toggle('show',_bulkMode);
+  if(btn){ btn.textContent=_bulkMode?'⊠':'⊡'; btn.style.background=_bulkMode?'#1e1b4b':''; btn.style.color=_bulkMode?'#818cf8':''; }
+  renderList();
+  if(_bulkMode) notif('⊡ Bulk mode — cards tap karke select karo','info');
+}
+function toggleBulkSel(id){
+  if(_bulkSel.has(id)) _bulkSel.delete(id); else _bulkSel.add(id);
+  var card=document.getElementById('mb-card-'+id);
+  if(card){ card.classList.toggle('bulk-sel',_bulkSel.has(id)); var ovl=card.querySelector('.bulk-ovl'); if(ovl) ovl.textContent=_bulkSel.has(id)?'✓':''; }
+  var cnt=document.getElementById('vbe-bulk-cnt'); if(cnt) cnt.textContent=_bulkSel.size+' selected';
+}
+async function bulkAdvance(){
+  if(!_bulkSel.size){notif('⊡ कोई order select नहीं','warn');return;}
+  const ids=[..._bulkSel];
+  for(const id of ids){
+    const o=_orders.find(x=>x.id===id); if(!o||o.stage==='delivered') continue;
+    const idx=SID.indexOf(o.stage);
+    if(idx>=0&&idx<SID.length-1) await mbSetStage(id,SID[idx+1]);
+  }
+  notif('✅ '+ids.length+' orders advance किए','ok');
+  toggleBulkMode();
+}
+async function bulkForward24h(){
+  if(!_bulkSel.size){notif('⊡ कोई order select नहीं','warn');return;}
+  const ids=[..._bulkSel];
+  for(const id of ids) await quickForward(id,24);
+  notif('⏩ '+ids.length+' orders +24h','ok');
+  toggleBulkMode();
+}
+async function bulkDelete(){
+  if(!_bulkSel.size){notif('⊡ कोई order select नहीं','warn');return;}
+  if(!await vbeConfirm(_bulkSel.size+' orders delete करें?','🗑️','हाँ Delete','रखें')) return;
+  const ids=[..._bulkSel];
+  for(const id of ids) await fbDelete(id);
+  notif('🗑️ '+ids.length+' orders deleted','warn');
+  toggleBulkMode();
+}
+
+// ══ QR CODE ══
+window.openOrderQR=function(orderId){
+  var o=_orders.find(function(x){return x.id===orderId;}); if(!o) return;
+  var url=location.origin+location.pathname+'?track='+orderId;
+  var qrUrl='https://api.qrserver.com/v1/create-qr-code/?size=220x220&format=svg&bgcolor=0d1526&color=f59e0b&data='+encodeURIComponent(url);
+  var bg=document.getElementById('vbe-qr-bg');
+  if(!bg){ bg=document.createElement('div'); bg.id='vbe-qr-bg';
+    bg.style.cssText='display:none;position:fixed;inset:0;z-index:999995;background:rgba(0,0,0,.88);align-items:center;justify-content:center';
+    document.body.appendChild(bg); }
+  bg.innerHTML='<div style="background:#0d1526;border-radius:20px;padding:24px 20px;width:280px;text-align:center;border:1px solid #1e3a5f">'
+    +'<div style="font-size:12px;color:#94a3b8;margin-bottom:12px;font-weight:700">📲 Tracking QR — '+esc(o.customer||orderId)+'</div>'
+    +'<img src="'+qrUrl+'" width="220" height="220" style="border-radius:10px;background:#0d1526" onerror="this.alt=\'QR — Internet check karo\'">'
+    +'<div style="font-size:10px;color:#475569;margin-top:10px;word-break:break-all">'+url+'</div>'
+    +'<div style="display:flex;gap:8px;margin-top:14px">'
+    +'<button onclick="navigator.clipboard.writeText(\''+url+'\').then(function(){notif(\'📋 Link copy hua\',\'ok\')})" style="flex:1;padding:9px;border:none;border-radius:10px;background:#1e293b;color:#94a3b8;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">📋 Copy Link</button>'
+    +(navigator.share?'<button onclick="navigator.share({title:\'Track Order\',url:\''+url+'\'})" style="flex:1;padding:9px;border:none;border-radius:10px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">🔗 Share</button>':'')
+    +'</div>'
+    +'<button onclick="document.getElementById(\'vbe-qr-bg\').style.display=\'\'" style="width:100%;padding:9px;margin-top:8px;border:1px solid #1e3a5f;border-radius:10px;background:transparent;color:#64748b;font-size:12px;font-family:inherit;cursor:pointer">बंद</button>'
+    +'</div>';
+  bg.style.display='flex';
+  bg.addEventListener('click',function(e){ if(e.target===bg) bg.style.display=''; },{once:true});
+};
+
+// ══ ORDER TEMPLATES ══
+function getTpls(){ return JSON.parse(localStorage.getItem('vbe_tpls')||'[]'); }
+window.saveTpl=function(o){
+  if(!o) return;
+  var t={name:(o.customer||'')+(o.item?' — '+o.item:''),customer:o.customer||'',phone:o.phone||'',item:o.item||'',qty:o.qty||'',note:o.note||'',staff:o.staff||'',staffPhone:o.staffPhone||'',category:o.category||'',priority:o.priority||'🏳️ Normal',unitName:o.unitName||''};
+  var ts=getTpls(); ts=ts.filter(function(x){return x.name!==t.name;}); ts.unshift(t);
+  localStorage.setItem('vbe_tpls',JSON.stringify(ts.slice(0,12)));
+  notif('💾 Template saved: '+t.name,'ok');
+};
+window.openTplSheet=function(){
+  var ts=getTpls();
+  var bg=document.getElementById('vbe-tpl-bg');
+  if(!bg){ bg=document.createElement('div'); bg.id='vbe-tpl-bg';
+    bg.style.cssText='display:none;position:fixed;inset:0;z-index:999996;background:rgba(0,0,0,.88);align-items:flex-end;justify-content:center';
+    document.body.appendChild(bg); }
+  var rows=ts.length?ts.map(function(t,i){
+    return '<button onclick="window._applyTpl('+i+')" style="display:flex;align-items:center;gap:10px;width:100%;padding:11px 12px;margin-bottom:6px;border-radius:10px;border:1px solid #1e3a5f;background:#0a0f1e;color:#e2e8f0;font-size:12px;font-family:inherit;cursor:pointer;text-align:left">'
+      +'<span style="font-size:16px">📋</span><div><div style="font-weight:800">'+esc(t.name)+'</div>'
+      +(t.staff?'<div style="font-size:10px;color:#64748b">'+esc(t.staff)+'</div>':'')
+      +'</div></button>';
+  }).join(''):'<div style="text-align:center;color:#475569;padding:20px;font-size:12px">कोई template नहीं — card में 💾 दबाओ</div>';
+  bg.innerHTML='<div style="background:#0d1526;border-radius:20px 20px 0 0;padding:20px 14px 36px;width:100%;max-width:480px;border:1px solid #1e3a5f;border-bottom:none;font-family:inherit;max-height:60vh;overflow-y:auto">'
+    +'<div style="font-size:12px;color:#94a3b8;text-align:center;margin-bottom:14px;font-weight:700">📋 Saved Templates</div>'
+    +rows
+    +'<button onclick="document.getElementById(\'vbe-tpl-bg\').style.display=\'\'" style="width:100%;padding:10px;border-radius:10px;border:1px solid #1e3a5f;background:transparent;color:#64748b;font-size:13px;font-family:inherit;cursor:pointer;margin-top:4px">रद्द</button>'
+    +'</div>';
+  bg.style.display='flex';
+  window._applyTpl=function(i){
+    bg.style.display='';
+    var t=getTpls()[i]; if(!t) return;
+    openAdd();
+    setTimeout(function(){
+      ['f-cu','f-ph','f-it','f-qt','f-no','f-st'].forEach(function(id,idx){
+        var v=[t.customer,t.phone,t.item,t.qty,t.note,t.staff][idx];
+        var el=document.getElementById(id); if(el&&v) el.value=v;
+      });
+      if(t.staffPhone){ var sp=document.getElementById('f-sph'); if(sp) sp.value=t.staffPhone; }
+      if(t.priority){ var pr=document.getElementById('f-pr'); if(pr) pr.value=t.priority; }
+      if(t.category && typeof setFormCategory==='function') setFormCategory(t.category);
+      notif('📋 Template apply hua — deadline set karo','info');
+    },300);
+  };
+  bg.addEventListener('click',function(e){ if(e.target===bg) bg.style.display=''; },{once:true});
+};
+
+// ══ PHOTO CAPTURE ══
+window.handlePhotoPick=async function(orderId,input){
+  var file=input.files[0]; input.value=''; if(!file) return;
+  var o=_orders.find(function(x){return x.id===orderId;}); if(!o) return;
+  notif('📷 Processing photo...','info');
+  try{
+    var img=await (function(f){ return new Promise(function(res,rej){ var i=new Image(); i.onload=function(){res(i);}; i.onerror=rej; i.src=URL.createObjectURL(f); }); })(file);
+    var MAX=600, canvas=document.createElement('canvas');
+    var scale=Math.min(1,MAX/Math.max(img.width,img.height));
+    canvas.width=Math.round(img.width*scale); canvas.height=Math.round(img.height*scale);
+    canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+    var b64=canvas.toDataURL('image/jpeg',0.65);
+    if(b64.length>400000){ notif('📷 Photo बहुत बड़ी है — छोटी करके try करो','warn'); return; }
+    var timeline=[...(o.timeline||[]),{stage:o.stage,time:new Date().toISOString(),note:'📷 Photo added',photo:b64,by:'Vikram'}];
+    await fbSave({...o,timeline});
+    notif('📷 Photo saved to timeline','ok');
+  }catch(e){ notif('📷 Photo save नहीं हुई','warn'); }
+};
+
 // ══ TAB SWIPE (olist background) ══
 (function(){
   var folders=['active','now','later'];
@@ -4607,7 +4751,8 @@ function renderList(){
     const barColor = `linear-gradient(90deg,#6366f1,${stg.color})`;
 
     return `
-<div class="${cardCls}" id="mb-card-${o.id}">
+<div class="${cardCls}${_bulkMode?' bulk-mode':''}" id="mb-card-${o.id}">
+  ${_bulkMode?`<div class="bulk-ovl">${_bulkSel.has(o.id)?'✓':''}</div>`:''}
   <!-- 🎨 Staff color accent — बायीं तरफ की पट्टी बताती है किसका काम है -->
   <div style="position:absolute;left:0;top:0;bottom:0;width:5px;background:${sc};z-index:3;box-shadow:0 0 8px ${sc}66"></div>
   <!-- Top mission strip -->
@@ -4702,6 +4847,7 @@ function renderList(){
       <div class="mb-attend-btns">
         <button class="mb-attend-btn mb-checkin-btn" onclick="openCheckin('${o.id}')">📍 Check-in</button>
         <button class="mb-attend-btn mb-viewlog-btn" onclick="viewCheckins('${o.id}')">📋 लॉग देखें</button>
+        <label class="mb-attend-btn" style="cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px">📷 Photo<input type="file" accept="image/*" capture="environment" style="display:none" onchange="handlePhotoPick('${o.id}',this)"></label>
       </div>
       <div class="mb-reply">
         <input type="text" id="mb-reply-${o.id}" placeholder="कमेंट / जवाब लिखें — कौन लिख रहा है पूछेगा" onkeydown="if(event.key==='Enter')mbSendReply('${o.id}')"/>
@@ -4825,6 +4971,8 @@ function renderList(){
     <!-- Tools -->
     <div class="mb-tools">
       <button class="mb-tool-btn edit" onclick="editOrder('${o.id}')" title="Edit">✏️</button>
+      <button class="mb-tool-btn" onclick="openOrderQR('${o.id}')" title="QR Code" style="background:#0f172a;border:1px solid #334155;color:#94a3b8">📲</button>
+      <button class="mb-tool-btn" onclick="saveTpl(_orders.find(x=>x.id==='${o.id}'))" title="Template बनाओ" style="background:#0f172a;border:1px solid #334155;color:#94a3b8">💾</button>
       <button class="mb-tool-btn danger" onclick="delOrder('${o.id}')" title="Delete">🗑</button>
     </div>
 
@@ -11360,6 +11508,15 @@ window._db=window._db||null;
     </div>
     <button id="vbeNav-close" onclick="vbeNavClose()">✕ बंद करें</button>
   </div>
+<!-- ══ BULK ACTION BAR ══ -->
+<div id="vbe-bulk-bar">
+  <span id="vbe-bulk-cnt" style="color:#a78bfa;font-size:11px;font-weight:800;min-width:60px">0 selected</span>
+  <button onclick="bulkAdvance()" style="background:linear-gradient(135deg,#065f46,#10b981);color:#fff">✅ Stage++</button>
+  <button onclick="bulkForward24h()" style="background:linear-gradient(135deg,#1e3a8a,#3b82f6);color:#fff">⏩+24h</button>
+  <button onclick="bulkDelete()" style="background:rgba(239,68,68,.2);color:#f87171;border:1px solid rgba(239,68,68,.4)">🗑 Delete</button>
+  <button onclick="toggleBulkMode()" style="background:#1e293b;color:#64748b;border:1px solid #334155">✕</button>
+</div>
+
 <!-- ══ UNDO BAR ══ -->
 <div id="vbe-undo-bar" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:440px;background:#1e293b;border:1px solid #334155;border-radius:14px;padding:10px 14px;z-index:999993;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,.6);font-family:'Noto Sans Devanagari',system-ui,sans-serif">
   <span id="vbe-undo-msg" style="flex:1;font-size:12px;color:#e2e8f0"></span>

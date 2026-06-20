@@ -10,6 +10,29 @@
   "orientation": "portrait-primary",
   "lang": "hi",
   "categories": ["business", "productivity"],
+  "shortcuts": [
+    {
+      "name": "नया Order जोड़ें",
+      "short_name": "New Order",
+      "description": "Quickly add a new order",
+      "url": "./?action=new",
+      "icons": [{ "src": "vbe-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Overdue Orders",
+      "short_name": "Overdue",
+      "description": "View overdue orders",
+      "url": "./?filter=overdue",
+      "icons": [{ "src": "vbe-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Time Master",
+      "short_name": "Time",
+      "description": "Open VBE Time Master",
+      "url": "./vbe-time-master.html",
+      "icons": [{ "src": "vbe-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    }
+  ],
   "icons": [
     {
       "src": "vbe-icon.svg",

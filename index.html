@@ -9624,6 +9624,20 @@ window._db=window._db||null;
 .kd-done-body{display:none}
 .kd-done-body.open{display:block}
 .kd-s-empty{text-align:center;color:#64748b;padding:50px 20px;font-size:13px}
+/* drag handle */
+.kd-drag-handle{font-size:15px;color:#334155;padding:0 6px 0 2px;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;flex-shrink:0;line-height:1;display:flex;align-items:center}
+.kd-task.kd-dragging{opacity:.25!important;outline:2px dashed rgba(212,160,23,.5);outline-offset:2px}
+.kd-task.kd-drag-over{background:rgba(212,160,23,.08)!important;outline:1.5px solid rgba(212,160,23,.5);outline-offset:1px}
+/* urgent task */
+.kd-task.urgent-card{border-left:3px solid #ef4444!important;box-shadow:0 0 0 1px rgba(239,68,68,.25),0 4px 18px rgba(239,68,68,.1)!important}
+.kd-tb.urg{background:rgba(239,68,68,.08);color:#f87171;border:1px solid rgba(239,68,68,.25);font-size:10px}
+.kd-tb.urg.on{background:rgba(239,68,68,.2);color:#ef4444;border-color:rgba(239,68,68,.5)}
+/* Stack view improvements */
+.kd-lb{border-radius:16px;overflow:hidden;background:linear-gradient(155deg,#0d1829 0%,#080f1c 100%);border:1px solid rgba(255,255,255,.07);box-shadow:0 6px 24px rgba(0,0,0,.45)}
+.kd-lb-head{display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;border-left:4px solid var(--kdc,#D4A017);background:linear-gradient(90deg,rgba(255,255,255,.03),transparent)}
+.kd-lb-task{display:flex;align-items:flex-start;gap:10px;padding:11px 16px;border-bottom:1px solid rgba(255,255,255,.035);cursor:pointer;transition:background .12s}
+.kd-lb-txt{flex:1;font-size:13.5px;color:#d4dce8;line-height:1.5;word-break:break-word}
+.kd-lb-num{font-size:11px;font-weight:900;color:#334155;min-width:20px;text-align:right;margin-top:3px;font-variant-numeric:tabular-nums}
 
 /* bottom sheets (pick + remind) */
 .kd-sheet-bg{display:none;position:fixed;inset:0;z-index:9300;background:rgba(0,0,0,.7);align-items:flex-end;justify-content:center}
@@ -9993,9 +10007,13 @@ window._db=window._db||null;
     }
 
     var body=document.getElementById('kd-s-body');
-    // Split: pending first, done at bottom
-    var pending=list.filter(function(x){return !x.done;});
-    var done=list.filter(function(x){return x.done;});
+    // Split: pending (urgent first) then done at bottom
+    var allItems=list;
+    var pending=allItems.filter(function(x){return !x.done;});
+    var urgP=pending.filter(function(x){return !!x.urgent;});
+    var normP=pending.filter(function(x){return !x.urgent;});
+    pending=urgP.concat(normP);
+    var done=allItems.filter(function(x){return x.done;});
     if(pending.length===0 && done.length===0){ body.innerHTML='<div class="kd-s-empty">अभी कोई काम नहीं।<br>ऊपर बॉक्स में लिखकर + दबाएँ।</div>'; return; }
     var t=todayISO();
 
@@ -10015,7 +10033,8 @@ window._db=window._db||null;
 
       var row2='';
       if(!isDone){
-        row2='<button class="kd-tb rem" onclick="kdRemindOpen(\''+_openBoard+'\',\''+x.id+'\')">⏰ याद</button>';
+        row2='<button class="kd-tb urg'+(x.urgent?' on':'')+'" onclick="event.stopPropagation();window.kdToggleUrgent(\''+_openBoard+'\',\''+x.id+'\')">'+(x.urgent?'🔴 जरूरी':'⚪ जरूरी')+'</button>';
+        row2+='<button class="kd-tb rem" onclick="kdRemindOpen(\''+_openBoard+'\',\''+x.id+'\')">⏰ याद</button>';
         if(_openBoard==='followup'){
           if(x.phone){
             row2+='<button class="kd-tb call" onclick="kdCall(\''+x.id+'\')">📞 कॉल</button>'+
@@ -10024,20 +10043,21 @@ window._db=window._db||null;
             row2+='<button class="kd-tb ph" onclick="kdSetPhone(\''+x.id+'\')">📱 नंबर जोड़ें</button>';
           }
         }
-        row2+='<button class="kd-tb mv" onclick="event.stopPropagation();kdMove(\''+_openBoard+'\',\''+x.id+'\',-1)">▲</button>'+
-              '<button class="kd-tb mv" onclick="event.stopPropagation();kdMove(\''+_openBoard+'\',\''+x.id+'\',1)">▼</button>'+
-              '<button class="kd-tb" style="background:rgba(99,102,241,.12);color:#818cf8;border:1px solid rgba(99,102,241,.3)" onclick="event.stopPropagation();window.kdMoveBoardOpen(\''+_openBoard+'\',\''+x.id+'\')">🔄 बोर्ड</button>';
+        row2+='<button class="kd-tb" style="background:rgba(99,102,241,.12);color:#818cf8;border:1px solid rgba(99,102,241,.3)" onclick="event.stopPropagation();window.kdMoveBoardOpen(\''+_openBoard+'\',\''+x.id+'\')">🔄 बोर्ड</button>';
       } else {
         row2='<button class="kd-tb restore" onclick="event.stopPropagation();kdToggle(\''+_openBoard+'\',\''+x.id+'\')">↩ वापस लाओ</button>';
       }
       var phoneLine=(_openBoard==='followup'&&x.phone)?'<span>📱 '+escH(x.phone)+'</span>':'';
       var srcBadge=x.srcId
         ?'<span style="font-size:9px;background:rgba(59,130,246,.1);color:#60a5fa;border:1px solid rgba(59,130,246,.25);border-radius:5px;padding:1px 6px;flex-shrink:0">🔗 VBE</span> '
-        :'<span style="font-size:9px;background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.3);border-radius:5px;padding:1px 6px;flex-shrink:0">📝 डायरी</span> ';
-      var cardExtra=x.srcId?'':'border-left:3px solid rgba(239,68,68,.5);';
-      return '<div class="kd-task'+(isDone?' done':'')+'" style="--kdc:'+d.color+';'+cardExtra+'">'+
+        :'<span style="font-size:9px;background:rgba(251,146,60,.1);color:#fb923c;border:1px solid rgba(251,146,60,.3);border-radius:5px;padding:1px 6px;flex-shrink:0">📝 डायरी</span> ';
+      var cardCls='kd-task'+(isDone?' done':'')+(x.urgent&&!isDone?' urgent-card':'');
+      var cardStyle='--kdc:'+d.color+(x.srcId?'':';border-left:3px solid rgba(251,146,60,.45)');
+      return '<div class="'+cardCls+'" data-tid="'+x.id+'" data-bid="'+_openBoard+'" style="'+cardStyle+'">'+
         '<div class="kd-t-top">'+
-          '<span class="kd-sn">'+(i+1)+'.</span>'+
+          (isDone?'':'<span class="kd-drag-handle" ontouchstart="event.stopPropagation();window._kdDragStart(event,this)">⠿</span>')+
+          '<span class="kd-sn" onclick="event.stopPropagation();window.kdSetPos(\''+_openBoard+'\',\''+x.id+'\')" style="cursor:pointer;'+(isDone?'':'color:#4a6fa5;')+'min-width:22px">'+(i+1)+'.</span>'+
+          (x.urgent&&!isDone?'<span style="font-size:11px;flex-shrink:0">🔴</span>':'')+
           '<span class="kd-chk'+(isDone?' on':'')+'" onclick="event.stopPropagation();kdToggle(\''+_openBoard+'\',\''+x.id+'\')">'+(isDone?'✓':'')+'</span>'+
           '<span class="kd-tx" onclick="kdEdit(\''+_openBoard+'\',\''+x.id+'\')">'+escH(x.text)+'</span>'+
         '</div>'+
@@ -10097,12 +10117,17 @@ window._db=window._db||null;
       var pendingLb=list.filter(function(t){return !t.done;});
       var doneLb=list.filter(function(t){return t.done;});
       var pend=pendingLb.length;
+      // urgent first within pending
+      var urgLb=pendingLb.filter(function(t){return !!t.urgent;});
+      var normLb=pendingLb.filter(function(t){return !t.urgent;});
+      pendingLb=urgLb.concat(normLb);
       function lbCard(t,i,isDone){
-        var srcDot=t.srcId?'':'<span style="width:7px;height:7px;border-radius:50%;background:#ef4444;display:inline-block;flex-shrink:0;margin-right:4px;vertical-align:middle" title="📝 डायरी नोट"></span>';
+        var srcDot=t.srcId?'':'<span style="width:6px;height:6px;border-radius:50%;background:rgba(251,146,60,.7);display:inline-block;flex-shrink:0;margin-right:4px;vertical-align:middle"></span>';
+        var urgMark=t.urgent&&!isDone?'<span style="color:#ef4444;font-size:10px;margin-right:2px">🔴</span>':'';
         return '<div class="kd-lb-task'+(isDone?' done':'')+'" onclick="kdToggle(\''+d.key+'\',\''+t.id+'\')">'+
           '<div class="kd-lb-chk'+(isDone?' on':'')+'">'+(isDone?'✓':'')+'</div>'+
           '<div class="kd-lb-num">'+(i+1)+'</div>'+
-          '<div class="kd-lb-txt">'+srcDot+escH(t.text)+'</div>'+
+          '<div class="kd-lb-txt">'+urgMark+srcDot+escH(t.text)+'</div>'+
         '</div>';
       }
       var rows=pendingLb.map(function(t,i){return lbCard(t,i,false);}).join('');
@@ -10210,6 +10235,97 @@ window._db=window._db||null;
     if(arr) arr.classList.toggle('open',!open);
   };
 
+  // ════════ URGENT TOGGLE ════════
+  window.kdToggleUrgent=function(k,id){
+    var arr=KD.boards[k]||[];
+    var t=arr.find(function(x){return x.id===id;}); if(!t) return;
+    t.urgent=!t.urgent;
+    if(t.urgent){
+      // Move to front of array
+      var idx=arr.indexOf(t);
+      if(idx>0){ arr.splice(idx,1); arr.unshift(t); }
+    }
+    save(); renderActive();
+  };
+
+  // ════════ SET POSITION (serial number tap) ════════
+  window.kdSetPos=function(k,id){
+    var arr=KD.boards[k]||[];
+    var pend=arr.filter(function(x){return !x.done;});
+    var curP=pend.findIndex(function(x){return x.id===id;})+1;
+    var newPStr=window.prompt('किस नंबर पर रखें? (1–'+pend.length+')\nअभी: '+curP+' नंबर पर है',''+curP);
+    if(!newPStr) return;
+    var newP=parseInt(newPStr);
+    if(isNaN(newP)||newP<1||newP>pend.length) return;
+    var fi=arr.findIndex(function(x){return x.id===id;});
+    if(fi<0) return;
+    var item=arr.splice(fi,1)[0];
+    // Find new position in full arr
+    var pendBefore=arr.filter(function(x){return !x.done;}).slice(0,newP-1);
+    var lastId=pendBefore.length>0?pendBefore[pendBefore.length-1].id:null;
+    var ni=lastId?arr.findIndex(function(x){return x.id===lastId;})+1:0;
+    arr.splice(ni,0,item);
+    save(); renderActive();
+    toast('↕ '+newP+' नंबर पर रखा');
+  };
+
+  // ════════ TOUCH DRAG-TO-REORDER ════════
+  var _drgKey=null,_drgId=null,_drgEl=null,_drgGhost=null,_drgY0=0;
+
+  window._kdDragStart=function(e,handle){
+    e.preventDefault(); e.stopPropagation();
+    var card=handle;
+    while(card&&!card.dataset.tid) card=card.parentElement;
+    if(!card) return;
+    _drgKey=card.dataset.bid; _drgId=card.dataset.tid; _drgEl=card;
+    _drgY0=e.touches[0].clientY;
+    var rect=card.getBoundingClientRect();
+    _drgGhost=card.cloneNode(true);
+    _drgGhost.querySelectorAll('button,input').forEach(function(b){b.style.pointerEvents='none';});
+    _drgGhost.style.cssText='position:fixed;left:'+rect.left+'px;top:'+rect.top+'px;width:'+rect.width+'px;z-index:99998;opacity:.85;pointer-events:none;border-radius:14px;box-shadow:0 18px 52px rgba(0,0,0,.7),0 0 0 2px rgba(212,160,23,.5);transition:none;will-change:transform';
+    document.body.appendChild(_drgGhost);
+    card.classList.add('kd-dragging');
+    document.addEventListener('touchmove',_kdDragMove,{passive:false});
+    document.addEventListener('touchend',_kdDragEnd,{once:true});
+  };
+
+  function _kdDragMove(e){
+    if(!_drgGhost) return;
+    e.preventDefault();
+    var dy=e.touches[0].clientY-_drgY0;
+    _drgGhost.style.transform='translateY('+dy+'px)';
+    _drgGhost.style.visibility='hidden';
+    var el=document.elementFromPoint(e.touches[0].clientX,e.touches[0].clientY);
+    _drgGhost.style.visibility='visible';
+    var target=el; while(target&&!target.dataset.tid) target=target.parentElement;
+    document.querySelectorAll('.kd-drag-over').forEach(function(x){x.classList.remove('kd-drag-over');});
+    if(target&&target!==_drgEl&&target.dataset.bid===_drgKey) target.classList.add('kd-drag-over');
+  }
+
+  function _kdDragEnd(e){
+    document.removeEventListener('touchmove',_kdDragMove);
+    if(!_drgGhost){ _cleanup(); return; }
+    _drgGhost.style.visibility='hidden';
+    var el=document.elementFromPoint(e.changedTouches[0].clientX,e.changedTouches[0].clientY);
+    _drgGhost.style.visibility='visible';
+    var target=el; while(target&&!target.dataset.tid) target=target.parentElement;
+    document.querySelectorAll('.kd-drag-over').forEach(function(x){x.classList.remove('kd-drag-over');});
+    if(target&&target!==_drgEl&&target.dataset.bid===_drgKey&&_drgKey&&_drgId){
+      var arr=KD.boards[_drgKey]||[];
+      var fi=arr.findIndex(function(x){return x.id===_drgId;});
+      var ti=arr.findIndex(function(x){return x.id===target.dataset.tid;});
+      if(fi>=0&&ti>=0){ var item=arr.splice(fi,1)[0]; arr.splice(ti,0,item); save(); }
+    }
+    _cleanup();
+    renderActive();
+  }
+
+  function _cleanup(){
+    if(_drgGhost){_drgGhost.remove();_drgGhost=null;}
+    if(_drgEl){_drgEl.classList.remove('kd-dragging');_drgEl=null;}
+    _drgKey=null; _drgId=null;
+  }
+
   // ════════ TIMELINE VIEW render ════════
   function renderTimeline(){
     var wrap=document.getElementById('kd-view-timeline'); if(!wrap) return;
@@ -10232,28 +10348,50 @@ window._db=window._db||null;
       if(!groups[dk]){groups[dk]=[];groupOrder.push(dk);}
       groups[dk].push(item);
     });
-    wrap.innerHTML=groupOrder.map(function(dk){
-      var items=groups[dk];
-      var rows=items.map(function(item){
-        var t=item.task,d=item.board;
-        var isDone=!!t.done;
-        return '<div class="kd-lb-task'+(isDone?' done':'')+'" style="--kdc:'+d.color+'" onclick="kdToggle(\''+d.key+'\',\''+t.id+'\')">'+
-          '<div class="kd-lb-chk'+(isDone?' on':'')+'">'+(isDone?'✓':'')+'</div>'+
-          '<div style="display:flex;flex-direction:column;flex:1;min-width:0">'+
-            '<div style="font-size:13px;color:'+(isDone?'#475569':'#c4ccd8')+(isDone?';text-decoration:line-through':'')+';line-height:1.4">'+escH(t.text)+'</div>'+
-            '<div style="font-size:10px;margin-top:3px;display:flex;gap:6px;align-items:center">'+
-              '<span style="background:'+d.color+'22;color:'+d.color+';border-radius:5px;padding:1px 7px;font-weight:800;border:1px solid '+d.color+'55">'+d.icon+' '+d.name+'</span>'+
-              (isDone?'<span style="color:#34d399">✓ पूरा</span>':'<span style="color:#64748b">लंबित</span>')+
-            '</div>'+
+    function tlCard(item, isDone){
+      var t=item.task, d=item.board;
+      var urgDot=t.urgent?'<span style="color:#ef4444;font-size:10px;margin-right:3px">🔴</span>':'';
+      var srcDot=t.srcId?'':'<span style="width:6px;height:6px;border-radius:50%;background:rgba(251,146,60,.7);display:inline-block;flex-shrink:0;margin-right:4px;vertical-align:middle" title="डायरी नोट"></span>';
+      return '<div class="kd-lb-task'+(isDone?' done':'')+'" style="--kdc:'+d.color+'" onclick="kdToggle(\''+d.key+'\',\''+t.id+'\')">'+
+        '<div class="kd-lb-chk'+(isDone?' on':'')+'">'+(isDone?'✓':'')+'</div>'+
+        '<div style="display:flex;flex-direction:column;flex:1;min-width:0">'+
+          '<div style="font-size:13px;color:'+(isDone?'#475569':'#c4ccd8')+(isDone?';text-decoration:line-through':'')+';line-height:1.4">'+urgDot+srcDot+escH(t.text)+'</div>'+
+          '<div style="font-size:10px;margin-top:3px;display:flex;gap:6px;align-items:center">'+
+            '<span style="background:'+d.color+'22;color:'+d.color+';border-radius:5px;padding:1px 7px;font-weight:800;border:1px solid '+d.color+'55">'+d.icon+' '+d.name+'</span>'+
+            (isDone?'<span style="color:#34d399">✓ पूरा</span>':'<span style="color:#64748b">लंबित</span>')+
           '</div>'+
-          (isDone?'<button class="kd-tb restore" style="flex-shrink:0;font-size:10px" onclick="event.stopPropagation();kdToggle(\''+d.key+'\',\''+t.id+'\')">↩</button>':'')+
-        '</div>';
-      }).join('');
+        '</div>'+
+        (isDone?'<button class="kd-tb restore" style="flex-shrink:0;font-size:10px" onclick="event.stopPropagation();kdToggle(\''+d.key+'\',\''+t.id+'\')">↩</button>':'')+
+      '</div>';
+    }
+    var allPend=all.filter(function(x){return !x.task.done;});
+    var allDone=all.filter(function(x){return x.task.done;});
+    // Group PENDING by date
+    var groups={}, groupOrder=[];
+    allPend.forEach(function(item){
+      var dk=item.task.ts?new Date(item.task.ts).toLocaleDateString('hi-IN',{day:'numeric',month:'short',year:'numeric'}):'पुराना';
+      if(!groups[dk]){groups[dk]=[];groupOrder.push(dk);}
+      groups[dk].push(item);
+    });
+    var pendHtml=groupOrder.map(function(dk){
+      var items=groups[dk];
       return '<div style="margin-bottom:10px">'+
         '<div style="font-size:10px;font-weight:800;color:#D4A017;letter-spacing:1px;padding:8px 2px 4px">🗓 '+dk+'</div>'+
-        '<div class="kd-lb" style="--kdc:#D4A017">'+rows+'</div>'+
+        '<div class="kd-lb" style="--kdc:#D4A017">'+items.map(function(x){return tlCard(x,false);}).join('')+'</div>'+
       '</div>';
     }).join('');
+    var doneHtmlTl='';
+    if(allDone.length>0){
+      doneHtmlTl='<div class="kd-done-hdr" onclick="window.kdLbToggleDone(this)" style="padding:6px 4px;margin-top:8px">'+
+        '<span class="kd-done-hdr-label">✅ पूरे हुए काम</span>'+
+        '<span class="kd-done-hdr-cnt">'+allDone.length+'</span>'+
+        '<span class="kd-done-hdr-arr">›</span>'+
+      '</div>'+
+      '<div class="kd-lb-done-body" style="display:none">'+
+        '<div class="kd-lb" style="--kdc:#34d399">'+allDone.map(function(x){return tlCard(x,true);}).join('')+'</div>'+
+      '</div>';
+    }
+    wrap.innerHTML=(pendHtml||'<div style="padding:30px;text-align:center;color:#475569;font-size:12px">सभी काम पूरे! 🎉</div>')+doneHtmlTl;
     setBadges();
   }
 

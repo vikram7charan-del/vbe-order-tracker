@@ -1177,6 +1177,27 @@ select option{background:#0d1526}
 #vbe-install-bar button{background:linear-gradient(135deg,#f59e0b,#ef4444);border:none;border-radius:10px;color:#fff;font-size:12px;font-weight:700;padding:8px 14px;cursor:pointer;white-space:nowrap;font-family:inherit}
 #vbe-install-bar .vib-close{background:none;color:#475569;font-size:18px;padding:4px 8px;border:none;cursor:pointer}
 
+/* ══ SKELETON LOADING ══ */
+.skel-card{background:#0d1526;border-radius:14px;padding:12px;margin-bottom:8px;border:1px solid #1e3a5f;overflow:hidden}
+.skel-strip{height:20px;border-radius:5px;margin-bottom:10px;animation:skelS 1.4s ease infinite}
+.skel-line{height:11px;border-radius:5px;margin-bottom:8px;animation:skelS 1.4s ease infinite}
+.skel-line.w80{width:80%}
+.skel-line.w55{width:55%}
+.skel-line.w35{width:35%}
+.skel-btns{display:flex;gap:6px;margin-top:12px}
+.skel-btn{height:26px;width:54px;border-radius:6px;animation:skelS 1.4s ease infinite}
+.skel-strip,.skel-line,.skel-btn{background:linear-gradient(90deg,#1e3a5f 25%,#243451 50%,#1e3a5f 75%);background-size:200% 100%}
+@keyframes skelS{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* ══ PULL TO REFRESH ══ */
+#vbe-ptr{position:fixed;top:0;left:50%;transform:translateX(-50%) translateY(-60px);width:40px;height:40px;background:#0d1526;border:1px solid #1e3a5f;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;z-index:9700;transition:transform .2s ease;box-shadow:0 4px 16px rgba(0,0,0,.5)}
+#vbe-ptr.ptr-ready{border-color:#f59e0b}
+
+/* ══ SWIPE CARD ══ */
+.mb-card{touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.swipe-hint-r{position:absolute;inset:0;border-radius:inherit;background:linear-gradient(90deg,rgba(34,197,94,.22),transparent);display:flex;align-items:center;padding-left:14px;font-size:20px;opacity:0;pointer-events:none;z-index:2;transition:opacity .15s}
+.swipe-hint-l{position:absolute;inset:0;border-radius:inherit;background:linear-gradient(270deg,rgba(239,68,68,.22),transparent);display:flex;align-items:center;justify-content:flex-end;padding-right:14px;font-size:20px;opacity:0;pointer-events:none;z-index:2;transition:opacity .15s}
+
 </style>
 </head>
 <body>
@@ -1412,6 +1433,7 @@ select option{background:#0d1526}
     <button onclick="setCategoryFilter('gem')" id="cat-chip-gem" class="cat-chip cat-chip-off" style="background:#1e293b;color:#475569;border:1px solid #334155;border-radius:18px;padding:5px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0">💻 GeM <span id="cat-cnt-gem" style="background:#0a0f1e;border-radius:5px;padding:1px 5px;font-size:9px;margin-left:2px">0</span></button>
     <button onclick="setCategoryFilter('other')" id="cat-chip-other" class="cat-chip cat-chip-off" style="background:#1e293b;color:#475569;border:1px solid #334155;border-radius:18px;padding:5px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0">📌 Other <span id="cat-cnt-other" style="background:#0a0f1e;border-radius:5px;padding:1px 5px;font-size:9px;margin-left:2px">0</span></button>
   </div>
+  <div id="vbe-ptr">🔄</div>
   <div style="padding:0 12px 90px" id="olist"></div>
   <button class="fab" onclick="openAdd()">+</button>
 </div>
@@ -2097,6 +2119,7 @@ async function doLogin(){
 
 function showSupplier(){
   document.getElementById('supplier').style.display='block';
+  showSkeleton();
   listenOrders();
   listenStaff();
   listenRewards();
@@ -3982,6 +4005,139 @@ function mbTogglePeekHeader(){
   }catch(e){ console.warn('peek toggle error:',e); }
 }
 
+// ══ SKELETON LOADING ══
+function showSkeleton(){
+  const el=document.getElementById('olist');
+  if(!el||el.children.length>0) return;
+  const sk='<div class="skel-card"><div class="skel-strip"></div><div class="skel-line w80"></div><div class="skel-line w55"></div><div class="skel-btns"><div class="skel-btn"></div><div class="skel-btn"></div><div class="skel-btn"></div></div></div>';
+  el.innerHTML=sk+sk+sk;
+}
+
+// ══ SWIPE GESTURES ══
+function addSwipeToCards(){
+  document.querySelectorAll('.mb-card').forEach(function(card){
+    if(card._sw) return; card._sw=true;
+    var sx=0,sy=0,moved=false;
+    // Add hint overlays
+    var hr=document.createElement('div'); hr.className='swipe-hint-r'; hr.textContent='✅'; card.appendChild(hr);
+    var hl=document.createElement('div'); hl.className='swipe-hint-l'; hl.textContent='⚡'; card.appendChild(hl);
+
+    card.addEventListener('touchstart',function(e){
+      if(e.touches.length!==1)return;
+      sx=e.touches[0].clientX; sy=e.touches[0].clientY; moved=false;
+      card.style.transition='none';
+    },{passive:true});
+
+    card.addEventListener('touchmove',function(e){
+      if(!sx)return;
+      var dx=e.touches[0].clientX-sx, dy=e.touches[0].clientY-sy;
+      if(Math.abs(dx)<8&&Math.abs(dy)<8)return;
+      if(Math.abs(dx)>Math.abs(dy)*1.3){
+        moved=true;
+        var cap=Math.max(-110,Math.min(110,dx));
+        card.style.transform='translateX('+cap+'px)';
+        var pct=Math.min(1,Math.abs(dx)/90);
+        if(dx>20){ hr.style.opacity=pct; hl.style.opacity=0; }
+        else if(dx<-20){ hl.style.opacity=pct; hr.style.opacity=0; }
+        else{ hr.style.opacity=0; hl.style.opacity=0; }
+      }
+    },{passive:true});
+
+    card.addEventListener('touchend',function(e){
+      if(!sx)return;
+      var dx=e.changedTouches[0].clientX-sx;
+      var dy=e.changedTouches[0].clientY-sy;
+      card.style.transition='transform .3s ease';
+      card.style.transform='';
+      hr.style.opacity=0; hl.style.opacity=0;
+      var oid=card.id.replace('mb-card-','');
+      if(moved&&Math.abs(dx)>65&&Math.abs(dy)<60){
+        if(dx>0){
+          // Right swipe → advance stage
+          var o=_orders.find(function(x){return x.id===oid;});
+          if(o){
+            var idx=SID.indexOf(o.stage);
+            if(idx>=0&&idx<SID.length-1){
+              if(navigator.vibrate) navigator.vibrate(40);
+              notif('➡️ Stage: '+STAGES[idx+1].hi,'ok');
+              mbSetStage(oid,SID[idx+1]);
+            } else {
+              notif('✅ पहले से आखिरी stage पर है','info');
+            }
+          }
+        } else {
+          // Left swipe → quick action sheet
+          if(navigator.vibrate) navigator.vibrate(30);
+          openSwipeActions(oid);
+        }
+      }
+      sx=0; moved=false;
+    },{passive:true});
+  });
+}
+
+// ══ SWIPE ACTION SHEET (left swipe) ══
+function openSwipeActions(orderId){
+  var o=_orders.find(function(x){return x.id===orderId;}); if(!o) return;
+  var bg=document.getElementById('vbe-swipe-bg');
+  if(!bg){ bg=document.createElement('div'); bg.id='vbe-swipe-bg';
+    bg.style.cssText='display:none;position:fixed;inset:0;z-index:999992;background:rgba(0,0,0,.88);align-items:flex-end;justify-content:center';
+    document.body.appendChild(bg); }
+  var stg=STAGES.find(function(s){return s.id===o.stage;})||STAGES[0];
+  var idx=SID.indexOf(o.stage);
+  var nextStg=idx<SID.length-1?STAGES[idx+1]:null;
+  bg.innerHTML='<div style="background:#0d1526;border-radius:20px 20px 0 0;padding:20px 16px 36px;width:100%;max-width:480px;border:1px solid #1e3a5f;border-bottom:none;font-family:inherit">'
+    +'<div style="font-size:12px;color:#94a3b8;text-align:center;margin-bottom:14px">⚡ Quick Actions · <b style="color:#e2e8f0">'+esc(o.customer)+'</b></div>'
+    +(nextStg?'<button onclick="window._swAct(\'stage\',\''+orderId+'\',\''+nextStg.id+'\')" style="display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;margin-bottom:8px;border-radius:12px;border:1px solid #1e3a5f;background:#0a0f1e;color:#e2e8f0;font-size:14px;font-family:inherit;cursor:pointer">'+nextStg.emoji+' Stage बढ़ाओ → '+nextStg.hi+'</button>':'')
+    +'<button onclick="window._swAct(\'fwd\',\''+orderId+'\')" style="display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;margin-bottom:8px;border-radius:12px;border:1px solid #1e3a5f;background:#0a0f1e;color:#e2e8f0;font-size:14px;font-family:inherit;cursor:pointer">⏩ +24h आगे बढ़ाओ</button>'
+    +(o.phone?'<button onclick="window._swAct(\'wa\',\''+orderId+'\')" style="display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;margin-bottom:8px;border-radius:12px;border:1px solid #1e3a5f;background:#0a0f1e;color:#e2e8f0;font-size:14px;font-family:inherit;cursor:pointer">📱 WhatsApp भेजो</button>':'')
+    +'<button onclick="window._swAct(\'del\',\''+orderId+'\')" style="display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;margin-bottom:8px;border-radius:12px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.05);color:#f87171;font-size:14px;font-family:inherit;cursor:pointer">🗑️ Delete करो</button>'
+    +'<button onclick="document.getElementById(\'vbe-swipe-bg\').style.display=\'\'" style="width:100%;padding:11px;border-radius:12px;border:1px solid #1e3a5f;background:transparent;color:#64748b;font-size:14px;font-family:inherit;cursor:pointer;margin-top:4px">रद्द</button>'
+    +'</div>';
+  bg.style.display='flex';
+  window._swAct=async function(action,oid,extra){
+    bg.style.display='';
+    if(action==='stage') mbSetStage(oid,extra);
+    else if(action==='fwd') quickForward(oid,24);
+    else if(action==='wa') sendWA(oid);
+    else if(action==='del') delOrder(oid);
+  };
+  bg.addEventListener('click',function(e){ if(e.target===bg) bg.style.display=''; },{once:true});
+}
+
+// ══ PULL TO REFRESH ══
+(function(){
+  var _ptrSY=0,_ptrReady=false,_ptrActive=false;
+  var ptr=null;
+  function getPtr(){ return ptr||(ptr=document.getElementById('vbe-ptr')); }
+  window.addEventListener('touchstart',function(e){
+    if(window.scrollY===0&&e.touches.length===1){ _ptrSY=e.touches[0].clientY; _ptrActive=true; }
+  },{passive:true});
+  window.addEventListener('touchmove',function(e){
+    if(!_ptrActive||!_ptrSY) return;
+    var dy=e.touches[0].clientY-_ptrSY;
+    if(dy>0&&window.scrollY===0){
+      var pull=Math.min(dy*0.45,52);
+      getPtr().style.transform='translateX(-50%) translateY('+(pull-60)+'px)';
+      _ptrReady=dy>90;
+      getPtr().classList.toggle('ptr-ready',_ptrReady);
+      getPtr().textContent=_ptrReady?'✅':'🔄';
+    }
+  },{passive:true});
+  window.addEventListener('touchend',function(){
+    if(_ptrReady){
+      getPtr().style.transform='translateX(-50%) translateY(-60px)';
+      getPtr().textContent='🔄';
+      renderAll();
+      notif('🔄 Refreshed!','ok');
+    } else {
+      getPtr().style.transform='translateX(-50%) translateY(-60px)';
+    }
+    getPtr().classList.remove('ptr-ready');
+    _ptrSY=0; _ptrReady=false; _ptrActive=false;
+  },{passive:true});
+})();
+
 function renderList(){
   const q=(document.getElementById('srch')?.value||'').toLowerCase();
 
@@ -4280,6 +4436,8 @@ function renderList(){
   // Update header badges (hidden + reminders)
   try { updateHiddenBadge(); } catch(e){}
   try { updateReminderBadge(); } catch(e){}
+  // Swipe gestures
+  setTimeout(addSwipeToCards, 50);
 }
 
 // ─── Card पर scroll करो (Global Search से) — FIXED v2 ───

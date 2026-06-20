@@ -1158,7 +1158,7 @@ select option{background:#0d1526}
 @keyframes pinShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
 
 /* ══ CUSTOM DIALOG SYSTEM ══ */
-#vbe-dlg-bg{display:none;position:fixed;inset:0;z-index:999990;background:rgba(0,0,0,.88);align-items:flex-end;justify-content:center}
+#vbe-dlg-bg{display:none;position:fixed;inset:0;z-index:1000000;background:rgba(0,0,0,.88);align-items:flex-end;justify-content:center}
 #vbe-dlg-bg.vd-open{display:flex;animation:dlgFadeIn .18s ease}
 @keyframes dlgFadeIn{from{opacity:0}to{opacity:1}}
 #vbe-dlg-box{background:#0d1526;border-radius:20px 20px 0 0;padding:22px 18px 38px;width:100%;max-width:480px;border:1px solid #1e3a5f;border-bottom:none;font-family:'Noto Sans Devanagari',system-ui,sans-serif;animation:dlgSlideUp .22s ease}
@@ -3282,7 +3282,7 @@ function openReckoning(){
   document.getElementById('reckon-overlay')?.remove();
   const ov = document.createElement('div');
   ov.id='reckon-overlay';
-  ov.style.cssText='position:fixed;inset:0;background:rgba(2,6,23,.92);z-index:99998;display:flex;align-items:flex-start;justify-content:center;padding:14px;backdrop-filter:blur(4px);overflow-y:auto';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(2,6,23,.92);z-index:999998;display:flex;align-items:flex-start;justify-content:center;padding:14px;backdrop-filter:blur(4px);overflow-y:auto';
   ov.innerHTML=`<div id="reckon-box" style="background:#0f172a;border:1px solid #1e293b;border-radius:18px;padding:16px;max-width:440px;width:100%;margin:auto"></div>`;
   ov.onclick=(e)=>{ if(e.target===ov) closeReckoning(); };
   document.body.appendChild(ov);
@@ -3943,7 +3943,7 @@ function askCommentAuthor(o){
     document.getElementById('comment-author-modal')?.remove();
     const modal = document.createElement('div');
     modal.id = 'comment-author-modal';
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(2,6,23,.85);z-index:99999;display:flex;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(4px)';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(2,6,23,.85);z-index:999998;display:flex;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(4px)';
     // Build staff options — Vikram + Koda always + assigned staff if different
     const opts = [
       {name:'Vikram', emoji:'👨‍💼', color:'#fbbf24', bg:'linear-gradient(135deg,#92400e,#f59e0b)', sub:'Owner / CEO'},
@@ -4010,7 +4010,7 @@ function openCommentLog(orderId){
   document.getElementById('comment-log-modal')?.remove();
   const modal = document.createElement('div');
   modal.id = 'comment-log-modal';
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(2,6,23,.85);z-index:99999;display:flex;align-items:flex-end;justify-content:center;padding:0;backdrop-filter:blur(4px)';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(2,6,23,.85);z-index:999998;display:flex;align-items:flex-end;justify-content:center;padding:0;backdrop-filter:blur(4px)';
   modal.innerHTML = `
     <div style="background:#0f172a;border:1px solid #1e293b;border-radius:18px 18px 0 0;padding:16px;max-width:480px;width:100%;max-height:85vh;display:flex;flex-direction:column">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
@@ -5008,8 +5008,9 @@ function renderList(){
         <div style="flex:1;min-width:0">
           <div class="mb-staff-line">👤 <b onclick="event.stopPropagation();openClientHistory('${esc(o.customer||'')}')" title="सारे orders देखो" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px">${esc(o.customer||'')}</b>${o.staff?` · <span style="background:${sc}22;color:${sc};border:1px solid ${sc}55;border-radius:6px;padding:1px 7px;font-weight:800;font-size:10px;white-space:nowrap">${esc(o.staff)}</span>`:''}</div>
         </div>
-        <!-- 👁️ Hide button only — task को collapse करता है, list में रहता है -->
+        <!-- Pin + Hide buttons — always visible on card header -->
         <div style="display:flex;gap:4px;flex-shrink:0">
+          <button onclick="event.stopPropagation();togglePin('${o.id}')" title="${o.isPinned?'📌 Unpin करो':'📍 Pin — हमेशा ऊपर रखो'}" style="background:${o.isPinned?'#78350f':'#1e293b'};border:1px solid ${o.isPinned?'#f59e0b':'#475569'};color:${o.isPinned?'#fbbf24':'#94a3b8'};border-radius:7px;padding:5px 8px;font-size:13px;cursor:pointer;font-family:inherit;line-height:1">${o.isPinned?'📌':'📍'}</button>
           ${o.isHidden
             ? `<button onclick="event.stopPropagation();toggleHidden('${o.id}',false)" title="👀 वापस normal करो" style="background:linear-gradient(135deg,#312e81,#6366f1);border:none;color:#fff;border-radius:7px;padding:5px 8px;font-size:13px;cursor:pointer;font-family:inherit;line-height:1;box-shadow:0 2px 6px rgba(99,102,241,.4)">👀</button>`
             : `<button onclick="event.stopPropagation();toggleHidden('${o.id}',true)" title="👁️ Hide — छोटा करो (नीचे चला जाएगा पर list में रहेगा)" style="background:#1e293b;border:1px solid #475569;color:#94a3b8;border-radius:7px;padding:5px 8px;font-size:13px;cursor:pointer;font-family:inherit;line-height:1">👁️</button>`}
@@ -5210,7 +5211,6 @@ function renderList(){
     <!-- Tools -->
     <div class="mb-tools">
       <button class="mb-tool-btn edit" onclick="editOrder('${o.id}')" title="Edit">✏️</button>
-      <button class="mb-tool-btn" onclick="togglePin('${o.id}')" title="${o.isPinned?'Unpin':'Pin — ऊपर रखो'}" style="background:#0f172a;border:1px solid ${o.isPinned?'#f59e0b':'#334155'};color:${o.isPinned?'#f59e0b':'#94a3b8'}">${o.isPinned?'📌':'📍'}</button>
       <button class="mb-tool-btn" onclick="repeatOrder('${o.id}')" title="🔁 Copy करके नया order बनाओ" style="background:#0f172a;border:1px solid #334155;color:#94a3b8">🔁</button>
       <button class="mb-tool-btn" onclick="openOrderQR('${o.id}')" title="QR Code" style="background:#0f172a;border:1px solid #334155;color:#94a3b8">📲</button>
       <button class="mb-tool-btn" onclick="saveTpl(_orders.find(x=>x.id==='${o.id}'))" title="Template बनाओ" style="background:#0f172a;border:1px solid #334155;color:#94a3b8">💾</button>
@@ -11802,6 +11802,11 @@ window._db=window._db||null;
 (function(){
   var _bg=null, _resolve=null;
   function _bg_(){ return _bg||(_bg=document.getElementById('vbe-dlg-bg')); }
+  function _hideBars(){
+    // Hide floating bars so they can't block the dialog
+    var ub=document.getElementById('vbe-undo-bar'); if(ub) ub.style.display='none';
+    var wb=document.getElementById('vbe-wa-bar'); if(wb) wb.style.display='none';
+  }
   function _close(val){
     _bg_().classList.remove('vd-open');
     setTimeout(function(){ _bg_().style.display=''; },200);
@@ -11810,6 +11815,7 @@ window._db=window._db||null;
   window.vbeAlert=function(msg,icon){
     icon=icon||'ℹ️';
     return new Promise(function(res){
+      _hideBars();
       _resolve=res;
       document.getElementById('vbe-dlg-icon').textContent=icon;
       document.getElementById('vbe-dlg-msg').textContent=msg;
@@ -11823,6 +11829,7 @@ window._db=window._db||null;
   window.vbeConfirm=function(msg,icon,yesLabel,noLabel){
     icon=icon||'❓'; yesLabel=yesLabel||'हाँ'; noLabel=noLabel||'नहीं';
     return new Promise(function(res){
+      _hideBars();
       _resolve=res;
       document.getElementById('vbe-dlg-icon').textContent=icon;
       document.getElementById('vbe-dlg-msg').textContent=msg;
@@ -11836,6 +11843,7 @@ window._db=window._db||null;
   window.vbePrompt=function(msg,def,icon){
     icon=icon||'✏️'; def=def||'';
     return new Promise(function(res){
+      _hideBars();
       _resolve=res;
       document.getElementById('vbe-dlg-icon').textContent=icon;
       document.getElementById('vbe-dlg-msg').textContent=msg;

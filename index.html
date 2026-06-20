@@ -674,6 +674,8 @@ select option{background:#0d1526}
 .mb-card.mb-overdue{border-color:rgba(220,80,60,.55);box-shadow:0 12px 30px rgba(0,0,0,.5), 0 0 16px rgba(192,57,43,.15)}
 .mb-card.mb-now{border-color:rgba(245,158,11,.55);box-shadow:0 12px 30px rgba(0,0,0,.5), 0 0 16px rgba(245,158,11,.18)}
 .mb-card.mb-later{border-color:rgba(99,102,241,.45)}
+/* Pinned card */
+.mb-card.mb-pinned{border-color:rgba(245,158,11,.5);box-shadow:0 0 0 1px rgba(245,158,11,.2),0 12px 30px rgba(0,0,0,.5)}
 /* Due-soon pulse — deadline < 2h */
 .mb-card.mb-due-soon{border-color:rgba(251,146,60,.7);animation:due-soon-pulse 2s ease-in-out infinite}
 @keyframes due-soon-pulse{0%,100%{box-shadow:0 12px 30px rgba(0,0,0,.5),0 0 0 0 rgba(251,146,60,.0)}50%{box-shadow:0 12px 30px rgba(0,0,0,.5),0 0 0 6px rgba(251,146,60,.25)}}
@@ -1453,6 +1455,7 @@ select option{background:#0d1526}
   <div id="vbe-sum-bar" style="display:none;padding:3px 14px 5px;font-size:11px;color:#64748b;letter-spacing:.2px;border-bottom:1px solid #0d1a2e;display:flex;align-items:center;justify-content:space-between;gap:6px">
     <span id="vbe-sum-text" style="flex:1"></span>
     <button onclick="exportWASummary()" title="WhatsApp पर आज का summary भेजो" style="flex-shrink:0;background:linear-gradient(135deg,#065f46,#10b981);border:none;border-radius:8px;padding:3px 8px;color:#fff;font-size:10px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap">📊 WA</button>
+    <button onclick="exportCSV()" title="Excel CSV download करो" style="flex-shrink:0;background:linear-gradient(135deg,#1e3a8a,#3b82f6);border:none;border-radius:8px;padding:3px 8px;color:#fff;font-size:10px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap">📥 CSV</button>
   </div>
   <!-- Folder Tabs -->
   <div style="padding:0 12px 6px;display:flex;gap:5px">
@@ -2323,6 +2326,16 @@ function gsOrderAge(o){
   if(d>0) return '\u23f1\ufe0f '+d+'d '+( h%24)+'h ago';
   if(h>0) return '\u23f1\ufe0f '+h+'h '+m+'m ago';
   return '\u23f1\ufe0f '+m+'m ago';
+}
+function gsOrderAgeBadge(o){
+  // Returns colored HTML badge based on order age
+  const created = o.createdAt || (o.timeline&&o.timeline[0]&&o.timeline[0].time);
+  if(!created) return '';
+  const d = Math.floor((Date.now()-new Date(created).getTime())/86400000);
+  if(d<=0) return '<span style="color:#64748b;font-size:9px">NEW</span>';
+  const col = d>=7?'#ef4444':d>=3?'#f97316':d>=1?'#f59e0b':'#22c55e';
+  const pulse = d>=7?' style="animation:due-soon-pulse 2s infinite"':'';
+  return '<span'+pulse+' style="color:'+col+';font-size:9px;font-weight:800">'+d+'d</span>';
 }
 function tlInfo(deadline,stage){
   if(stage==='delivered') return{text:'✅ Delivered',color:'#10b981',over:false};
@@ -4663,6 +4676,86 @@ async function bulkDelete(){
   toggleBulkMode();
 }
 
+// ══ PIN / STAR ══
+async function togglePin(id){
+  var o=_orders.find(function(x){return x.id===id;}); if(!o) return;
+  await fbSave({...o, isPinned:!o.isPinned});
+  notif(o.isPinned?'📍 Unpinned':'📌 Pinned — हमेशा ऊपर रहेगा','ok');
+}
+
+// ══ REPEAT ORDER ══
+function repeatOrder(id){
+  var o=_orders.find(function(x){return x.id===id;}); if(!o) return;
+  // Pre-fill add form with same details
+  openAdd();
+  setTimeout(function(){
+    var fields={f_cu:o.customer,f_ph:o.phone,f_it:o.item,f_qt:o.qty,f_no:o.note,f_st:o.staff,f_sph:o.staffPhone};
+    Object.entries(fields).forEach(function(p){ var el=document.getElementById(p[0].replace('_','-')); if(el&&p[1]) el.value=p[1]; });
+    if(o.category && typeof setFormCategory==='function') setFormCategory(o.category);
+    if(o.priority){ var pr=document.getElementById('f-pr'); if(pr) pr.value=o.priority; }
+    if(o.unitName){ var un=document.getElementById('f-unit'); if(un) un.value=o.unitName; }
+    document.getElementById('m-title').textContent='🔁 Repeat: '+( o.customer||'');
+    notif('🔁 Repeat order ready — deadline set karo','info');
+  },300);
+}
+
+// ══ CSV EXPORT ══
+window.exportCSV=function(){
+  if(!_orders||!_orders.length){ notif('कोई orders नहीं','warn'); return; }
+  var cols=['Order No','Customer','Phone','Item','Qty','Staff','Stage','Category','Priority','Deadline','Created','Note','ID'];
+  var rows=_orders.map(function(o){
+    var stg=STAGES.find(function(s){return s.id===o.stage;})||{};
+    function q(v){ v=(v||'').toString().replace(/"/g,'""'); return '"'+v+'"'; }
+    return [o.orderNo,o.customer,o.phone,o.item,o.qty,o.staff,stg.hi||o.stage,o.category,o.priority,
+      o.deadline?new Date(o.deadline).toLocaleString('hi-IN'):'',
+      o.createdAt?new Date(o.createdAt).toLocaleString('hi-IN'):'',
+      o.note,o.id].map(q).join(',');
+  });
+  var csv='﻿'+cols.join(',')+'\n'+rows.join('\n'); // BOM for Excel Hindi support
+  var blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a'); a.href=url; a.download='VBE_Orders_'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  notif('📥 CSV downloaded — Excel में खोलो','ok');
+};
+
+// ══ MORNING BRIEF ══
+(function(){
+  var KEY='vbe_brief_date';
+  var today=new Date().toDateString();
+  var lastShown=localStorage.getItem(KEY);
+  var hour=new Date().getHours();
+  // Show only once per day, between 5am and 1pm
+  if(lastShown===today||hour<5||hour>=13) return;
+  document.addEventListener('fbReady',function(){
+    setTimeout(function(){
+      var ov=(_orders||[]).filter(function(o){return o.stage!=='delivered'&&!o.isLater&&new Date(o.deadline)<new Date();});
+      var todayEnd=new Date(); todayEnd.setHours(23,59,59,999);
+      var due=(_orders||[]).filter(function(o){return o.stage!=='delivered'&&!o.isLater&&new Date(o.deadline)<=todayEnd&&new Date(o.deadline)>=new Date();});
+      var active=(_orders||[]).filter(function(o){return o.stage!=='delivered';});
+      var bg=document.createElement('div');
+      bg.style.cssText='position:fixed;inset:0;z-index:999997;background:rgba(0,0,0,.9);display:flex;align-items:center;justify-content:center;font-family:inherit';
+      var dayName=new Date().toLocaleDateString('hi-IN',{weekday:'long',day:'numeric',month:'long'});
+      bg.innerHTML='<div style="background:linear-gradient(135deg,#0d1526,#1e1b4b);border-radius:20px;padding:28px 20px;width:320px;border:1px solid #1e3a5f;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.8)">'
+        +'<div style="font-size:28px;margin-bottom:6px">🌅</div>'
+        +'<div style="font-size:13px;color:#94a3b8;margin-bottom:4px">'+dayName+'</div>'
+        +'<div style="font-size:17px;font-weight:800;color:#e2e8f0;margin-bottom:18px">Good Morning, Vikram!</div>'
+        +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:18px">'
+        +'<div style="background:#0a0f1e;border-radius:10px;padding:10px 6px;border:1px solid #1e3a5f"><div style="font-size:20px;font-weight:800;color:#f59e0b">'+active.length+'</div><div style="font-size:9px;color:#64748b;margin-top:2px">Active</div></div>'
+        +'<div style="background:#0a0f1e;border-radius:10px;padding:10px 6px;border:1px solid '+(due.length?'#f59e0b55':'#1e3a5f')+'"><div style="font-size:20px;font-weight:800;color:#fbbf24">'+due.length+'</div><div style="font-size:9px;color:#64748b;margin-top:2px">आज Due</div></div>'
+        +'<div style="background:#0a0f1e;border-radius:10px;padding:10px 6px;border:1px solid '+(ov.length?'#ef444455':'#1e3a5f')+'"><div style="font-size:20px;font-weight:800;color:'+(ov.length?'#f87171':'#22c55e')+'">'+ov.length+'</div><div style="font-size:9px;color:#64748b;margin-top:2px">Overdue</div></div>'
+        +'</div>'
+        +(ov.length?'<div style="background:#450a0a;border:1px solid #991b1b44;border-radius:10px;padding:8px 10px;margin-bottom:12px;text-align:left"><div style="font-size:10px;color:#f87171;font-weight:800;margin-bottom:5px">⚠️ Overdue — तुरंत देखो:</div>'+ov.slice(0,3).map(function(o){return '<div style="font-size:11px;color:#fca5a5;padding:2px 0">• '+(o.customer||'')+' — '+(o.item||'')+'</div>';}).join('')+(ov.length>3?'<div style="font-size:10px;color:#7f1d1d">...और '+(ov.length-3)+' orders</div>':'')+'</div>':'')
+        +(due.length&&!ov.length?'<div style="background:#1c1917;border:1px solid #a16207;border-radius:10px;padding:8px 10px;margin-bottom:12px;text-align:left"><div style="font-size:10px;color:#fbbf24;font-weight:800;margin-bottom:5px">📅 आज का काम:</div>'+due.slice(0,3).map(function(o){return '<div style="font-size:11px;color:#fde68a;padding:2px 0">• '+(o.customer||'')+' — '+(o.item||'')+'</div>';}).join('')+'</div>':'')
+        +'<button onclick="this.closest(\'div\').parentNode.remove()" style="width:100%;padding:11px;border-radius:12px;border:none;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit">🚀 चलो काम करते हैं!</button>'
+        +'</div>';
+      document.body.appendChild(bg);
+      localStorage.setItem(KEY,today);
+    },2500);
+  },{ once:true });
+})();
+
 // ══ QR CODE ══
 window.openOrderQR=function(orderId){
   var o=_orders.find(function(x){return x.id===orderId;}); if(!o) return;
@@ -4802,13 +4895,15 @@ function renderList(){
       return true;
     })
     .sort((a,b)=>{
+      // Pinned orders always first
+      if(!!a.isPinned!==!!b.isPinned) return a.isPinned?-1:1;
       const ah = a.isHidden?1:0, bh = b.isHidden?1:0;
       if(ah!==bh) return ah-bh;
       const pv=p=>(p||'').includes('Urgent')?0:(p||'').includes('High')?1:2;
       if(pv(a.priority)!==pv(b.priority)) return pv(a.priority)-pv(b.priority);
       if(_sortMode==='customer') return (a.customer||'').localeCompare(b.customer||'');
       if(_sortMode==='newest') return (b.createdAt||b.id||0)>(a.createdAt||a.id||0)?1:-1;
-      return new Date(a.deadline)-new Date(b.deadline); // default: deadline
+      return new Date(a.deadline)-new Date(b.deadline);
     });
 
   const el=document.getElementById('olist');
@@ -4865,6 +4960,7 @@ function renderList(){
     const last=o.timeline&&o.timeline.length?o.timeline[o.timeline.length-1]:null;
     const lastStg=last?STAGES.find(s=>s.id===last.stage):null;
     const _ageStr = gsOrderAge ? gsOrderAge(o) : '';
+    const _ageBadge = gsOrderAgeBadge ? gsOrderAgeBadge(o) : '';
     const cat = o.category && CATEGORIES[o.category] ? CATEGORIES[o.category] : null;
     const aut = mbAutoEmoji((o.item||'')+' '+(o.note||''));
     const stripCls = mbStripClass(tl);
@@ -4880,6 +4976,7 @@ function renderList(){
 
     // Card class
     let cardCls = 'mb-card';
+    if(o.isPinned) cardCls += ' mb-pinned';
     if(tl.over && !o.isLater && !o.isNow) cardCls += ' mb-overdue';
     else {
       const minsLeft = o.deadline ? (new Date(o.deadline)-new Date())/60000 : Infinity;
@@ -4899,7 +4996,7 @@ function renderList(){
   <div style="position:absolute;left:0;top:0;bottom:0;width:5px;background:${sc};z-index:3;box-shadow:0 0 8px ${sc}66"></div>
   <!-- Top mission strip -->
   <div class="mb-strip ${stripCls}">
-    <span class="mb-strip-left">🎯 MISSION${_ageStr?' · '+esc(_ageStr):''}${cat?' · '+cat.emoji+' '+esc(cat.label):''}${o.snoozedUntil&&new Date(o.snoozedUntil)>new Date()?' · 😴 SNOOZED':''}${o.tmTaskId&&o.stage!=='delivered'?' · 🚀 FOCUS':''}${o.isLater?' · 🕐 LATER':''}${o.isNow?' · ⚡ अभी':''}${o.isHidden?' · 👁️ HIDDEN':''}</span>
+    <span class="mb-strip-left">${o.isPinned?'📌 ':'🎯 '}MISSION${_ageBadge?' · '+_ageBadge:''}${cat?' · '+cat.emoji+' '+esc(cat.label):''}${o.snoozedUntil&&new Date(o.snoozedUntil)>new Date()?' · 😴 SNOOZED':''}${o.tmTaskId&&o.stage!=='delivered'?' · 🚀 FOCUS':''}${o.isLater?' · 🕐 LATER':''}${o.isNow?' · ⚡ अभी':''}${o.isHidden?' · 👁️ HIDDEN':''}</span>
     <span class="mb-strip-right">${tl.over?'⚠️ ':''}${esc(tl.text||'')}${!tl.over&&o.deadline&&(new Date(o.deadline)-new Date())<86400000&&(new Date(o.deadline)-new Date())>0?` <span class="live-cd" data-dl="${o.deadline}" style="font-size:9px;color:#fb923c;font-weight:800"></span>`:''}</span>
   </div>
 
@@ -5113,6 +5210,8 @@ function renderList(){
     <!-- Tools -->
     <div class="mb-tools">
       <button class="mb-tool-btn edit" onclick="editOrder('${o.id}')" title="Edit">✏️</button>
+      <button class="mb-tool-btn" onclick="togglePin('${o.id}')" title="${o.isPinned?'Unpin':'Pin — ऊपर रखो'}" style="background:#0f172a;border:1px solid ${o.isPinned?'#f59e0b':'#334155'};color:${o.isPinned?'#f59e0b':'#94a3b8'}">${o.isPinned?'📌':'📍'}</button>
+      <button class="mb-tool-btn" onclick="repeatOrder('${o.id}')" title="🔁 Copy करके नया order बनाओ" style="background:#0f172a;border:1px solid #334155;color:#94a3b8">🔁</button>
       <button class="mb-tool-btn" onclick="openOrderQR('${o.id}')" title="QR Code" style="background:#0f172a;border:1px solid #334155;color:#94a3b8">📲</button>
       <button class="mb-tool-btn" onclick="saveTpl(_orders.find(x=>x.id==='${o.id}'))" title="Template बनाओ" style="background:#0f172a;border:1px solid #334155;color:#94a3b8">💾</button>
       <button class="mb-tool-btn danger" onclick="delOrder('${o.id}')" title="Delete">🗑</button>

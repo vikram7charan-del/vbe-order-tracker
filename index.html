@@ -1452,6 +1452,7 @@ select option{background:#0d1526}
     <button onclick="setFolder('now')" id="tab-now" style="flex:1;padding:5px;border-radius:8px;border:1px solid #f59e0b55;background:transparent;color:#64748b;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">⚡ अभी <span id="tab-now-cnt" style="background:#1e293b;border-radius:5px;padding:1px 5px;font-size:9px">0</span></button>
     <button onclick="setFolder('later')" id="tab-later" style="flex:1;padding:5px;border-radius:8px;border:1px solid #1e3a5f;background:transparent;color:#475569;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">🕐 Later <span id="tab-later-cnt" style="background:#1e293b;border-radius:5px;padding:1px 5px;font-size:9px">0</span></button>
     <button onclick="bulkSnoozeAll24h()" title="सभी pending/overdue को +24h आगे" style="padding:5px 9px;border-radius:8px;border:1px solid #7c2d12;background:linear-gradient(135deg,#7c2d1244,#ea580c44);color:#fb923c;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit">🚀 कल</button>
+    <button id="sort-btn" onclick="cycleSortMode()" title="Sort करो" style="padding:5px 9px;border-radius:8px;border:1px solid #1e3a5f;background:transparent;color:#64748b;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit">⇅</button>
   </div>
   <!-- Category Filter Chips — एक नज़र में पता चले कौन सा काम कौन सी category में -->
   <div id="cat-chips-row" style="padding:0 12px 6px;display:flex;gap:5px;overflow-x:auto;scrollbar-width:none">
@@ -4033,6 +4034,7 @@ async function mbSetStage(orderId, stageId){
     note: 'Stage updated from Mission Route',
     photo: null
   });
+  const oldStage = o.stage;
   await fbSave({...o, stage:stageId, timeline});
   if(stageId==='delivered'){
     vbeConfetti();
@@ -4042,6 +4044,9 @@ async function mbSetStage(orderId, stageId){
   } else {
     if(window._sfx) window._sfx.tick();
     if(typeof notif==='function') notif('✅ Stage → '+STAGES.find(s=>s.id===stageId)?.hi,'ok');
+    // ↩ Undo available for 5 seconds
+    _lastUndo={type:'stage', order:{...o, stage:oldStage, timeline:o.timeline||[]}, oldStage};
+    showUndoToast('Stage → '+(STAGES.find(s=>s.id===stageId)?.hi||stageId)+' — वापस जाना हो?');
   }
 }
 
@@ -4379,6 +4384,86 @@ window.exportWASummary=function(){
   notif('📊 WhatsApp summary खुल रहा है','ok');
 };
 
+// ══ UNDO SYSTEM ══
+var _lastUndo=null, _undoTimer=null, _undoCountdown=null;
+function showUndoToast(msg){
+  clearTimeout(_undoTimer); clearInterval(_undoCountdown);
+  var bar=document.getElementById('vbe-undo-bar');
+  var msg2=document.getElementById('vbe-undo-msg');
+  var cd=document.getElementById('vbe-undo-cd');
+  if(!bar||!msg2||!cd)return;
+  bar.style.display='flex'; msg2.textContent=msg; cd.textContent='5';
+  var secs=5;
+  _undoCountdown=setInterval(function(){ secs--; if(cd) cd.textContent=secs; if(secs<=0){ clearInterval(_undoCountdown); var b=document.getElementById('vbe-undo-bar'); if(b) b.style.display='none'; } },1000);
+  _undoTimer=setTimeout(function(){ var b=document.getElementById('vbe-undo-bar'); if(b) b.style.display='none'; _lastUndo=null; },5200);
+}
+window.doUndo=async function(){
+  clearTimeout(_undoTimer); clearInterval(_undoCountdown);
+  var bar=document.getElementById('vbe-undo-bar'); if(bar) bar.style.display='none';
+  if(!_lastUndo){ notif('↩ कुछ नहीं मिला UNDO करने को','warn'); return; }
+  var u=_lastUndo; _lastUndo=null;
+  if(u.type==='stage' && u.order){
+    await fbSave({...u.order, stage:u.oldStage, timeline:(u.order.timeline||[]).slice(0,-1)});
+    if(window._sfx) window._sfx.error();
+    notif('↩ Undo — Stage वापस: '+(STAGES.find(function(s){return s.id===u.oldStage;})||{}).hi,'info');
+  }
+};
+
+// ══ SORT MODE ══
+var _sortMode=localStorage.getItem('vbe_sort')||'deadline'; // 'deadline'|'customer'|'newest'
+var _sortLabels={deadline:'⇅ DL',customer:'⇅ A-Z',newest:'⇅ New'};
+function cycleSortMode(){
+  var modes=['deadline','customer','newest'];
+  var i=modes.indexOf(_sortMode); _sortMode=modes[(i+1)%modes.length];
+  localStorage.setItem('vbe_sort',_sortMode);
+  var btn=document.getElementById('sort-btn'); if(btn) btn.textContent=_sortLabels[_sortMode]||'⇅';
+  renderList();
+  notif('⇅ Sort: '+_sortMode,'info');
+}
+(function(){ var btn=document.getElementById('sort-btn'); if(btn) btn.textContent=_sortLabels[_sortMode]||'⇅'; })();
+
+// ══ LIVE COUNTDOWN ══
+function updateLiveCountdowns(){
+  document.querySelectorAll('.live-cd').forEach(function(el){
+    var dl=el.dataset.dl; if(!dl) return;
+    var ms=new Date(dl)-new Date();
+    if(ms<=0){ el.textContent='⚠️ Due!'; el.style.color='#f87171'; return; }
+    var h=Math.floor(ms/3600000), m=Math.floor((ms%3600000)/60000);
+    if(h<24){ el.textContent=(h>0?h+'h ':'')+m+'m'; el.style.color=h<2?'#fb923c':'#94a3b8'; }
+    else el.textContent='';
+  });
+}
+setInterval(updateLiveCountdowns,30000);
+
+// ══ CLIENT HISTORY ══
+window.openClientHistory=function(name){
+  if(!name||!_orders) return;
+  var all=_orders.filter(function(o){return (o.customer||'').toLowerCase()===name.toLowerCase();});
+  all.sort(function(a,b){return new Date(b.deadline||0)-new Date(a.deadline||0);});
+  var bg=document.getElementById('vbe-client-hist');
+  if(!bg){ bg=document.createElement('div'); bg.id='vbe-client-hist';
+    bg.style.cssText='display:none;position:fixed;inset:0;z-index:999991;background:rgba(0,0,0,.88);align-items:flex-end;justify-content:center';
+    document.body.appendChild(bg); }
+  var rows=all.map(function(o){
+    var stg=STAGES.find(function(s){return s.id===o.stage;})||{};
+    var dl=o.deadline?new Date(o.deadline).toLocaleDateString('hi-IN',{day:'numeric',month:'short',year:'2-digit'}):'-';
+    var isDel=o.stage==='delivered';
+    return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #1e293b">'
+      +'<span style="font-size:16px">'+(stg.emoji||'📦')+'</span>'
+      +'<div style="flex:1;min-width:0"><div style="font-size:12px;color:'+(isDel?'#475569':'#e2e8f0')+';font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(o.item||'-')+'</div>'
+      +'<div style="font-size:10px;color:#64748b">'+dl+' · '+(stg.hi||o.stage)+(o.staff?' · '+o.staff:'')+'</div></div>'
+      +(isDel?'<span style="font-size:9px;background:#05262066;color:#22c55e;border:1px solid #22c55e44;border-radius:4px;padding:2px 5px;font-weight:700">✓ Done</span>':'<span style="font-size:9px;background:'+( stg.color||'#475569')+'22;color:'+(stg.color||'#e2e8f0')+';border:1px solid '+(stg.color||'#475569')+'44;border-radius:4px;padding:2px 5px;font-weight:700">'+(stg.hi||'Active')+'</span>')
+      +'</div>';
+  }).join('');
+  bg.innerHTML='<div style="background:#0d1526;border-radius:20px 20px 0 0;padding:20px 16px 36px;width:100%;max-width:480px;border:1px solid #1e3a5f;border-bottom:none;font-family:inherit;max-height:70vh;overflow-y:auto">'
+    +'<div style="font-size:13px;color:#94a3b8;text-align:center;margin-bottom:14px;font-weight:700">👤 '+name+' · <span style="color:#e2e8f0">'+all.length+' Orders</span></div>'
+    +(rows||'<div style="text-align:center;color:#475569;padding:20px">कोई orders नहीं</div>')
+    +'<button onclick="document.getElementById(\'vbe-client-hist\').style.display=\'\'" style="width:100%;padding:11px;border-radius:12px;border:1px solid #1e3a5f;background:transparent;color:#64748b;font-size:14px;font-family:inherit;cursor:pointer;margin-top:14px">बंद करो</button>'
+    +'</div>';
+  bg.style.display='flex';
+  bg.addEventListener('click',function(e){ if(e.target===bg) bg.style.display=''; },{once:true});
+};
+
 // ══ TAB SWIPE (olist background) ══
 (function(){
   var folders=['active','now','later'];
@@ -4431,12 +4516,13 @@ function renderList(){
       return true;
     })
     .sort((a,b)=>{
-      // Hidden cards हमेशा नीचे (पर list में रहें)
       const ah = a.isHidden?1:0, bh = b.isHidden?1:0;
       if(ah!==bh) return ah-bh;
       const pv=p=>(p||'').includes('Urgent')?0:(p||'').includes('High')?1:2;
       if(pv(a.priority)!==pv(b.priority)) return pv(a.priority)-pv(b.priority);
-      return new Date(a.deadline)-new Date(b.deadline);
+      if(_sortMode==='customer') return (a.customer||'').localeCompare(b.customer||'');
+      if(_sortMode==='newest') return (b.createdAt||b.id||0)>(a.createdAt||a.id||0)?1:-1;
+      return new Date(a.deadline)-new Date(b.deadline); // default: deadline
     });
 
   const el=document.getElementById('olist');
@@ -4527,7 +4613,7 @@ function renderList(){
   <!-- Top mission strip -->
   <div class="mb-strip ${stripCls}">
     <span class="mb-strip-left">🎯 MISSION${_ageStr?' · '+esc(_ageStr):''}${cat?' · '+cat.emoji+' '+esc(cat.label):''}${o.snoozedUntil&&new Date(o.snoozedUntil)>new Date()?' · 😴 SNOOZED':''}${o.tmTaskId&&o.stage!=='delivered'?' · 🚀 FOCUS':''}${o.isLater?' · 🕐 LATER':''}${o.isNow?' · ⚡ अभी':''}${o.isHidden?' · 👁️ HIDDEN':''}</span>
-    <span class="mb-strip-right">${tl.over?'⚠️ ':''}${esc(tl.text||'')}</span>
+    <span class="mb-strip-right">${tl.over?'⚠️ ':''}${esc(tl.text||'')}${!tl.over&&o.deadline&&(new Date(o.deadline)-new Date())<86400000&&(new Date(o.deadline)-new Date())>0?` <span class="live-cd" data-dl="${o.deadline}" style="font-size:9px;color:#fb923c;font-weight:800"></span>`:''}</span>
   </div>
 
   <!-- Body: task + action rail -->
@@ -4536,7 +4622,7 @@ function renderList(){
       <div class="mb-task-head">
         <div class="mb-emoji ${aut.cls}">${aut.em}</div>
         <div style="flex:1;min-width:0">
-          <div class="mb-staff-line">👤 <b>${esc(o.customer||'')}</b>${o.staff?` · <span style="background:${sc}22;color:${sc};border:1px solid ${sc}55;border-radius:6px;padding:1px 7px;font-weight:800;font-size:10px;white-space:nowrap">${esc(o.staff)}</span>`:''}</div>
+          <div class="mb-staff-line">👤 <b onclick="event.stopPropagation();openClientHistory('${esc(o.customer||'')}')" title="सारे orders देखो" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px">${esc(o.customer||'')}</b>${o.staff?` · <span style="background:${sc}22;color:${sc};border:1px solid ${sc}55;border-radius:6px;padding:1px 7px;font-weight:800;font-size:10px;white-space:nowrap">${esc(o.staff)}</span>`:''}</div>
         </div>
         <!-- 👁️ Hide button only — task को collapse करता है, list में रहता है -->
         <div style="display:flex;gap:4px;flex-shrink:0">
@@ -4753,6 +4839,8 @@ function renderList(){
   try { updateReminderBadge(); } catch(e){}
   // Swipe gestures
   setTimeout(addSwipeToCards, 50);
+  // Live countdowns — immediately fill in the spans
+  setTimeout(updateLiveCountdowns, 0);
 }
 
 // ─── Card पर scroll करो (Global Search से) — FIXED v2 ───
@@ -11272,6 +11360,13 @@ window._db=window._db||null;
     </div>
     <button id="vbeNav-close" onclick="vbeNavClose()">✕ बंद करें</button>
   </div>
+<!-- ══ UNDO BAR ══ -->
+<div id="vbe-undo-bar" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:440px;background:#1e293b;border:1px solid #334155;border-radius:14px;padding:10px 14px;z-index:999993;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,.6);font-family:'Noto Sans Devanagari',system-ui,sans-serif">
+  <span id="vbe-undo-msg" style="flex:1;font-size:12px;color:#e2e8f0"></span>
+  <button onclick="doUndo()" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:800;padding:6px 12px;cursor:pointer;font-family:inherit">↩ UNDO</button>
+  <span id="vbe-undo-cd" style="font-size:10px;color:#64748b;min-width:14px;text-align:center">5</span>
+</div>
+
 <!-- ══ OFFLINE BANNER ══ -->
 <div id="vbe-offline-bar">🔴 Internet नहीं — Offline Mode</div>
 

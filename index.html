@@ -3370,9 +3370,8 @@ function renderStats(){
   const ov=_orders.filter(o=>o.stage!=='delivered'&&!o.isLater&&new Date(o.deadline)<new Date()).length;
   const todayEnd=new Date(); todayEnd.setHours(23,59,59,999);
   const todayCnt=_orders.filter(o=>o.stage!=='delivered'&&!o.isLater&&new Date(o.deadline)<=todayEnd&&new Date(o.deadline)>=new Date()).length;
-  document.getElementById('s-act').textContent=act;
-  document.getElementById('s-del').textContent=_orders.filter(o=>o.stage==='delivered').length;
-  document.getElementById('s-ov').textContent=ov;
+  const delCnt=_orders.filter(o=>o.stage==='delivered').length;
+  _animCount('s-act',act); _animCount('s-del',delCnt); _animCount('s-ov',ov);
   const ta=document.getElementById('tab-act-cnt');
   const tn=document.getElementById('tab-now-cnt');
   const tl=document.getElementById('tab-later-cnt');
@@ -3995,7 +3994,13 @@ async function mbSetStage(orderId, stageId){
     photo: null
   });
   await fbSave({...o, stage:stageId, timeline});
-  if(typeof notif==='function') notif('✅ Stage update हो गया','ok');
+  if(stageId==='delivered'){
+    vbeConfetti();
+    if(navigator.vibrate) navigator.vibrate([50,30,80,30,120]);
+    notif('🎉 Order Delivered! शानदार काम!','ok');
+  } else {
+    if(typeof notif==='function') notif('✅ Stage → '+STAGES.find(s=>s.id===stageId)?.hi,'ok');
+  }
 }
 
 // Toggle peek header — FIXED v2: सही show/hide
@@ -4017,6 +4022,52 @@ function mbTogglePeekHeader(){
       if(peekArrow) peekArrow.textContent = '▼';
     }
   }catch(e){ console.warn('peek toggle error:',e); }
+}
+
+// ══ ANIMATED COUNTER ══
+function _animCount(id,target){
+  const el=document.getElementById(id); if(!el) return;
+  const from=parseInt(el.textContent)||0;
+  if(from===target){ el.textContent=target; return; }
+  const dur=400, start=performance.now();
+  function step(now){
+    const p=Math.min(1,(now-start)/dur);
+    const ease=1-Math.pow(1-p,3);
+    el.textContent=Math.round(from+(target-from)*ease);
+    if(p<1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+// ══ CONFETTI ON DELIVERY ══
+function vbeConfetti(){
+  const c=document.createElement('canvas');
+  c.style.cssText='position:fixed;inset:0;z-index:999995;pointer-events:none';
+  c.width=window.innerWidth; c.height=window.innerHeight;
+  document.body.appendChild(c);
+  const ctx=c.getContext('2d');
+  const cols=['#f59e0b','#ef4444','#10b981','#6366f1','#f97316','#ec4899','#fff'];
+  const pts=Array.from({length:90},()=>({
+    x:Math.random()*c.width, y:Math.random()*c.height*0.3,
+    vx:(Math.random()-.5)*7, vy:Math.random()*4+2,
+    col:cols[Math.floor(Math.random()*cols.length)],
+    w:Math.random()*10+4, h:Math.random()*6+3,
+    rot:Math.random()*360, rv:(Math.random()-.5)*12, life:1
+  }));
+  let raf;
+  (function draw(){
+    ctx.clearRect(0,0,c.width,c.height);
+    let alive=false;
+    pts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; p.vy+=0.15; p.rot+=p.rv; p.life-=0.012;
+      if(p.life<=0) return; alive=true;
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot*Math.PI/180);
+      ctx.globalAlpha=p.life; ctx.fillStyle=p.col;
+      ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h); ctx.restore();
+    });
+    if(alive) raf=requestAnimationFrame(draw); else c.remove();
+  })();
+  setTimeout(()=>{ cancelAnimationFrame(raf); c.remove(); },5000);
 }
 
 // ══ SKELETON LOADING ══
@@ -4194,14 +4245,19 @@ function renderList(){
 
   const el=document.getElementById('olist');
   if(!list.length){
-    let msg='📦 Active में कोई काम नहीं';
-    if(_activeFolder==='now') msg='⚡ अभी कोई काम नहीं — किसी card पर ⚡ दबाओ';
-    if(_activeFolder==='later') msg='🕐 Later में कोई काम नहीं';
-    if(_categoryFilter){
-      const c=CATEGORIES[_categoryFilter];
-      msg=`${c?c.emoji:''} ${c?c.label:''} में कोई काम नहीं`;
-    }
-    el.innerHTML=`<div style="text-align:center;color:#334155;padding:40px;font-size:13px">${msg}<br><span style="font-size:10px;color:#1e293b">नीचे + से नया order जोड़ो</span></div>`;
+    let icon='📭', title='Active में कोई काम नहीं', sub='+ बटन से नया order जोड़ें';
+    if(_activeFolder==='now'){ icon='⚡'; title='अभी कोई काम नहीं'; sub='किसी card पर ⚡ दबाओ'; }
+    if(_activeFolder==='later'){ icon='🕐'; title='Later में कोई काम नहीं'; sub='किसी card पर 🕐 दबाओ'; }
+    if(_staffFilter){ icon='👤'; title=_staffFilter+' के पास कोई काम नहीं'; sub='ऊपर Filter हटाओ'; }
+    if(_categoryFilter){ const c=CATEGORIES[_categoryFilter]; icon=c?c.emoji:'📂'; title=(c?c.label:_categoryFilter)+' में कोई काम नहीं'; sub='दूसरी category चुनें'; }
+    const q2=(document.getElementById('srch')?.value||'').trim();
+    if(q2){ icon='🔍'; title='"'+q2+'" नहीं मिला'; sub='दूसरे शब्द से ढूंढें'; }
+    el.innerHTML=`<div style="text-align:center;padding:52px 20px 40px">
+      <div style="font-size:52px;margin-bottom:12px;opacity:.25;filter:grayscale(1)">${icon}</div>
+      <div style="font-size:15px;color:#475569;font-weight:700;margin-bottom:6px">${title}</div>
+      <div style="font-size:11px;color:#334155;margin-bottom:20px">${sub}</div>
+      ${!_staffFilter&&!_categoryFilter&&!q2&&_activeFolder==='active'?`<button onclick="openAdd()" style="padding:11px 28px;border:none;border-radius:12px;background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(239,68,68,.4)">+ नया Order जोड़ें</button>`:''}
+    </div>`;
     return;
   }
 
@@ -7343,18 +7399,45 @@ function anRender(){
       }).join('')
     : '<div style="color:#334155;font-size:11px;text-align:center;padding:12px">इस period में assigned orders नहीं</div>';
 
-  // ── Status Breakdown ──
+  // ── Status Breakdown (SVG Donut + Bars) ──
   const stageCnt={};
   STAGES.forEach(s=>stageCnt[s.id]=0);
   filtered.forEach(o=>{if(stageCnt[o.stage]!==undefined)stageCnt[o.stage]++;});
-  const maxSg=Math.max(...Object.values(stageCnt),1);
   const sgEl=document.getElementById('an-status-breakdown');
-  if(sgEl) sgEl.innerHTML=STAGES.map(s=>`
-    <div class="an-bar-row">
+  if(sgEl){
+    const total=Object.values(stageCnt).reduce((a,b)=>a+b,0)||1;
+    const R=15.9, C=2*Math.PI*R;
+    let offset=0;
+    const arcs=STAGES.map(s=>{
+      const pct=stageCnt[s.id]/total;
+      const dash=pct*C; const gap=C-dash;
+      const arc=`<circle cx="18" cy="18" r="${R}" fill="none" stroke="${s.color}" stroke-width="3.5"
+        stroke-dasharray="${dash.toFixed(2)} ${gap.toFixed(2)}"
+        stroke-dashoffset="${(C-offset).toFixed(2)}" style="transition:stroke-dasharray .6s ease"/>`;
+      offset+=dash; return arc;
+    }).join('');
+    const maxSg=Math.max(...Object.values(stageCnt),1);
+    sgEl.innerHTML=`
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px">
+        <svg viewBox="0 0 36 36" style="width:72px;height:72px;flex-shrink:0;transform:rotate(-90deg)">
+          <circle cx="18" cy="18" r="${R}" fill="none" stroke="#1e3a5f" stroke-width="3.5"/>
+          ${arcs}
+        </svg>
+        <div style="flex:1;display:flex;flex-direction:column;gap:3px">
+          ${STAGES.map(s=>`<div style="display:flex;align-items:center;gap:6px;font-size:10px">
+            <span style="width:8px;height:8px;border-radius:50%;background:${s.color};flex-shrink:0"></span>
+            <span style="color:#94a3b8;flex:1">${s.emoji} ${s.hi}</span>
+            <span style="color:${s.color};font-weight:800">${stageCnt[s.id]}</span>
+            <span style="color:#334155;font-size:9px">${Math.round(stageCnt[s.id]/total*100)}%</span>
+          </div>`).join('')}
+        </div>
+      </div>`
+    +STAGES.map(s=>`<div class="an-bar-row">
       <div class="an-bar-label">${s.emoji} ${s.hi}</div>
       <div class="an-bar-bg"><div class="an-bar-fill" style="width:${Math.round((stageCnt[s.id]/maxSg)*100)}%;background:${s.color}"></div></div>
       <div class="an-bar-val" style="color:${s.color}">${stageCnt[s.id]}</div>
     </div>`).join('');
+  }
 
   // ── Insights ──
   const ins=[];

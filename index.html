@@ -4118,8 +4118,6 @@ async function mbSetStage(orderId, stageId){
     if(window._sfx) window._sfx.chime();
     if(navigator.vibrate) navigator.vibrate([50,30,80,30,120]);
     notif('🎉 Order Delivered! शानदार काम!','ok');
-    // Auto WA prompt on delivery
-    if(o.phone) showWaPrompt(o.id,'delivered');
   } else {
     if(window._sfx) window._sfx.tick();
     if(typeof notif==='function') notif('✅ Stage → '+STAGES.find(s=>s.id===stageId)?.hi,'ok');
@@ -4301,7 +4299,8 @@ function openSwipeActions(orderId){
   function _swClose(){ bg.style.display=''; vbeHistPop(); }
   bg.innerHTML='<div style="background:#0d1526;border-radius:20px 20px 0 0;padding:20px 16px 36px;width:100%;max-width:480px;border:1px solid #1e3a5f;border-bottom:none;font-family:inherit">'
     +'<div style="font-size:12px;color:#94a3b8;text-align:center;margin-bottom:14px">⚡ Quick Actions · <b style="color:#e2e8f0">'+esc(o.customer)+'</b></div>'
-    +(nextStg?'<button onclick="window._swAct(\'stage\',\''+orderId+'\',\''+nextStg.id+'\')" style="display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;margin-bottom:8px;border-radius:12px;border:1px solid #1e3a5f;background:#0a0f1e;color:#e2e8f0;font-size:14px;font-family:inherit;cursor:pointer">'+nextStg.emoji+' Stage बढ़ाओ → '+nextStg.hi+'</button>':'')
+    +'<button onclick="window._swAct(\'deliver\',\''+orderId+'\')" style="display:flex;align-items:center;gap:12px;width:100%;padding:14px 16px;margin-bottom:10px;border-radius:14px;border:1.5px solid rgba(16,185,129,.5);background:linear-gradient(135deg,#052e16,#065f46);color:#6ee7b7;font-size:15px;font-weight:800;font-family:inherit;cursor:pointer;box-shadow:0 4px 16px rgba(16,185,129,.2)">🎉 Deliver करो — काम पूरा!</button>'
+    +(nextStg && nextStg.id!=='delivered'?'<button onclick="window._swAct(\'stage\',\''+orderId+'\',\''+nextStg.id+'\')" style="display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;margin-bottom:8px;border-radius:12px;border:1px solid #1e3a5f;background:#0a0f1e;color:#e2e8f0;font-size:14px;font-family:inherit;cursor:pointer">'+nextStg.emoji+' Stage बढ़ाओ → '+nextStg.hi+'</button>':'')
     +'<button onclick="window._swAct(\'fwd\',\''+orderId+'\')" style="display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;margin-bottom:8px;border-radius:12px;border:1px solid #1e3a5f;background:#0a0f1e;color:#e2e8f0;font-size:14px;font-family:inherit;cursor:pointer">⏩ +24h आगे बढ़ाओ</button>'
     +(o.phone?'<button onclick="window._swAct(\'wa\',\''+orderId+'\')" style="display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;margin-bottom:8px;border-radius:12px;border:1px solid #1e3a5f;background:#0a0f1e;color:#e2e8f0;font-size:14px;font-family:inherit;cursor:pointer">📱 WhatsApp भेजो</button>':'')
     +'<button onclick="window._swAct(\'share\',\''+orderId+'\')" style="display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;margin-bottom:8px;border-radius:12px;border:1px solid #1e3a5f;background:#0a0f1e;color:#e2e8f0;font-size:14px;font-family:inherit;cursor:pointer">🔗 Share / Copy</button>'
@@ -4313,7 +4312,8 @@ function openSwipeActions(orderId){
   bg.style.display='flex';
   window._swAct=async function(action,oid,extra){
     _swClose();
-    if(action==='stage') mbSetStage(oid,extra);
+    if(action==='deliver') mbSetStage(oid,'delivered');
+    else if(action==='stage') mbSetStage(oid,extra);
     else if(action==='fwd') quickForward(oid,24);
     else if(action==='wa') sendWA(oid);
     else if(action==='del') delOrder(oid);

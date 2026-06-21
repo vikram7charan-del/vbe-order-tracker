@@ -11884,9 +11884,9 @@ window._db=window._db||null;
 #vbeNav-fab:active{transform:scale(.88)}
 #vbeNav-ovl{display:none;position:fixed;inset:0;z-index:9400;background:rgba(0,0,0,.72);backdrop-filter:blur(12px) saturate(120%);-webkit-backdrop-filter:blur(12px) saturate(120%);}
 #vbeNav-ovl.open{display:block}
-#vbeNav-panel{position:absolute;bottom:90px;left:16px;background:rgba(8,11,22,.97);border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:14px 12px 12px;width:252px;max-height:80vh;overflow-y:auto;scrollbar-width:none;box-shadow:0 24px 64px rgba(0,0,0,.75),0 1px 0 rgba(255,255,255,.05) inset;transform-origin:bottom left;animation:vbeNavIn .22s cubic-bezier(.32,.72,0,1) both;}
+#vbeNav-panel{position:absolute;bottom:90px;left:16px;background:rgba(8,11,22,.97);border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:14px 12px 12px;width:252px;max-height:80vh;overflow-y:auto;scrollbar-width:none;box-shadow:0 24px 64px rgba(0,0,0,.75),0 1px 0 rgba(255,255,255,.05) inset;transform-origin:bottom left;animation:vbeNavIn .22s cubic-bezier(.32,.72,0,1) both;touch-action:pan-y;}
 #vbeNav-panel::-webkit-scrollbar{display:none}
-@keyframes vbeNavIn{from{opacity:0;transform:scale(.82) translateY(14px)}to{opacity:1;transform:none}}
+@keyframes vbeNavIn{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
 #vbeNav-panel h6{font-size:9px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:rgba(255,255,255,.25);font-family:system-ui,-apple-system,sans-serif;margin:0 2px 8px;}
 .vbeNav-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
 .vbeNav-link{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px 9px;border-radius:12px;text-decoration:none;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);transition:all .14s;-webkit-tap-highlight-color:transparent;}
@@ -11908,18 +11908,18 @@ window._db=window._db||null;
   <div id="vbeNav-panel" onclick="event.stopPropagation()">
     <h6>⚡ VBE — त्वरित कार्य</h6>
     <div class="vbeNav-acts">
-      <button class="vbeNav-act" onclick="vbeNavClose();openBookUpdate()">📖<span>बुक</span></button>
-      <button class="vbeNav-act" onclick="vbeNavClose();openReckoning()">📒<span>दिन हिसाब</span></button>
-      <button class="vbeNav-act" onclick="vbeNavClose();openAnalytics()">📊<span>Analytics</span></button>
-      <button class="vbeNav-act" onclick="vbeNavClose();openArchive()">✅<span>Archive</span></button>
-      <button class="vbeNav-act" onclick="vbeNavClose();openStaffMgr()">👥<span>Staff</span></button>
-      <button class="vbeNav-act" onclick="vbeNavClose();openFieldVisit()">🪖<span>Field</span></button>
-      <button class="vbeNav-act" onclick="vbeNavClose();openReminderCenter()">📅<span>याद</span></button>
-      <button class="vbeNav-act" onclick="vbeNavClose();openFavDial()">⭐<span>Favs</span></button>
-      <button class="vbeNav-act" onclick="vbeNavClose();openHiddenManager()">👁️<span>Hidden</span></button>
-      <button class="vbeNav-act" onclick="vbeNavClose();openUniversalSummary()">📋<span>Summary</span></button>
-      <button class="vbeNav-act" onclick="vbeNavClose();openRewards()">🏆<span>Points</span></button>
-      <button class="vbeNav-act" onclick="vbeNavClose();openFwdPolicy()">⚙️<span>Settings</span></button>
+      <button class="vbeNav-act" data-fn="openBookUpdate" type="button">📖<span>बुक</span></button>
+      <button class="vbeNav-act" data-fn="openReckoning" type="button">📒<span>दिन हिसाब</span></button>
+      <button class="vbeNav-act" data-fn="openAnalytics" type="button">📊<span>Analytics</span></button>
+      <button class="vbeNav-act" data-fn="openArchive" type="button">✅<span>Archive</span></button>
+      <button class="vbeNav-act" data-fn="openStaffMgr" type="button">👥<span>Staff</span></button>
+      <button class="vbeNav-act" data-fn="openFieldVisit" type="button">🪖<span>Field</span></button>
+      <button class="vbeNav-act" data-fn="openReminderCenter" type="button">📅<span>याद</span></button>
+      <button class="vbeNav-act" data-fn="openFavDial" type="button">⭐<span>Favs</span></button>
+      <button class="vbeNav-act" data-fn="openHiddenManager" type="button">👁️<span>Hidden</span></button>
+      <button class="vbeNav-act" data-fn="openUniversalSummary" type="button">📋<span>Summary</span></button>
+      <button class="vbeNav-act" data-fn="openRewards" type="button">🏆<span>Points</span></button>
+      <button class="vbeNav-act" data-fn="openFwdPolicy" type="button">⚙️<span>Settings</span></button>
     </div>
     <div class="vbeNav-div"></div>
     <h6>📄 Pages</h6>
@@ -12126,6 +12126,37 @@ window.vbeInstall=function(){
   function vbeNavClose(){ document.getElementById('vbeNav-ovl').classList.remove('open'); }
   window.vbeNavToggle = vbeNavToggle;
   window.vbeNavClose = vbeNavClose;
+
+  // Robust touch/click handler for nav action buttons (data-fn approach)
+  var _panel = document.getElementById('vbeNav-panel');
+  if (_panel) {
+    var _touched = false;
+    function _runNavAct(e) {
+      var btn = e.target.closest('[data-fn]');
+      if (!btn) return;
+      e.stopPropagation();
+      e.preventDefault();
+      var fn = btn.getAttribute('data-fn');
+      vbeNavClose();
+      setTimeout(function(){
+        try {
+          var f = window[fn];
+          if (typeof f === 'function') { f(); }
+          else { console.warn('[VBE Nav] not found:', fn); }
+        } catch(err) { console.error('[VBE Nav]', fn, err); }
+      }, 30);
+    }
+    _panel.addEventListener('touchend', function(e){
+      _touched = true;
+      _runNavAct(e);
+      setTimeout(function(){ _touched = false; }, 400);
+    }, {passive: false});
+    _panel.addEventListener('click', function(e){
+      if (_touched) return; // already handled by touchend
+      _runNavAct(e);
+    });
+  }
+
   try{
     var p = location.pathname;
     var isRoot = p==='/' || p.endsWith('/index.html') || p.endsWith('/');

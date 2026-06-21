@@ -11118,15 +11118,21 @@ window._db=window._db||null;
   // ════════ 2×2 preview render ════════
   function renderBoardPreview(d){
     var el=document.getElementById('kd-board-'+d.key); if(!el) return;
-    var list=KD.boards[d.key]||[]; el.style.setProperty('--kdc',d.color);
+    var allTasks=KD.boards[d.key]||[]; el.style.setProperty('--kdc',d.color);
+    // जरूरी (urgent) पहले, done tasks grid preview में नहीं दिखेंगे
+    var urgPend=allTasks.filter(function(t){return !t.done&&t.urgent;});
+    var normPend=allTasks.filter(function(t){return !t.done&&!t.urgent;});
+    var list=urgPend.concat(normPend);
     var body;
     if(list.length===0){
       body='<div class="kd-empty" onclick="kdOpenBoard(\''+d.key+'\')"><div class="kd-em-ch">✓</div><div class="kd-em-tx">कोई लंबित कार्य नहीं</div></div>';
     } else {
       var rows=list.slice(0,4).map(function(t,i){
-        return '<div class="kd-prow'+(t.done?' done':'')+'"><span class="kd-psn">'+(i+1)+'.</span><span class="kd-ptx">'+escH(t.text)+'</span></div>';
+        return '<div class="kd-prow"><span class="kd-psn">'+(t.urgent?'🔴 ':'')+(i+1)+'.</span><span class="kd-ptx">'+escH(t.text)+'</span></div>';
       }).join('');
-      var more=list.length>4?'<div class="kd-more" onclick="kdOpenBoard(\''+d.key+'\')">और '+(list.length-4)+' · पूरा पेज खोलें ›</div>':'<div class="kd-more" onclick="kdOpenBoard(\''+d.key+'\')">पूरा पेज खोलें ›</div>';
+      var doneCnt=allTasks.filter(function(t){return t.done;}).length;
+      var extraTxt=list.length>4?'और '+(list.length-4)+' लंबित':(doneCnt>0?'✅ '+doneCnt+' पूरे':'');
+      var more='<div class="kd-more" onclick="kdOpenBoard(\''+d.key+'\')">'+(extraTxt?extraTxt+' · ':'')+'पूरा पेज खोलें ›</div>';
       body='<div class="kd-b-list" onclick="kdOpenBoard(\''+d.key+'\')">'+rows+more+'</div>';
     }
     el.innerHTML=
@@ -11207,6 +11213,7 @@ window._db=window._db||null;
           }
         }
         row2+='<button class="kd-tb" style="background:rgba(99,102,241,.12);color:#818cf8;border:1px solid rgba(99,102,241,.3)" onclick="event.stopPropagation();window.kdMoveBoardOpen(\''+_openBoard+'\',\''+x.id+'\')">🔄 बोर्ड</button>';
+        if(!x.srcId) row2+='<button class="kd-tb" style="background:rgba(16,185,129,.14);color:#10b981;border:1px solid rgba(16,185,129,.35);font-weight:800" onclick="event.stopPropagation();window.kdPushToOrders(\''+_openBoard+'\',\''+x.id+'\')">📋 Order में</button>';
       } else {
         row2='<button class="kd-tb restore" onclick="event.stopPropagation();kdToggle(\''+_openBoard+'\',\''+x.id+'\')">↩ वापस लाओ</button>';
       }
@@ -11734,6 +11741,35 @@ window._db=window._db||null;
     if(typeof window.bkRefresh==='function') window.bkRefresh();
     return true;
   };
+  // ── डायरी task को Order Tracker में जोड़ो (one-click) ──
+  window.kdPushToOrders=async function(boardKey,taskId){
+    var arr=KD.boards[boardKey]||[];
+    var t=arr.find(function(x){return x.id===taskId;});
+    if(!t){toast('❌ काम नहीं मिला');return;}
+    if(t.srcId){toast('📋 पहले से Order Tracker में है');return;}
+    if(!window._db||!window._addDoc||!window._collection||!window._doc||!window._setDoc){toast('❌ Firebase ready नहीं');return;}
+    toast('⏳ Order Tracker में जोड़ा जा रहा है...');
+    try{
+      var CAT_MAP={gem:'gem',market:'market',followup:'follow',morning:'other'};
+      var now=new Date().toISOString();
+      var orderData={
+        customer:t.text.slice(0,60),item:t.text,qty:'',phone:'',
+        note:'📖 कार्य डायरी से जोड़ा ('+def(boardKey).name+')',
+        stage:'received',category:CAT_MAP[boardKey]||'other',
+        staff:sessionStorage.getItem('vbe_user_name')||'Vikram',
+        deadline:new Date(Date.now()+86400000).toISOString(),
+        createdAt:now,
+        timeline:[{stage:'received',time:now,note:'📖 कार्य डायरी से जोड़ा'}],
+      };
+      var ref=await window._addDoc(window._collection(window._db,'vbe_orders'),orderData);
+      await window._setDoc(window._doc(window._db,'vbe_orders',ref.id),{id:ref.id},{merge:true});
+      t.srcId=ref.id;
+      save(); renderActive();
+      toast('✅ Order Tracker में जोड़ा!');
+    }catch(e){
+      toast('❌ नहीं जोड़ा: '+e.message);
+    }
+  };
   window.kdRemoveByOrder=function(orderId){
     var removed=false;
     KEYS.forEach(function(k){
@@ -11860,7 +11896,7 @@ window._db=window._db||null;
 .vbeNav-lbl{font-size:9.5px;font-weight:700;color:rgba(255,255,255,.6);text-align:center;line-height:1.2;font-family:'Noto Sans Devanagari',system-ui,sans-serif;}
 .vbeNav-link.vbeNav-cur .vbeNav-lbl{color:#f59e0b}
 .vbeNav-acts{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:10px}
-.vbeNav-act{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px 7px;border-radius:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);color:#e2e8f0;font-size:15px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .14s;font-family:inherit;position:relative}
+.vbeNav-act{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px 7px;border-radius:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);color:#e2e8f0;font-size:15px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .14s;font-family:inherit;position:relative;touch-action:manipulation}
 .vbeNav-act span{font-size:8px;font-weight:700;color:rgba(255,255,255,.45);text-align:center;font-family:'Noto Sans Devanagari',system-ui,sans-serif;line-height:1}
 .vbeNav-act:active{transform:scale(.92);background:rgba(245,158,11,.12)}
 .vbeNav-div{height:1px;background:rgba(255,255,255,.06);margin:8px 0}

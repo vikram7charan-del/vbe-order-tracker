@@ -1098,7 +1098,7 @@ mark.srch-hl{background:#f59e0b44;color:#fbbf24;border-radius:2px;padding:0 1px;
 
 /* ⚡ Quick action row — सारे बटन एक जैसी premium pill shape में */
 .mb-card{font-family:'Mukta','Noto Sans Devanagari',sans-serif}
-.mb-quick{display:flex;gap:5px;margin-top:7px;flex-wrap:wrap}
+.mb-quick{display:flex;gap:5px;margin-top:7px;flex-wrap:wrap;touch-action:manipulation}
 .mb-quick button{padding:3px 8px !important;font-size:10px !important}
 .mb-quick button{
   border-radius:9px !important;
@@ -1108,6 +1108,7 @@ mark.srch-hl{background:#f59e0b44;color:#fbbf24;border-radius:2px;padding:0 1px;
   border:1px solid rgba(255,255,255,.10) !important;
   box-shadow:0 3px 9px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.16);
   transition:transform .12s, box-shadow .12s;
+  touch-action:manipulation !important;
 }
 .mb-quick button:active{transform:scale(.94);box-shadow:0 1px 4px rgba(0,0,0,.4)}
 .mb-quick > span{border-radius:9px !important;padding:5px 11px !important;font-size:10.5px !important;display:inline-flex;align-items:center}
@@ -5529,8 +5530,9 @@ async function quickForward(id, hours){
   if(!o){ notif('❌ Order नहीं मिला','danger'); return; }
   if(o.stage==='delivered'){ notif('✅ Delivered order — आगे बढ़ाने की ज़रूरत नहीं','warn'); return; }
 
-  const oldDl = new Date(o.deadline);
-  const baseTime = (oldDl < new Date()) ? new Date() : oldDl; // overdue है तो "अभी" से, वरना deadline से
+  const oldDl = o.deadline ? new Date(o.deadline) : null;
+  const validDl = oldDl && !isNaN(oldDl.getTime());
+  const baseTime = (validDl && oldDl > new Date()) ? oldDl : new Date(); // overdue या no deadline तो "अभी" से
   const newDl = new Date(baseTime.getTime() + hours*3600000);
 
   const fwdCount = (o.fwdCount||0) + 1;
@@ -11897,6 +11899,7 @@ window._db=window._db||null;
     </div>
     <button id="vbeNav-close" onclick="vbeNavClose()">✕ बंद करें</button>
   </div>
+</div>
 <!-- ══ BULK ACTION BAR ══ -->
 <div id="vbe-bulk-bar">
   <span id="vbe-bulk-cnt" style="color:#a78bfa;font-size:11px;font-weight:800;min-width:60px">0 selected</span>

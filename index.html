@@ -2623,6 +2623,7 @@ ${lines.join('\n')}
 let _univFilter = 'all';
 
 function openUniversalSummary(){
+  if(typeof vbeHistPush==='function') vbeHistPush();
   document.getElementById('m-univ-summary').classList.add('open');
   renderUnivSummary('all');
   // Chunked + Date-wise buttons render करो
@@ -2633,6 +2634,7 @@ function openUniversalSummary(){
 }
 function closeUniversalSummary(){
   document.getElementById('m-univ-summary').classList.remove('open');
+  if(typeof vbeHistPop==='function') vbeHistPop();
 }
 
 function renderUnivSummary(filter){
@@ -3660,7 +3662,6 @@ function openQuickReminder(orderId){
   const o = _orders.find(x=>x.id===orderId);
   if(!o){ if(typeof notif==='function') notif('❌ Order नहीं मिला','warn'); return; }
   _qremOrderId = orderId;
-  // Info text update
   const info = document.getElementById('qrem-info');
   if(info){
     const dl = o.deadline ? new Date(o.deadline).toLocaleString('hi-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
@@ -3668,11 +3669,13 @@ function openQuickReminder(orderId){
   }
   const custom = document.getElementById('qrem-custom');
   if(custom) custom.value = '';
+  if(typeof vbeHistPush==='function') vbeHistPush();
   document.getElementById('m-qrem').classList.add('open');
 }
 function closeQuickReminder(){
   document.getElementById('m-qrem').classList.remove('open');
   _qremOrderId = null;
+  if(typeof vbeHistPop==='function') vbeHistPop();
 }
 function setQuickReminder(minutes){
   if(!_qremOrderId) return;
@@ -3696,11 +3699,13 @@ function setQuickReminderCustom(){
    👁️ HIDDEN MANAGER — सब hidden काम एक जगह
    ════════════════════════════════════════════════════ */
 function openHiddenManager(){
+  if(typeof vbeHistPush==='function') vbeHistPush();
   document.getElementById('m-hidden-mgr').classList.add('open');
   renderHiddenManager();
 }
 function closeHiddenManager(){
   document.getElementById('m-hidden-mgr').classList.remove('open');
+  if(typeof vbeHistPop==='function') vbeHistPop();
 }
 function renderHiddenManager(){
   const body = document.getElementById('hm-body');
@@ -3763,6 +3768,7 @@ let _rcFilter = 'all';
 let _rcDateOrderId = null;
 
 function openReminderCenter(){
+  if(typeof vbeHistPush==='function') vbeHistPush();
   _rcFilter = 'all';
   document.getElementById('m-rem-center').classList.add('open');
   rcSyncFilterUI();
@@ -3770,6 +3776,7 @@ function openReminderCenter(){
 }
 function closeReminderCenter(){
   document.getElementById('m-rem-center').classList.remove('open');
+  if(typeof vbeHistPop==='function') vbeHistPop();
 }
 function rcSetFilter(f){
   _rcFilter = f;
@@ -4051,6 +4058,7 @@ function openCommentLog(orderId){
   const tl = Array.isArray(o.timeline) ? o.timeline : [];
   const comments = tl.filter(t => t.note && (t.note.startsWith('💬') || t.note.startsWith('✓') || t.isComment || t.isCheck));
   document.getElementById('comment-log-modal')?.remove();
+  if(typeof vbeHistPush==='function') vbeHistPush();
   const modal = document.createElement('div');
   modal.id = 'comment-log-modal';
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(2,6,23,.85);z-index:999998;display:flex;align-items:flex-end;justify-content:center;padding:0;backdrop-filter:blur(4px)';
@@ -4062,7 +4070,7 @@ function openCommentLog(orderId){
           <div style="font-size:14px;font-weight:800;color:#fff">${esc(o.item||'')} — Comment Log</div>
           <div style="font-size:10px;color:#64748b;margin-top:1px">${esc(o.customer||'')} · ${comments.length} entries</div>
         </div>
-        <button onclick="document.getElementById('comment-log-modal').remove()" style="background:transparent;border:none;color:#64748b;font-size:22px;cursor:pointer;line-height:1">✕</button>
+        <button onclick="document.getElementById('comment-log-modal').remove();if(typeof vbeHistPop==='function')vbeHistPop();" style="background:transparent;border:none;color:#64748b;font-size:22px;cursor:pointer;line-height:1">✕</button>
       </div>
       <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:7px">
         ${comments.length===0 ? '<div style="text-align:center;color:#475569;padding:30px;font-size:12px">अभी तक कोई comment नहीं</div>' : 
@@ -4086,7 +4094,7 @@ function openCommentLog(orderId){
       <button onclick="document.getElementById('comment-log-modal').remove();openQuickCommentPrompt('${orderId}')" style="margin-top:10px;padding:11px;border-radius:10px;border:none;background:linear-gradient(135deg,#6d28d9,#a78bfa);color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit">💬 नया Comment जोड़ो</button>
     </div>`;
   document.body.appendChild(modal);
-  modal.onclick = (e)=>{ if(e.target===modal) modal.remove(); };
+  modal.onclick = (e)=>{ if(e.target===modal){ modal.remove(); if(typeof vbeHistPop==='function') vbeHistPop(); } };
 }
 
 // Click on station — directly update stage
@@ -4439,7 +4447,12 @@ document.addEventListener('keydown',function(e){
     if(e.key==='3'){ e.preventDefault(); setFolder('later'); }
     if(e.key==='c'){ e.preventDefault(); if(typeof toggleCompactMode==='function') toggleCompactMode(); }
   }
-  if(e.key==='Escape'){ var b=document.getElementById('vbe-swipe-bg'); if(b) b.style.display=''; }
+  if(e.key==='Escape'){
+    var b=document.getElementById('vbe-swipe-bg');
+    if(b && b.style.display==='flex'){ b.style.display=''; if(typeof vbeHistPop==='function') vbeHistPop(); return; }
+    var opens=document.querySelectorAll('.modal-bg.open, .cd-modal-bg.open');
+    if(opens.length){ opens[opens.length-1].classList.remove('open'); if(typeof vbeHistPop==='function') vbeHistPop(); }
+  }
 });
 
 // ══ WHATSAPP DAILY SUMMARY ══
@@ -4654,11 +4667,12 @@ setInterval(updateLiveCountdowns,30000);
 // ══ CLIENT HISTORY ══
 window.openClientHistory=function(name){
   if(!name||!_orders) return;
+  if(typeof vbeHistPush==='function') vbeHistPush();
   var all=_orders.filter(function(o){return (o.customer||'').toLowerCase()===name.toLowerCase();});
   all.sort(function(a,b){return new Date(b.deadline||0)-new Date(a.deadline||0);});
   var bg=document.getElementById('vbe-client-hist');
   if(!bg){ bg=document.createElement('div'); bg.id='vbe-client-hist';
-    bg.style.cssText='display:none;position:fixed;inset:0;z-index:999991;background:rgba(0,0,0,.88);align-items:flex-end;justify-content:center';
+    bg.style.cssText='display:none;position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,.88);align-items:flex-end;justify-content:center';
     document.body.appendChild(bg); }
   var rows=all.map(function(o){
     var stg=STAGES.find(function(s){return s.id===o.stage;})||{};
@@ -4674,10 +4688,10 @@ window.openClientHistory=function(name){
   bg.innerHTML='<div style="background:#0d1526;border-radius:20px 20px 0 0;padding:20px 16px 36px;width:100%;max-width:480px;border:1px solid #1e3a5f;border-bottom:none;font-family:inherit;max-height:70vh;overflow-y:auto">'
     +'<div style="font-size:13px;color:#94a3b8;text-align:center;margin-bottom:14px;font-weight:700">👤 '+name+' · <span style="color:#e2e8f0">'+all.length+' Orders</span></div>'
     +(rows||'<div style="text-align:center;color:#475569;padding:20px">कोई orders नहीं</div>')
-    +'<button onclick="document.getElementById(\'vbe-client-hist\').style.display=\'\'" style="width:100%;padding:11px;border-radius:12px;border:1px solid #1e3a5f;background:transparent;color:#64748b;font-size:14px;font-family:inherit;cursor:pointer;margin-top:14px">बंद करो</button>'
+    +'<button onclick="document.getElementById(\'vbe-client-hist\').style.display=\'\';if(typeof vbeHistPop===\'function\')vbeHistPop();" style="width:100%;padding:11px;border-radius:12px;border:1px solid #1e3a5f;background:transparent;color:#64748b;font-size:14px;font-family:inherit;cursor:pointer;margin-top:14px">बंद करो</button>'
     +'</div>';
   bg.style.display='flex';
-  bg.addEventListener('click',function(e){ if(e.target===bg) bg.style.display=''; },{once:true});
+  bg.addEventListener('click',function(e){ if(e.target===bg){ bg.style.display=''; if(typeof vbeHistPop==='function') vbeHistPop(); } },{once:true});
 };
 
 // ══ BULK SELECTION ══
@@ -5709,6 +5723,7 @@ window.bulkSnoozeAll24h = bulkSnoozeAll24h;
 function openCallReminder(id){
   const o = _orders.find(x=>x.id===id);
   if(!o){ notif('❌ Order नहीं मिला','danger'); return; }
+  if(typeof vbeHistPush==='function') vbeHistPush();
 
   // Favorites list (localStorage में रखो)
   let favorites = [];
@@ -5781,6 +5796,7 @@ window.openCallReminder = openCallReminder;
 function closeCallReminder(){
   const m = document.getElementById('call-rem-modal');
   if(m) m.remove();
+  if(typeof vbeHistPop==='function') vbeHistPop();
 }
 window.closeCallReminder = closeCallReminder;
 
@@ -6332,6 +6348,7 @@ function editOrder(id){
   document.getElementById('f-form-buttons').style.display='flex';
   document.getElementById('f-action-card').style.display='none';
   fv_populateUnitDropdown();
+  if(typeof vbeHistPush==='function') vbeHistPush();
   document.getElementById('m-add').classList.add('open');
 }
 
@@ -6603,9 +6620,14 @@ function openStage(orderId){
   document.getElementById('sg-note').value='';
   document.getElementById('sg-prev').innerHTML='';
   document.getElementById('sg-photo').value='';
+  if(typeof vbeHistPush==='function') vbeHistPush();
   document.getElementById('m-stage').classList.add('open');
 }
-function closeStage(){document.getElementById('m-stage').classList.remove('open');_stageTarget=null;_stagePhoto=null;}
+function closeStage(){
+  document.getElementById('m-stage').classList.remove('open');
+  _stageTarget=null; _stagePhoto=null;
+  if(typeof vbeHistPop==='function') vbeHistPop();
+}
 
 function prevPhoto(input){
   const file=input.files[0]; if(!file) return;
@@ -6928,6 +6950,7 @@ function renderLeaderboard() {
 }
 
 function openRewards() {
+  if(typeof vbeHistPush==='function') vbeHistPush();
   document.getElementById('m-rewards').classList.add('open');
   renderLeaderboard();
   // populate dropdown
@@ -6939,12 +6962,13 @@ function openRewards() {
     }
   }, 100);
 }
-function closeRewards() { document.getElementById('m-rewards').classList.remove('open'); }
+function closeRewards() { document.getElementById('m-rewards').classList.remove('open'); if(typeof vbeHistPop==='function') vbeHistPop(); }
 
 // ══════════════════════════════════════════
 //  ✅ ARCHIVE — उपलब्धियां
 // ══════════════════════════════════════════
 function openArchive(){
+  if(typeof vbeHistPush==='function') vbeHistPush();
   document.getElementById('m-archive').classList.add('open');
   // Populate staff filter
   const sel=document.getElementById('arc-filter-staff');
@@ -6954,7 +6978,10 @@ function openArchive(){
   if(cur) sel.value=cur;
   renderArchive();
 }
-function closeArchive(){ document.getElementById('m-archive').classList.remove('open'); }
+function closeArchive(){
+  document.getElementById('m-archive').classList.remove('open');
+  if(typeof vbeHistPop==='function') vbeHistPop();
+}
 
 function renderArchive(){
   const staffFilter=document.getElementById('arc-filter-staff')?.value||'';
@@ -7154,8 +7181,8 @@ function renderStaffList(){
   }).join('');
 }
 
-function openStaffMgr(){ document.getElementById('m-staff').classList.add('open'); renderStaffList(); }
-function closeStaffMgr(){ document.getElementById('m-staff').classList.remove('open'); }
+function openStaffMgr(){ if(typeof vbeHistPush==='function') vbeHistPush(); document.getElementById('m-staff').classList.add('open'); renderStaffList(); }
+function closeStaffMgr(){ document.getElementById('m-staff').classList.remove('open'); if(typeof vbeHistPop==='function') vbeHistPop(); }
 
 function filterAndClose(name){
   // Toggle — अगर पहले से selected है तो clear करो
@@ -7885,6 +7912,7 @@ function openPartyModal(ctx='order'){
   const valEl = document.getElementById('np-id-val');
   if(previewEl) previewEl.style.display='block';
   if(valEl) valEl.textContent = prevId;
+  if(typeof vbeHistPush==='function') vbeHistPush();
   document.getElementById('m-party').classList.add('open');
   setTimeout(()=>document.getElementById('np-name')?.focus(), 200);
 }
@@ -7947,6 +7975,7 @@ function npFillContact(idx, unitId){
 
 function closePartyModal(){
   document.getElementById('m-party').classList.remove('open');
+  if(typeof vbeHistPop==='function') vbeHistPop();
 }
 
 async function saveParty(){
@@ -8407,6 +8436,7 @@ function voiceInput(targetId){
 function openSnooze(orderId){
   const o = _orders.find(x=>x.id===orderId);
   if(!o) return;
+  if(typeof vbeHistPush==='function') vbeHistPush();
   const now = new Date();
   const opts = [
     {label:'1 घंटे बाद',icon:'⏰', fn:()=>new Date(now.getTime()+3600000)},
@@ -8420,7 +8450,7 @@ function openSnooze(orderId){
   if(!bg){
     bg=document.createElement('div');
     bg.id='vbe-snooze-bg';
-    bg.style.cssText='display:none;position:fixed;inset:0;z-index:999991;background:rgba(0,0,0,.88);align-items:flex-end;justify-content:center';
+    bg.style.cssText='display:none;position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,.88);align-items:flex-end;justify-content:center';
     document.body.appendChild(bg);
   }
   bg.innerHTML='<div style="background:#0d1526;border-radius:20px 20px 0 0;padding:20px 16px 36px;width:100%;max-width:480px;border:1px solid #1e3a5f;border-bottom:none;font-family:inherit">'
@@ -8428,11 +8458,12 @@ function openSnooze(orderId){
     +opts.map(function(opt,i){
       return '<button onclick="window._snoozeSet('+orderId+','+i+')" style="display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;margin-bottom:8px;border-radius:12px;border:1px solid #1e3a5f;background:#0a0f1e;color:#e2e8f0;font-size:14px;font-family:inherit;cursor:pointer;text-align:left">'+opt.icon+' '+opt.label+'</button>';
     }).join('')
-    +'<button onclick="document.getElementById(\'vbe-snooze-bg\').style.display=\'\'" style="width:100%;padding:11px;border-radius:12px;border:1px solid #1e3a5f;background:transparent;color:#64748b;font-size:14px;font-family:inherit;cursor:pointer;margin-top:4px">रद्द</button>'
+    +'<button onclick="document.getElementById(\'vbe-snooze-bg\').style.display=\'\';if(typeof vbeHistPop===\'function\')vbeHistPop();" style="width:100%;padding:11px;border-radius:12px;border:1px solid #1e3a5f;background:transparent;color:#64748b;font-size:14px;font-family:inherit;cursor:pointer;margin-top:4px">रद्द</button>'
     +'</div>';
   bg.style.display='flex';
   window._snoozeSet=function(oid, idx){
     bg.style.display='';
+    if(typeof vbeHistPop==='function') vbeHistPop();
     const until = opts[idx].fn();
     const order = _orders.find(x=>x.id===oid);
     if(!order) return;
@@ -8445,7 +8476,7 @@ function openSnooze(orderId){
       }
     });
   };
-  bg.addEventListener('click',function(e){ if(e.target===bg) bg.style.display=''; },{once:true});
+  bg.addEventListener('click',function(e){ if(e.target===bg){ bg.style.display=''; if(typeof vbeHistPop==='function') vbeHistPop(); } },{once:true});
 }
 
 // ─── 🌅 DAILY BRIEF — सुबह 9 बजे summary ───
@@ -8880,6 +8911,7 @@ var _cd_loaded=false;
 function openContactDir(){
   var m=document.getElementById('cd-modal');
   if(!m) return;
+  if(typeof vbeHistPush==='function') vbeHistPush();
   m.classList.add('open');
   var s=document.getElementById('cd-srch');
   if(s) s.value='';
@@ -8897,6 +8929,7 @@ function openContactDir(){
 function closeContactDir(){
   var m=document.getElementById('cd-modal');
   if(m) m.classList.remove('open');
+  if(typeof vbeHistPop==='function') vbeHistPop();
 }
 
 function cd_sync_contacts(){
@@ -9141,7 +9174,7 @@ async function cdf_save(){
 }
 </script>
 <!-- ══ ADD NEW UNIT MODAL ══ -->
-<div class="modal-bg" id="m-add-unit" onclick="if(event.target===this)closeAddUnitModal()" style="z-index:350">
+<div class="modal-bg" id="m-add-unit" onclick="if(event.target===this)closeAddUnitModal()">
   <div class="mbox" onclick="event.stopPropagation()">
     <div style="font-size:15px;font-weight:800;color:#c7d2fe;margin-bottom:14px">➕ नई Unit Add करें</div>
     <div style="margin-bottom:10px">
@@ -9274,6 +9307,7 @@ let _gsChallans = []; // Firebase से load होंगे
 let _gsTimer = null;
 
 function openGlobalSearch(){
+  if(typeof vbeHistPush==='function') vbeHistPush();
   document.getElementById('m-gsearch').classList.add('open');
   // Load projects + challans if not loaded
   gsLoadExtra();
@@ -9283,6 +9317,7 @@ function closeGlobalSearch(){
   document.getElementById('m-gsearch').classList.remove('open');
   document.getElementById('gs-inp').value = '';
   document.getElementById('gs-results').innerHTML = '<div style="text-align:center;color:#334155;padding:40px;font-size:13px">⌨️ ऊपर कुछ भी type करो</div>';
+  if(typeof vbeHistPop==='function') vbeHistPop();
   // Reset date accountability
   _daMode = ''; _daSub = 'all'; _daCustomDate = '';
   const sub = document.getElementById('da-sub'); if(sub) sub.style.display = 'none';
@@ -11997,7 +12032,17 @@ window._db=window._db||null;
     // Close swipe sheet first if open
     var sw = document.getElementById('vbe-swipe-bg');
     if(sw && sw.style.display === 'flex'){ sw.style.display=''; return; }
-    // Close topmost modal
+    // Close dynamic sheets (snooze, client history)
+    var snoozeBg = document.getElementById('vbe-snooze-bg');
+    if(snoozeBg && snoozeBg.style.display === 'flex'){ snoozeBg.style.display=''; return; }
+    var clientHist = document.getElementById('vbe-client-hist');
+    if(clientHist && clientHist.style.display === 'flex'){ clientHist.style.display=''; return; }
+    // Close dynamic overlay modals (call reminder, comment log)
+    var callMod = document.getElementById('call-rem-modal');
+    if(callMod){ callMod.remove(); return; }
+    var commentMod = document.getElementById('comment-log-modal');
+    if(commentMod){ commentMod.remove(); return; }
+    // Close topmost static modal
     var opens = Array.from(document.querySelectorAll('.modal-bg.open, .cd-modal-bg.open'));
     if(opens.length){ opens[opens.length-1].classList.remove('open'); }
   });

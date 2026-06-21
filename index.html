@@ -291,7 +291,7 @@ body{font-family:'Noto Sans Devanagari','Segoe UI',sans-serif;min-height:100vh}
 .fab{position:fixed;bottom:80px;right:18px;width:54px;height:54px;border-radius:50%;border:none;background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;font-size:26px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:8500;box-shadow:0 6px 24px rgba(239,68,68,.6);animation:fabP 2s infinite}
 @keyframes fabP{0%,100%{box-shadow:0 6px 24px rgba(239,68,68,.5)}50%{box-shadow:0 6px 42px rgba(239,68,68,.95)}}
 
-.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:200;align-items:flex-end;justify-content:center}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:999996;align-items:flex-end;justify-content:center}
 .modal-bg.open{display:flex}
 .mbox{background:#0d1526;border-radius:20px 20px 0 0;padding:18px 16px 36px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;border:1px solid #1e3a5f}
 .inp{width:100%;padding:10px 12px;border-radius:9px;border:1px solid #1e3a5f;background:#0a0f1e;color:#e2e8f0;font-size:13px;font-family:inherit;outline:none}
@@ -314,7 +314,7 @@ body{font-family:'Noto Sans Devanagari','Segoe UI',sans-serif;min-height:100vh}
 select option{background:#0d1526}
 
 /* ── CONTACT DIRECTORY ── */
-.cd-modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:300;align-items:flex-end;justify-content:center}
+.cd-modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:999996;align-items:flex-end;justify-content:center}
 .cd-modal-bg.open{display:flex}
 .cd-sheet{background:#050a14;border-radius:20px 20px 0 0;width:100%;max-width:480px;height:92vh;display:flex;flex-direction:column;border:1px solid #1e3a5f;overflow:hidden}
 .cd-hdr{background:linear-gradient(135deg,#0f1e47,#1a0a3a);padding:14px 14px 10px;border-bottom:1px solid #1e3a5f;flex-shrink:0}
@@ -703,8 +703,8 @@ select option{background:#0d1526}
 .mb-pipeline{display:flex;align-items:center;padding:0 14px 0 19px;height:22px;gap:0;background:rgba(0,0,0,.18)}
 .mb-pipe-dot{width:7px;height:7px;border-radius:50%;border:1.5px solid #1e3a5f;background:#050a14;flex-shrink:0;transition:all .25s}
 .mb-pipe-dot.done{background:#10b981;border-color:#10b981;box-shadow:0 0 4px #10b98166}
-.mb-pipe-dot.current{background:#6366f1;border-color:#a5b4fc;box-shadow:0 0 7px #6366f1cc;transform:scale(1.5)}
-.mb-pipe-dot.delivered{background:#f59e0b;border-color:#fbbf24;box-shadow:0 0 7px #f59e0bcc;transform:scale(1.5)}
+.mb-pipe-dot.current{width:9px;height:9px;background:#6366f1;border-color:#a5b4fc;box-shadow:0 0 7px #6366f1cc}
+.mb-pipe-dot.delivered{width:9px;height:9px;background:#f59e0b;border-color:#fbbf24;box-shadow:0 0 7px #f59e0bcc}
 .mb-pipe-line{flex:1;height:2px;background:#1e293b}
 .mb-pipe-line.done{background:#10b981}
 /* ── Search Highlight ── */
@@ -4279,13 +4279,17 @@ function addSwipeToCards(){
 // ══ SWIPE ACTION SHEET (left swipe) ══
 function openSwipeActions(orderId){
   var o=_orders.find(function(x){return x.id===orderId;}); if(!o) return;
+  // Hide floating bars so they don't block sheet buttons
+  var ub=document.getElementById('vbe-undo-bar'); if(ub) ub.style.display='none';
+  var wb=document.getElementById('vbe-wa-bar'); if(wb) wb.style.display='none';
   var bg=document.getElementById('vbe-swipe-bg');
   if(!bg){ bg=document.createElement('div'); bg.id='vbe-swipe-bg';
-    bg.style.cssText='display:none;position:fixed;inset:0;z-index:999992;background:rgba(0,0,0,.88);align-items:flex-end;justify-content:center';
+    bg.style.cssText='display:none;position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,.88);align-items:flex-end;justify-content:center';
     document.body.appendChild(bg); }
   var stg=STAGES.find(function(s){return s.id===o.stage;})||STAGES[0];
   var idx=SID.indexOf(o.stage);
   var nextStg=idx<SID.length-1?STAGES[idx+1]:null;
+  function _swClose(){ bg.style.display=''; vbeHistPop(); }
   bg.innerHTML='<div style="background:#0d1526;border-radius:20px 20px 0 0;padding:20px 16px 36px;width:100%;max-width:480px;border:1px solid #1e3a5f;border-bottom:none;font-family:inherit">'
     +'<div style="font-size:12px;color:#94a3b8;text-align:center;margin-bottom:14px">⚡ Quick Actions · <b style="color:#e2e8f0">'+esc(o.customer)+'</b></div>'
     +(nextStg?'<button onclick="window._swAct(\'stage\',\''+orderId+'\',\''+nextStg.id+'\')" style="display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;margin-bottom:8px;border-radius:12px;border:1px solid #1e3a5f;background:#0a0f1e;color:#e2e8f0;font-size:14px;font-family:inherit;cursor:pointer">'+nextStg.emoji+' Stage बढ़ाओ → '+nextStg.hi+'</button>':'')
@@ -4293,11 +4297,13 @@ function openSwipeActions(orderId){
     +(o.phone?'<button onclick="window._swAct(\'wa\',\''+orderId+'\')" style="display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;margin-bottom:8px;border-radius:12px;border:1px solid #1e3a5f;background:#0a0f1e;color:#e2e8f0;font-size:14px;font-family:inherit;cursor:pointer">📱 WhatsApp भेजो</button>':'')
     +'<button onclick="window._swAct(\'share\',\''+orderId+'\')" style="display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;margin-bottom:8px;border-radius:12px;border:1px solid #1e3a5f;background:#0a0f1e;color:#e2e8f0;font-size:14px;font-family:inherit;cursor:pointer">🔗 Share / Copy</button>'
     +'<button onclick="window._swAct(\'del\',\''+orderId+'\')" style="display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;margin-bottom:8px;border-radius:12px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.05);color:#f87171;font-size:14px;font-family:inherit;cursor:pointer">🗑️ Delete करो</button>'
-    +'<button onclick="document.getElementById(\'vbe-swipe-bg\').style.display=\'\'" style="width:100%;padding:11px;border-radius:12px;border:1px solid #1e3a5f;background:transparent;color:#64748b;font-size:14px;font-family:inherit;cursor:pointer;margin-top:4px">रद्द</button>'
+    +'<button onclick="window._swClose()" style="width:100%;padding:11px;border-radius:12px;border:1px solid #1e3a5f;background:transparent;color:#64748b;font-size:14px;font-family:inherit;cursor:pointer;margin-top:4px">रद्द</button>'
     +'</div>';
+  window._swClose = _swClose;
+  vbeHistPush();
   bg.style.display='flex';
   window._swAct=async function(action,oid,extra){
-    bg.style.display='';
+    _swClose();
     if(action==='stage') mbSetStage(oid,extra);
     else if(action==='fwd') quickForward(oid,24);
     else if(action==='wa') sendWA(oid);
@@ -4318,7 +4324,7 @@ function openSwipeActions(orderId){
       }
     }
   };
-  bg.addEventListener('click',function(e){ if(e.target===bg) bg.style.display=''; },{once:true});
+  bg.addEventListener('click',function(e){ if(e.target===bg) _swClose(); },{once:true});
 }
 
 // ══ PULL TO REFRESH ══
@@ -6235,6 +6241,7 @@ async function pushToTimeMaster(id){
 //  ORDER ACTIONS
 // ══════════════════════════════════════════
 function openAdd(){
+  if(typeof vbeHistPush==='function') vbeHistPush();
   document.getElementById('f-id').value='';
   document.getElementById('f-party-id').value='';
   ['f-cu','f-ph','f-it','f-qt','f-no','f-dl'].forEach(id=>document.getElementById(id).value='');
@@ -6285,6 +6292,7 @@ function setNewOrderReminder(minutes){
 }
 function closeAdd(){
   document.getElementById('m-add').classList.remove('open');
+  if(typeof vbeHistPop==='function') vbeHistPop();
   // Reset action card state for next time
   document.getElementById('f-form-buttons').style.display='flex';
   document.getElementById('f-action-card').style.display='none';
@@ -8075,10 +8083,12 @@ let _anPeriod = 'today';
 
 function openAnalytics(){
   document.getElementById('m-analytics').classList.add('open');
+  if(typeof vbeHistPush==='function') vbeHistPush();
   try{ anRender(); }catch(e){ console.warn('anRender error:',e); }
 }
 function closeAnalytics(){
   document.getElementById('m-analytics').classList.remove('open');
+  if(typeof vbeHistPop==='function') vbeHistPop();
 }
 function anSetPeriod(p){
   _anPeriod = p;
@@ -11862,17 +11872,17 @@ window._db=window._db||null;
 </div>
 
 <!-- ══ WA AUTO-SEND BAR ══ -->
-<div id="vbe-wa-bar" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:440px;background:#052e16;border:1px solid #16a34a;border-radius:14px;padding:10px 14px;z-index:999994;align-items:center;gap:8px;box-shadow:0 8px 32px rgba(0,0,0,.6);font-family:'Noto Sans Devanagari',system-ui,sans-serif">
+<div id="vbe-wa-bar" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:440px;background:#052e16;border:1px solid #16a34a;border-radius:14px;padding:10px 14px;z-index:999994;align-items:center;gap:8px;box-shadow:0 8px 32px rgba(0,0,0,.6);font-family:'Noto Sans Devanagari',system-ui,sans-serif;pointer-events:none">
   <span style="font-size:16px">📱</span>
   <span id="vbe-wa-msg" style="flex:1;font-size:11px;color:#bbf7d0"></span>
-  <button id="vbe-wa-send" style="background:#16a34a;border:none;border-radius:8px;color:#fff;font-size:11px;font-weight:800;padding:6px 12px;cursor:pointer;font-family:inherit;white-space:nowrap">WhatsApp भेजो</button>
-  <button onclick="document.getElementById('vbe-wa-bar').style.display='none'" style="background:transparent;border:none;color:#4ade80;font-size:16px;cursor:pointer;line-height:1;padding:0 2px">✕</button>
+  <button id="vbe-wa-send" style="background:#16a34a;border:none;border-radius:8px;color:#fff;font-size:11px;font-weight:800;padding:6px 12px;cursor:pointer;font-family:inherit;white-space:nowrap;pointer-events:auto">WhatsApp भेजो</button>
+  <button onclick="document.getElementById('vbe-wa-bar').style.display='none'" style="background:transparent;border:none;color:#4ade80;font-size:16px;cursor:pointer;line-height:1;padding:0 2px;pointer-events:auto">✕</button>
 </div>
 
 <!-- ══ UNDO BAR ══ -->
-<div id="vbe-undo-bar" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:440px;background:#1e293b;border:1px solid #334155;border-radius:14px;padding:10px 14px;z-index:999993;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,.6);font-family:'Noto Sans Devanagari',system-ui,sans-serif">
+<div id="vbe-undo-bar" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:440px;background:#1e293b;border:1px solid #334155;border-radius:14px;padding:10px 14px;z-index:999993;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,.6);font-family:'Noto Sans Devanagari',system-ui,sans-serif;pointer-events:none">
   <span id="vbe-undo-msg" style="flex:1;font-size:12px;color:#e2e8f0"></span>
-  <button onclick="doUndo()" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:800;padding:6px 12px;cursor:pointer;font-family:inherit">↩ UNDO</button>
+  <button onclick="doUndo()" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:800;padding:6px 12px;cursor:pointer;font-family:inherit;pointer-events:auto">↩ UNDO</button>
   <span id="vbe-undo-cd" style="font-size:10px;color:#64748b;min-width:14px;text-align:center">5</span>
 </div>
 
@@ -11960,6 +11970,36 @@ window._db=window._db||null;
   // Close on background tap
   document.getElementById('vbe-dlg-bg').addEventListener('click',function(e){
     if(e.target===this) _close(null);
+  });
+})();
+
+// ══ MODAL HISTORY — Android back button closes modals instead of navigating away ══
+(function(){
+  var _depth = 0;
+  var _suppress = false;
+
+  window.vbeHistPush = function(){
+    _depth++;
+    try{ history.pushState({vbeModal:_depth},''); }catch(e){}
+  };
+  window.vbeHistPop = function(){
+    if(_depth > 0){
+      _depth--;
+      _suppress = true;
+      try{ history.back(); }catch(e){ _suppress = false; }
+    }
+  };
+
+  window.addEventListener('popstate', function(e){
+    if(_suppress){ _suppress = false; return; }
+    if(!e.state || !e.state.vbeModal) return;
+    _depth = Math.max(0, _depth - 1);
+    // Close swipe sheet first if open
+    var sw = document.getElementById('vbe-swipe-bg');
+    if(sw && sw.style.display === 'flex'){ sw.style.display=''; return; }
+    // Close topmost modal
+    var opens = Array.from(document.querySelectorAll('.modal-bg.open, .cd-modal-bg.open'));
+    if(opens.length){ opens[opens.length-1].classList.remove('open'); }
   });
 })();
 

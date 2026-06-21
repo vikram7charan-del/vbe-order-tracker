@@ -2543,24 +2543,56 @@ window.saveTask = async function(){
   const name = $('fName').value.trim();
   if(!name){ toast('काम का नाम लिखें','error'); return; }
   if(!sheetSelPersons.length){ toast('एक व्यक्ति चुनें','error'); return; }
+  const taskDate = $('fDate').value || todayKey();
+  const taskTime = $('fTime').value || null;
+  const taskCat  = $('fCat').value;
+  const taskNote = $('fNote').value.trim();
   const taskData = {
     name,
     persons: sheetSelPersons,
-    date: $('fDate').value || todayKey(),
-    time: $('fTime').value || null,
+    date: taskDate,
+    time: taskTime,
     duration: parseInt($('fDur').value) || 30,
-    cat: $('fCat').value,
+    cat: taskCat,
     prio: sheetPrio,
-    note: $('fNote').value.trim(),
+    note: taskNote,
     done: false,
     createdAt: serverTimestamp(),
     createdBy: curUser?.uid || 'unknown',
   };
   try{
-    await addDoc(collection(db, COLL), taskData);
+    // Save task to vbe_tasks
+    const taskRef = await addDoc(collection(db, COLL), taskData);
+
+    // ── Auto-push to Order Tracker (vbe_orders) ──
+    const PID_TO_STAFF = { vikram:'Vikram', manoj:'Manoj', kailash:'Kailash', ravi:'Ravi' };
+    const CAT_MAP = { gem:'gem', supply:'market', accounts:'other', canteen:'other', field:'jalipa', personal:'other', other:'other' };
+    const PRIO_MAP = { high:'🔴 Urgent', normal:'🏳️ Normal', low:'🟢 Low' };
+    const staffName = PID_TO_STAFF[sheetSelPersons[0]] || 'Vikram';
+    const deadline = taskTime
+      ? new Date(`${taskDate}T${taskTime}`).toISOString()
+      : new Date(`${taskDate}T23:59`).toISOString();
+    const orderData = {
+      item: name,
+      customer: 'VBE Internal',
+      staff: staffName,
+      stage: 'received',
+      priority: PRIO_MAP[sheetPrio] || '🏳️ Normal',
+      category: CAT_MAP[taskCat] || 'other',
+      deadline,
+      note: taskNote || '',
+      tmTaskId: taskRef.id,
+      tmPushedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      timeline: [{ stage:'received', time: new Date().toISOString(), note:'📅 Kary Diary से auto-added' }],
+    };
+    const orderRef = await addDoc(collection(db, 'vbe_orders'), orderData);
+    // Link order ID back to task
+    try{ await updateDoc(doc(db, COLL, taskRef.id), { orderId: orderRef.id }); }catch(_){}
+
     closeAddSheet();
     $('fName').value=''; $('fNote').value=''; $('fTime').value='';
-    toast('काम जोड़ा गया ✓','success');
+    toast('काम जोड़ा + Order Tracker में भेजा ✓','success');
   }catch(e){ toast('Error: '+e.message,'error'); }
 };
 

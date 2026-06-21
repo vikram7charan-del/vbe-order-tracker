@@ -12163,6 +12163,21 @@ window.vbeInstall=function(){
     var map = {'vnl-orders':isRoot,'vnl-time':p.includes('vbe-time-master'),'vnl-bank':p.includes('bank'),'vnl-challan':p.includes('challan'),'vnl-clients':p.includes('clients'),'vnl-projects':p.includes('projects'),'vnl-udhari':p.includes('udhari'),'vnl-contacts':p.includes('contacts'),'vnl-exit':p.includes('vbe-exit')};
     Object.keys(map).forEach(function(id){ if(map[id]){ var el=document.getElementById(id); if(el) el.classList.add('vbeNav-cur'); } });
   }catch(e){}
+
+  // ── 1-time reminder: बेनीवाल साहब की बीट — 21 Jun 2026, 6:30 PM ──
+  (function(){
+    try {
+      var now = new Date();
+      var target = new Date(2026, 5, 21, 18, 30, 0); // June=5, 6:30 PM IST
+      if (target <= now) return; // already past
+      var ms = target - now;
+      setTimeout(function(){
+        var msg = '🔔 बेनीवाल साहब की बीट भरनी है! — शाम 6:30 बज गए';
+        if (typeof window.notif === 'function') window.notif(msg, 'info');
+        try { new Notification('🔔 VBE याद', {body: 'बेनीवाल साहब की बीट भरनी है', icon:'./favicon.ico', requireInteraction: true}); } catch(e){}
+      }, ms);
+    } catch(e){}
+  })();
 })();
 </script>
 

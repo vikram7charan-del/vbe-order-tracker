@@ -11954,12 +11954,14 @@ window._db=window._db||null;
   function _close(val){
     _bg_().classList.remove('vd-open');
     setTimeout(function(){ _bg_().style.display=''; },200);
+    if(typeof vbeHistPop==='function') vbeHistPop();
     if(typeof _resolve==='function'){ _resolve(val); _resolve=null; }
   }
   window.vbeAlert=function(msg,icon){
     icon=icon||'ℹ️';
     return new Promise(function(res){
       _hideBars();
+      if(typeof vbeHistPush==='function') vbeHistPush();
       _resolve=res;
       document.getElementById('vbe-dlg-icon').textContent=icon;
       document.getElementById('vbe-dlg-msg').textContent=msg;
@@ -11974,6 +11976,7 @@ window._db=window._db||null;
     icon=icon||'❓'; yesLabel=yesLabel||'हाँ'; noLabel=noLabel||'नहीं';
     return new Promise(function(res){
       _hideBars();
+      if(typeof vbeHistPush==='function') vbeHistPush();
       _resolve=res;
       document.getElementById('vbe-dlg-icon').textContent=icon;
       document.getElementById('vbe-dlg-msg').textContent=msg;
@@ -11988,6 +11991,7 @@ window._db=window._db||null;
     icon=icon||'✏️'; def=def||'';
     return new Promise(function(res){
       _hideBars();
+      if(typeof vbeHistPush==='function') vbeHistPush();
       _resolve=res;
       document.getElementById('vbe-dlg-icon').textContent=icon;
       document.getElementById('vbe-dlg-msg').textContent=msg;
@@ -12027,8 +12031,11 @@ window._db=window._db||null;
 
   window.addEventListener('popstate', function(e){
     if(_suppress){ _suppress = false; return; }
-    if(!e.state || !e.state.vbeModal) return;
+    if(_depth <= 0) return;
     _depth = Math.max(0, _depth - 1);
+    // Close confirm/alert/prompt dialog if open
+    var dlg = document.getElementById('vbe-dlg-bg');
+    if(dlg && dlg.classList.contains('vd-open')){ if(typeof window._vbeDlgClose==='function') window._vbeDlgClose(null); return; }
     // Close swipe sheet first if open
     var sw = document.getElementById('vbe-swipe-bg');
     if(sw && sw.style.display === 'flex'){ sw.style.display=''; return; }

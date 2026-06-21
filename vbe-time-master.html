@@ -2587,6 +2587,8 @@ window.saveTask = async function(){
       timeline: [{ stage:'received', time: new Date().toISOString(), note:'📅 Kary Diary से auto-added' }],
     };
     const orderRef = await addDoc(collection(db, 'vbe_orders'), orderData);
+    // Write auto-generated ID into the document (index.html uses order.id for all operations)
+    await updateDoc(orderRef, { id: orderRef.id });
     // Link order ID back to task
     try{ await updateDoc(doc(db, COLL, taskRef.id), { orderId: orderRef.id }); }catch(_){}
 

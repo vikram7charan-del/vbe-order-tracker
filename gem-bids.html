@@ -6,323 +6,485 @@
 <meta name="robots" content="noindex,nofollow">
 <title>GeM Bid Docs — VBE</title>
 <style>
-/* ===== RESET ===== */
+/* ============================================================
+   APP UI STYLES  (hidden on print)
+   ============================================================ */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#050a14;color:#e2e8f0;min-height:100vh;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+     background:#050a14;color:#e2e8f0;min-height:100vh;-webkit-tap-highlight-color:transparent}
 
-/* ===== APP SHELL ===== */
-#app-shell{max-width:480px;margin:0 auto;padding-bottom:130px}
+/* --- header --- */
+#app-shell{max-width:480px;margin:0 auto;padding-bottom:136px}
+.gh{display:flex;align-items:center;gap:12px;padding:14px 16px;
+    background:#0d1526;border-bottom:1px solid #1e3a5f;
+    position:sticky;top:0;z-index:50}
+.gh-back{color:#f59e0b;text-decoration:none;font-size:22px;padding:2px 6px 2px 0;line-height:1}
+.gh-info{flex:1}
+.gh-title{font-size:16px;font-weight:700;color:#f1f5f9}
+.gh-sub{font-size:10px;color:#475569;margin-top:1px}
+.gh-editbtn{background:none;border:1px solid #1e3a5f;border-radius:8px;
+            color:#94a3b8;padding:6px 11px;font-size:12px;cursor:pointer;
+            touch-action:manipulation}
+.gh-editbtn:active{border-color:#f59e0b;color:#f59e0b}
 
-/* ===== HEADER ===== */
-.gem-hdr{display:flex;align-items:center;gap:12px;padding:14px 16px;background:#0d1526;border-bottom:1px solid #1e3a5f;position:sticky;top:0;z-index:50}
-.gem-hdr-back{color:#f59e0b;text-decoration:none;font-size:22px;line-height:1;padding:2px 6px 2px 0}
-.gem-hdr-info{flex:1}
-.gem-hdr-title{font-size:16px;font-weight:700;color:#f1f5f9;letter-spacing:.01em}
-.gem-hdr-sub{font-size:10px;color:#475569;margin-top:1px}
-.gem-edit-btn{background:none;border:1px solid #1e3a5f;border-radius:8px;color:#94a3b8;padding:6px 11px;font-size:12px;cursor:pointer;touch-action:manipulation;transition:border-color .15s}
-.gem-edit-btn:active{border-color:#f59e0b;color:#f59e0b}
+/* --- labels --- */
+.slbl{padding:14px 16px 6px;font-size:10.5px;font-weight:700;
+      letter-spacing:.09em;text-transform:uppercase;color:#475569}
 
-/* ===== SECTION LABEL ===== */
-.sec-lbl{padding:14px 16px 6px;font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#475569}
+/* --- firm grid --- */
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 16px 4px}
+.fcard{border:2px solid #1e3a5f;border-radius:12px;padding:11px 10px;
+       cursor:pointer;background:#0d1526;touch-action:manipulation;
+       position:relative;overflow:hidden;transition:border-color .2s}
+.fcard::before{content:'';position:absolute;inset:0;
+               background:var(--fprim);opacity:0;
+               transition:opacity .2s;pointer-events:none;border-radius:10px}
+.fcard.sel{border-color:var(--fgold)}
+.fcard.sel::before{opacity:.09}
+.fcard-badge{width:38px;height:38px;border-radius:50%;display:flex;
+             align-items:center;justify-content:center;
+             font-weight:800;font-size:11px;margin-bottom:7px;
+             border:2px solid var(--fgold);background:var(--fprim);color:var(--fgold)}
+.fcard-name{font-size:11.5px;font-weight:700;color:#e2e8f0;line-height:1.3}
+.fcard-prop{font-size:10px;color:#64748b;margin-top:2px;line-height:1.3}
+.fcard-miss{font-size:9.5px;color:#f59e0b;margin-top:5px;display:none;line-height:1.3}
+.fcard.sel .fcard-miss{display:block}
 
-/* ===== FIRM GRID ===== */
-.firm-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 16px 4px}
-.firm-card{border:2px solid #1e3a5f;border-radius:12px;padding:11px 10px;cursor:pointer;transition:border-color .18s,background .18s;background:#0d1526;touch-action:manipulation;position:relative}
-.firm-card.sel{border-color:var(--fgold);background:color-mix(in srgb,var(--fprim) 12%,transparent)}
-.firm-badge{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;margin-bottom:7px;border:2px solid var(--fgold);background:var(--fprim);color:var(--fgold);letter-spacing:.3px}
-.firm-name{font-size:11.5px;font-weight:700;color:#e2e8f0;line-height:1.3}
-.firm-prop{font-size:10px;color:#64748b;margin-top:2px;line-height:1.3}
-.firm-miss{font-size:9.5px;color:#f59e0b;margin-top:5px;line-height:1.3;display:none}
-.firm-card.sel .firm-miss{display:block}
+/* --- warn --- */
+.wbar{margin:6px 16px;padding:9px 13px;background:rgba(124,45,18,.13);
+      border:1px solid rgba(245,158,11,.35);border-radius:8px;
+      font-size:11.5px;color:#fbbf24;display:none;line-height:1.4}
+.wbar.on{display:block}
 
-/* ===== WARN BANNER ===== */
-.warn-bar{margin:6px 16px;padding:9px 13px;background:#7c2d1220;border:1px solid #f59e0b50;border-radius:8px;font-size:11.5px;color:#fbbf24;display:none;line-height:1.4}
-.warn-bar.on{display:block}
+/* --- preset / doc list --- */
+.prow{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 8px}
+.pset{padding:6px 13px;border-radius:20px;border:1px solid #1e3a5f;
+      background:transparent;color:#94a3b8;font-size:11px;cursor:pointer;
+      touch-action:manipulation;transition:background .15s,color .15s}
+.pset:active{background:#1e3a5f;color:#e2e8f0}
+.dlist{padding:0 16px 4px;display:grid;gap:6px}
+.ditem{display:flex;align-items:center;gap:10px;padding:10px 12px;
+       background:#0d1526;border:1px solid #1e3a5f;border-radius:10px;
+       cursor:pointer;touch-action:manipulation}
+.ditem input[type=checkbox]{accent-color:#f59e0b;width:17px;height:17px;
+                             cursor:pointer;flex-shrink:0}
+.ditem-ttl{font-size:13px;font-weight:600;color:#e2e8f0}
+.ditem-sub{font-size:10px;color:#64748b}
 
-/* ===== DOC SELECTOR ===== */
-.preset-row{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 8px}
-.pset{padding:6px 13px;border-radius:20px;border:1px solid #1e3a5f;background:transparent;color:#94a3b8;font-size:11px;cursor:pointer;touch-action:manipulation;transition:background .15s,color .15s}
-.pset:active,.pset:focus{background:#1e3a5f;color:#e2e8f0;outline:none}
-.doc-list{padding:0 16px 4px;display:grid;gap:6px}
-.doc-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#0d1526;border:1px solid #1e3a5f;border-radius:10px;cursor:pointer;touch-action:manipulation}
-.doc-item input[type=checkbox]{accent-color:#f59e0b;width:17px;height:17px;cursor:pointer;flex-shrink:0}
-.doc-item-ttl{font-size:13px;font-weight:600;color:#e2e8f0}
-.doc-item-sub{font-size:10px;color:#64748b}
-
-/* ===== INPUTS ===== */
-.inp-grid{padding:0 16px;display:grid;gap:10px}
-.inp-lbl{font-size:10.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;display:block}
-.inp{background:#0d1526;border:1px solid #1e3a5f;border-radius:8px;padding:10px 12px;color:#e2e8f0;font-size:14px;width:100%;outline:none;transition:border-color .15s;-webkit-appearance:none}
-.inp:focus{border-color:#f59e0b50;box-shadow:0 0 0 2px #f59e0b1a}
+/* --- inputs --- */
+.igrid{padding:0 16px;display:grid;gap:10px}
+.ilbl{font-size:10.5px;font-weight:700;color:#64748b;text-transform:uppercase;
+      letter-spacing:.04em;margin-bottom:4px;display:block}
+.inp{background:#0d1526;border:1px solid #1e3a5f;border-radius:8px;
+     padding:10px 12px;color:#e2e8f0;font-size:14px;width:100%;
+     outline:none;-webkit-appearance:none;transition:border-color .15s}
+.inp:focus{border-color:rgba(245,158,11,.4);box-shadow:0 0 0 2px rgba(245,158,11,.1)}
 .inp::placeholder{color:#334155}
-.inp-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.inp-box{background:#0d152680;border:1px solid #1e3a5f;border-radius:10px;padding:12px;margin-top:4px}
-.inp-box-hdr{font-size:10.5px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;display:flex;align-items:center;gap:8px}
-.tog{width:34px;height:20px;border-radius:10px;border:none;background:#0a1020;position:relative;cursor:pointer;flex-shrink:0;transition:background .2s;touch-action:manipulation;outline:none}
-.tog::after{content:'';position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px #0004}
+.irow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ibox{background:rgba(13,21,38,.5);border:1px solid #1e3a5f;
+      border-radius:10px;padding:12px;margin-top:4px}
+.ibox-hdr{font-size:10.5px;font-weight:700;color:#94a3b8;
+          text-transform:uppercase;letter-spacing:.05em;
+          margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.tog{width:34px;height:20px;border-radius:10px;border:none;
+     background:#0a1020;position:relative;cursor:pointer;flex-shrink:0;
+     transition:background .2s;touch-action:manipulation;outline:none}
+.tog::after{content:'';position:absolute;top:3px;left:3px;width:14px;height:14px;
+            border-radius:50%;background:#fff;transition:left .2s;
+            box-shadow:0 1px 3px rgba(0,0,0,.25)}
 .tog.on{background:#f59e0b}
 .tog.on::after{left:17px}
 #past-fields{display:none;margin-top:10px}
 
-/* ===== ACTION BAR ===== */
-#gem-actions{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;padding:10px 16px 14px;background:linear-gradient(transparent,#050a14 28%);z-index:40;display:flex;flex-direction:column;gap:7px}
-.btn-pri{padding:14px;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;border:none;touch-action:manipulation;background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;transition:opacity .15s;letter-spacing:.01em}
+/* --- action bar --- */
+#gem-actions{position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+             width:100%;max-width:480px;padding:10px 16px 16px;
+             background:linear-gradient(transparent,#050a14 30%);
+             z-index:40;display:flex;flex-direction:column;gap:7px}
+.btn-pri{padding:14px;border-radius:12px;font-size:15px;font-weight:700;
+         cursor:pointer;border:none;touch-action:manipulation;
+         background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;
+         transition:opacity .15s}
 .btn-pri:active{opacity:.85}
-.btn-sec{background:#0d1526;border:1px solid #1e3a5f;color:#94a3b8;padding:10px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;touch-action:manipulation;width:100%;transition:border-color .15s,color .15s}
+.btn-sec{background:#0d1526;border:1px solid #1e3a5f;color:#94a3b8;
+         padding:10px;border-radius:10px;font-size:13px;font-weight:600;
+         cursor:pointer;touch-action:manipulation;width:100%;
+         transition:border-color .15s,color .15s}
 .btn-sec.on{border-color:#f59e0b;color:#f59e0b}
 
-/* ===== PREVIEW AREA ===== */
+/* --- preview area --- */
 #preview-area{display:none;padding:12px 16px 0;max-width:480px;margin:0 auto}
 #preview-area.on{display:block}
-.pg-wrap{background:#fff;border-radius:4px;overflow:hidden;margin-bottom:14px;box-shadow:0 4px 28px #000b;position:relative}
+.pgwrap{background:#fff;border-radius:4px;overflow:hidden;
+        margin-bottom:14px;box-shadow:0 4px 32px rgba(0,0,0,.7)}
 
-/* ===== FIRM EDIT MODAL ===== */
-.modal-bg{position:fixed;inset:0;background:#000c;z-index:60;display:none;align-items:flex-end;justify-content:center}
+/* --- edit modal --- */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:60;
+          display:none;align-items:flex-end;justify-content:center}
 .modal-bg.on{display:flex}
-.modal-sheet{background:#0d1526;border-radius:20px 20px 0 0;padding:20px 16px 24px;max-width:480px;width:100%;max-height:92vh;overflow-y:auto;border-top:1px solid #1e3a5f}
+.modal-sheet{background:#0d1526;border-radius:20px 20px 0 0;
+             padding:20px 16px 24px;max-width:480px;width:100%;
+             max-height:92vh;overflow-y:auto;border-top:1px solid #1e3a5f}
 .modal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-.modal-title{font-size:15px;font-weight:700;color:#f1f5f9}
-.modal-x{font-size:22px;color:#64748b;cursor:pointer;line-height:1;padding:4px;touch-action:manipulation}
-.chk-row{display:flex;align-items:center;gap:8px;font-size:13px;color:#94a3b8;cursor:pointer;touch-action:manipulation;padding:2px 0}
-.chk-row input{accent-color:#f59e0b;width:16px;height:16px;cursor:pointer}
-.save-btn{width:100%;margin-top:16px;padding:13px;background:linear-gradient(135deg,#f59e0b,#d97706);border:none;border-radius:10px;font-weight:700;font-size:14px;cursor:pointer;touch-action:manipulation;color:#000}
+.modal-ttl{font-size:15px;font-weight:700;color:#f1f5f9}
+.modal-x{font-size:22px;color:#64748b;cursor:pointer;padding:4px;touch-action:manipulation}
+.chkrow{display:flex;align-items:center;gap:8px;font-size:13px;
+        color:#94a3b8;cursor:pointer;touch-action:manipulation;padding:2px 0}
+.chkrow input{accent-color:#f59e0b;width:16px;height:16px;cursor:pointer}
+.savebtn{width:100%;margin-top:16px;padding:13px;
+         background:linear-gradient(135deg,#f59e0b,#d97706);
+         border:none;border-radius:10px;font-weight:700;font-size:14px;
+         cursor:pointer;touch-action:manipulation;color:#000}
 
-/* ===== PRINT ===== */
+/* ============================================================
+   PRINT — show ONLY the preview pages, reset all transforms
+   ============================================================ */
 @media print{
-  body{background:#fff !important;margin:0;padding:0}
-  #app-shell,#gem-actions,#preview-area .pg-wrap + style,
-  .gem-hdr,.firm-grid,.warn-bar,.sec-lbl,.preset-row,.doc-list,
-  .inp-grid,.inp-box,.modal-bg{display:none !important}
-  #app-shell{display:none !important}
-  #preview-area{display:block !important;padding:0 !important;max-width:none !important;margin:0 !important}
-  .pg-wrap{margin:0 !important;box-shadow:none !important;border-radius:0 !important;overflow:visible !important}
+  *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important}
+  body{background:#fff !important}
+  body > *{display:none !important}
+  #preview-area{display:block !important;padding:0 !important;
+                max-width:none !important;margin:0 !important}
+  .pgwrap{margin:0 !important;box-shadow:none !important;
+          border-radius:0 !important;overflow:visible !important;
+          height:297mm !important}
+  .doc-page{transform:none !important;width:210mm !important;
+            height:297mm !important;page-break-after:always !important;
+            break-after:page !important}
   #gem-actions{display:none !important}
   @page{size:A4;margin:0}
 }
 
-/* ===== DOCUMENT STYLES ===== */
+/* ============================================================
+   DOCUMENT PAGE STYLES  (print-quality letterhead)
+   ============================================================ */
 .doc-page{
   width:210mm;height:297mm;position:relative;
   font-family:Georgia,Cambria,'Times New Roman',Times,serif;
-  background:#fff;color:#1a1a1a;overflow:hidden;
+  background:#fff;color:#111;overflow:hidden;
   page-break-after:always;break-after:page;
 }
-.doc-ob{position:absolute;inset:8mm;border:2.5px solid var(--fprim);pointer-events:none;z-index:1}
-.doc-ib{position:absolute;inset:11mm;border:1px solid var(--fgold);pointer-events:none;z-index:1}
-.doc-dm{position:absolute;width:9px;height:9px;background:var(--fgold);transform:rotate(45deg);z-index:2}
-.doc-dm.tl{top:7.25mm;left:7.25mm}
-.doc-dm.tr{top:7.25mm;right:7.25mm}
-.doc-dm.bl{bottom:7.25mm;left:7.25mm}
-.doc-dm.br{bottom:7.25mm;right:7.25mm}
-.doc-ct{position:absolute;inset:13.5mm;display:flex;flex-direction:column}
 
-/* Header */
-.doc-seal{width:60px;height:60px;border-radius:50%;background:var(--fprim);border:2.5px solid var(--fgold);display:flex;align-items:center;justify-content:center;color:var(--fgold);font-weight:900;font-size:16px;margin:0 auto 6px;letter-spacing:.5px;font-family:Georgia,serif}
-.doc-fname{text-align:center;font-size:15pt;font-weight:bold;color:var(--fprim);letter-spacing:.4px;line-height:1.2;margin-bottom:3px}
-.doc-tline{text-align:center;font-size:6.5pt;text-transform:uppercase;letter-spacing:.13em;color:var(--fgold);margin-bottom:5px}
-.doc-div{display:flex;align-items:center;justify-content:center;gap:5px;margin:4px 0}
-.doc-div::before,.doc-div::after{content:'';flex:1;height:1px;background:var(--fgold);opacity:.65}
-.doc-dmd{width:7px;height:7px;background:var(--fgold);transform:rotate(45deg);display:inline-block}
-.doc-ids{text-align:center;font-size:6.5pt;color:#444;margin-bottom:2px;letter-spacing:.02em;line-height:1.5}
-.doc-addr{text-align:center;font-size:6.5pt;color:#555;line-height:1.5;margin-bottom:2px}
+/* Decorative borders */
+.doc-ob{position:absolute;inset:8mm;
+        border:2.5px solid var(--fprim);pointer-events:none;z-index:2}
+.doc-ib{position:absolute;inset:11mm;
+        border:0.75pt solid var(--fgold);pointer-events:none;z-index:2}
 
-/* Bid strip */
-.doc-strip{background:#f7f7f7;border:1px solid #e0e0e0;border-radius:3px;padding:5px 10px;margin:6px 0;font-size:7.5pt;color:#333;text-align:center;line-height:1.6;flex-shrink:0}
-.doc-strip b{color:var(--fprim)}
+/* Four corner diamonds */
+.doc-dm{position:absolute;width:10px;height:10px;
+        background:var(--fgold);transform:rotate(45deg);z-index:3}
+.doc-dm.tl{top:7.2mm;left:7.2mm}
+.doc-dm.tr{top:7.2mm;right:7.2mm}
+.doc-dm.bl{bottom:7.2mm;left:7.2mm}
+.doc-dm.br{bottom:7.2mm;right:7.2mm}
 
-/* Body */
-.doc-body{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
-.doc-ey{font-size:7pt;text-transform:uppercase;letter-spacing:.1em;color:var(--fgold);margin-bottom:3px}
-.doc-ttl{font-size:12.5pt;font-weight:bold;text-transform:uppercase;color:var(--fprim);letter-spacing:.03em;margin-bottom:5px;line-height:1.25}
-.doc-to{font-size:8pt;color:#333;margin-bottom:6px;border-left:3px solid var(--fgold);padding-left:8px;line-height:1.5}
-.doc-intro{font-size:8pt;font-style:italic;color:#444;margin-bottom:8px;line-height:1.55}
+/* Main content container */
+.doc-ct{position:absolute;inset:13.5mm;
+        display:flex;flex-direction:column;overflow:hidden}
+
+/* ---- LETTERHEAD HEADER ---- */
+.doc-hdr-bg{
+  background:var(--fprim);opacity:.04;
+  position:absolute;left:0;right:0;top:0;height:62mm;
+  pointer-events:none;z-index:0;
+}
+.doc-hdr{position:relative;z-index:1;flex-shrink:0}
+
+.doc-seal{
+  width:68px;height:68px;border-radius:50%;
+  background:var(--fprim);border:2.5px solid var(--fgold);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--fgold);font-weight:900;font-size:18px;
+  margin:0 auto 7px;letter-spacing:.5px;
+  font-family:Georgia,serif;
+  box-shadow:0 2px 10px rgba(0,0,0,.2),0 0 0 4px rgba(255,255,255,.8),
+             0 0 0 5px var(--fgold);
+}
+.doc-fname{
+  text-align:center;font-size:15.5pt;font-weight:bold;
+  color:var(--fprim);letter-spacing:.6px;line-height:1.2;margin-bottom:3px;
+}
+.doc-tline{
+  text-align:center;font-size:6.5pt;text-transform:uppercase;
+  letter-spacing:.15em;color:var(--fgold);margin-bottom:5px;
+  font-family:Georgia,serif;
+}
+/* Gold divider */
+.doc-div{display:flex;align-items:center;gap:6px;margin:4px 0;position:relative;z-index:1}
+.doc-div::before,.doc-div::after{
+  content:'';flex:1;height:1px;background:var(--fgold);opacity:.7}
+.doc-dmd{
+  width:8px;height:8px;background:var(--fgold);
+  transform:rotate(45deg);display:inline-block;flex-shrink:0}
+.doc-ids{
+  text-align:center;font-size:6.5pt;color:#444;
+  letter-spacing:.03em;line-height:1.6;margin-bottom:2px;
+  font-family:'Times New Roman',Times,serif;
+}
+.doc-addr{
+  text-align:center;font-size:6.5pt;color:#555;line-height:1.55;
+  font-family:'Times New Roman',Times,serif;
+}
+
+/* Bid ref strip */
+.doc-strip{
+  background:#f6f6f6;border-top:1px solid #e2e2e2;border-bottom:1px solid #e2e2e2;
+  padding:5px 12px;margin:6px 0;font-size:7.5pt;color:#333;
+  text-align:center;line-height:1.7;flex-shrink:0;
+  font-family:Georgia,serif;
+}
+.doc-strip b{color:var(--fprim);font-weight:bold}
+
+/* ---- DOCUMENT BODY ---- */
+.doc-body{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;position:relative;z-index:1}
+.doc-ey{
+  font-size:6.5pt;text-transform:uppercase;letter-spacing:.14em;
+  color:var(--fgold);margin-bottom:3px;font-family:Georgia,serif;
+}
+.doc-ttl{
+  font-size:13pt;font-weight:bold;text-transform:uppercase;
+  color:var(--fprim);letter-spacing:.04em;margin-bottom:5px;line-height:1.25;
+}
+.doc-to{
+  font-size:8pt;color:#333;margin-bottom:6px;
+  border-left:3px solid var(--fgold);padding-left:9px;line-height:1.55;
+  background:rgba(0,0,0,.015);padding:5px 5px 5px 9px;
+  border-radius:0 3px 3px 0;
+}
+.doc-intro{
+  font-size:8.5pt;font-style:italic;color:#444;
+  margin-bottom:8px;line-height:1.6;
+}
 .doc-cls{list-style:none;display:flex;flex-direction:column;gap:5px;margin-bottom:6px}
-.doc-cl{display:flex;gap:7px;font-size:7.5pt;line-height:1.55;color:#222;align-items:flex-start}
-.doc-cn{width:20px;height:20px;border-radius:50%;background:var(--fprim);color:#fff;font-size:6.5pt;font-weight:bold;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1.5px}
-.doc-ct2{flex:1}
-.doc-note{background:#fffbf0;border:1px solid var(--fgold);border-radius:3px;padding:6px 9px;font-size:6.5pt;color:#555;font-style:italic;margin:5px 0;line-height:1.5}
+.doc-cl{display:flex;gap:8px;font-size:8pt;line-height:1.6;color:#222;align-items:flex-start}
+.doc-cn{
+  width:20px;height:20px;border-radius:50%;
+  background:var(--fprim);color:#fff;font-size:7pt;font-weight:bold;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;margin-top:1px;
+}
+.doc-ctxt{flex:1}
+.doc-note{
+  background:#fffdf0;border:1px solid var(--fgold);
+  border-left:3px solid var(--fgold);
+  border-radius:0 3px 3px 0;
+  padding:6px 10px;font-size:7pt;color:#555;
+  font-style:italic;margin:5px 0;line-height:1.55;
+}
 .doc-note b{color:var(--fprim);font-style:normal}
-.doc-closing{font-size:8pt;font-style:italic;color:#444;margin-top:5px;line-height:1.45}
+.doc-closing{
+  font-size:8pt;font-style:italic;color:#444;
+  margin-top:5px;line-height:1.5;
+  border-top:1px dashed #ddd;padding-top:5px;
+}
 
-/* Signature */
-.doc-sig{display:flex;justify-content:space-between;align-items:flex-end;margin-top:auto;padding-top:8px;border-top:1px solid #ddd;flex-shrink:0}
-.doc-sig-l{font-size:7.5pt;color:#555;line-height:1.7}
+/* Signature block */
+.doc-sig{
+  display:flex;justify-content:space-between;align-items:flex-end;
+  margin-top:auto;padding-top:8px;border-top:1px solid #ccc;flex-shrink:0;
+}
+.doc-sig-l{font-size:8pt;color:#555;line-height:1.8;font-family:'Times New Roman',serif}
 .doc-sig-r{text-align:right}
-.doc-sig-for{font-size:7.5pt;color:#555;margin-bottom:18px}
-.doc-sig-line{border-top:1px solid #333;padding-top:4px;font-size:8.5pt;font-weight:bold;color:#1a1a1a}
-.doc-sig-sub{font-size:7pt;color:#666}
+.doc-sig-for{font-size:8pt;color:#555;margin-bottom:24px;font-style:italic}
+.doc-sig-name{
+  border-top:1px solid #222;padding-top:4px;
+  font-size:9.5pt;font-weight:bold;color:#111;letter-spacing:.5px;
+}
+.doc-sig-sub{font-size:7.5pt;color:#555;margin-top:2px}
 
 /* Footer */
-.doc-ft{border-top:1px solid var(--fgold);padding-top:3px;margin-top:6px;font-size:6pt;color:#888;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;opacity:.8}
+.doc-ft{
+  border-top:1px solid var(--fgold);padding-top:3px;margin-top:6px;
+  font-size:6pt;color:#888;display:flex;justify-content:space-between;
+  align-items:center;flex-shrink:0;letter-spacing:.02em;
+}
 
-/* Cover extras */
-.cov-box{border:2px solid var(--fprim);border-radius:4px;padding:12px 14px;margin:10px 0}
-.cov-row{display:flex;gap:8px;padding:4px 0;font-size:8pt;color:#333;border-bottom:1px solid #eee;line-height:1.45}
+/* ---- COVER PAGE extras ---- */
+.cov-box{
+  border:2px solid var(--fprim);border-radius:4px;
+  padding:12px 16px;margin:10px 0;
+  background:rgba(0,0,0,.015);
+}
+.cov-row{
+  display:flex;gap:10px;padding:5px 0;
+  font-size:8.5pt;color:#333;border-bottom:1px solid #eee;line-height:1.5;
+}
 .cov-row:last-child{border:none}
-.cov-lbl{font-weight:bold;color:var(--fprim);min-width:95px;flex-shrink:0;font-size:7.5pt}
+.cov-lbl{font-weight:bold;color:var(--fprim);min-width:100px;
+         flex-shrink:0;font-size:8pt}
 
-/* Profile table */
-.ptbl{width:100%;border-collapse:collapse;font-size:7.5pt;margin:7px 0}
-.ptbl td{padding:4.5px 8px;border:1px solid #ddd;vertical-align:top;line-height:1.45}
-.ptbl td:first-child{font-weight:bold;color:var(--fprim);background:#f8f8f8;width:38%}
-.pidx{width:100%;border-collapse:collapse;font-size:7.5pt;margin-top:8px}
-.pidx th{background:var(--fprim);color:#fff;padding:5px 8px;text-align:left;font-weight:bold}
-.pidx td{padding:4.5px 8px;border:1px solid #ddd;vertical-align:top;line-height:1.4}
+/* ---- PROFILE tables ---- */
+.ptbl{width:100%;border-collapse:collapse;font-size:8pt;margin:7px 0}
+.ptbl td{padding:5px 9px;border:1px solid #ddd;vertical-align:top;line-height:1.5}
+.ptbl td:first-child{font-weight:bold;color:var(--fprim);background:#f8f8f8;width:36%}
+.pidx{width:100%;border-collapse:collapse;font-size:8pt;margin-top:8px}
+.pidx th{background:var(--fprim);color:#fff;padding:5px 9px;
+         text-align:left;font-weight:bold;font-size:7.5pt}
+.pidx td{padding:5px 9px;border:1px solid #ddd;vertical-align:top;line-height:1.45}
 .pidx tr:nth-child(even) td{background:#f9f9f9}
-.pidx td:first-child{text-align:center;font-weight:bold;color:var(--fprim);width:10%}
+.pidx td:first-child{text-align:center;font-weight:bold;
+                     color:var(--fprim);width:10%}
 
-/* EMD table */
-.etbl{width:100%;border-collapse:collapse;font-size:8pt;margin:6px 0}
-.etbl th{background:var(--fprim);color:#fff;padding:5px 10px;text-align:left;font-weight:bold;font-size:7.5pt}
-.etbl td{padding:5px 10px;border:1px solid #ddd;font-size:8pt}
+/* ---- EMD table ---- */
+.etbl{width:100%;border-collapse:collapse;font-size:8.5pt;margin:6px 0}
+.etbl th{background:var(--fprim);color:#fff;padding:6px 11px;
+         text-align:left;font-weight:bold;font-size:8pt}
+.etbl td{padding:6px 11px;border:1px solid #ddd}
 </style>
 </head>
 <body>
 
-<!-- ===== APP SHELL ===== -->
+<!-- =====================  APP SHELL  ===================== -->
 <div id="app-shell">
-  <div class="gem-hdr">
-    <a href="./index.html" class="gem-hdr-back" title="Back">&#8592;</a>
-    <div class="gem-hdr-info">
-      <div class="gem-hdr-title">GeM Bid Docs</div>
-      <div class="gem-hdr-sub">Document Generator &amp; PDF Export</div>
+  <div class="gh">
+    <a href="./index.html" class="gh-back" title="Back">&#8592;</a>
+    <div class="gh-info">
+      <div class="gh-title">GeM Bid Docs</div>
+      <div class="gh-sub">Document Generator &amp; PDF Export</div>
     </div>
-    <button class="gem-edit-btn" onclick="openEdit()" type="button">Edit Firm</button>
+    <button class="gh-editbtn" onclick="openEdit()" type="button">Edit Firm</button>
   </div>
 
-  <div class="sec-lbl">Select Firm</div>
-  <div class="firm-grid" id="firm-grid"></div>
-  <div class="warn-bar" id="warn-bar"></div>
+  <div class="slbl">Select Firm</div>
+  <div class="fgrid" id="firm-grid"></div>
+  <div class="wbar" id="warn-bar"></div>
 
-  <div class="sec-lbl">Documents to Generate</div>
-  <div class="preset-row">
+  <div class="slbl">Documents to Generate</div>
+  <div class="prow">
     <button class="pset" onclick="setPreset('full')" type="button">Full Set (Cover–S6)</button>
     <button class="pset" onclick="setPreset('emd')" type="button">EMD Only</button>
     <button class="pset" onclick="setPreset('all')" type="button">All</button>
     <button class="pset" onclick="setPreset('none')" type="button">Clear</button>
   </div>
-  <div class="doc-list" id="doc-list"></div>
+  <div class="dlist" id="doc-list"></div>
 
-  <div class="sec-lbl" style="margin-top:6px">Bid Details</div>
-  <div class="inp-grid">
+  <div class="slbl" style="margin-top:6px">Bid Details</div>
+  <div class="igrid">
     <div>
-      <label class="inp-lbl" for="i-ref">Bid Reference No. *</label>
+      <label class="ilbl" for="i-ref">Bid Reference No. *</label>
       <input class="inp" id="i-ref" placeholder="e.g. GEM/2026/B/12345678" autocomplete="off">
     </div>
-    <div class="inp-row">
+    <div class="irow">
       <div>
-        <label class="inp-lbl" for="i-bd">Bid Date</label>
+        <label class="ilbl" for="i-bd">Bid Date</label>
         <input class="inp" id="i-bd" type="date">
       </div>
       <div>
-        <label class="inp-lbl" for="i-dd">Due Date</label>
+        <label class="ilbl" for="i-dd">Due Date</label>
         <input class="inp" id="i-dd" type="date">
       </div>
     </div>
     <div>
-      <label class="inp-lbl" for="i-item">Requirement / Item *</label>
+      <label class="ilbl" for="i-item">Requirement / Item *</label>
       <input class="inp" id="i-item" placeholder="e.g. Office Chairs — 50 Nos." autocomplete="off">
     </div>
     <div>
-      <label class="inp-lbl" for="i-buyer">Buyer (Organisation)</label>
+      <label class="ilbl" for="i-buyer">Buyer (Organisation)</label>
       <input class="inp" id="i-buyer" placeholder="e.g. 68 Field Regiment C/o 99 APO" autocomplete="off">
     </div>
-    <div class="inp-row">
+    <div class="irow">
       <div>
-        <label class="inp-lbl" for="i-off">Buyer Officer</label>
+        <label class="ilbl" for="i-off">Buyer Officer</label>
         <input class="inp" id="i-off" placeholder="GSO-1" autocomplete="off">
       </div>
       <div>
-        <label class="inp-lbl" for="i-con">Consignee</label>
+        <label class="ilbl" for="i-con">Consignee</label>
         <input class="inp" id="i-con" placeholder="Unit / Depot" autocomplete="off">
       </div>
     </div>
-    <div class="inp-row">
+    <div class="irow">
       <div>
-        <label class="inp-lbl" for="i-place">Place</label>
+        <label class="ilbl" for="i-place">Place</label>
         <input class="inp" id="i-place" placeholder="Barmer" autocomplete="off">
       </div>
       <div>
-        <label class="inp-lbl" for="i-date">Document Date</label>
+        <label class="ilbl" for="i-date">Document Date</label>
         <input class="inp" id="i-date" placeholder="25th June 2026" autocomplete="off">
       </div>
     </div>
 
-    <div class="inp-box">
-      <div class="inp-box-hdr">EMD Details <span style="font-size:10px;color:#64748b;font-weight:400;margin-left:4px">(for EMD Exemption doc)</span></div>
-      <div class="inp-row">
+    <div class="ibox">
+      <div class="ibox-hdr">EMD Details
+        <span style="font-size:10px;color:#64748b;font-weight:400;margin-left:4px">(for EMD Exemption)</span>
+      </div>
+      <div class="irow">
         <div>
-          <label class="inp-lbl" for="i-e1">Schedule 1 (₹)</label>
+          <label class="ilbl" for="i-e1">Schedule 1 (&#8377;)</label>
           <input class="inp" id="i-e1" placeholder="0" inputmode="numeric" autocomplete="off">
         </div>
         <div>
-          <label class="inp-lbl" for="i-e2">Schedule 2 (₹)</label>
+          <label class="ilbl" for="i-e2">Schedule 2 (&#8377;)</label>
           <input class="inp" id="i-e2" placeholder="0" inputmode="numeric" autocomplete="off">
         </div>
       </div>
     </div>
 
-    <div class="inp-box">
-      <div class="inp-box-hdr">
+    <div class="ibox">
+      <div class="ibox-hdr">
         <button class="tog" id="past-tog" onclick="togglePast()" type="button" aria-label="Toggle past performance"></button>
-        Past Performance <span style="font-size:10px;color:#64748b;font-weight:400;margin-left:4px">(optional — adds clauses to S-I)</span>
+        Past Performance
+        <span style="font-size:10px;color:#64748b;font-weight:400;margin-left:2px">(optional — adds clauses to S-I)</span>
       </div>
       <div id="past-fields">
-        <div class="inp-row" style="margin-bottom:8px">
+        <div class="irow" style="margin-bottom:8px">
           <div>
-            <label class="inp-lbl" for="i-pcn">GeM Contract No.</label>
+            <label class="ilbl" for="i-pcn">GeM Contract No.</label>
             <input class="inp" id="i-pcn" placeholder="GEM/2025/B/xxxxx" autocomplete="off">
           </div>
           <div>
-            <label class="inp-lbl" for="i-pcd">Contract Date</label>
+            <label class="ilbl" for="i-pcd">Contract Date</label>
             <input class="inp" id="i-pcd" type="date">
           </div>
         </div>
         <div style="margin-bottom:8px">
-          <label class="inp-lbl" for="i-pfam">Product Family</label>
+          <label class="ilbl" for="i-pfam">Product Family</label>
           <input class="inp" id="i-pfam" placeholder="e.g. Office Furniture" autocomplete="off">
         </div>
         <div style="margin-bottom:8px">
-          <label class="inp-lbl" for="i-pitm">Supplied Item</label>
+          <label class="ilbl" for="i-pitm">Supplied Item</label>
           <input class="inp" id="i-pitm" placeholder="e.g. Office Chairs" autocomplete="off">
         </div>
         <div>
-          <label class="inp-lbl" for="i-pto">Supplied To (Consignee)</label>
+          <label class="ilbl" for="i-pto">Supplied To (Consignee)</label>
           <input class="inp" id="i-pto" placeholder="Unit / Depot" autocomplete="off">
         </div>
       </div>
     </div>
   </div>
-</div>
+</div><!-- /app-shell -->
 
-<!-- ===== PREVIEW AREA ===== -->
+<!-- =====================  PREVIEW  ===================== -->
 <div id="preview-area">
   <div id="preview-pages"></div>
 </div>
 
-<!-- ===== ACTION BAR ===== -->
+<!-- =====================  ACTION BAR  ===================== -->
 <div id="gem-actions">
-  <button class="btn-sec" id="prev-btn" onclick="togglePreview()" type="button">&#128065;&#xFE0E; Preview Documents</button>
+  <button class="btn-sec" id="prev-btn" onclick="togglePreview()" type="button">&#128065; Preview Documents</button>
   <button class="btn-pri" onclick="doPrint()" type="button">&#128438; Print / Save PDF</button>
 </div>
 
-<!-- ===== FIRM EDIT MODAL ===== -->
-<div class="modal-bg" id="edit-modal" onclick="closeEdit(event)">
+<!-- =====================  EDIT MODAL  ===================== -->
+<div class="modal-bg" id="edit-modal" onclick="closeEditBg(event)">
   <div class="modal-sheet" onclick="event.stopPropagation()">
     <div class="modal-hdr">
-      <div class="modal-title" id="edit-modal-title">Edit Firm</div>
+      <div class="modal-ttl" id="edit-modal-ttl">Edit Firm</div>
       <span class="modal-x" onclick="closeEdit()" style="touch-action:manipulation">&#x2715;</span>
     </div>
     <div id="edit-fields"></div>
-    <button class="save-btn" onclick="saveEdit()" type="button">&#10003; Save Changes</button>
+    <button class="savebtn" onclick="saveEdit()" type="button">&#10003; Save Changes</button>
   </div>
 </div>
 
+<!-- =====================  SCRIPT  ===================== -->
 <script>
 (function(){
 'use strict';
 
-/* ===== FIRM DEFAULTS ===== */
+/* ============================================================
+   FIRM DEFAULTS
+   ============================================================ */
 var FD=[
   {id:'sh',badge:'SH',prim:'#0E5D4C',gold:'#C2912E',
    name:'Shree Hinglaj Infratech',biz:'Sole Proprietorship',
@@ -345,8 +507,7 @@ var FD=[
    mse:true,woman:false,obc:false},
   {id:'bi',badge:'BI',prim:'#5B3A29',gold:'#C9A227',
    name:'Bright India Enterprises',biz:'Sole Proprietorship',
-   prop:'',sign:'',addr:'',place:'Barmer',
-   phone:'',email:'',
+   prop:'',sign:'',addr:'',place:'Barmer',phone:'',email:'',
    gstin:'08DLMPN4869L1Z4',udyam:'',gem:'F9ZB260013901739',
    bank:'State Bank of India, Jalipa Cantt Branch, Barmer',
    acc:'43362997445',ifsc:'SBIN0061231',
@@ -363,25 +524,26 @@ var FD=[
   {id:'ub',badge:'UB',prim:'#6B1F2A',gold:'#C9A227',
    name:'Ujjwal Bharat Infratech',biz:'Sole Proprietorship',
    prop:'Shri Manoj Dan',sign:'MANOJ DAN',
-   addr:'',place:'',phone:'',email:'',
-   gstin:'',udyam:'',gem:'',bank:'',acc:'',ifsc:'',
-   mse:true,woman:false,obc:false}
+   addr:'',place:'',phone:'',email:'',gstin:'',udyam:'',gem:'',
+   bank:'',acc:'',ifsc:'',mse:true,woman:false,obc:false}
 ];
 
 var DOCS=[
-  {k:'cover',t:'Cover Page',s:'Bid Compliance & Declarations'},
-  {k:'profile',t:'Section A — Bidder Profile',s:'Index of Submissions'},
-  {k:'s1',t:'Submission I',s:'Past Performance & Experience'},
-  {k:'s2',t:'Submission II',s:'Turnover Eligibility — MSE Relaxation'},
-  {k:'s3',t:'Submission III',s:'Financial Standing & Solvency'},
-  {k:'s4',t:'Submission IV',s:'Acceptance of Terms & Conditions'},
-  {k:'s5',t:'Submission V',s:'Make-in-India / Local Content'},
-  {k:'s6',t:'Submission VI',s:'Land-Border Eligibility & Authenticity'},
-  {k:'emd',t:'EMD Exemption Request',s:'Exemption under MSE / Udyam Registration'},
+  {k:'cover',  t:'Cover Page',            s:'Bid Compliance & Declarations'},
+  {k:'profile',t:'Section A — Bidder Profile', s:'Index of Submissions'},
+  {k:'s1',     t:'Submission I',          s:'Past Performance & Experience'},
+  {k:'s2',     t:'Submission II',         s:'Turnover Eligibility — MSE Relaxation'},
+  {k:'s3',     t:'Submission III',        s:'Financial Standing & Solvency'},
+  {k:'s4',     t:'Submission IV',         s:'Acceptance of Terms & Conditions'},
+  {k:'s5',     t:'Submission V',          s:'Make-in-India / Local Content'},
+  {k:'s6',     t:'Submission VI',         s:'Land-Border Eligibility & Authenticity'},
+  {k:'emd',    t:'EMD Exemption Request', s:'Exemption under MSE / Udyam Registration'},
 ];
 
-/* ===== STATE ===== */
-var firms=loadFirms(),selF=0,selDocs={},pastOn=false,prevOpen=false,editIdx=0;
+/* ============================================================
+   STATE
+   ============================================================ */
+var firms=loadFirms(), selF=0, selDocs={}, pastOn=false, prevOpen=false, editIdx=0;
 
 function lsG(k,d){try{var v=localStorage.getItem(k);return v!==null?JSON.parse(v):d;}catch(e){return d;}}
 function lsS(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
@@ -389,32 +551,43 @@ function lsS(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
 function loadFirms(){
   var s=lsG('gem_firms',null);
   if(!s||s.length!==FD.length)return JSON.parse(JSON.stringify(FD));
-  return s;
+  // Merge saved with defaults (new fields get defaults)
+  return s.map(function(sf,i){return Object.assign({},FD[i],sf);});
 }
 
-/* ===== DATES ===== */
-var MONS=['January','February','March','April','May','June','July','August','September','October','November','December'];
-function ord(n){n=parseInt(n,10);var s=['th','st','nd','rd'],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0]);}
-function docDate(d){return ord(d.getDate())+' '+MONS[d.getMonth()]+' '+d.getFullYear();}
+/* ============================================================
+   DATES
+   ============================================================ */
+var MONS=['January','February','March','April','May','June','July',
+          'August','September','October','November','December'];
+function ord(n){
+  n=parseInt(n,10);
+  var s=['th','st','nd','rd'],v=n%100;
+  return n+(s[(v-20)%10]||s[v]||s[0]);
+}
+function docDate(d){return ord(d.getDate())+' '+MONS[d.getMonth()]+' '+d.getFullYear();}
 function fmtD(s){
   if(!s)return '';
   var p=s.split('-');
-  if(p.length===3)return ord(parseInt(p[2],10))+' '+MONS[parseInt(p[1],10)-1]+' '+p[0];
+  if(p.length===3)return ord(parseInt(p[2],10))+' '+MONS[parseInt(p[1],10)-1]+' '+p[0];
   return s;
 }
 
-/* ===== FIRM GRID ===== */
+/* ============================================================
+   FIRM GRID
+   ============================================================ */
 function renderFirmGrid(){
   var g=document.getElementById('firm-grid');
   g.innerHTML=firms.map(function(f,i){
-    var sel=i===selF?'sel':'';
+    var sel=(i===selF)?'sel':'';
     var miss=missFields(f);
-    var warnHtml=(sel&&miss.length)?'<div class="firm-miss">⚠ Missing: '+miss.join(', ')+'</div>':'';
-    return '<div class="firm-card '+sel+'" style="--fprim:'+f.prim+';--fgold:'+f.gold+'" onclick="selFirm('+i+')" role="button" tabindex="0">'+
-      '<div class="firm-badge">'+f.badge+'</div>'+
-      '<div class="firm-name">'+e(f.name)+'</div>'+
-      '<div class="firm-prop">'+(f.prop?e(f.prop):'<em style="color:#475569">Tap Edit Firm to add</em>')+'</div>'+
-      warnHtml+
+    var wHtml=(sel&&miss.length)?'<div class="fcard-miss">⚠ Missing: '+miss.join(', ')+'</div>':'';
+    return '<div class="fcard '+sel+'" style="--fprim:'+f.prim+';--fgold:'+f.gold+'"'+
+           ' onclick="selFirm('+i+')" role="button" tabindex="0">'+
+      '<div class="fcard-badge">'+xe(f.badge)+'</div>'+
+      '<div class="fcard-name">'+xe(f.name)+'</div>'+
+      '<div class="fcard-prop">'+(f.prop?xe(f.prop):'<em style="color:#475569">Tap Edit Firm</em>')+'</div>'+
+      wHtml+
     '</div>';
   }).join('');
 }
@@ -428,27 +601,30 @@ function missFields(f){
 }
 
 function selFirm(i){
-  selF=i;
-  lsS('gem_selfirm',i);
+  selF=i; lsS('gem_selfirm',i);
   var pl=document.getElementById('i-place');
   if(pl&&!pl.value)pl.value=firms[i].place||'';
-  renderFirmGrid();
-  renderWarn();
+  renderFirmGrid(); renderWarn();
   if(prevOpen)renderPreview();
 }
 
 function renderWarn(){
-  var f=firms[selF],miss=missFields(f),bar=document.getElementById('warn-bar');
-  if(miss.length){bar.textContent='⚠︎ "'+f.name+'" — Missing fields: '+miss.join(', ')+'. Tap Edit Firm to complete.';bar.classList.add('on');}
-  else{bar.classList.remove('on');}
+  var f=firms[selF], miss=missFields(f), bar=document.getElementById('warn-bar');
+  if(miss.length){
+    bar.textContent='⚠ "'+f.name+'" — Missing: '+miss.join(', ')+'. Tap Edit Firm to complete.';
+    bar.classList.add('on');
+  } else { bar.classList.remove('on'); }
 }
 
-/* ===== DOC LIST ===== */
+/* ============================================================
+   DOC LIST
+   ============================================================ */
 function renderDocList(){
   document.getElementById('doc-list').innerHTML=DOCS.map(function(d){
-    return '<label class="doc-item">'+
-      '<input type="checkbox" id="chk-'+d.k+'" '+(selDocs[d.k]?'checked':'')+' onchange="onChk(\''+d.k+'\')" style="touch-action:manipulation">'+
-      '<div><div class="doc-item-ttl">'+d.t+'</div><div class="doc-item-sub">'+d.s+'</div></div>'+
+    return '<label class="ditem">'+
+      '<input type="checkbox" id="chk-'+d.k+'" '+(selDocs[d.k]?'checked':'')+
+      ' onchange="onChk(\''+d.k+'\')" style="touch-action:manipulation">'+
+      '<div><div class="ditem-ttl">'+d.t+'</div><div class="ditem-sub">'+d.s+'</div></div>'+
     '</label>';
   }).join('');
 }
@@ -461,40 +637,44 @@ function onChk(k){
 
 function setPreset(n){
   DOCS.forEach(function(d){
-    if(n==='full')selDocs[d.k]=(d.k!=='emd');
-    else if(n==='emd')selDocs[d.k]=(d.k==='emd');
-    else if(n==='all')selDocs[d.k]=true;
-    else selDocs[d.k]=false;
+    selDocs[d.k]= n==='all'   ? true
+                : n==='emd'   ? d.k==='emd'
+                : n==='full'  ? d.k!=='emd'
+                : false;
   });
-  lsS('gem_docs',selDocs);
-  renderDocList();
+  lsS('gem_docs',selDocs); renderDocList();
   if(prevOpen)renderPreview();
 }
 
-/* ===== PAST TOGGLE ===== */
+/* ============================================================
+   PAST PERFORMANCE TOGGLE
+   ============================================================ */
 function togglePast(){
   pastOn=!pastOn;
   document.getElementById('past-tog').className='tog'+(pastOn?' on':'');
   document.getElementById('past-fields').style.display=pastOn?'block':'none';
 }
 
-/* ===== INPUTS ===== */
-var INP_IDS=['ref','bd','dd','item','buyer','off','con','place','date','e1','e2','pcn','pcd','pfam','pitm','pto'];
+/* ============================================================
+   INPUTS
+   ============================================================ */
+var IDS=['ref','bd','dd','item','buyer','off','con','place','date',
+         'e1','e2','pcn','pcd','pfam','pitm','pto'];
 
 function loadInputs(){
   var s=lsG('gem_inp',{});
-  INP_IDS.forEach(function(id){
+  IDS.forEach(function(id){
     var el=document.getElementById('i-'+id);
-    if(el&&s[id]!==undefined)el.value=s[id];
+    if(el&&s[id]!==undefined&&s[id]!=='')el.value=s[id];
   });
-  if(!document.getElementById('i-off').value)document.getElementById('i-off').value='GSO-1';
-  if(!document.getElementById('i-date').value)document.getElementById('i-date').value=docDate(new Date());
-  if(!document.getElementById('i-place').value)document.getElementById('i-place').value=firms[selF].place||'';
+  if(!document.getElementById('i-off').value) document.getElementById('i-off').value='GSO-1';
+  if(!document.getElementById('i-date').value) document.getElementById('i-date').value=docDate(new Date());
+  if(!document.getElementById('i-place').value) document.getElementById('i-place').value=firms[selF].place||'';
 }
 
 function saveInputs(){
   var s={};
-  INP_IDS.forEach(function(id){var el=document.getElementById('i-'+id);if(el)s[id]=el.value;});
+  IDS.forEach(function(id){var el=document.getElementById('i-'+id);if(el)s[id]=el.value;});
   lsS('gem_inp',s);
 }
 
@@ -502,241 +682,306 @@ function gv(id){var el=document.getElementById('i-'+id);return el?el.value.trim(
 
 function getInp(){
   return{
-    ref:gv('ref'),
-    bd:fmtD(gv('bd')),
-    dd:fmtD(gv('dd')),
-    item:gv('item')||'[Item Not Specified]',
-    buyer:gv('buyer')||'[Buyer Not Specified]',
-    off:gv('off')||'GSO-1',
-    con:gv('con')||'[Consignee]',
-    place:gv('place')||(firms[selF].place||'Barmer'),
-    date:gv('date')||docDate(new Date()),
-    e1:gv('e1'),e2:gv('e2'),
-    pcn:gv('pcn'),pcd:fmtD(gv('pcd')),
-    pfam:gv('pfam'),pitm:gv('pitm'),pto:gv('pto'),
-    hasPast:pastOn&&!!gv('pcn'),
+    ref  : gv('ref'),
+    bd   : fmtD(gv('bd')),
+    dd   : fmtD(gv('dd')),
+    item : gv('item')||'[Item Not Specified]',
+    buyer: gv('buyer')||'[Buyer Organisation]',
+    off  : gv('off')||'GSO-1',
+    con  : gv('con')||'[Consignee]',
+    place: gv('place')||(firms[selF].place||'Barmer'),
+    date : gv('date')||docDate(new Date()),
+    e1:gv('e1'), e2:gv('e2'),
+    pcn:gv('pcn'), pcd:fmtD(gv('pcd')),
+    pfam:gv('pfam'), pitm:gv('pitm'), pto:gv('pto'),
+    hasPast: pastOn && !!gv('pcn'),
   };
 }
 
-/* ===== PREVIEW / PRINT ===== */
+/* ============================================================
+   PREVIEW / PRINT
+   ============================================================ */
 function togglePreview(){
   prevOpen=!prevOpen;
   var btn=document.getElementById('prev-btn');
   var area=document.getElementById('preview-area');
   var shell=document.getElementById('app-shell');
   if(prevOpen){
-    saveInputs();
-    renderPreview();
+    saveInputs(); renderPreview();
     area.classList.add('on');
     shell.style.display='none';
     btn.textContent='← Back to Editor';
     btn.classList.add('on');
-  }else{
+  } else {
     area.classList.remove('on');
     shell.style.display='block';
-    btn.textContent='👁︎ Preview Documents';
+    btn.textContent='👁 Preview Documents';
     btn.classList.remove('on');
   }
 }
 
 function doPrint(){
-  saveInputs();
-  renderPreview();
+  saveInputs(); renderPreview();
   document.getElementById('preview-area').classList.add('on');
-  setTimeout(function(){window.print();},120);
+  // Reset transforms before printing (critical for correct PDF size)
+  resetForPrint();
+  setTimeout(function(){window.print();}, 150);
 }
 
+function resetForPrint(){
+  document.querySelectorAll('.doc-page').forEach(function(p){
+    p.style.transform='none'; p.style.width=''; p.style.height='';
+  });
+  document.querySelectorAll('.pgwrap').forEach(function(w){
+    w.style.height=''; w.style.overflow='';
+  });
+}
+
+// Also handle browser-native beforeprint / afterprint
+window.addEventListener('beforeprint', function(){ resetForPrint(); });
+window.addEventListener('afterprint',  function(){ if(prevOpen) scalePages(); });
+
 function renderPreview(){
-  var f=firms[selF],inp=getInp();
+  var f=firms[selF], inp=getInp();
   var keys=DOCS.filter(function(d){return selDocs[d.k];}).map(function(d){return d.k;});
-  var total=keys.length;
-  if(!total){
-    document.getElementById('preview-pages').innerHTML='<div style="padding:24px;text-align:center;color:#64748b;font-size:13px">No documents selected.<br>Please check at least one document above.</div>';
+  var tot=keys.length;
+  if(!tot){
+    document.getElementById('preview-pages').innerHTML=
+      '<div style="padding:28px;text-align:center;color:#475569;font-size:13px">'+
+      'No documents selected.<br>Please tick at least one document above.</div>';
     return;
   }
-  var html=keys.map(function(k,idx){
-    return '<div class="pg-wrap">'+genDoc(k,f,inp,idx+1,total)+'</div>';
+  document.getElementById('preview-pages').innerHTML=keys.map(function(k,i){
+    return '<div class="pgwrap">'+genDoc(k,f,inp,i+1,tot)+'</div>';
   }).join('');
-  document.getElementById('preview-pages').innerHTML=html;
   scalePages();
 }
 
 function scalePages(){
   var area=document.getElementById('preview-area');
-  if(!area)return;
-  var cw=area.offsetWidth-32; // minus padding
-  if(cw<50)cw=400;
+  if(!area) return;
+  var cw=area.offsetWidth-24; // minus 12px padding each side
+  if(cw<80) cw=400;
   var pw=794; // 210mm @ 96dpi
-  var sc=cw/pw;
   var ph=1122; // 297mm @ 96dpi
-  document.querySelectorAll('.pg-wrap').forEach(function(wrap){
-    var page=wrap.querySelector('.doc-page');
-    if(page){
-      page.style.transform='scale('+sc+')';
-      page.style.transformOrigin='top left';
+  var sc=cw/pw;
+  document.querySelectorAll('.pgwrap').forEach(function(wrap){
+    var pg=wrap.querySelector('.doc-page');
+    if(pg){
+      pg.style.transform='scale('+sc.toFixed(4)+')';
+      pg.style.transformOrigin='top left';
       wrap.style.height=Math.round(ph*sc)+'px';
+      wrap.style.overflow='hidden';
     }
   });
 }
 
-/* ===== DOCUMENT GENERATOR ===== */
-function genDoc(k,f,inp,n,tot){
-  switch(k){
-    case 'cover':   return genCover(f,inp,n,tot);
-    case 'profile': return genProfile(f,inp,n,tot);
-    case 's1': return genS(1,f,inp,n,tot);
-    case 's2': return genS(2,f,inp,n,tot);
-    case 's3': return genS(3,f,inp,n,tot);
-    case 's4': return genS(4,f,inp,n,tot);
-    case 's5': return genS(5,f,inp,n,tot);
-    case 's6': return genS(6,f,inp,n,tot);
-    case 'emd': return genEMD(f,inp,n,tot);
-    default:return '';
-  }
+/* ============================================================
+   HTML ESCAPE
+   ============================================================ */
+function xe(s){
+  return String(s||'')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
 }
 
-/* ===== SHARED HELPERS ===== */
-function e(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-
+/* ============================================================
+   SHARED DOCUMENT HELPERS
+   ============================================================ */
 function taglineStr(f){
   var p=[];
-  if(f.mse)p.push('MSE');if(f.woman)p.push('Woman-Owned');if(f.obc)p.push('OBC');
-  if(f.udyam)p.push('Udyam Registered');
-  return p.join(' &bull; ')||'Registered Enterprise';
+  if(f.mse)   p.push('MSE');
+  if(f.woman) p.push('Woman-Owned');
+  if(f.obc)   p.push('OBC');
+  if(f.udyam) p.push('Udyam Registered');
+  return p.join(' • ')||'Registered Enterprise';
 }
 
 function idsStr(f){
   var p=[];
-  if(f.gem)p.push('GeM: '+f.gem);
-  if(f.gstin)p.push('GSTIN: '+f.gstin);
-  if(f.udyam)p.push('Udyam: '+f.udyam);
-  return p.join(' &nbsp;&bull;&nbsp; ');
+  if(f.gem)   p.push('GeM&nbsp;ID: '+xe(f.gem));
+  if(f.gstin) p.push('GSTIN: '+xe(f.gstin));
+  if(f.udyam) p.push('Udyam: '+xe(f.udyam));
+  return p.join('&nbsp;&nbsp;•&nbsp;&nbsp;');
 }
 
-function addrStr(f){
-  var s=e(f.addr||'');
-  if(f.phone||f.email)s+=(s?'<br>':'');
-  if(f.phone)s+='Mob: '+e(f.phone)+'&nbsp;&nbsp;&nbsp;';
-  if(f.email)s+=e(f.email);
-  return s;
+function addrLine(f){
+  var parts=[];
+  if(f.addr)  parts.push(xe(f.addr));
+  var contact=[];
+  if(f.phone) contact.push('Mob: '+xe(f.phone));
+  if(f.email) contact.push(xe(f.email));
+  if(contact.length) parts.push(contact.join('&nbsp;&nbsp;&nbsp;'));
+  return parts.join('<br>');
 }
 
-function firmVars(f){
-  return 'style="--fprim:'+f.prim+';--fgold:'+f.gold+'"';
-}
+function fvars(f){return 'style="--fprim:'+f.prim+';--fgold:'+f.gold+'"';}
 
+/* Document letterhead (used by every page) */
 function hdr(f){
-  return '<div class="doc-seal">'+e(f.badge)+'</div>'+
-    '<div class="doc-fname">'+e(f.name)+'</div>'+
-    '<div class="doc-tline">'+taglineStr(f)+'</div>'+
-    '<div class="doc-div"><span class="doc-dmd"></span></div>'+
-    (idsStr(f)?'<div class="doc-ids">'+idsStr(f)+'</div>':'')+
-    (addrStr(f)?'<div class="doc-addr">'+addrStr(f)+'</div>':'');
+  var ids=idsStr(f), addr=addrLine(f);
+  return '<div class="doc-hdr-bg"></div>'+
+    '<div class="doc-hdr">'+
+      '<div class="doc-seal">'+xe(f.badge)+'</div>'+
+      '<div class="doc-fname">'+xe(f.name)+'</div>'+
+      '<div class="doc-tline">'+taglineStr(f)+'</div>'+
+      '<div class="doc-div"><span class="doc-dmd"></span></div>'+
+      (ids ?'<div class="doc-ids">'+ids+'</div>':'') +
+      (addr?'<div class="doc-addr">'+addr+'</div>':'')+
+    '</div>';
 }
 
-function strip(inp){
-  return '<div class="doc-strip">'+
-    'Bid Ref:&nbsp;<b>'+(inp.ref||'[Reference]')+'</b>'+
-    (inp.bd?'&nbsp;&nbsp;&bull;&nbsp;&nbsp;Bid Date:&nbsp;<b>'+inp.bd+'</b>':'')+
-    (inp.dd?'&nbsp;&nbsp;&bull;&nbsp;&nbsp;Due:&nbsp;<b>'+inp.dd+'</b>':'')+
-  '</div>';
+function bidStrip(inp){
+  var s='Bid&nbsp;Ref: <b>'+(inp.ref||'[Reference No.]')+'</b>';
+  if(inp.bd) s+='&nbsp;&nbsp;•&nbsp;&nbsp;Bid&nbsp;Date: <b>'+inp.bd+'</b>';
+  if(inp.dd) s+='&nbsp;&nbsp;•&nbsp;&nbsp;Due: <b>'+inp.dd+'</b>';
+  return '<div class="doc-strip">'+s+'</div>';
 }
 
 function toLine(f,inp){
-  return '<div class="doc-to">To:&nbsp;<b>'+e(inp.off)+'</b>, '+e(inp.buyer)+(inp.buyer?', ':'')+' Indian Army, Ministry of Defence</div>';
+  return '<div class="doc-to">To:&nbsp;<b>'+xe(inp.off)+'</b>'+
+    (inp.buyer?',&nbsp;'+xe(inp.buyer)+', Indian Army, Ministry of Defence':
+               ', Indian Army, Ministry of Defence')+
+  '</div>';
 }
 
-function cls(arr){
+function clauses(arr){
   return '<ul class="doc-cls">'+arr.map(function(c,i){
-    return '<li class="doc-cl"><span class="doc-cn">'+(i+1)+'</span><span class="doc-ct2">'+c+'</span></li>';
+    return '<li class="doc-cl">'+
+      '<span class="doc-cn">'+(i+1)+'</span>'+
+      '<span class="doc-ctxt">'+c+'</span>'+
+    '</li>';
   }).join('')+'</ul>';
 }
 
-function sig(f,inp){
+function sigBlock(f,inp){
   return '<div class="doc-sig">'+
-    '<div class="doc-sig-l">Place:&nbsp;'+e(inp.place)+'<br>Date:&nbsp;'+e(inp.date)+'</div>'+
+    '<div class="doc-sig-l">Place:&nbsp;<b>'+xe(inp.place)+'</b><br>Date:&nbsp;<b>'+xe(inp.date)+'</b></div>'+
     '<div class="doc-sig-r">'+
-      '<div class="doc-sig-for">For M/s '+e(f.name)+'</div>'+
-      '<div class="doc-sig-line">'+(e(f.sign)||'__________________')+'</div>'+
+      '<div class="doc-sig-for">For M/s '+xe(f.name)+'</div>'+
+      '<div class="doc-sig-name">'+(xe(f.sign)||'____________________')+'</div>'+
       '<div class="doc-sig-sub">Proprietor / Authorised Signatory</div>'+
     '</div>'+
   '</div>';
 }
 
-function ft(f,inp,lbl,n,tot){
+function footer(f,inp,lbl,n,tot){
   return '<div class="doc-ft">'+
-    '<span>'+e(f.name)+'</span>'+
-    '<span>'+e(lbl)+'&nbsp;&bull;&nbsp;'+(inp.ref||'Bid Ref')+'</span>'+
+    '<span>'+xe(f.name)+'</span>'+
+    '<span>'+xe(lbl)+'&nbsp;•&nbsp;'+(inp.ref||'Bid Ref')+'</span>'+
     '<span>Page '+n+' of '+tot+'</span>'+
   '</div>';
 }
 
 function page(f,inp,body,lbl,n,tot){
-  return '<div class="doc-page" '+firmVars(f)+'>'+
+  return '<div class="doc-page" '+fvars(f)+'>'+
     '<div class="doc-ob"></div>'+
     '<div class="doc-ib"></div>'+
-    '<div class="doc-dm tl"></div><div class="doc-dm tr"></div>'+
-    '<div class="doc-dm bl"></div><div class="doc-dm br"></div>'+
+    '<div class="doc-dm tl"></div>'+
+    '<div class="doc-dm tr"></div>'+
+    '<div class="doc-dm bl"></div>'+
+    '<div class="doc-dm br"></div>'+
     '<div class="doc-ct">'+
-      hdr(f)+strip(inp)+
+      hdr(f)+
+      bidStrip(inp)+
       '<div class="doc-body">'+body+'</div>'+
-      ft(f,inp,lbl,n,tot)+
+      footer(f,inp,lbl,n,tot)+
     '</div>'+
   '</div>';
 }
 
-/* ===== COVER ===== */
+/* ============================================================
+   DOCUMENT ROUTER
+   ============================================================ */
+function genDoc(k,f,inp,n,tot){
+  switch(k){
+    case 'cover':   return genCover(f,inp,n,tot);
+    case 'profile': return genProfile(f,inp,n,tot);
+    case 's1': return genSub(1,f,inp,n,tot);
+    case 's2': return genSub(2,f,inp,n,tot);
+    case 's3': return genSub(3,f,inp,n,tot);
+    case 's4': return genSub(4,f,inp,n,tot);
+    case 's5': return genSub(5,f,inp,n,tot);
+    case 's6': return genSub(6,f,inp,n,tot);
+    case 'emd': return genEMD(f,inp,n,tot);
+    default: return '';
+  }
+}
+
+/* ============================================================
+   COVER PAGE
+   ============================================================ */
 function genCover(f,inp,n,tot){
   var tl=[];
-  if(f.mse)tl.push('MSE');if(f.woman)tl.push('WOMAN-OWNED');
-  if(f.obc)tl.push('OBC');if(f.udyam)tl.push('UDYAM REGISTERED');
+  if(f.mse)   tl.push('MSE');
+  if(f.woman) tl.push('WOMAN-OWNED');
+  if(f.obc)   tl.push('OBC');
+  if(f.udyam) tl.push('UDYAM REGISTERED');
+  var ids=idsStr(f);
+
   var body=
-    '<div class="doc-ey" style="text-align:center;margin-top:4px">GeM Bid Compliance Documents</div>'+
-    '<div class="doc-ttl" style="text-align:center;font-size:14pt;margin-bottom:4px">BID COMPLIANCE &amp;<br>DECLARATIONS</div>'+
-    '<div style="text-align:center;font-size:8pt;color:#555;font-style:italic;margin-bottom:10px">Submitted with respect &amp; compliance by the Bidder</div>'+
+    '<div class="doc-ey" style="text-align:center;margin-top:6px">GeM Government e-Marketplace &mdash; Bid Compliance Documents</div>'+
+    '<div class="doc-ttl" style="text-align:center;font-size:15pt;letter-spacing:.05em;margin-bottom:5px">'+
+      'BID COMPLIANCE<br>&amp; DECLARATIONS'+
+    '</div>'+
+    '<div style="text-align:center;font-size:8.5pt;color:#555;font-style:italic;margin-bottom:12px">'+
+      'Submitted with respect &amp; compliance by the Bidder'+
+    '</div>'+
     '<div class="doc-div"><span class="doc-dmd"></span></div>'+
     '<div class="cov-box">'+
-      '<div class="cov-row"><span class="cov-lbl">Bid Reference</span><span>'+(inp.ref||'&mdash;')+(inp.bd?' &nbsp;Dated: '+inp.bd:'')+'</span></div>'+
-      '<div class="cov-row"><span class="cov-lbl">Buyer</span><span>'+e(inp.buyer)+', Indian Army, Ministry of Defence</span></div>'+
-      '<div class="cov-row"><span class="cov-lbl">Requirement</span><span>'+e(inp.item)+'</span></div>'+
-      '<div class="cov-row"><span class="cov-lbl">Consignee</span><span>'+e(inp.con)+'</span></div>'+
+      '<div class="cov-row"><span class="cov-lbl">Bid Reference</span><span>'+
+        (inp.ref||'&mdash;')+(inp.bd?' &nbsp;&nbsp; Dated: <b>'+inp.bd+'</b>':'')+
+      '</span></div>'+
+      '<div class="cov-row"><span class="cov-lbl">Buyer</span><span>'+
+        xe(inp.buyer)+', Indian Army, Ministry of Defence'+
+      '</span></div>'+
+      '<div class="cov-row"><span class="cov-lbl">Requirement</span><span>'+xe(inp.item)+'</span></div>'+
+      '<div class="cov-row"><span class="cov-lbl">Consignee</span><span>'+xe(inp.con)+'</span></div>'+
       (inp.dd?'<div class="cov-row"><span class="cov-lbl">Bid Due Date</span><span>'+inp.dd+'</span></div>':'')+
-      '<div class="cov-row"><span class="cov-lbl">Bidder Status</span><span>'+(tl.join(' &bull; ')||'Registered Enterprise')+'</span></div>'+
+      '<div class="cov-row"><span class="cov-lbl">Bidder Status</span><span>'+
+        (tl.join(' &bull; ')||'Registered Enterprise')+
+      '</span></div>'+
     '</div>'+
-    '<div class="doc-div" style="margin-top:10px"><span class="doc-dmd"></span></div>'+
-    '<div style="text-align:center;font-size:7pt;color:#666;margin-top:10px;line-height:1.9">'+
-      (f.addr?e(f.addr)+'<br>':'')+
-      (idsStr(f)?idsStr(f)+'<br>':'')+
-      'Prepared on:&nbsp;'+e(inp.date)+
+    '<div class="doc-div" style="margin-top:12px"><span class="doc-dmd"></span></div>'+
+    '<div style="text-align:center;font-size:7pt;color:#666;margin-top:12px;line-height:2">'+
+      (f.addr ? xe(f.addr)+'<br>' : '')+
+      (ids    ? ids+'<br>'        : '')+
+      'Document Prepared on: <b>'+xe(inp.date)+'</b>'+
     '</div>'+
-    '<div style="margin-top:auto"></div>';
+    '<div style="flex:1"></div>';
+
   return page(f,inp,body,'Cover Page',n,tot);
 }
 
-/* ===== PROFILE ===== */
+/* ============================================================
+   SECTION A — BIDDER PROFILE
+   ============================================================ */
 function genProfile(f,inp,n,tot){
-  var eClass='Micro &amp; Small Enterprise'+(f.woman?' &mdash; Woman-Owned':'');
+  var ec='Micro &amp; Small Enterprise'+(f.woman?' &mdash; Woman-Owned':'');
   var rows=[
-    ['Name of Firm','M/s '+e(f.name)+' ('+e(f.biz)+')'],
-    ['Proprietor',e(f.prop)||'&mdash;'],
-    ['Enterprise Class',eClass],
+    ['Name of Firm','M/s '+xe(f.name)+' ('+xe(f.biz)+')'],
+    ['Proprietor', xe(f.prop)||'&mdash;'],
+    ['Enterprise Class', ec],
   ];
-  if(f.obc)rows.push(['Social Category','Other Backward Class (OBC)']);
-  if(f.gem)rows.push(['GeM Seller ID',e(f.gem)]);
-  if(f.gstin)rows.push(['GSTIN',e(f.gstin)]);
-  if(f.udyam)rows.push(['Udyam Reg. No.',e(f.udyam)]);
-  rows.push(['Registered Address',e(f.addr)||'&mdash;']);
-  if(f.phone)rows.push(['Mobile',e(f.phone)]);
-  if(f.email)rows.push(['Email',e(f.email)]);
-  if(f.bank)rows.push(['Bank Account',''+e(f.bank)+'<br>A/c: '+e(f.acc)+'&nbsp;&nbsp;|&nbsp;&nbsp;IFSC: '+e(f.ifsc)]);
+  if(f.obc)   rows.push(['Social Category','Other Backward Class (OBC)']);
+  if(f.gem)   rows.push(['GeM Seller ID', xe(f.gem)]);
+  if(f.gstin) rows.push(['GSTIN', xe(f.gstin)]);
+  if(f.udyam) rows.push(['Udyam Reg. No.', xe(f.udyam)]);
+  rows.push(['Registered Address', xe(f.addr)||'&mdash;']);
+  if(f.phone) rows.push(['Mobile', xe(f.phone)]);
+  if(f.email) rows.push(['Email',  xe(f.email)]);
+  if(f.bank)  rows.push(['Bank Account',
+    xe(f.bank)+'<br>A/c No.: <b>'+xe(f.acc)+'</b>&nbsp;&nbsp;|&nbsp;&nbsp;IFSC: <b>'+xe(f.ifsc)+'</b>']);
 
   var idx=[
-    ['I','Past Performance &amp; Experience &mdash; with MSE Relaxation'],
-    ['II','Turnover Eligibility &mdash; MSE Relaxation'],
-    ['III','Financial Standing &amp; Solvency'],
-    ['IV','Acceptance of Terms &amp; Buyer-added Conditions'],
-    ['V','Make-in-India / Local Content Declaration'],
-    ['VI','Land-Border Eligibility &amp; Authenticity of Goods'],
+    ['I',   'Past Performance &amp; Experience &mdash; with MSE Relaxation'],
+    ['II',  'Turnover Eligibility &mdash; MSE Relaxation'],
+    ['III', 'Financial Standing &amp; Solvency'],
+    ['IV',  'Acceptance of Terms &amp; Buyer-added Conditions (ATC)'],
+    ['V',   'Make-in-India / Local Content Declaration'],
+    ['VI',  'Land-Border Eligibility &amp; Authenticity of Goods'],
   ];
 
   var body=
@@ -744,40 +989,55 @@ function genProfile(f,inp,n,tot){
     '<div class="doc-ttl">Bidder Profile &amp; Index of Submissions</div>'+
     '<div class="doc-div"><span class="doc-dmd"></span></div>'+
     toLine(f,inp)+
-    '<table class="ptbl">'+rows.map(function(r){return'<tr><td>'+r[0]+'</td><td>'+r[1]+'</td></tr>';}).join('')+'</table>'+
-    '<div style="font-size:8pt;color:#333;margin:8px 0 5px;font-style:italic">We are honoured to enclose the following submissions for the kind perusal of the Buyer:</div>'+
+    '<table class="ptbl">'+
+      rows.map(function(r){return'<tr><td>'+r[0]+'</td><td>'+r[1]+'</td></tr>';}).join('')+
+    '</table>'+
+    '<div style="font-size:8.5pt;color:#333;margin:9px 0 5px;font-style:italic">'+
+      'We are honoured to enclose the following submissions for the kind perusal of the Buyer:'+
+    '</div>'+
     '<table class="pidx">'+
       '<tr><th>Sub.</th><th>Submission Title</th></tr>'+
       idx.map(function(r){return'<tr><td>'+r[0]+'</td><td>'+r[1]+'</td></tr>';}).join('')+
     '</table>'+
-    sig(f,inp);
+    sigBlock(f,inp);
 
   return page(f,inp,body,'Section A — Bidder Profile',n,tot);
 }
 
-/* ===== SUBMISSIONS I–VI ===== */
-function genS(num,f,inp,n,tot){
-  var ey='Submission '+['','I','II','III','IV','V','VI'][num];
-  var nm=e(f.name);
-  var udyam=f.udyam?'<b>'+e(f.udyam)+'</b>':'[Udyam No. — Update Firm Profile]';
-  var titles=['','Past Performance &amp; Experience','Turnover Eligibility &mdash; MSE Relaxation','Financial Standing &amp; Solvency','Acceptance of Terms &amp; Conditions','Make-in-India / Local Content','Land-Border Eligibility &amp; Authenticity of Goods'];
-  var ttl=titles[num];
-  var clauses=[],note='',closing='',lbl='Submission '+['','I','II','III','IV','V','VI'][num];
+/* ============================================================
+   SUBMISSIONS I – VI
+   ============================================================ */
+function genSub(num,f,inp,n,tot){
+  var ROM=['','I','II','III','IV','V','VI'];
+  var ey='Submission '+ROM[num];
+  var nm=xe(f.name);
+  var udyam=f.udyam
+    ? '<b>'+xe(f.udyam)+'</b>'
+    : '[Udyam No. — update via Edit Firm]';
+
+  var titles=['',
+    'Past Performance &amp; Experience',
+    'Turnover Eligibility &mdash; MSE Relaxation',
+    'Financial Standing &amp; Solvency',
+    'Acceptance of Terms &amp; Conditions',
+    'Make-in-India / Local Content',
+    'Land-Border Eligibility &amp; Authenticity of Goods',
+  ];
+
+  var cs=[],note='',closing='';
 
   if(num===1){
-    clauses=[
-      'That M/s '+nm+' is an established and reputed supplier to the Indian Army and Defence establishments, with a consistent record of satisfactory performance on the GeM portal.',
-    ];
+    cs=['That M/s '+nm+' is an established and reputed supplier to the Indian Army and Defence establishments, with a consistent record of satisfactory performance on the GeM portal.'];
     if(inp.hasPast){
-      clauses.push('That, most pertinently, we have already supplied <b>'+e(inp.pfam)+'</b> to this very Buyer — vide GeM Contract <b>'+e(inp.pcn)+'</b> dated <b>'+inp.pcd+'</b> for <b>'+e(inp.pitm)+'</b> to '+e(inp.pto)+' — which was delivered well within the stipulated timeline to the entire satisfaction of the consignee.');
-      clauses.push('That the said contract, being for goods of the same product family and to the same consignee as the present Bid, demonstrates our proven capability and reliability for the instant requirement.');
+      cs.push('That, most pertinently, we have already supplied <b>'+xe(inp.pfam)+'</b> to this very Buyer — vide GeM Contract <b>'+xe(inp.pcn)+'</b> dated <b>'+inp.pcd+'</b> for <b>'+xe(inp.pitm)+'</b> to <b>'+xe(inp.pto)+'</b> — which was delivered well within the stipulated timeline to the entire satisfaction of the consignee.');
+      cs.push('That the said contract, being for goods of the same product family and to the same consignee as the present Bid, demonstrates our proven capability and reliability for the instant requirement.');
     }
-    clauses.push('That our firm, being a duly registered Micro &amp; Small Enterprise (Udyam No. '+udyam+'), is additionally entitled to the complete relaxation of the Experience Criterion graciously extended to MSEs under this Bid (MSE Relaxation: Yes | Complete).');
-    clauses.push('That we therefore respectfully submit that the experience and past-performance requirement stands amply met, and that all particulars stated herein are true and correct to the best of our knowledge and belief.');
+    cs.push('That our firm, being a duly registered Micro &amp; Small Enterprise (Udyam No. '+udyam+'), is additionally entitled to the complete relaxation of the Experience Criterion graciously extended to MSEs under this Bid (MSE Relaxation: Yes | Complete).');
+    cs.push('That we therefore respectfully submit that the experience and past-performance requirement stands amply met, and that all particulars stated herein are true and correct to the best of our knowledge and belief.');
     closing='The above declarations are made in good faith and shall be substantiated by documentary evidence upon request.';
   }
   else if(num===2){
-    clauses=[
+    cs=[
       'That M/s '+nm+' is a duly registered Micro &amp; Small Enterprise vide Udyam Registration No. '+udyam+', valid and subsisting as on the date of bid opening.',
       'That the Bid Document kindly extends complete relaxation of the Bidder\'s Average Annual Turnover criterion to MSEs (MSE Relaxation for Turnover: Yes | Complete), and we respectfully seek the benefit of the said provision.',
       'That this relaxation is sought solely on the strength of our valid MSE status, and without prejudice to our capability to honour the contract in full.',
@@ -787,19 +1047,19 @@ function genS(num,f,inp,n,tot){
     closing='This declaration is furnished in compliance with the Bid Document requirements and in good faith.';
   }
   else if(num===3){
-    clauses=[
+    cs=[
       'That our firm is not under liquidation, court receivership or any like proceeding, nor has it been declared bankrupt or insolvent under any law in force.',
       'That M/s '+nm+' is financially sound and solvent, and is fully capable of executing the contract, should the same be entrusted to us, in accordance with the Bid terms.',
       'That no proceeding is pending against our firm or its Proprietor which would render us ineligible to participate in this Bid.',
       'That this affirmation is furnished in good faith in fulfilment of the Buyer\'s requirement to certify our financial standing.',
       'That the statements made herein are true and correct to the best of our knowledge and belief.',
     ];
-    closing='This declaration is made on behalf of the firm and its Proprietor, and the undersigned is duly authorised to make this declaration.';
+    closing='This declaration is made on behalf of the firm and its Proprietor; the undersigned is duly authorised to make this declaration.';
   }
   else if(num===4){
-    clauses=[
+    cs=[
       'That we have carefully studied the General Terms &amp; Conditions, the Special Terms and all Buyer-added Bid-Specific Conditions (ATC), and accept the same unconditionally and without deviation.',
-      'That we shall effect delivery, installation, commissioning and demonstration (as applicable) at <b>'+e(inp.con)+'</b>, within the stipulated delivery period.',
+      'That we shall effect delivery, installation, commissioning and demonstration (as applicable) at <b>'+xe(inp.con)+'</b>, within the stipulated delivery period.',
       'That we shall honour the prescribed warranty and attend to any defect during the warranty period at no additional cost to the Buyer.',
       'That we shall furnish all documents for Vendor Code creation (PAN, GSTIN, Cancelled Cheque, EFT Mandate) and raise GeM invoices in the prescribed manner.',
       'That we accept GST reimbursement as per actuals or the applicable rate, whichever is lower, subject to our quoted GST.',
@@ -809,8 +1069,8 @@ function genS(num,f,inp,n,tot){
     closing='We remain committed to the letter and spirit of the Bid terms and look forward to serving the Buyer with distinction.';
   }
   else if(num===5){
-    clauses=[
-      'That the goods offered — <b>'+e(inp.item)+'</b> — conform to the minimum local content prescribed to qualify as a Class-I / Class-II Local Supplier under the Public Procurement (Preference to Make-in-India) Order, 2017, as amended.',
+    cs=[
+      'That the goods offered — <b>'+xe(inp.item)+'</b> — conform to the minimum local content prescribed to qualify as a Class-I / Class-II Local Supplier under the Public Procurement (Preference to Make-in-India) Order, 2017, as amended.',
       'That we shall furnish, wherever required, the OEM\'s certificate specifying the percentage of local content and the place(s) of local value addition, in support of any purchase preference claimed.',
       'That we are conscious of the consequences attaching to any incorrect declaration of local content under the said Order, and we accept the same.',
       'That the particulars stated above are true and correct to the best of our knowledge and belief.',
@@ -819,7 +1079,7 @@ function genS(num,f,inp,n,tot){
     closing='This declaration is made in sincere compliance with the Public Procurement (Preference to Make-in-India) Order, 2017.';
   }
   else if(num===6){
-    clauses=[
+    cs=[
       'That our firm is an Indian entity and does not attract any restriction applicable to bidders from a country sharing a land border with India under GeM GTC Clause 26, and that no registration with the Competent Authority is attracted in our case.',
       'That we are fully eligible to participate in this Bid in our own right.',
       'That the goods to be supplied shall be genuine, brand-new and unused, drawn from an authorised distributor / dealer / channel partner of the OEM, with the requisite chain / GST documents furnished at delivery.',
@@ -831,30 +1091,36 @@ function genS(num,f,inp,n,tot){
 
   var body=
     '<div class="doc-ey">'+ey+'</div>'+
-    '<div class="doc-ttl">'+ttl+'</div>'+
+    '<div class="doc-ttl">'+titles[num]+'</div>'+
     '<div class="doc-div"><span class="doc-dmd"></span></div>'+
     toLine(f,inp)+
     '<div class="doc-intro">We, M/s '+nm+', hereby solemnly affirm and declare as under:</div>'+
-    cls(clauses)+
-    (note?'<div class="doc-note"><b>Note:&nbsp;</b>'+note+'</div>':'')+
+    clauses(cs)+
+    (note?'<div class="doc-note"><b>Note: </b>'+note+'</div>':'')+
     (closing?'<div class="doc-closing">'+closing+'</div>':'')+
-    sig(f,inp);
+    sigBlock(f,inp);
 
-  return page(f,inp,body,lbl,n,tot);
+  return page(f,inp,body,ey,n,tot);
 }
 
-/* ===== EMD ===== */
+/* ============================================================
+   EMD EXEMPTION REQUEST
+   ============================================================ */
 function genEMD(f,inp,n,tot){
-  var udyam=f.udyam?'<b>'+e(f.udyam)+'</b>':'[Udyam No. — Update Firm Profile]';
-  var emdRows='';
-  if(inp.e1)emdRows+='<tr><td>Schedule 1</td><td><b>&#x20B9;&nbsp;'+e(inp.e1)+'/-</b></td></tr>';
-  if(inp.e2)emdRows+='<tr><td>Schedule 2</td><td><b>&#x20B9;&nbsp;'+e(inp.e2)+'/-</b></td></tr>';
-  if(!emdRows)emdRows='<tr><td colspan="2" style="text-align:center;color:#888;font-style:italic">EMD amount not entered &mdash; please fill in the form</td></tr>';
+  var udyam=f.udyam?'<b>'+xe(f.udyam)+'</b>':'[Udyam No. — update via Edit Firm]';
+  var rows='';
+  if(inp.e1) rows+='<tr><td>Schedule 1</td><td><b>&#x20B9; '+xe(inp.e1)+'/-</b></td></tr>';
+  if(inp.e2) rows+='<tr><td>Schedule 2</td><td><b>&#x20B9; '+xe(inp.e2)+'/-</b></td></tr>';
+  if(!rows)  rows='<tr><td colspan="2" style="text-align:center;color:#999;font-style:italic">EMD amount not entered — please fill in the form</td></tr>';
 
-  var clauses=[
-    'That M/s '+e(f.name)+' is a duly registered Micro &amp; Small Enterprise vide Udyam Registration No. '+udyam+', valid and subsisting as on the date of bid opening.',
+  var cs=[
+    'That M/s '+xe(f.name)+' is a duly registered Micro &amp; Small Enterprise vide Udyam Registration No. '+udyam+', valid and subsisting as on the date of bid opening.',
     'That, in keeping with the GeM General Terms &amp; Conditions and the Public Procurement Policy for MSEs, 2012, bidders registered as MSEs are exempted from payment of Earnest Money Deposit (EMD), and we respectfully seek the benefit of the said exemption against this Bid.',
-    'That the EMD applicable to the Bid, from which exemption is sought, is as under:<table class="etbl" style="margin:6px 0"><thead><tr><th>Schedule</th><th>EMD Amount</th></tr></thead><tbody>'+emdRows+'</tbody></table>',
+    'That the EMD applicable to the Bid, from which exemption is sought, is as under:'+
+      '<table class="etbl" style="margin:6px 0">'+
+        '<thead><tr><th>Schedule</th><th>EMD Amount</th></tr></thead>'+
+        '<tbody>'+rows+'</tbody>'+
+      '</table>',
     'That a copy of our valid Udyam Registration Certificate is enclosed herewith in support of this request.',
     'That, in the event this exemption is found inadmissible under the specific terms of the Bid, we respectfully undertake to deposit the applicable EMD as required.',
     'That the particulars stated above are true and correct to the best of our knowledge and belief.',
@@ -862,55 +1128,63 @@ function genEMD(f,inp,n,tot){
 
   var body=
     '<div class="doc-ey">EMD Exemption Request</div>'+
-    '<div class="doc-ttl">Earnest Money Deposit<br>Exemption under MSE / Udyam</div>'+
+    '<div class="doc-ttl">Earnest Money Deposit —<br>Exemption under MSE / Udyam</div>'+
     '<div class="doc-div"><span class="doc-dmd"></span></div>'+
     toLine(f,inp)+
-    '<div class="doc-intro">With reference to Bid No.&nbsp;<b>'+(inp.ref||'&mdash;')+'</b>'+(inp.bd?' dated <b>'+inp.bd+'</b>':'')+', we respectfully submit the following in the matter of Earnest Money Deposit:</div>'+
-    cls(clauses)+
-    '<div class="doc-note"><b>Note:&nbsp;</b>This exemption is sought solely on the basis of valid MSE (Udyam) registration. Should the Bid\'s specific terms confine EMD exemption to manufacturers of the bid item, the bidder shall deposit the applicable EMD accordingly.</div>'+
+    '<div class="doc-intro">With reference to Bid No.&nbsp;<b>'+(inp.ref||'&mdash;')+'</b>'+
+      (inp.bd?' dated <b>'+inp.bd+'</b>':'')+
+      ', we respectfully submit the following in the matter of Earnest Money Deposit:'+
+    '</div>'+
+    clauses(cs)+
+    '<div class="doc-note"><b>Note: </b>This exemption is sought solely on the basis of valid MSE (Udyam) registration. Should the Bid\'s specific terms confine EMD exemption to manufacturers of the bid item, the bidder shall deposit the applicable EMD accordingly.</div>'+
     '<div class="doc-closing">We request that this application for EMD exemption may kindly be considered and accepted in its true spirit.</div>'+
-    sig(f,inp);
+    sigBlock(f,inp);
 
   return page(f,inp,body,'EMD Exemption Request',n,tot);
 }
 
-/* ===== FIRM EDIT MODAL ===== */
+/* ============================================================
+   FIRM EDIT MODAL
+   ============================================================ */
 var FLDS=[
-  {k:'name',l:'Firm Name',t:'text'},
-  {k:'prop',l:'Proprietor Name',t:'text'},
-  {k:'sign',l:'Signature Name (CAPITALS)',t:'text'},
-  {k:'addr',l:'Registered Address',t:'text'},
-  {k:'place',l:'Place (City)',t:'text'},
-  {k:'phone',l:'Mobile',t:'tel'},
-  {k:'email',l:'Email',t:'email'},
-  {k:'gstin',l:'GSTIN',t:'text'},
-  {k:'udyam',l:'Udyam Reg. No.',t:'text'},
-  {k:'gem',l:'GeM Seller ID',t:'text'},
-  {k:'bank',l:'Bank Name & Branch',t:'text'},
-  {k:'acc',l:'Account No.',t:'text'},
-  {k:'ifsc',l:'IFSC Code',t:'text'},
+  {k:'name', l:'Firm Name',               t:'text'},
+  {k:'prop', l:'Proprietor Name',         t:'text'},
+  {k:'sign', l:'Signature Name (CAPITALS)',t:'text'},
+  {k:'addr', l:'Registered Address',      t:'text'},
+  {k:'place',l:'Place / City',            t:'text'},
+  {k:'phone',l:'Mobile',                  t:'tel'},
+  {k:'email',l:'Email',                   t:'email'},
+  {k:'gstin',l:'GSTIN',                   t:'text'},
+  {k:'udyam',l:'Udyam Reg. No.',          t:'text'},
+  {k:'gem',  l:'GeM Seller ID',           t:'text'},
+  {k:'bank', l:'Bank Name & Branch',      t:'text'},
+  {k:'acc',  l:'Account No.',             t:'text'},
+  {k:'ifsc', l:'IFSC Code',               t:'text'},
 ];
 
 function openEdit(){
   editIdx=selF;
   var f=firms[editIdx];
-  document.getElementById('edit-modal-title').textContent='Edit: '+f.name;
+  document.getElementById('edit-modal-ttl').textContent='Edit: '+f.name;
   var html='<div style="display:grid;gap:10px">';
   FLDS.forEach(function(fld){
-    html+='<div><label class="inp-lbl" for="ef-'+fld.k+'">'+fld.l+'</label>'+
-      '<input class="inp" id="ef-'+fld.k+'" type="'+fld.t+'" value="'+e(f[fld.k]||'')+'"></div>';
+    html+='<div>'+
+      '<label class="ilbl" for="ef-'+fld.k+'">'+fld.l+'</label>'+
+      '<input class="inp" id="ef-'+fld.k+'" type="'+fld.t+'" value="'+xe(f[fld.k]||'')+'">'+
+    '</div>';
   });
-  html+='<div style="display:grid;gap:8px;padding:4px 0">'+
-    chkRow('mse','MSE (Micro & Small Enterprise)',f.mse)+
-    chkRow('woman','Woman-Owned Enterprise',f.woman)+
-    chkRow('obc','OBC Category',f.obc)+
+  html+='<div style="display:grid;gap:8px;padding:4px 0;margin-top:4px">'+
+    mkChk('mse',  'MSE (Micro & Small Enterprise)', f.mse)+
+    mkChk('woman','Woman-Owned Enterprise',         f.woman)+
+    mkChk('obc',  'OBC Category',                  f.obc)+
   '</div></div>';
   document.getElementById('edit-fields').innerHTML=html;
   document.getElementById('edit-modal').classList.add('on');
 }
 
-function chkRow(k,lbl,val){
-  return '<label class="chk-row"><input type="checkbox" id="ef-'+k+'" '+(val?'checked':'')+'>'+lbl+'</label>';
+function mkChk(k,lbl,val){
+  return '<label class="chkrow">'+
+    '<input type="checkbox" id="ef-'+k+'" '+(val?'checked':'')+'>'+lbl+'</label>';
 }
 
 function saveEdit(){
@@ -920,36 +1194,39 @@ function saveEdit(){
     if(el)f[fld.k]=el.value.trim();
   });
   ['mse','woman','obc'].forEach(function(k){
-    var el=document.getElementById('ef-'+k);
-    if(el)f[k]=el.checked;
+    var el=document.getElementById('ef-'+k); if(el)f[k]=el.checked;
   });
   lsS('gem_firms',firms);
   document.getElementById('edit-modal').classList.remove('on');
-  renderFirmGrid();
-  renderWarn();
-  if(prevOpen)renderPreview();
+  renderFirmGrid(); renderWarn();
+  if(prevOpen) renderPreview();
 }
 
-function closeEdit(ev){
-  if(ev&&ev.target!==document.getElementById('edit-modal'))return;
+function closeEdit(){
   document.getElementById('edit-modal').classList.remove('on');
 }
+function closeEditBg(ev){
+  if(ev.target===document.getElementById('edit-modal')) closeEdit();
+}
 
-/* ===== INIT ===== */
+/* ============================================================
+   INIT
+   ============================================================ */
 (function init(){
   selF=lsG('gem_selfirm',0);
-  if(selF<0||selF>=firms.length)selF=0;
+  if(selF<0||selF>=firms.length) selF=0;
+
   var sd=lsG('gem_docs',null);
-  if(sd){selDocs=sd;}
-  else{DOCS.forEach(function(d){selDocs[d.k]=(d.k!=='emd');});}
+  if(sd){ selDocs=sd; }
+  else  { DOCS.forEach(function(d){ selDocs[d.k]=(d.k!=='emd'); }); }
+
   renderFirmGrid();
   renderWarn();
   renderDocList();
   loadInputs();
 
-  // persist on any input change
-  document.getElementById('app-shell').addEventListener('input',function(){saveInputs();});
-  window.addEventListener('resize',function(){if(prevOpen)scalePages();});
+  document.getElementById('app-shell').addEventListener('input', saveInputs);
+  window.addEventListener('resize', function(){ if(prevOpen) scalePages(); });
 })();
 
 })();

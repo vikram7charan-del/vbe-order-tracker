@@ -331,6 +331,112 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
 .etbl th{background:var(--fprim);color:#fff;padding:6px 11px;
          text-align:left;font-weight:bold;font-size:8pt}
 .etbl td{padding:6px 11px;border:1px solid #ddd}
+
+/* ============================================================
+   5 FIRM VISUAL THEMES — each firm has a distinct document identity
+   ============================================================ */
+
+/* --- SH (index 0): Classic — default style, no overrides needed --- */
+
+/* --- VBE (index 1): Navy Block — square corners, no inner border, bold sans --- */
+.th-vbe .doc-ob{border-radius:0}
+.th-vbe .doc-ib{display:none}
+.th-vbe .doc-dm{border-radius:0;transform:none;width:16px;height:16px}
+.th-vbe .doc-dm.tl{top:6.8mm;left:6.8mm}
+.th-vbe .doc-dm.tr{top:6.8mm;right:6.8mm}
+.th-vbe .doc-dm.bl{bottom:6.8mm;left:6.8mm}
+.th-vbe .doc-dm.br{bottom:6.8mm;right:6.8mm}
+.th-vbe .doc-seal{border-radius:6px;font-size:13px}
+.th-vbe .doc-fname{font-family:'Arial Black',Arial,Helvetica,sans-serif;
+                   letter-spacing:.9px;font-size:14pt}
+.th-vbe .doc-tline{font-family:Arial,Helvetica,sans-serif}
+.th-vbe .doc-cn{border-radius:3px;font-family:Arial,Helvetica,sans-serif}
+.th-vbe .doc-ttl{font-family:'Arial Black',Arial,Helvetica,sans-serif;letter-spacing:.5px}
+.th-vbe .doc-strip{border-top:2px solid var(--fprim);border-bottom:2px solid var(--fprim);
+                   background:#f4f6fb}
+
+/* --- BI (index 2): Heritage — double border, hexagon seal, small-roman clauses --- */
+.th-bi .doc-ob{border-width:2.5px;border-radius:0}
+.th-bi .doc-ib{inset:11mm;border-width:1pt;border-radius:0;border-style:double}
+.th-bi .doc-dm{transform:none;border-radius:0;width:11px;height:11px}
+.th-bi .doc-seal{
+  clip-path:polygon(50% 0%,95% 25%,95% 75%,50% 100%,5% 75%,5% 25%);
+  border-radius:0;width:66px;height:66px;font-size:14px;
+}
+.th-bi .doc-fname{font-size:13.5pt;letter-spacing:.7px;
+                  font-family:'Book Antiqua',Palatino,Georgia,serif}
+.th-bi .doc-tline{font-family:'Book Antiqua',Palatino,Georgia,serif;letter-spacing:.18em}
+.th-bi .doc-cn{
+  clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);
+  border-radius:0;width:22px;height:22px;font-size:6pt;
+}
+.th-bi .doc-ttl{letter-spacing:.06em}
+
+/* --- BCT (index 3): Modern — rounded corners, no diamonds, clean sans --- */
+.th-bct .doc-ob{border-radius:6px;border-width:2px}
+.th-bct .doc-ib{display:none}
+.th-bct .doc-dm{display:none}
+.th-bct .doc-seal{border-radius:8px;width:60px;height:60px;
+                  font-size:13px;font-weight:900}
+.th-bct .doc-fname{font-family:'Trebuchet MS','Segoe UI',Arial,sans-serif;
+                   font-size:14pt;letter-spacing:.4px}
+.th-bct .doc-tline{font-family:'Trebuchet MS','Segoe UI',Arial,sans-serif;
+                   letter-spacing:.14em}
+.th-bct .doc-cn{border-radius:2px;width:18px;height:18px;font-size:7pt;
+                font-family:'Trebuchet MS',sans-serif}
+.th-bct .doc-ttl{font-family:'Trebuchet MS','Segoe UI',Arial,sans-serif}
+.th-bct .doc-strip{border-radius:4px;margin:6px 0}
+
+/* --- UB (index 4): Bold — thick border, large seal, heavy typography --- */
+.th-ub .doc-ob{border-width:3.5px;border-radius:0}
+.th-ub .doc-ib{inset:12mm;border-width:2pt;border-radius:0}
+.th-ub .doc-dm{width:13px;height:13px}
+.th-ub .doc-seal{width:72px;height:72px;font-size:19px;font-weight:900;border-width:3px}
+.th-ub .doc-fname{font-size:15.5pt;font-weight:900;letter-spacing:1.2px}
+.th-ub .doc-tline{letter-spacing:.2em;font-weight:bold}
+.th-ub .doc-cn{width:22px;height:22px;border-radius:2px;
+               font-size:8pt;font-weight:900}
+.th-ub .doc-ttl{font-size:13.5pt;font-weight:900;letter-spacing:.07em}
+.th-ub .doc-strip{background:#ebebeb;border-top:2.5px solid var(--fprim);
+                  border-bottom:2.5px solid var(--fprim)}
+
+/* ============================================================
+   RUBBER STAMP — appears in every signature block
+   ============================================================ */
+.doc-stamp{
+  width:82px;height:82px;border-radius:50%;
+  border:2.5px solid var(--fprim);
+  display:inline-flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  position:relative;flex-shrink:0;
+  opacity:.82;
+}
+.doc-stamp-ring{
+  position:absolute;inset:4px;border-radius:50%;
+  border:1px dashed var(--fprim);opacity:.55;pointer-events:none;
+}
+.doc-stamp-badge{
+  font-size:13.5pt;font-weight:900;color:var(--fprim);
+  font-family:Georgia,serif;letter-spacing:.5px;
+  position:relative;z-index:1;
+}
+.doc-stamp-firm{
+  font-size:4.5pt;text-transform:uppercase;letter-spacing:.13em;
+  color:var(--fprim);text-align:center;line-height:1.35;
+  max-width:62px;position:relative;z-index:1;margin-top:3px;
+}
+
+/* Signature upload — app UI */
+.sig-upload-row{display:flex;align-items:center;gap:10px;
+                margin-top:10px;padding:10px 12px;
+                background:#0d1526;border:1px solid #1e3a5f;border-radius:8px}
+.sig-upload-row label{font-size:12px;color:#94a3b8;cursor:pointer;flex:1}
+.sig-upload-row .sig-thumb{width:48px;height:36px;object-fit:contain;
+                            border-radius:4px;border:1px solid #1e3a5f;
+                            background:#050a14;display:none}
+.sig-upload-clr{background:none;border:1px solid #ef4444;color:#ef4444;
+                border-radius:6px;font-size:11px;padding:4px 8px;
+                cursor:pointer;display:none}
 </style>
 </head>
 <body>
@@ -358,6 +464,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
     <button class="pset" onclick="setPreset('none')" type="button">Clear</button>
   </div>
   <div class="dlist" id="doc-list"></div>
+
+  <div class="slbl" style="margin-top:6px">Signature / Seal</div>
+  <div style="padding:0 16px 4px">
+    <div class="sig-upload-row" id="sig-upload-row">
+      <label for="sig-file-inp">&#128394; Upload Signature Image for <b id="sig-firm-name">selected firm</b></label>
+      <img class="sig-thumb" id="sig-thumb-img" alt="sig">
+      <button class="sig-upload-clr" id="sig-clr-btn" onclick="clearSig()" type="button">Remove</button>
+      <input type="file" id="sig-file-inp" accept="image/*" style="display:none" onchange="loadSig(this)">
+    </div>
+  </div>
 
   <div class="slbl" style="margin-top:6px">Bid Details</div>
   <div class="igrid">
@@ -604,7 +720,46 @@ function selFirm(i){
   selF=i; lsS('gem_selfirm',i);
   var pl=document.getElementById('i-place');
   if(pl&&!pl.value)pl.value=firms[i].place||'';
-  renderFirmGrid(); renderWarn();
+  renderFirmGrid(); renderWarn(); renderSigUI();
+  if(prevOpen)renderPreview();
+}
+
+/* ============================================================
+   SIGNATURE UPLOAD
+   ============================================================ */
+function renderSigUI(){
+  var f=firms[selF];
+  var lbl=document.getElementById('sig-firm-name');
+  var thumb=document.getElementById('sig-thumb-img');
+  var clrBtn=document.getElementById('sig-clr-btn');
+  if(lbl) lbl.textContent=f.name;
+  var stored=lsG('gem_sig_'+f.id,null);
+  if(stored){
+    if(thumb){thumb.src=stored;thumb.style.display='block';}
+    if(clrBtn)clrBtn.style.display='inline-block';
+  } else {
+    if(thumb){thumb.src='';thumb.style.display='none';}
+    if(clrBtn)clrBtn.style.display='none';
+  }
+}
+
+function loadSig(input){
+  if(!input.files||!input.files[0])return;
+  var f=firms[selF];
+  var reader=new FileReader();
+  reader.onload=function(e){
+    lsS('gem_sig_'+f.id,e.target.result);
+    renderSigUI();
+    if(prevOpen)renderPreview();
+  };
+  reader.readAsDataURL(input.files[0]);
+  input.value='';
+}
+
+function clearSig(){
+  var f=firms[selF];
+  localStorage.removeItem('gem_sig_'+f.id);
+  renderSigUI();
   if(prevOpen)renderPreview();
 }
 
@@ -817,6 +972,8 @@ function addrLine(f){
   return parts.join('<br>');
 }
 
+var FIRM_THEME={sh:'th-sh',vbe:'th-vbe',bi:'th-bi',bct:'th-bct',ub:'th-ub'};
+
 function fvars(f){return 'style="--fprim:'+f.prim+';--fgold:'+f.gold+'"';}
 
 /* Document letterhead (used by every page) */
@@ -847,22 +1004,41 @@ function toLine(f,inp){
   '</div>';
 }
 
-function clauses(arr){
+function clauses(f,arr){
+  var rom=['i','ii','iii','iv','v','vi','vii','viii'];
   return '<ul class="doc-cls">'+arr.map(function(c,i){
+    var lbl=(f.id==='bi') ? rom[i]||String(i+1) : String(i+1);
     return '<li class="doc-cl">'+
-      '<span class="doc-cn">'+(i+1)+'</span>'+
+      '<span class="doc-cn">'+lbl+'</span>'+
       '<span class="doc-ctxt">'+c+'</span>'+
     '</li>';
   }).join('')+'</ul>';
 }
 
 function sigBlock(f,inp){
+  var stored=lsG('gem_sig_'+f.id,null);
+  var sigImg=stored
+    ? '<img src="'+stored+'" style="height:46px;max-width:110px;object-fit:contain;display:block;margin:0 0 3px auto">'
+    : '<div style="height:46px;border-bottom:1px solid #bbb;margin-bottom:3px"></div>';
+  var stamp=
+    '<div class="doc-stamp">'+
+      '<div class="doc-stamp-ring"></div>'+
+      '<div class="doc-stamp-badge">'+xe(f.badge)+'</div>'+
+      '<div class="doc-stamp-firm">'+xe(f.name)+'</div>'+
+    '</div>';
   return '<div class="doc-sig">'+
-    '<div class="doc-sig-l">Place:&nbsp;<b>'+xe(inp.place)+'</b><br>Date:&nbsp;<b>'+xe(inp.date)+'</b></div>'+
-    '<div class="doc-sig-r">'+
-      '<div class="doc-sig-for">For M/s '+xe(f.name)+'</div>'+
-      '<div class="doc-sig-name">'+(xe(f.sign)||'____________________')+'</div>'+
-      '<div class="doc-sig-sub">Proprietor / Authorised Signatory</div>'+
+    '<div class="doc-sig-l">'+
+      'Place:&nbsp;<b>'+xe(inp.place||f.place)+'</b><br>'+
+      'Date:&nbsp;<b>'+xe(inp.date)+'</b>'+
+    '</div>'+
+    '<div class="doc-sig-r" style="display:flex;align-items:flex-end;gap:8px">'+
+      stamp+
+      '<div style="text-align:right">'+
+        '<div style="font-size:8pt;color:#555;margin-bottom:2px;font-style:italic">For M/s '+xe(f.name)+'</div>'+
+        sigImg+
+        '<div class="doc-sig-name">'+(xe(f.sign)||'____________________')+'</div>'+
+        '<div class="doc-sig-sub">Proprietor / Authorised Signatory</div>'+
+      '</div>'+
     '</div>'+
   '</div>';
 }
@@ -876,7 +1052,8 @@ function footer(f,inp,lbl,n,tot){
 }
 
 function page(f,inp,body,lbl,n,tot){
-  return '<div class="doc-page" '+fvars(f)+'>'+
+  var th=FIRM_THEME[f.id]||'';
+  return '<div class="doc-page'+(th?' '+th:'')+'" '+fvars(f)+'>'+
     '<div class="doc-ob"></div>'+
     '<div class="doc-ib"></div>'+
     '<div class="doc-dm tl"></div>'+
@@ -1095,7 +1272,7 @@ function genSub(num,f,inp,n,tot){
     '<div class="doc-div"><span class="doc-dmd"></span></div>'+
     toLine(f,inp)+
     '<div class="doc-intro">We, M/s '+nm+', hereby solemnly affirm and declare as under:</div>'+
-    clauses(cs)+
+    clauses(f,cs)+
     (note?'<div class="doc-note"><b>Note: </b>'+note+'</div>':'')+
     (closing?'<div class="doc-closing">'+closing+'</div>':'')+
     sigBlock(f,inp);
@@ -1135,7 +1312,7 @@ function genEMD(f,inp,n,tot){
       (inp.bd?' dated <b>'+inp.bd+'</b>':'')+
       ', we respectfully submit the following in the matter of Earnest Money Deposit:'+
     '</div>'+
-    clauses(cs)+
+    clauses(f,cs)+
     '<div class="doc-note"><b>Note: </b>This exemption is sought solely on the basis of valid MSE (Udyam) registration. Should the Bid\'s specific terms confine EMD exemption to manufacturers of the bid item, the bidder shall deposit the applicable EMD accordingly.</div>'+
     '<div class="doc-closing">We request that this application for EMD exemption may kindly be considered and accepted in its true spirit.</div>'+
     sigBlock(f,inp);
@@ -1223,6 +1400,7 @@ function closeEditBg(ev){
   renderFirmGrid();
   renderWarn();
   renderDocList();
+  renderSigUI();
   loadInputs();
 
   document.getElementById('app-shell').addEventListener('input', saveInputs);
@@ -1239,6 +1417,8 @@ window.openEdit      = openEdit;
 window.saveEdit      = saveEdit;
 window.closeEdit     = closeEdit;
 window.closeEditBg   = closeEditBg;
+window.loadSig       = loadSig;
+window.clearSig      = clearSig;
 
 })();
 </script>

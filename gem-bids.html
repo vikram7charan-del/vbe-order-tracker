@@ -33,6 +33,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
 /* --- labels --- */
 .slbl{padding:14px 16px 6px;font-size:10.5px;font-weight:700;
       letter-spacing:.09em;text-transform:uppercase;color:#475569}
+/* ---- AI BID IMPORT ---- */
+.autofill-btn{font-size:9px;font-weight:700;padding:4px 11px;border-radius:6px;border:1.5px solid #f59e0b;background:transparent;color:#f59e0b;cursor:pointer;letter-spacing:.06em;text-transform:uppercase;transition:all .2s;}
+.autofill-btn:active{background:rgba(245,158,11,.18);}
+.bim-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9000;display:flex;align-items:flex-end;justify-content:center;}
+.bim-modal{background:#0d1526;border:1px solid #1e3a5f;border-radius:16px 16px 0 0;width:100%;max-width:480px;padding:0 0 24px;max-height:90vh;display:flex;flex-direction:column;}
+.bim-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 10px;border-bottom:1px solid #1e3a5f;}
+.bim-title{font-size:13px;font-weight:700;color:#e2e8f0;}
+.bim-close{background:none;border:none;color:#64748b;font-size:20px;cursor:pointer;padding:0;line-height:1;width:28px;height:28px;}
+.bim-tabs{display:flex;gap:6px;padding:12px 18px 0;}
+.bim-tab{flex:1;padding:8px 0;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border-radius:7px;border:1.5px solid #1e3a5f;background:transparent;color:#64748b;cursor:pointer;}
+.bim-tab.on{border-color:#f59e0b;color:#f59e0b;background:rgba(245,158,11,.08);}
+.bim-panel{padding:12px 18px 0;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;}
+.bim-hint{font-size:11px;color:#64748b;line-height:1.7;}
+.bim-ta{width:100%;min-height:155px;background:#050a14;border:1px solid #1e3a5f;border-radius:8px;color:#e2e8f0;font-size:11px;font-family:'Courier New',monospace;padding:10px;resize:vertical;box-sizing:border-box;line-height:1.6;}
+.bim-ta:focus{outline:none;border-color:rgba(245,158,11,.4);}
+.bim-prompt-box{background:#050a14;border:1px solid #1e3a5f;border-radius:8px;padding:12px;font-size:10.5px;color:#94a3b8;font-family:'Courier New',monospace;line-height:1.75;white-space:pre-wrap;user-select:all;cursor:text;}
+.bim-apply{width:100%;padding:13px;border-radius:10px;border:none;background:linear-gradient(135deg,#d97706,#f59e0b);color:#fff;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.05em;margin-top:2px;flex-shrink:0;}
+.bim-apply:active{opacity:.85;}
 
 /* --- firm grid --- */
 .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 16px 4px}
@@ -412,7 +430,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
     </div>
   </div>
 
-  <div class="slbl" style="margin-top:6px">Bid Details</div>
+  <div class="slbl" style="margin-top:6px;display:flex;align-items:center;justify-content:space-between;padding-right:16px">
+    Bid Details
+    <button class="autofill-btn" onclick="openBidImport()">&#9889; AI Auto-Fill</button>
+  </div>
   <div class="igrid">
     <div>
       <label class="ilbl" for="i-ref">Bid Reference No. *</label>
@@ -1632,6 +1653,83 @@ window.setPreset     = setPreset;
 window.onChk         = onChk;
 window.togglePast    = togglePast;
 window.togglePreview = togglePreview;
+/* ============================================================
+   BID AUTO-FILL
+   ============================================================ */
+function openBidImport(){document.getElementById('bim-overlay').style.display='flex';}
+function closeBidImport(){document.getElementById('bim-overlay').style.display='none';}
+function bimBgClose(e){if(e.target.id==='bim-overlay')closeBidImport();}
+function bimTab(t){
+  ['paste','prompt'].forEach(function(x){
+    document.getElementById('tab-'+x).classList.toggle('on',x===t);
+    document.getElementById('bim-'+x+'-panel').style.display=(x===t)?'flex':'none';
+  });
+}
+function copyBimPrompt(){
+  var txt=document.getElementById('bim-prompt-text').textContent;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(txt).then(function(){
+      var b=document.querySelector('#bim-prompt-panel .bim-apply');
+      var orig=b.textContent; b.textContent='✓ Copied!';
+      setTimeout(function(){b.textContent=orig;},1800);
+    });
+  } else {
+    var ta=document.createElement('textarea');
+    ta.value=txt; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    alert('Prompt copied!');
+  }
+}
+function parseBidDate(s){
+  if(!s)return'';
+  s=s.split(',')[0].trim();
+  var m=s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})/);
+  if(m)return m[3]+'-'+('0'+m[2]).slice(-2)+'-'+('0'+m[1]).slice(-2);
+  var m2=s.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);
+  if(m2)return m2[1]+'-'+('0'+m2[2]).slice(-2)+'-'+('0'+m2[3]).slice(-2);
+  return'';
+}
+function applyBidImport(){
+  var text=document.getElementById('bim-ta').value.trim();
+  if(!text)return;
+  var map={};
+  text.split('\n').forEach(function(line){
+    var idx=line.indexOf(':');
+    if(idx<0)return;
+    var k=line.slice(0,idx).trim().toLowerCase();
+    var v=line.slice(idx+1).trim();
+    if(v)map[k]=v;
+  });
+  function fv(keys){for(var i=0;i<keys.length;i++){var v=map[keys[i].toLowerCase()];if(v)return v;}return'';}
+  function sv(id,val){var el=document.getElementById('i-'+id);if(el&&val)el.value=val;}
+
+  sv('ref',fv(['bid number','bid no','bid ref','ref no','reference number','reference no']));
+  var bd=parseBidDate(fv(['bid date','dated','start date','bid start date','date of bid']));
+  if(bd)sv('bd',bd);
+  var dd=parseBidDate(fv(['bid end date','bid end date/time','bid end','due date','end date','deadline','closing date','last date']));
+  if(dd)sv('dd',dd);
+  sv('item',fv(['item category','item','requirement','goods','product','description','supply of']));
+  var org=fv(['organisation','organization','buyer organisation']);
+  var ministry=fv(['ministry']);
+  var dept=fv(['department','dept']);
+  var buyerParts=[org,ministry,dept].filter(Boolean);
+  sv('buyer',buyerParts.join(', '));
+  sv('off',fv(['beneficiary','buyer officer','officer','consignee officer','attn','attention']));
+  var addr=fv(['delivery address','ship to','consignee address','deliver to','address']);
+  sv('con',addr);
+  if(addr&&!document.getElementById('i-place').value){
+    var parts=addr.split(',');
+    if(parts.length>1){
+      var last=parts[parts.length-1].replace(/\d{6}/g,'').trim();
+      if(last)sv('place',last);
+    }
+  }
+  saveInputs();
+  closeBidImport();
+  var btn=document.getElementById('prev-btn');
+  if(btn){var orig=btn.textContent;btn.textContent='✓ Form Filled!';setTimeout(function(){btn.textContent=orig;},2000);}
+}
+
 window.doPrint       = doPrint;
 window.openEdit      = openEdit;
 window.saveEdit      = saveEdit;
@@ -1639,8 +1737,60 @@ window.closeEdit     = closeEdit;
 window.closeEditBg   = closeEditBg;
 window.loadSig       = loadSig;
 window.clearSig      = clearSig;
+window.openBidImport = openBidImport;
+window.closeBidImport= closeBidImport;
+window.bimBgClose    = bimBgClose;
+window.bimTab        = bimTab;
+window.copyBimPrompt = copyBimPrompt;
+window.applyBidImport= applyBidImport;
 
 })();
 </script>
+
+<!-- ============================================================
+     BID AUTO-FILL MODAL
+     ============================================================ -->
+<div class="bim-overlay" id="bim-overlay" style="display:none" onclick="bimBgClose(event)">
+  <div class="bim-modal">
+    <div class="bim-hdr">
+      <span class="bim-title">&#129302; AI Bid Auto-Fill</span>
+      <button class="bim-close" onclick="closeBidImport()">&#x2715;</button>
+    </div>
+    <div class="bim-tabs">
+      <button class="bim-tab on" id="tab-paste" onclick="bimTab('paste')">&#128203; Paste Data</button>
+      <button class="bim-tab" id="tab-prompt" onclick="bimTab('prompt')">&#129302; AI Prompt</button>
+    </div>
+    <div class="bim-panel" id="bim-paste-panel">
+      <div class="bim-hint">GeM Bid document AI को दो → AI key:value format में details निकाले → नीचे paste करो → form अपने-आप भर जाएगा।</div>
+      <textarea class="bim-ta" id="bim-ta" placeholder="यहाँ paste करो...
+
+Bid Number: GEM/2026/B/12345678
+Bid Date: 14-06-2026
+Bid End Date: 25-06-2026
+Item Category: 10 KVA Online UPS with Battery
+Organisation: Indian Army
+Beneficiary: GSO1, HQ 110 Armd Bde
+Delivery Address: HQ 110 Armd Bde, Jalipa Mil Station, Barmer"></textarea>
+      <button class="bim-apply" onclick="applyBidImport()">&#9989; Form Fill करो</button>
+    </div>
+    <div class="bim-panel" id="bim-prompt-panel" style="display:none">
+      <div class="bim-hint">यह prompt copy करो → Gemini / ChatGPT / Claude में GeM bid document के साथ paste करो → AI का जवाब वापस यहाँ paste करो।</div>
+      <div class="bim-prompt-box" id="bim-prompt-text">From this GeM bid document, extract the following details in this exact key: value format (one per line, no extra text):
+
+Bid Number:
+Bid Date: [DD-MM-YYYY]
+Bid End Date: [DD-MM-YYYY]
+Item Category:
+Ministry:
+Department:
+Organisation:
+Beneficiary:
+Email ID:
+Delivery Address: </div>
+      <button class="bim-apply" onclick="copyBimPrompt()">&#128203; Prompt Copy करो</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

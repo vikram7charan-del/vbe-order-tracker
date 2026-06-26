@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="robots" content="noindex,nofollow">
 <title>GeM Bid Docs — VBE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Archivo:wght@400;600;700;800&family=Manrope:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;0,9..144,900;1,9..144,400&family=Jost:wght@300;400;500;600&family=Cinzel:wght@400;600;700&family=Marcellus&family=Mukta:wght@400;600;700&family=Sora:wght@400;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* ============================================================
    APP UI STYLES  (hidden on print)
@@ -160,245 +163,154 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
    ============================================================ */
 .doc-page{
   width:210mm;height:297mm;position:relative;
-  font-family:Georgia,Cambria,'Times New Roman',Times,serif;
   background:#fff;color:#111;overflow:hidden;
   page-break-after:always;break-after:page;
 }
 
-/* Decorative borders */
-.doc-ob{position:absolute;inset:8mm;
-        border:2.5px solid var(--fprim);pointer-events:none;z-index:2}
-.doc-ib{position:absolute;inset:11mm;
-        border:0.75pt solid var(--fgold);pointer-events:none;z-index:2}
-
-/* Four corner diamonds */
-.doc-dm{position:absolute;width:10px;height:10px;
-        background:var(--fgold);transform:rotate(45deg);z-index:3}
-.doc-dm.tl{top:7.2mm;left:7.2mm}
-.doc-dm.tr{top:7.2mm;right:7.2mm}
-.doc-dm.bl{bottom:7.2mm;left:7.2mm}
-.doc-dm.br{bottom:7.2mm;right:7.2mm}
-
-/* Main content container */
-.doc-ct{position:absolute;inset:13.5mm;
-        display:flex;flex-direction:column;overflow:hidden}
-
-/* ---- LETTERHEAD HEADER ---- */
-.doc-hdr-bg{
-  background:var(--fprim);opacity:.04;
-  position:absolute;left:0;right:0;top:0;height:62mm;
-  pointer-events:none;z-index:0;
-}
-.doc-hdr{position:relative;z-index:1;flex-shrink:0}
-
-.doc-seal{
-  width:68px;height:68px;border-radius:50%;
-  background:var(--fprim);border:2.5px solid var(--fgold);
-  display:flex;align-items:center;justify-content:center;
-  color:var(--fgold);font-weight:900;font-size:18px;
-  margin:0 auto 7px;letter-spacing:.5px;
-  font-family:Georgia,serif;
-  box-shadow:0 2px 10px rgba(0,0,0,.2),0 0 0 4px rgba(255,255,255,.8),
-             0 0 0 5px var(--fgold);
-}
-.doc-fname{
-  text-align:center;font-size:15.5pt;font-weight:bold;
-  color:var(--fprim);letter-spacing:.6px;line-height:1.2;margin-bottom:3px;
-}
-.doc-tline{
-  text-align:center;font-size:6.5pt;text-transform:uppercase;
-  letter-spacing:.15em;color:var(--fgold);margin-bottom:5px;
-  font-family:Georgia,serif;
-}
-/* Gold divider */
+/* Shared gold divider (used in content generators) */
 .doc-div{display:flex;align-items:center;gap:6px;margin:4px 0;position:relative;z-index:1}
-.doc-div::before,.doc-div::after{
-  content:'';flex:1;height:1px;background:var(--fgold);opacity:.7}
-.doc-dmd{
-  width:8px;height:8px;background:var(--fgold);
-  transform:rotate(45deg);display:inline-block;flex-shrink:0}
-.doc-ids{
-  text-align:center;font-size:6.5pt;color:#444;
-  letter-spacing:.03em;line-height:1.6;margin-bottom:2px;
-  font-family:'Times New Roman',Times,serif;
-}
-.doc-addr{
-  text-align:center;font-size:6.5pt;color:#555;line-height:1.55;
-  font-family:'Times New Roman',Times,serif;
-}
-
-/* Bid ref strip */
-.doc-strip{
-  background:#f6f6f6;border-top:1px solid #e2e2e2;border-bottom:1px solid #e2e2e2;
-  padding:5px 12px;margin:6px 0;font-size:7.5pt;color:#333;
-  text-align:center;line-height:1.7;flex-shrink:0;
-  font-family:Georgia,serif;
-}
-.doc-strip b{color:var(--fprim);font-weight:bold}
+.doc-div::before,.doc-div::after{content:'';flex:1;height:1px;background:var(--fgold);opacity:.7}
+.doc-dmd{width:8px;height:8px;background:var(--fgold);transform:rotate(45deg);display:inline-block;flex-shrink:0}
 
 /* ---- DOCUMENT BODY ---- */
 .doc-body{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;position:relative;z-index:1}
-.doc-ey{
-  font-size:6.5pt;text-transform:uppercase;letter-spacing:.14em;
-  color:var(--fgold);margin-bottom:3px;font-family:Georgia,serif;
-}
-.doc-ttl{
-  font-size:13pt;font-weight:bold;text-transform:uppercase;
-  color:var(--fprim);letter-spacing:.04em;margin-bottom:5px;line-height:1.25;
-}
-.doc-to{
-  font-size:8pt;color:#333;margin-bottom:6px;
-  border-left:3px solid var(--fgold);padding-left:9px;line-height:1.55;
-  background:rgba(0,0,0,.015);padding:5px 5px 5px 9px;
-  border-radius:0 3px 3px 0;
-}
-.doc-intro{
-  font-size:8.5pt;font-style:italic;color:#444;
-  margin-bottom:8px;line-height:1.6;
-}
+.doc-ey{font-size:6.5pt;text-transform:uppercase;letter-spacing:.14em;color:var(--fgold);margin-bottom:3px;}
+.doc-ttl{font-size:13pt;font-weight:bold;text-transform:uppercase;color:var(--fprim);letter-spacing:.04em;margin-bottom:5px;line-height:1.25;}
+.doc-to{font-size:8pt;color:#333;margin-bottom:6px;border-left:3px solid var(--fgold);line-height:1.55;background:rgba(0,0,0,.015);padding:5px 5px 5px 9px;border-radius:0 3px 3px 0;}
+.doc-intro{font-size:8.5pt;font-style:italic;color:#444;margin-bottom:8px;line-height:1.6;}
 .doc-cls{list-style:none;display:flex;flex-direction:column;gap:5px;margin-bottom:6px}
 .doc-cl{display:flex;gap:8px;font-size:8pt;line-height:1.6;color:#222;align-items:flex-start}
-.doc-cn{
-  width:20px;height:20px;border-radius:50%;
-  background:var(--fprim);color:#fff;font-size:7pt;font-weight:bold;
-  display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;margin-top:1px;
-}
+.doc-cn{width:20px;height:20px;border-radius:50%;background:var(--fprim);color:#fff;font-size:7pt;font-weight:bold;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
 .doc-ctxt{flex:1}
-.doc-note{
-  background:#fffdf0;border:1px solid var(--fgold);
-  border-left:3px solid var(--fgold);
-  border-radius:0 3px 3px 0;
-  padding:6px 10px;font-size:7pt;color:#555;
-  font-style:italic;margin:5px 0;line-height:1.55;
-}
+.doc-note{background:#fffdf0;border:1px solid var(--fgold);border-left:3px solid var(--fgold);border-radius:0 3px 3px 0;padding:6px 10px;font-size:7pt;color:#555;font-style:italic;margin:5px 0;line-height:1.55;}
 .doc-note b{color:var(--fprim);font-style:normal}
-.doc-closing{
-  font-size:8pt;font-style:italic;color:#444;
-  margin-top:5px;line-height:1.5;
-  border-top:1px dashed #ddd;padding-top:5px;
-}
+.doc-closing{font-size:8pt;font-style:italic;color:#444;margin-top:5px;line-height:1.5;border-top:1px dashed #ddd;padding-top:5px;}
 
 /* Signature block */
-.doc-sig{
-  display:flex;justify-content:space-between;align-items:flex-end;
-  margin-top:auto;padding-top:8px;border-top:1px solid #ccc;flex-shrink:0;
-}
+.doc-sig{display:flex;justify-content:space-between;align-items:flex-end;margin-top:auto;padding-top:8px;border-top:1px solid #ccc;flex-shrink:0;}
 .doc-sig-l{font-size:8pt;color:#555;line-height:1.8;font-family:'Times New Roman',serif}
 .doc-sig-r{text-align:right}
 .doc-sig-for{font-size:8pt;color:#555;margin-bottom:24px;font-style:italic}
-.doc-sig-name{
-  border-top:1px solid #222;padding-top:4px;
-  font-size:9.5pt;font-weight:bold;color:#111;letter-spacing:.5px;
-}
+.doc-sig-name{border-top:1px solid #222;padding-top:4px;font-size:9.5pt;font-weight:bold;color:#111;letter-spacing:.5px;}
 .doc-sig-sub{font-size:7.5pt;color:#555;margin-top:2px}
 
-/* Footer */
-.doc-ft{
-  border-top:1px solid var(--fgold);padding-top:3px;margin-top:6px;
-  font-size:6pt;color:#888;display:flex;justify-content:space-between;
-  align-items:center;flex-shrink:0;letter-spacing:.02em;
-}
-
 /* ---- COVER PAGE extras ---- */
-.cov-box{
-  border:2px solid var(--fprim);border-radius:4px;
-  padding:12px 16px;margin:10px 0;
-  background:rgba(0,0,0,.015);
-}
-.cov-row{
-  display:flex;gap:10px;padding:5px 0;
-  font-size:8.5pt;color:#333;border-bottom:1px solid #eee;line-height:1.5;
-}
+.cov-box{border:2px solid var(--fprim);border-radius:4px;padding:12px 16px;margin:10px 0;background:rgba(0,0,0,.015);}
+.cov-row{display:flex;gap:10px;padding:5px 0;font-size:8.5pt;color:#333;border-bottom:1px solid #eee;line-height:1.5;}
 .cov-row:last-child{border:none}
-.cov-lbl{font-weight:bold;color:var(--fprim);min-width:100px;
-         flex-shrink:0;font-size:8pt}
+.cov-lbl{font-weight:bold;color:var(--fprim);min-width:100px;flex-shrink:0;font-size:8pt}
 
 /* ---- PROFILE tables ---- */
 .ptbl{width:100%;border-collapse:collapse;font-size:8pt;margin:7px 0}
 .ptbl td{padding:5px 9px;border:1px solid #ddd;vertical-align:top;line-height:1.5}
 .ptbl td:first-child{font-weight:bold;color:var(--fprim);background:#f8f8f8;width:36%}
 .pidx{width:100%;border-collapse:collapse;font-size:8pt;margin-top:8px}
-.pidx th{background:var(--fprim);color:#fff;padding:5px 9px;
-         text-align:left;font-weight:bold;font-size:7.5pt}
+.pidx th{background:var(--fprim);color:#fff;padding:5px 9px;text-align:left;font-weight:bold;font-size:7.5pt}
 .pidx td{padding:5px 9px;border:1px solid #ddd;vertical-align:top;line-height:1.45}
 .pidx tr:nth-child(even) td{background:#f9f9f9}
-.pidx td:first-child{text-align:center;font-weight:bold;
-                     color:var(--fprim);width:10%}
+.pidx td:first-child{text-align:center;font-weight:bold;color:var(--fprim);width:10%}
 
 /* ---- EMD table ---- */
 .etbl{width:100%;border-collapse:collapse;font-size:8.5pt;margin:6px 0}
-.etbl th{background:var(--fprim);color:#fff;padding:6px 11px;
-         text-align:left;font-weight:bold;font-size:8pt}
+.etbl th{background:var(--fprim);color:#fff;padding:6px 11px;text-align:left;font-weight:bold;font-size:8pt}
 .etbl td{padding:6px 11px;border:1px solid #ddd}
 
 /* ============================================================
-   5 FIRM VISUAL THEMES — each firm has a distinct document identity
+   5-LAYOUT DOCUMENT IDENTITIES
    ============================================================ */
 
-/* --- SH (index 0): Classic — default style, no overrides needed --- */
+/* LAYOUT 1: SH — sidebar-spine (emerald teal) */
+.sh-page{font-family:'Manrope',Arial,sans-serif;display:flex;flex-direction:row;}
+.sh-sidebar{width:54mm;flex-shrink:0;background:#0F6E63;display:flex;flex-direction:column;overflow:hidden;position:relative;padding:9mm 5mm 7mm 6mm;}
+.sh-spine{position:absolute;bottom:10mm;left:-10mm;transform:rotate(-90deg);transform-origin:right center;font-family:'Archivo',Arial,sans-serif;font-size:5pt;font-weight:800;letter-spacing:.28em;text-transform:uppercase;color:rgba(255,255,255,.15);white-space:nowrap;width:75mm;text-align:right;pointer-events:none;}
+.sh-logo{width:50px;height:50px;border-radius:50%;border:2px solid #C9A227;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;color:#C9A227;font-weight:900;font-size:14px;margin-bottom:7px;font-family:'Archivo',Arial,sans-serif;}
+.sh-firm{font-family:'Archivo',Arial,sans-serif;font-size:8.5pt;font-weight:800;color:#fff;letter-spacing:.4px;line-height:1.3;margin-bottom:8px;text-transform:uppercase;}
+.sh-grule{height:1.5px;background:#C9A227;margin-bottom:9px;opacity:.75;}
+.sh-lbl{font-size:5pt;text-transform:uppercase;letter-spacing:.12em;color:#C9A227;margin-top:5px;margin-bottom:1px;}
+.sh-det{font-size:5.5pt;color:rgba(255,255,255,.78);line-height:1.55;word-break:break-word;}
+.sh-spacer{flex:1;}
+.sh-ids{font-size:5pt;color:rgba(255,255,255,.5);line-height:1.65;border-top:1px solid rgba(201,162,39,.3);padding-top:5px;margin-top:5px;}
+.sh-spine-rule{width:3px;flex-shrink:0;background:linear-gradient(to bottom,transparent 5%,#C9A227 18%,#C9A227 82%,transparent 95%);}
+.sh-main{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:8mm 8mm 6mm 6mm;}
+.sh-bid{border-left:3px solid #C9A227;background:rgba(15,110,99,.06);padding:4px 8px;margin-bottom:5px;font-size:7pt;color:#16201e;line-height:1.7;flex-shrink:0;}
+.sh-bid b{color:#0F6E63;font-weight:700;}
+.sh-ft{border-top:2px solid #0F6E63;padding-top:3px;margin-top:4px;font-size:5.5pt;color:#5b6b67;display:flex;justify-content:space-between;flex-shrink:0;}
 
-/* --- VBE (index 1): Navy Block — square corners, no inner border, bold sans --- */
-.th-vbe .doc-ob{border-radius:0}
-.th-vbe .doc-ib{display:none}
-.th-vbe .doc-dm{border-radius:0;transform:none;width:16px;height:16px}
-.th-vbe .doc-dm.tl{top:6.8mm;left:6.8mm}
-.th-vbe .doc-dm.tr{top:6.8mm;right:6.8mm}
-.th-vbe .doc-dm.bl{bottom:6.8mm;left:6.8mm}
-.th-vbe .doc-dm.br{bottom:6.8mm;right:6.8mm}
-.th-vbe .doc-seal{border-radius:6px;font-size:13px}
-.th-vbe .doc-fname{font-family:'Arial Black',Arial,Helvetica,sans-serif;
-                   letter-spacing:.9px;font-size:14pt}
-.th-vbe .doc-tline{font-family:Arial,Helvetica,sans-serif}
-.th-vbe .doc-cn{border-radius:3px;font-family:Arial,Helvetica,sans-serif}
-.th-vbe .doc-ttl{font-family:'Arial Black',Arial,Helvetica,sans-serif;letter-spacing:.5px}
-.th-vbe .doc-strip{border-top:2px solid var(--fprim);border-bottom:2px solid var(--fprim);
-                   background:#f4f6fb}
+/* LAYOUT 2: VBE — formal-ledger (navy) */
+.vbe-page{font-family:'EB Garamond',Georgia,serif;background:#fffdf8;}
+.vbe-frame-out{position:absolute;inset:8mm;border:2px solid #0A2540;pointer-events:none;z-index:2}
+.vbe-frame-in{position:absolute;inset:10.5mm;border:0.5pt solid #D4A017;pointer-events:none;z-index:2}
+.vbe-wm{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:130pt;font-weight:900;color:#0A2540;opacity:.025;font-family:'Cormorant Garamond',Georgia,serif;pointer-events:none;z-index:0;letter-spacing:-4px;}
+.vbe-ct{position:absolute;inset:13mm;display:flex;flex-direction:column;overflow:hidden;z-index:1}
+.vbe-hdr{flex-shrink:0;text-align:center;padding-bottom:5px;}
+.vbe-crest{width:60px;height:60px;border-radius:50%;background:#0A2540;border:2px solid #D4A017;display:flex;align-items:center;justify-content:center;color:#D4A017;font-weight:900;font-size:16px;margin:0 auto 5px;font-family:'Cormorant Garamond',Georgia,serif;box-shadow:0 0 0 3px #fffdf8,0 0 0 4.5px #D4A017;}
+.vbe-name{font-family:'Cormorant Garamond',Georgia,serif;font-size:18pt;font-weight:700;color:#0A2540;letter-spacing:.8px;line-height:1.1;margin-bottom:2px;}
+.vbe-tagline{font-size:6pt;text-transform:uppercase;letter-spacing:.22em;color:#D4A017;margin-bottom:4px;}
+.vbe-drule{display:flex;flex-direction:column;gap:2.5px;margin:3px 0 4px;}
+.vbe-drule::before,.vbe-drule::after{content:'';height:1.5px;background:#D4A017;opacity:.8;}
+.vbe-ids{font-size:6.5pt;color:#444;letter-spacing:.04em;line-height:1.6;}
+.vbe-addr{font-size:6pt;color:#666;line-height:1.5;margin-top:1px;}
+.vbe-strip{background:#f5f3ee;border-top:1.5px solid #D4A017;border-bottom:1.5px solid #D4A017;padding:4px 10px;margin:5px 0;font-size:7.5pt;color:#1a1f29;text-align:center;line-height:1.7;flex-shrink:0;}
+.vbe-strip b{color:#0A2540;font-weight:700;}
+.vbe-ft{border-top:1px solid #D4A017;padding-top:3px;margin-top:5px;font-size:5.5pt;color:#888;display:flex;justify-content:space-between;flex-shrink:0;}
 
-/* --- BI (index 2): Heritage — double border, hexagon seal, small-roman clauses --- */
-.th-bi .doc-ob{border-width:2.5px;border-radius:0}
-.th-bi .doc-ib{inset:11mm;border-width:1pt;border-radius:0;border-style:double}
-.th-bi .doc-dm{transform:none;border-radius:0;width:11px;height:11px}
-.th-bi .doc-seal{
-  clip-path:polygon(50% 0%,95% 25%,95% 75%,50% 100%,5% 75%,5% 25%);
-  border-radius:0;width:66px;height:66px;font-size:14px;
-}
-.th-bi .doc-fname{font-size:13.5pt;letter-spacing:.7px;
-                  font-family:'Book Antiqua',Palatino,Georgia,serif}
-.th-bi .doc-tline{font-family:'Book Antiqua',Palatino,Georgia,serif;letter-spacing:.18em}
-.th-bi .doc-cn{
-  clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);
-  border-radius:0;width:22px;height:22px;font-size:6pt;
-}
-.th-bi .doc-ttl{letter-spacing:.06em}
+/* LAYOUT 3: BCT — editorial-dark (espresso) */
+.bct-page{font-family:'Jost',Arial,sans-serif;background:#fbf8f2;display:flex;flex-direction:column;}
+.bct-hband{background:#241C18;padding:6mm 8mm 5mm;display:flex;align-items:center;gap:6mm;flex-shrink:0;}
+.bct-seal{width:54px;height:54px;border-radius:50%;border:2.5px solid #B5762F;background:rgba(181,118,47,.1);display:flex;align-items:center;justify-content:center;color:#B5762F;font-weight:900;font-size:15px;flex-shrink:0;font-family:'Fraunces',Georgia,serif;}
+.bct-ht{flex:1;}
+.bct-hname{font-family:'Fraunces',Georgia,serif;font-size:16pt;font-weight:900;color:#fff;letter-spacing:1.8px;text-transform:uppercase;line-height:1;margin-bottom:3px;}
+.bct-htagline{font-size:6pt;letter-spacing:.2em;text-transform:uppercase;color:#B5762F;}
+.bct-hids{font-size:5.5pt;color:rgba(255,255,255,.58);line-height:1.6;text-align:right;max-width:52mm;flex-shrink:0;}
+.bct-crule{height:2px;background:#B5762F;flex-shrink:0;}
+.bct-wrule{height:1px;background:#6B2230;opacity:.45;flex-shrink:0;margin-top:1px;}
+.bct-body{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:4mm 8mm 3mm;min-height:0;}
+.bct-bid{border-left:3px solid #B5762F;padding:3px 8px;margin-bottom:5px;font-size:7pt;color:#221d18;line-height:1.7;flex-shrink:0;}
+.bct-bid b{color:#241C18;font-weight:600;}
+.bct-fband{background:#241C18;padding:2.5mm 8mm;flex-shrink:0;font-size:5.5pt;color:rgba(255,255,255,.48);display:flex;justify-content:space-between;}
 
-/* --- BCT (index 3): Modern — rounded corners, no diamonds, clean sans --- */
-.th-bct .doc-ob{border-radius:6px;border-width:2px}
-.th-bct .doc-ib{display:none}
-.th-bct .doc-dm{display:none}
-.th-bct .doc-seal{border-radius:8px;width:60px;height:60px;
-                  font-size:13px;font-weight:900}
-.th-bct .doc-fname{font-family:'Trebuchet MS','Segoe UI',Arial,sans-serif;
-                   font-size:14pt;letter-spacing:.4px}
-.th-bct .doc-tline{font-family:'Trebuchet MS','Segoe UI',Arial,sans-serif;
-                   letter-spacing:.14em}
-.th-bct .doc-cn{border-radius:2px;width:18px;height:18px;font-size:7pt;
-                font-family:'Trebuchet MS',sans-serif}
-.th-bct .doc-ttl{font-family:'Trebuchet MS','Segoe UI',Arial,sans-serif}
-.th-bct .doc-strip{border-radius:4px;margin:6px 0}
+/* LAYOUT 4: BI — ornamental-certificate (maroon) */
+.bi-page{font-family:'Mukta',Arial,sans-serif;background:#fffef9;}
+.bi-fm{position:absolute;inset:6mm;border:3px solid #6E1023;pointer-events:none;z-index:2}
+.bi-fg1{position:absolute;inset:8.5mm;border:1pt solid #C99A2E;pointer-events:none;z-index:2}
+.bi-fg2{position:absolute;inset:10.2mm;border:0.5pt solid #C99A2E;pointer-events:none;z-index:2;opacity:.55}
+.bi-cor{position:absolute;z-index:3}
+.bi-cor::before,.bi-cor::after{content:'';position:absolute;background:#C99A2E;}
+.bi-cor.tl{top:5.4mm;left:5.4mm}.bi-cor.tl::before{width:15px;height:2.5px;top:0;left:0}.bi-cor.tl::after{width:2.5px;height:15px;top:0;left:0}
+.bi-cor.tr{top:5.4mm;right:5.4mm}.bi-cor.tr::before{width:15px;height:2.5px;top:0;right:0}.bi-cor.tr::after{width:2.5px;height:15px;top:0;right:0}
+.bi-cor.bl{bottom:5.4mm;left:5.4mm}.bi-cor.bl::before{width:15px;height:2.5px;bottom:0;left:0}.bi-cor.bl::after{width:2.5px;height:15px;bottom:0;left:0}
+.bi-cor.br{bottom:5.4mm;right:5.4mm}.bi-cor.br::before{width:15px;height:2.5px;bottom:0;right:0}.bi-cor.br::after{width:2.5px;height:15px;bottom:0;right:0}
+.bi-dot{position:absolute;width:7px;height:7px;background:#C99A2E;transform:rotate(45deg);z-index:3}
+.bi-dot.tl{top:6.4mm;left:6.4mm}.bi-dot.tr{top:6.4mm;right:6.4mm}.bi-dot.bl{bottom:6.4mm;left:6.4mm}.bi-dot.br{bottom:6.4mm;right:6.4mm}
+.bi-ct{position:absolute;inset:12mm;display:flex;flex-direction:column;overflow:hidden;z-index:1}
+.bi-crest{width:58px;height:58px;border-radius:50%;border:2px solid #C99A2E;background:#6E1023;display:flex;align-items:center;justify-content:center;color:#C99A2E;font-weight:700;font-size:16px;margin:0 auto 4px;font-family:'Cinzel',Georgia,serif;box-shadow:0 0 0 3px #fffef9,0 0 0 4.5px #C99A2E;}
+.bi-firm{text-align:center;font-family:'Cinzel',Georgia,serif;font-size:14pt;font-weight:700;color:#6E1023;letter-spacing:.8px;line-height:1.15;margin-bottom:2px;}
+.bi-tagline{text-align:center;font-size:6pt;text-transform:uppercase;letter-spacing:.2em;color:#C99A2E;margin-bottom:3px;}
+.bi-badges{display:flex;gap:4px;justify-content:center;margin:2px 0 3px;flex-wrap:wrap;}
+.bi-badge{font-size:5pt;text-transform:uppercase;letter-spacing:.1em;background:#6E1023;color:#C99A2E;padding:2px 7px;border-radius:20px;border:1px solid #C99A2E;}
+.bi-florish{display:flex;align-items:center;gap:5px;margin:3px 0;}
+.bi-florish::before,.bi-florish::after{content:'';flex:1;height:1px;background:#C99A2E;opacity:.6;}
+.bi-fdmd{width:7px;height:7px;background:#C99A2E;transform:rotate(45deg);flex-shrink:0;}
+.bi-ids{text-align:center;font-size:6pt;color:#555;line-height:1.6;}
+.bi-addr{text-align:center;font-size:5.5pt;color:#666;line-height:1.5;margin-bottom:2px;}
+.bi-strip{background:#fdf8f0;border-top:1px solid #C99A2E;border-bottom:1px solid #C99A2E;padding:4px 10px;margin:4px 0;font-size:7pt;color:#2a2230;text-align:center;line-height:1.7;flex-shrink:0;}
+.bi-strip b{color:#6E1023;font-weight:700;}
+.bi-ft{border-top:1px solid #C99A2E;padding-top:3px;margin-top:5px;font-size:5.5pt;color:#888;display:flex;justify-content:space-between;flex-shrink:0;}
 
-/* --- UB (index 4): Bold — thick border, large seal, heavy typography --- */
-.th-ub .doc-ob{border-width:3.5px;border-radius:0}
-.th-ub .doc-ib{inset:12mm;border-width:2pt;border-radius:0}
-.th-ub .doc-dm{width:13px;height:13px}
-.th-ub .doc-seal{width:72px;height:72px;font-size:19px;font-weight:900;border-width:3px}
-.th-ub .doc-fname{font-size:15.5pt;font-weight:900;letter-spacing:1.2px}
-.th-ub .doc-tline{letter-spacing:.2em;font-weight:bold}
-.th-ub .doc-cn{width:22px;height:22px;border-radius:2px;
-               font-size:8pt;font-weight:900}
-.th-ub .doc-ttl{font-size:13.5pt;font-weight:900;letter-spacing:.07em}
-.th-ub .doc-strip{background:#ebebeb;border-top:2.5px solid var(--fprim);
-                  border-bottom:2.5px solid var(--fprim)}
+/* LAYOUT 5: UB — gradient-modern (indigo) */
+.ub-page{font-family:'Outfit',Arial,sans-serif;background:#f7f6fb;display:flex;flex-direction:column;}
+.ub-hero{flex-shrink:0;min-height:50mm;background:linear-gradient(135deg,#2B2A78 0%,#5B2B8A 55%,#7B3FB0 100%);clip-path:polygon(0 0,100% 0,100% 78%,0 100%);padding:8mm 9mm 12mm;display:flex;align-items:flex-start;gap:6mm;}
+.ub-logo{width:56px;height:56px;border-radius:10px;background:#E0B13A;display:flex;align-items:center;justify-content:center;color:#2B2A78;font-weight:900;font-size:15px;flex-shrink:0;font-family:'Sora',Arial,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.3);}
+.ub-ht{flex:1;}
+.ub-hname{font-family:'Sora',Arial,sans-serif;font-size:15pt;font-weight:800;color:#fff;letter-spacing:.8px;line-height:1.15;margin-bottom:3px;}
+.ub-htagline{font-size:6pt;letter-spacing:.18em;text-transform:uppercase;color:#E0B13A;margin-bottom:6px;}
+.ub-chips{display:flex;gap:4px;flex-wrap:wrap;}
+.ub-chip{font-size:5.5pt;text-transform:uppercase;letter-spacing:.1em;background:rgba(255,255,255,.13);color:#fff;padding:2px 8px;border-radius:20px;border:1px solid rgba(224,177,58,.45);}
+.ub-hids{font-size:5.5pt;color:rgba(255,255,255,.6);line-height:1.65;text-align:right;max-width:48mm;flex-shrink:0;}
+.ub-body{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:2mm 8mm 4mm;min-height:0;}
+.ub-bid{border-left:3px solid #E0B13A;background:rgba(43,42,120,.05);padding:3px 8px;margin-bottom:5px;font-size:7pt;color:#23252e;line-height:1.7;flex-shrink:0;}
+.ub-bid b{color:#2B2A78;font-weight:600;}
+.ub-ft{border-top:2px solid #2B2A78;padding-top:3px;margin-top:4px;font-size:5.5pt;color:#717584;display:flex;justify-content:space-between;flex-shrink:0;}
 
 /* ============================================================
    RUBBER STAMP — appears in every signature block
@@ -602,8 +514,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
    FIRM DEFAULTS
    ============================================================ */
 var FD=[
-  {id:'sh',badge:'SH',prim:'#0E5D4C',gold:'#C2912E',
+  /* SH — sidebar-spine: emerald teal #0F6E63 */
+  {id:'sh',badge:'SH',prim:'#0F6E63',gold:'#C9A227',
    name:'Shree Hinglaj Infratech',biz:'Sole Proprietorship',
+   tagline:'Government & Defence Procurement · Authorised Supplier',
    prop:'Smt. Sushila Kanwar',sign:'SUSHILA KANWAR',
    addr:'Dan Ji Ki Hodi, Barmer, Rajasthan – 344001',place:'Barmer',
    phone:'9509553600',email:'shreehinglaj177@gmail.com',
@@ -612,8 +526,10 @@ var FD=[
    bank:'State Bank of India, Mahavir Nagar Branch, Barmer',
    acc:'42033283908',ifsc:'SBIN0015203',
    mse:true,woman:true,obc:true},
-  {id:'vbe',badge:'VBE',prim:'#0A2540',gold:'#D4A017',
+  /* VBE — formal-ledger: navy #0A2540 */
+  {id:'vbe',badge:'VB',prim:'#0A2540',gold:'#D4A017',
    name:'Vande Bharat Enterprises',biz:'Sole Proprietorship',
+   tagline:'Government & Defence Supplies',
    prop:'Shri Vikram Singh',sign:'VIKRAM SINGH',
    addr:'Bhivsagar, Kalau, Jodhpur, Rajasthan – 342021',place:'Jodhpur',
    phone:'6367183480',email:'vandebharat3600@gmail.com',
@@ -621,15 +537,19 @@ var FD=[
    bank:'State Bank of India, Jalori Gate Branch, Jodhpur',
    acc:'42188239871',ifsc:'SBIN0031201',
    mse:true,woman:false,obc:false},
-  {id:'bi',badge:'BI',prim:'#5B3A29',gold:'#C9A227',
+  /* BI — ornamental-certificate: regal maroon #6E1023 */
+  {id:'bi',badge:'BI',prim:'#6E1023',gold:'#C99A2E',
    name:'Bright India Enterprises',biz:'Sole Proprietorship',
-   prop:'',sign:'',addr:'',place:'Barmer',phone:'',email:'',
-   gstin:'08DLMPN4869L1Z4',udyam:'',gem:'F9ZB260013901739',
+   tagline:'Quality · Trust · Service',
+   prop:'',sign:'',addr:'Sheo, Barmer, Rajasthan',place:'Barmer',phone:'',email:'',
+   gstin:'08DLMPN4869L1Z4',udyam:'UDYAM-RJ-05-0048073',gem:'F9ZB260013901739',
    bank:'State Bank of India, Jalipa Cantt Branch, Barmer',
    acc:'43362997445',ifsc:'SBIN0061231',
    mse:true,woman:true,obc:true},
-  {id:'bct',badge:'BCT',prim:'#1C2630',gold:'#B0843A',
+  /* BCT — editorial-dark: espresso #241C18 */
+  {id:'bct',badge:'BC',prim:'#241C18',gold:'#B5762F',
    name:'Best Choice Traders',biz:'Sole Proprietorship',
+   tagline:'Trade · Supply · Service',
    prop:'Smt. Kamala Kanwar',sign:'KAMALA KANWAR',
    addr:'All India Radio, Bidasar Road, Barmer, Rajasthan – 344001',place:'Barmer',
    phone:'9509553600',email:'bestchoicetraders@gmail.com',
@@ -637,10 +557,12 @@ var FD=[
    bank:'State Bank of India, Jalipa Cantt Branch, Barmer',
    acc:'43363032156',ifsc:'SBIN0061231',
    mse:true,woman:true,obc:false},
-  {id:'ub',badge:'UB',prim:'#6B1F2A',gold:'#C9A227',
+  /* UB — gradient-modern: indigo #2B2A78 */
+  {id:'ub',badge:'UB',prim:'#2B2A78',gold:'#E0B13A',
    name:'Ujjwal Bharat Infratech',biz:'Sole Proprietorship',
+   tagline:'Infrastructure · Supply Solutions',
    prop:'Shri Manoj Dan',sign:'MANOJ DAN',
-   addr:'',place:'',phone:'',email:'',gstin:'',udyam:'',gem:'',
+   addr:'Barmer, Rajasthan',place:'Barmer',phone:'',email:'',gstin:'',udyam:'',gem:'',
    bank:'',acc:'',ifsc:'',mse:true,woman:false,obc:false}
 ];
 
@@ -972,31 +894,6 @@ function addrLine(f){
   return parts.join('<br>');
 }
 
-var FIRM_THEME={sh:'th-sh',vbe:'th-vbe',bi:'th-bi',bct:'th-bct',ub:'th-ub'};
-
-function fvars(f){return 'style="--fprim:'+f.prim+';--fgold:'+f.gold+'"';}
-
-/* Document letterhead (used by every page) */
-function hdr(f){
-  var ids=idsStr(f), addr=addrLine(f);
-  return '<div class="doc-hdr-bg"></div>'+
-    '<div class="doc-hdr">'+
-      '<div class="doc-seal">'+xe(f.badge)+'</div>'+
-      '<div class="doc-fname">'+xe(f.name)+'</div>'+
-      '<div class="doc-tline">'+taglineStr(f)+'</div>'+
-      '<div class="doc-div"><span class="doc-dmd"></span></div>'+
-      (ids ?'<div class="doc-ids">'+ids+'</div>':'') +
-      (addr?'<div class="doc-addr">'+addr+'</div>':'')+
-    '</div>';
-}
-
-function bidStrip(inp){
-  var s='Bid&nbsp;Ref: <b>'+(inp.ref||'[Reference No.]')+'</b>';
-  if(inp.bd) s+='&nbsp;&nbsp;•&nbsp;&nbsp;Bid&nbsp;Date: <b>'+inp.bd+'</b>';
-  if(inp.dd) s+='&nbsp;&nbsp;•&nbsp;&nbsp;Due: <b>'+inp.dd+'</b>';
-  return '<div class="doc-strip">'+s+'</div>';
-}
-
 function toLine(f,inp){
   return '<div class="doc-to">To:&nbsp;<b>'+xe(inp.off)+'</b>'+
     (inp.buyer?',&nbsp;'+xe(inp.buyer)+', Indian Army, Ministry of Defence':
@@ -1043,28 +940,164 @@ function sigBlock(f,inp){
   '</div>';
 }
 
-function footer(f,inp,lbl,n,tot){
-  return '<div class="doc-ft">'+
-    '<span>'+xe(f.name)+'</span>'+
-    '<span>'+xe(lbl)+'&nbsp;•&nbsp;'+(inp.ref||'Bid Ref')+'</span>'+
-    '<span>Page '+n+' of '+tot+'</span>'+
+function page(f,inp,body,lbl,n,tot){
+  var d={sh:pageSH,vbe:pageVBE,bi:pageBI,bct:pageBCT,ub:pageUB};
+  return (d[f.id]||pageVBE)(f,inp,body,lbl,n,tot);
+}
+
+function pageSH(f,inp,body,lbl,n,tot){
+  var strip='Bid&nbsp;Ref: <b>'+(inp.ref||'[Ref No.]')+'</b>';
+  if(inp.bd) strip+='&nbsp;&nbsp;•&nbsp;&nbsp;Dated: <b>'+inp.bd+'</b>';
+  if(inp.dd) strip+='&nbsp;&nbsp;•&nbsp;&nbsp;Due: <b>'+inp.dd+'</b>';
+  var ids=[];
+  if(f.gem)   ids.push('GeM: '+xe(f.gem));
+  if(f.gstin) ids.push('GSTIN: '+xe(f.gstin));
+  if(f.udyam) ids.push('Udyam: '+xe(f.udyam));
+  var sv='style="--fprim:'+f.prim+';--fgold:'+f.gold+'"';
+  return '<div class="doc-page sh-page" '+sv+'>'+
+    '<div class="sh-sidebar">'+
+      '<div class="sh-spine">'+xe(f.name.toUpperCase())+'</div>'+
+      '<div class="sh-logo">'+xe(f.badge)+'</div>'+
+      '<div class="sh-firm">'+xe(f.name.toUpperCase()).replace(/ /g,'<br>')+'</div>'+
+      '<div class="sh-grule"></div>'+
+      (f.addr?'<div class="sh-lbl">Address</div><div class="sh-det">'+xe(f.addr)+'</div>':'')+
+      ((f.phone||f.email)?'<div class="sh-lbl">Contact</div><div class="sh-det">'+(f.phone?xe(f.phone)+' ':'')+xe(f.email||'')+'</div>':'')+
+      (f.gstin?'<div class="sh-lbl">GSTIN</div><div class="sh-det">'+xe(f.gstin)+'</div>':'')+
+      (f.bank?'<div class="sh-lbl">Bank</div><div class="sh-det">'+xe(f.bank)+'<br>A/c: '+xe(f.acc)+'<br>IFSC: '+xe(f.ifsc)+'</div>':'')+
+      '<div class="sh-spacer"></div>'+
+      (ids.length?'<div class="sh-ids">'+ids.join('<br>')+'</div>':'')+
+    '</div>'+
+    '<div class="sh-spine-rule"></div>'+
+    '<div class="sh-main">'+
+      '<div class="sh-bid">'+strip+'</div>'+
+      '<div class="doc-body">'+body+'</div>'+
+      '<div class="sh-ft"><span>'+xe(f.name)+'</span><span>'+xe(lbl)+'</span><span>'+n+' / '+tot+'</span></div>'+
+    '</div>'+
   '</div>';
 }
 
-function page(f,inp,body,lbl,n,tot){
-  var th=FIRM_THEME[f.id]||'';
-  return '<div class="doc-page'+(th?' '+th:'')+'" '+fvars(f)+'>'+
-    '<div class="doc-ob"></div>'+
-    '<div class="doc-ib"></div>'+
-    '<div class="doc-dm tl"></div>'+
-    '<div class="doc-dm tr"></div>'+
-    '<div class="doc-dm bl"></div>'+
-    '<div class="doc-dm br"></div>'+
-    '<div class="doc-ct">'+
-      hdr(f)+
-      bidStrip(inp)+
+function pageVBE(f,inp,body,lbl,n,tot){
+  var ids=[];
+  if(f.gem)   ids.push('GeM&nbsp;ID: '+xe(f.gem));
+  if(f.gstin) ids.push('GSTIN: '+xe(f.gstin));
+  if(f.udyam) ids.push('Udyam: '+xe(f.udyam));
+  var addr=[];
+  if(f.addr) addr.push(xe(f.addr));
+  var con=[];
+  if(f.phone) con.push('Mob: '+xe(f.phone));
+  if(f.email) con.push(xe(f.email));
+  if(con.length) addr.push(con.join(' &nbsp; '));
+  var strip='Bid&nbsp;Ref: <b>'+(inp.ref||'[Ref No.]')+'</b>';
+  if(inp.bd) strip+='&nbsp;&nbsp;•&nbsp;&nbsp;Dated: <b>'+inp.bd+'</b>';
+  if(inp.dd) strip+='&nbsp;&nbsp;•&nbsp;&nbsp;Due: <b>'+inp.dd+'</b>';
+  var sv='style="--fprim:'+f.prim+';--fgold:'+f.gold+'"';
+  return '<div class="doc-page vbe-page" '+sv+'>'+
+    '<div class="vbe-frame-out"></div><div class="vbe-frame-in"></div>'+
+    '<div class="vbe-wm">VB</div>'+
+    '<div class="vbe-ct">'+
+      '<div class="vbe-hdr">'+
+        '<div class="vbe-crest">'+xe(f.badge)+'</div>'+
+        '<div class="vbe-name">'+xe(f.name)+'</div>'+
+        '<div class="vbe-tagline">'+xe(f.tagline||'Government & Defence Supplies')+'</div>'+
+        '<div class="vbe-drule"></div>'+
+        (ids.length?'<div class="vbe-ids">'+ids.join('&nbsp;&nbsp;•&nbsp;&nbsp;')+'</div>':'')+
+        (addr.length?'<div class="vbe-addr">'+addr.join('<br>')+'</div>':'')+
+      '</div>'+
+      '<div class="vbe-strip">'+strip+'</div>'+
       '<div class="doc-body">'+body+'</div>'+
-      footer(f,inp,lbl,n,tot)+
+      '<div class="vbe-ft"><span>'+xe(f.name)+'</span><span>'+xe(lbl)+'&nbsp;•&nbsp;'+(inp.ref||'Bid&nbsp;Ref')+'</span><span>'+n+' / '+tot+'</span></div>'+
+    '</div>'+
+  '</div>';
+}
+
+function pageBCT(f,inp,body,lbl,n,tot){
+  var ids=[];
+  if(f.gstin) ids.push('GSTIN: '+xe(f.gstin));
+  if(f.phone) ids.push('Mob: '+xe(f.phone));
+  if(f.email) ids.push(xe(f.email));
+  var strip='Bid&nbsp;Ref: <b>'+(inp.ref||'[Ref No.]')+'</b>';
+  if(inp.bd) strip+='&nbsp;&nbsp;•&nbsp;&nbsp;Dated: <b>'+inp.bd+'</b>';
+  if(inp.dd) strip+='&nbsp;&nbsp;•&nbsp;&nbsp;Due: <b>'+inp.dd+'</b>';
+  var sv='style="--fprim:'+f.prim+';--fgold:'+f.gold+'"';
+  return '<div class="doc-page bct-page" '+sv+'>'+
+    '<div class="bct-hband">'+
+      '<div class="bct-seal">'+xe(f.badge)+'</div>'+
+      '<div class="bct-ht">'+
+        '<div class="bct-hname">'+xe(f.name)+'</div>'+
+        '<div class="bct-htagline">'+xe(f.tagline||'Trade · Supply · Service')+'</div>'+
+      '</div>'+
+      '<div class="bct-hids">'+ids.join('<br>')+(f.addr?'<br>'+xe(f.addr):'')+'</div>'+
+    '</div>'+
+    '<div class="bct-crule"></div><div class="bct-wrule"></div>'+
+    '<div class="bct-body">'+
+      '<div class="bct-bid">'+strip+'</div>'+
+      '<div class="doc-body">'+body+'</div>'+
+    '</div>'+
+    '<div class="bct-fband"><span>'+xe(f.name)+'</span><span>'+xe(lbl)+'&nbsp;•&nbsp;'+(inp.ref||'Bid Ref')+'</span><span>'+n+' / '+tot+'</span></div>'+
+  '</div>';
+}
+
+function pageBI(f,inp,body,lbl,n,tot){
+  var ids=[];
+  if(f.gem)   ids.push('GeM: '+xe(f.gem));
+  if(f.gstin) ids.push('GSTIN: '+xe(f.gstin));
+  if(f.udyam) ids.push('Udyam: '+xe(f.udyam));
+  var strip='Bid&nbsp;Ref: <b>'+(inp.ref||'[Ref No.]')+'</b>';
+  if(inp.bd) strip+='&nbsp;&nbsp;•&nbsp;&nbsp;Dated: <b>'+inp.bd+'</b>';
+  if(inp.dd) strip+='&nbsp;&nbsp;•&nbsp;&nbsp;Due: <b>'+inp.dd+'</b>';
+  var tl=[];
+  if(f.mse)   tl.push('MSE');
+  if(f.woman) tl.push('Woman-Owned');
+  if(f.obc)   tl.push('OBC MSE');
+  if(f.udyam) tl.push('Udyam');
+  var sv='style="--fprim:'+f.prim+';--fgold:'+f.gold+'"';
+  return '<div class="doc-page bi-page" '+sv+'>'+
+    '<div class="bi-fm"></div><div class="bi-fg1"></div><div class="bi-fg2"></div>'+
+    '<div class="bi-cor tl"></div><div class="bi-cor tr"></div><div class="bi-cor bl"></div><div class="bi-cor br"></div>'+
+    '<div class="bi-dot tl"></div><div class="bi-dot tr"></div><div class="bi-dot bl"></div><div class="bi-dot br"></div>'+
+    '<div class="bi-ct">'+
+      '<div class="bi-crest">'+xe(f.badge)+'</div>'+
+      '<div class="bi-firm">'+xe(f.name)+'</div>'+
+      '<div class="bi-tagline">'+xe(f.tagline||'Quality · Trust · Service')+'</div>'+
+      (tl.length?'<div class="bi-badges">'+tl.map(function(t){return'<span class="bi-badge">'+t+'</span>';}).join('')+'</div>':'')+
+      '<div class="bi-florish"><span class="bi-fdmd"></span></div>'+
+      (ids.length?'<div class="bi-ids">'+ids.join('&nbsp;&nbsp;•&nbsp;&nbsp;')+'</div>':'')+
+      (f.addr?'<div class="bi-addr">'+xe(f.addr)+(f.phone?' &nbsp; Mob: '+xe(f.phone):'')+'</div>':'')+
+      '<div class="bi-strip">'+strip+'</div>'+
+      '<div class="doc-body">'+body+'</div>'+
+      '<div class="bi-ft"><span>'+xe(f.name)+'</span><span>'+xe(lbl)+'&nbsp;•&nbsp;'+(inp.ref||'Bid Ref')+'</span><span>'+n+' / '+tot+'</span></div>'+
+    '</div>'+
+  '</div>';
+}
+
+function pageUB(f,inp,body,lbl,n,tot){
+  var ids=[];
+  if(f.gstin) ids.push('GSTIN: '+xe(f.gstin));
+  if(f.phone) ids.push('Mob: '+xe(f.phone));
+  if(f.email) ids.push(xe(f.email));
+  var strip='Bid&nbsp;Ref: <b>'+(inp.ref||'[Ref No.]')+'</b>';
+  if(inp.bd) strip+='&nbsp;&nbsp;•&nbsp;&nbsp;Dated: <b>'+inp.bd+'</b>';
+  if(inp.dd) strip+='&nbsp;&nbsp;•&nbsp;&nbsp;Due: <b>'+inp.dd+'</b>';
+  var chips=[];
+  if(f.mse)   chips.push('MSE');
+  if(f.woman) chips.push('Woman-Owned');
+  if(f.obc)   chips.push('OBC');
+  if(f.gem)   chips.push('GeM Vendor');
+  var sv='style="--fprim:'+f.prim+';--fgold:'+f.gold+'"';
+  return '<div class="doc-page ub-page" '+sv+'>'+
+    '<div class="ub-hero">'+
+      '<div class="ub-logo">'+xe(f.badge)+'</div>'+
+      '<div class="ub-ht">'+
+        '<div class="ub-hname">'+xe(f.name)+'</div>'+
+        '<div class="ub-htagline">'+xe(f.tagline||'Infrastructure · Supply Solutions')+'</div>'+
+        '<div class="ub-chips">'+chips.map(function(c){return'<span class="ub-chip">'+c+'</span>';}).join('')+'</div>'+
+      '</div>'+
+      (ids.length?'<div class="ub-hids">'+ids.join('<br>')+(f.addr?'<br>'+xe(f.addr):'')+'</div>':'')+
+    '</div>'+
+    '<div class="ub-body">'+
+      '<div class="ub-bid">'+strip+'</div>'+
+      '<div class="doc-body">'+body+'</div>'+
+      '<div class="ub-ft"><span>'+xe(f.name)+'</span><span>'+xe(lbl)+'</span><span>'+n+' / '+tot+'</span></div>'+
     '</div>'+
   '</div>';
 }

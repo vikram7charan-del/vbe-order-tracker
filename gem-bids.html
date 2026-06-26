@@ -174,46 +174,61 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
 
 /* ---- DOCUMENT BODY ---- */
 .doc-body{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;position:relative;z-index:1}
-.doc-ey{font-size:6.5pt;text-transform:uppercase;letter-spacing:.14em;color:var(--fgold);margin-bottom:3px;}
-.doc-ttl{font-size:13pt;font-weight:bold;text-transform:uppercase;color:var(--fprim);letter-spacing:.04em;margin-bottom:5px;line-height:1.25;}
-.doc-to{font-size:8pt;color:#333;margin-bottom:6px;border-left:3px solid var(--fgold);line-height:1.55;background:rgba(0,0,0,.015);padding:5px 5px 5px 9px;border-radius:0 3px 3px 0;}
-.doc-intro{font-size:8.5pt;font-style:italic;color:#444;margin-bottom:8px;line-height:1.6;}
+.doc-ey{font-size:5.8pt;text-transform:uppercase;letter-spacing:.22em;color:var(--fgold);margin-bottom:4px;font-weight:700;}
+.doc-ttl{font-size:13.5pt;font-weight:800;text-transform:uppercase;color:var(--fprim);letter-spacing:.05em;margin-bottom:4px;line-height:1.2;padding-bottom:5px;border-bottom:2.5px solid var(--fgold);}
+.doc-to{font-size:7.5pt;color:#222;margin-bottom:7px;border-left:4px solid var(--fprim);line-height:1.6;background:rgba(0,0,0,.028);padding:6px 8px 6px 10px;border-radius:0 3px 3px 0;}
+.doc-to-lbl{font-size:5.5pt;text-transform:uppercase;letter-spacing:.15em;color:var(--fprim);font-weight:700;margin-bottom:2px;display:block;}
+.doc-intro{font-size:8.5pt;font-style:italic;color:#3a3a3a;margin-bottom:7px;line-height:1.65;border-left:2px solid var(--fgold);padding-left:8px;}
 .doc-cls{list-style:none;display:flex;flex-direction:column;gap:5px;margin-bottom:6px}
-.doc-cl{display:flex;gap:8px;font-size:8pt;line-height:1.6;color:#222;align-items:flex-start}
-.doc-cn{width:20px;height:20px;border-radius:50%;background:var(--fprim);color:#fff;font-size:7pt;font-weight:bold;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.doc-cl{display:flex;gap:9px;font-size:8pt;line-height:1.65;color:#1a1a1a;align-items:flex-start}
+.doc-cn{width:19px;height:19px;border-radius:3px;background:var(--fprim);color:#fff;font-size:6.5pt;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
 .doc-ctxt{flex:1}
-.doc-note{background:#fffdf0;border:1px solid var(--fgold);border-left:3px solid var(--fgold);border-radius:0 3px 3px 0;padding:6px 10px;font-size:7pt;color:#555;font-style:italic;margin:5px 0;line-height:1.55;}
+.doc-note{background:rgba(0,0,0,.022);border:1px solid var(--fgold);border-left:3.5px solid var(--fgold);border-radius:0 3px 3px 0;padding:6px 10px;font-size:7pt;color:#444;font-style:italic;margin:5px 0;line-height:1.6;}
 .doc-note b{color:var(--fprim);font-style:normal}
-.doc-closing{font-size:8pt;font-style:italic;color:#444;margin-top:5px;line-height:1.5;border-top:1px dashed #ddd;padding-top:5px;}
+.doc-closing{font-size:7.5pt;font-style:italic;color:#555;margin-top:6px;line-height:1.55;border-top:1px solid #ddd;padding-top:6px;text-align:right;}
+
+/* Key data highlight box */
+.doc-kbox{border:1.5px solid var(--fprim);border-top:3px solid var(--fprim);border-radius:3px;padding:8px 12px;margin:8px 0;background:rgba(0,0,0,.018);}
+.doc-kbox-ttl{font-size:5.5pt;text-transform:uppercase;letter-spacing:.18em;color:var(--fprim);font-weight:700;margin-bottom:5px;}
+.doc-kbox-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:5px 14px;}
+.doc-kbox-item{display:flex;flex-direction:column;gap:1px;}
+.doc-kbox-lbl{font-size:5.2pt;text-transform:uppercase;letter-spacing:.12em;color:#888;font-weight:600;}
+.doc-kbox-val{font-size:8pt;font-weight:700;color:var(--fprim);letter-spacing:.02em;line-height:1.3;}
+.doc-kbox-val.mono{font-family:'Courier New',monospace;font-size:7.5pt;}
+/* Certification badges */
+.doc-certs{display:flex;gap:4px;flex-wrap:wrap;margin:5px 0 7px;}
+.doc-cert-tag{font-size:5.2pt;text-transform:uppercase;letter-spacing:.12em;font-weight:700;padding:2px 7px;border-radius:2px;border:1px solid var(--fprim);color:var(--fprim);background:rgba(0,0,0,.025);}
 
 /* Signature block */
-.doc-sig{display:flex;justify-content:space-between;align-items:flex-end;margin-top:auto;padding-top:8px;border-top:1px solid #ccc;flex-shrink:0;}
-.doc-sig-l{font-size:8pt;color:#555;line-height:1.8;font-family:'Times New Roman',serif}
+.doc-sig{display:flex;justify-content:space-between;align-items:flex-end;margin-top:auto;padding-top:8px;border-top:2px solid var(--fprim);flex-shrink:0;}
+.doc-sig-l{font-size:7.5pt;color:#444;line-height:2;font-family:'Times New Roman',serif}
+.doc-sig-l b{color:var(--fprim)}
 .doc-sig-r{text-align:right}
-.doc-sig-for{font-size:8pt;color:#555;margin-bottom:24px;font-style:italic}
-.doc-sig-name{border-top:1px solid #222;padding-top:4px;font-size:9.5pt;font-weight:bold;color:#111;letter-spacing:.5px;}
-.doc-sig-sub{font-size:7.5pt;color:#555;margin-top:2px}
+.doc-sig-for{font-size:7.5pt;color:#666;margin-bottom:3px;font-style:italic}
+.doc-sig-name{border-top:2px solid var(--fprim);padding-top:4px;font-size:9.5pt;font-weight:800;color:var(--fprim);letter-spacing:.6px;}
+.doc-sig-sub{font-size:7pt;color:#666;margin-top:2px}
 
 /* ---- COVER PAGE extras ---- */
-.cov-box{border:2px solid var(--fprim);border-radius:4px;padding:12px 16px;margin:10px 0;background:rgba(0,0,0,.015);}
-.cov-row{display:flex;gap:10px;padding:5px 0;font-size:8.5pt;color:#333;border-bottom:1px solid #eee;line-height:1.5;}
+.cov-box{border:1.5px solid #ddd;border-top:3px solid var(--fprim);border-radius:3px;padding:10px 14px;margin:8px 0;background:#fff;}
+.cov-row{display:flex;gap:10px;padding:5px 0;font-size:8pt;color:#222;border-bottom:1px solid #f0f0f0;line-height:1.55;align-items:baseline;}
 .cov-row:last-child{border:none}
-.cov-lbl{font-weight:bold;color:var(--fprim);min-width:100px;flex-shrink:0;font-size:8pt}
+.cov-lbl{font-weight:700;color:var(--fprim);min-width:115px;flex-shrink:0;font-size:7pt;text-transform:uppercase;letter-spacing:.06em;}
 
 /* ---- PROFILE tables ---- */
-.ptbl{width:100%;border-collapse:collapse;font-size:8pt;margin:7px 0}
-.ptbl td{padding:5px 9px;border:1px solid #ddd;vertical-align:top;line-height:1.5}
-.ptbl td:first-child{font-weight:bold;color:var(--fprim);background:#f8f8f8;width:36%}
-.pidx{width:100%;border-collapse:collapse;font-size:8pt;margin-top:8px}
-.pidx th{background:var(--fprim);color:#fff;padding:5px 9px;text-align:left;font-weight:bold;font-size:7.5pt}
-.pidx td{padding:5px 9px;border:1px solid #ddd;vertical-align:top;line-height:1.45}
-.pidx tr:nth-child(even) td{background:#f9f9f9}
-.pidx td:first-child{text-align:center;font-weight:bold;color:var(--fprim);width:10%}
+.ptbl{width:100%;border-collapse:collapse;font-size:7.8pt;margin:6px 0}
+.ptbl td{padding:5px 10px;border:1px solid #e8e8e8;vertical-align:top;line-height:1.55}
+.ptbl td:first-child{font-weight:700;color:var(--fprim);background:#f7f8f9;width:35%;font-size:7pt;text-transform:uppercase;letter-spacing:.05em;}
+.ptbl tr:first-child td{border-top:2px solid var(--fprim);}
+.pidx{width:100%;border-collapse:collapse;font-size:8pt;margin-top:6px}
+.pidx th{background:var(--fprim);color:#fff;padding:5px 10px;text-align:left;font-weight:700;font-size:6.5pt;text-transform:uppercase;letter-spacing:.1em;}
+.pidx td{padding:5px 10px;border:1px solid #e8e8e8;vertical-align:top;line-height:1.5}
+.pidx tr:nth-child(even) td{background:#fafafa}
+.pidx td:first-child{text-align:center;font-weight:800;color:var(--fprim);width:10%}
 
 /* ---- EMD table ---- */
 .etbl{width:100%;border-collapse:collapse;font-size:8.5pt;margin:6px 0}
-.etbl th{background:var(--fprim);color:#fff;padding:6px 11px;text-align:left;font-weight:bold;font-size:8pt}
-.etbl td{padding:6px 11px;border:1px solid #ddd}
+.etbl th{background:var(--fprim);color:#fff;padding:6px 12px;text-align:left;font-weight:700;font-size:7.5pt;text-transform:uppercase;letter-spacing:.08em;}
+.etbl td{padding:6px 12px;border:1px solid #e8e8e8}
 
 /* ============================================================
    5-LAYOUT DOCUMENT IDENTITIES
@@ -905,9 +920,11 @@ function addrLine(f){
 }
 
 function toLine(f,inp){
-  return '<div class="doc-to">To:&nbsp;<b>'+xe(inp.off)+'</b>'+
-    (inp.buyer?',&nbsp;'+xe(inp.buyer)+', Indian Army, Ministry of Defence':
-               ', Indian Army, Ministry of Defence')+
+  var buyer=inp.buyer?xe(inp.buyer)+', Indian Army, Ministry of Defence':'Indian Army, Ministry of Defence';
+  return '<div class="doc-to">'+
+    '<span class="doc-to-lbl">Addressed To</span>'+
+    '<b>'+xe(inp.off||'The Competent Authority')+'</b><br>'+
+    buyer+
   '</div>';
 }
 
@@ -926,25 +943,38 @@ function sigBlock(f,inp){
   var stored=lsG('gem_sig_'+f.id,null);
   var sigImg=stored
     ? '<img src="'+stored+'" style="height:46px;max-width:110px;object-fit:contain;display:block;margin:0 0 3px auto">'
-    : '<div style="height:46px;border-bottom:1px solid #bbb;margin-bottom:3px"></div>';
+    : '<div style="height:46px;border-bottom:2px solid '+f.prim+';margin-bottom:3px"></div>';
   var stamp=
     '<div class="doc-stamp">'+
       '<div class="doc-stamp-ring"></div>'+
       '<div class="doc-stamp-badge">'+xe(f.badge)+'</div>'+
       '<div class="doc-stamp-firm">'+xe(f.name)+'</div>'+
     '</div>';
+  var tags=[];
+  if(f.mse)   tags.push('MSE Registered');
+  if(f.woman) tags.push('Woman-Owned Enterprise');
+  if(f.obc)   tags.push('OBC Category');
+  var certRow=tags.length
+    ? '<div class="doc-certs" style="justify-content:flex-end">'+
+        tags.map(function(t){return'<span class="doc-cert-tag">'+t+'</span>';}).join('')+
+      '</div>'
+    : '';
   return '<div class="doc-sig">'+
     '<div class="doc-sig-l">'+
-      'Place:&nbsp;<b>'+xe(inp.place||f.place)+'</b><br>'+
-      'Date:&nbsp;<b>'+xe(inp.date)+'</b>'+
+      'Place:&nbsp;&nbsp;<b>'+xe(inp.place||f.place)+'</b><br>'+
+      'Date:&nbsp;&nbsp;&nbsp;<b>'+xe(inp.date)+'</b>'+
+      (f.gstin?'<br>GSTIN:&nbsp;<b>'+xe(f.gstin)+'</b>':'')+
     '</div>'+
-    '<div class="doc-sig-r" style="display:flex;align-items:flex-end;gap:8px">'+
-      stamp+
-      '<div style="text-align:right">'+
-        '<div style="font-size:8pt;color:#555;margin-bottom:2px;font-style:italic">For M/s '+xe(f.name)+'</div>'+
-        sigImg+
-        '<div class="doc-sig-name">'+(xe(f.sign)||'____________________')+'</div>'+
-        '<div class="doc-sig-sub">Proprietor / Authorised Signatory</div>'+
+    '<div class="doc-sig-r">'+
+      certRow+
+      '<div style="display:flex;align-items:flex-end;gap:8px;justify-content:flex-end">'+
+        stamp+
+        '<div style="text-align:right">'+
+          '<div class="doc-sig-for">For M/s '+xe(f.name)+'</div>'+
+          sigImg+
+          '<div class="doc-sig-name">'+(xe(f.sign)||'____________________')+'</div>'+
+          '<div class="doc-sig-sub">Proprietor &amp; Authorised Signatory</div>'+
+        '</div>'+
       '</div>'+
     '</div>'+
   '</div>';
@@ -1134,41 +1164,55 @@ function genDoc(k,f,inp,n,tot){
    COVER PAGE
    ============================================================ */
 function genCover(f,inp,n,tot){
-  var tl=[];
-  if(f.mse)   tl.push('MSE');
-  if(f.woman) tl.push('WOMAN-OWNED');
-  if(f.obc)   tl.push('OBC');
-  if(f.udyam) tl.push('UDYAM REGISTERED');
-  var ids=idsStr(f);
+  var tags=[];
+  if(f.mse)   tags.push('MSE');
+  if(f.woman) tags.push('Woman-Owned');
+  if(f.obc)   tags.push('OBC');
+  if(f.udyam) tags.push('Udyam Registered');
+
+  var refBox=
+    '<div class="doc-kbox">'+
+      '<div class="doc-kbox-ttl">Bid Identification</div>'+
+      '<div class="doc-kbox-grid">'+
+        '<div class="doc-kbox-item"><span class="doc-kbox-lbl">Bid Reference No.</span><span class="doc-kbox-val mono">'+(inp.ref||'&mdash;')+'</span></div>'+
+        '<div class="doc-kbox-item"><span class="doc-kbox-lbl">Date of Submission</span><span class="doc-kbox-val">'+(inp.bd||inp.date||'&mdash;')+'</span></div>'+
+        '<div class="doc-kbox-item"><span class="doc-kbox-lbl">Bid Due Date</span><span class="doc-kbox-val">'+(inp.dd||'&mdash;')+'</span></div>'+
+        '<div class="doc-kbox-item"><span class="doc-kbox-lbl">Bidder Entity</span><span class="doc-kbox-val">M/s '+xe(f.name)+'</span></div>'+
+      '</div>'+
+    '</div>';
+
+  var detBox=
+    '<div class="cov-box">'+
+      '<div class="cov-row"><span class="cov-lbl">Buying Organisation</span><span>'+
+        (inp.buyer?xe(inp.buyer)+', ':'')+' Indian Army, Ministry of Defence'+
+      '</span></div>'+
+      '<div class="cov-row"><span class="cov-lbl">Requirement / Item</span><span><b>'+xe(inp.item)+'</b></span></div>'+
+      '<div class="cov-row"><span class="cov-lbl">Consignee Unit</span><span>'+xe(inp.con)+'</span></div>'+
+      '<div class="cov-row"><span class="cov-lbl">Bidder Certifications</span><span>'+
+        (tags.length
+          ? tags.map(function(t){return'<span style="display:inline-block;margin-right:4px;font-size:6.5pt;font-weight:700;border:1px solid;padding:1px 5px;border-radius:2px">'+t+'</span>';}).join('')
+          : 'Registered Enterprise')+
+      '</span></div>'+
+      (f.gem?'<div class="cov-row"><span class="cov-lbl">GeM Seller ID</span><span style="font-weight:700;font-family:monospace">'+xe(f.gem)+'</span></div>':'')+
+    '</div>';
 
   var body=
-    '<div class="doc-ey" style="text-align:center;margin-top:6px">GeM Government e-Marketplace &mdash; Bid Compliance Documents</div>'+
-    '<div class="doc-ttl" style="text-align:center;font-size:15pt;letter-spacing:.05em;margin-bottom:5px">'+
-      'BID COMPLIANCE<br>&amp; DECLARATIONS'+
+    '<div class="doc-ey" style="text-align:center;margin-top:4px;letter-spacing:.28em">Government e-Marketplace &nbsp;|&nbsp; Bid Compliance Documents</div>'+
+    '<div class="doc-ttl" style="text-align:center;font-size:15pt;letter-spacing:.06em;border-bottom-width:3px;">'+
+      'BID COMPLIANCE &amp; DECLARATIONS'+
     '</div>'+
-    '<div style="text-align:center;font-size:8.5pt;color:#555;font-style:italic;margin-bottom:12px">'+
-      'Submitted with respect &amp; compliance by the Bidder'+
+    '<div style="text-align:center;font-size:7.5pt;color:#555;font-style:italic;margin:5px 0 8px;letter-spacing:.04em">'+
+      'Submitted in strict conformity with the Bid Document by the undersigned Bidder'+
     '</div>'+
     '<div class="doc-div"><span class="doc-dmd"></span></div>'+
-    '<div class="cov-box">'+
-      '<div class="cov-row"><span class="cov-lbl">Bid Reference</span><span>'+
-        (inp.ref||'&mdash;')+(inp.bd?' &nbsp;&nbsp; Dated: <b>'+inp.bd+'</b>':'')+
-      '</span></div>'+
-      '<div class="cov-row"><span class="cov-lbl">Buyer</span><span>'+
-        xe(inp.buyer)+', Indian Army, Ministry of Defence'+
-      '</span></div>'+
-      '<div class="cov-row"><span class="cov-lbl">Requirement</span><span>'+xe(inp.item)+'</span></div>'+
-      '<div class="cov-row"><span class="cov-lbl">Consignee</span><span>'+xe(inp.con)+'</span></div>'+
-      (inp.dd?'<div class="cov-row"><span class="cov-lbl">Bid Due Date</span><span>'+inp.dd+'</span></div>':'')+
-      '<div class="cov-row"><span class="cov-lbl">Bidder Status</span><span>'+
-        (tl.join(' &bull; ')||'Registered Enterprise')+
-      '</span></div>'+
-    '</div>'+
-    '<div class="doc-div" style="margin-top:12px"><span class="doc-dmd"></span></div>'+
-    '<div style="text-align:center;font-size:7pt;color:#666;margin-top:12px;line-height:2">'+
-      (f.addr ? xe(f.addr)+'<br>' : '')+
-      (ids    ? ids+'<br>'        : '')+
-      'Document Prepared on: <b>'+xe(inp.date)+'</b>'+
+    refBox+
+    detBox+
+    '<div class="doc-div" style="margin-top:10px"><span class="doc-dmd"></span></div>'+
+    '<div style="font-size:7pt;color:#555;margin-top:8px;line-height:1.9;text-align:center;">'+
+      (f.addr?'<b>Registered Address:</b> '+xe(f.addr)+'<br>':'')+''+
+      (f.gstin?'<b>GSTIN:</b> '+xe(f.gstin)+'&nbsp;&nbsp;&nbsp;':'')+''+
+      (f.udyam?'<b>Udyam:</b> '+xe(f.udyam)+'<br>':'')+''+
+      '<b>Document Prepared on:</b> '+xe(inp.date)+
     '</div>'+
     '<div style="flex:1"></div>';
 
@@ -1181,42 +1225,52 @@ function genCover(f,inp,n,tot){
 function genProfile(f,inp,n,tot){
   var ec='Micro &amp; Small Enterprise'+(f.woman?' &mdash; Woman-Owned':'');
   var rows=[
-    ['Name of Firm','M/s '+xe(f.name)+' ('+xe(f.biz)+')'],
-    ['Proprietor', xe(f.prop)||'&mdash;'],
-    ['Enterprise Class', ec],
+    ['Name of Firm','<b>M/s '+xe(f.name)+'</b>&ensp;('+xe(f.biz)+')'],
+    ['Proprietor / Signatory', '<b>'+xe(f.prop)+'</b>'||'&mdash;'],
+    ['Enterprise Classification', ec],
   ];
-  if(f.obc)   rows.push(['Social Category','Other Backward Class (OBC)']);
-  if(f.gem)   rows.push(['GeM Seller ID', xe(f.gem)]);
-  if(f.gstin) rows.push(['GSTIN', xe(f.gstin)]);
-  if(f.udyam) rows.push(['Udyam Reg. No.', xe(f.udyam)]);
+  if(f.obc) rows.push(['Social Category','Other Backward Class (OBC)']);
   rows.push(['Registered Address', xe(f.addr)||'&mdash;']);
-  if(f.phone) rows.push(['Mobile', xe(f.phone)]);
-  if(f.email) rows.push(['Email',  xe(f.email)]);
-  if(f.bank)  rows.push(['Bank Account',
-    xe(f.bank)+'<br>A/c No.: <b>'+xe(f.acc)+'</b>&nbsp;&nbsp;|&nbsp;&nbsp;IFSC: <b>'+xe(f.ifsc)+'</b>']);
+  if(f.phone) rows.push(['Mobile / Contact', xe(f.phone)]);
+  if(f.email) rows.push(['Email Address',  xe(f.email)]);
+  if(f.bank)  rows.push(['Bank &amp; Account Details',
+    xe(f.bank)+'<br><span style="font-family:monospace;font-size:8pt">A/c: <b>'+xe(f.acc)+'</b>&emsp;IFSC: <b>'+xe(f.ifsc)+'</b></span>']);
+
+  var regBox='';
+  if(f.gem||f.gstin||f.udyam){
+    var items='';
+    if(f.gem)   items+='<div class="doc-kbox-item"><span class="doc-kbox-lbl">GeM Seller ID</span><span class="doc-kbox-val mono">'+xe(f.gem)+'</span></div>';
+    if(f.gstin) items+='<div class="doc-kbox-item"><span class="doc-kbox-lbl">GSTIN</span><span class="doc-kbox-val mono">'+xe(f.gstin)+'</span></div>';
+    if(f.udyam) items+='<div class="doc-kbox-item"><span class="doc-kbox-lbl">Udyam Registration</span><span class="doc-kbox-val mono">'+xe(f.udyam)+'</span></div>';
+    regBox='<div class="doc-kbox" style="margin-top:5px">'+
+      '<div class="doc-kbox-ttl">Statutory &amp; Registry Identifiers</div>'+
+      '<div class="doc-kbox-grid">'+items+'</div>'+
+    '</div>';
+  }
 
   var idx=[
     ['I',   'Past Performance &amp; Experience &mdash; with MSE Relaxation'],
     ['II',  'Turnover Eligibility &mdash; MSE Relaxation'],
-    ['III', 'Financial Standing &amp; Solvency'],
-    ['IV',  'Acceptance of Terms &amp; Buyer-added Conditions (ATC)'],
+    ['III', 'Financial Standing &amp; Solvency Declaration'],
+    ['IV',  'Acceptance of General &amp; Special Terms (ATC)'],
     ['V',   'Make-in-India / Local Content Declaration'],
     ['VI',  'Land-Border Eligibility &amp; Authenticity of Goods'],
   ];
 
   var body=
-    '<div class="doc-ey">Section A</div>'+
+    '<div class="doc-ey">Section A &nbsp;&bull;&nbsp; Bidder Particulars</div>'+
     '<div class="doc-ttl">Bidder Profile &amp; Index of Submissions</div>'+
     '<div class="doc-div"><span class="doc-dmd"></span></div>'+
     toLine(f,inp)+
     '<table class="ptbl">'+
       rows.map(function(r){return'<tr><td>'+r[0]+'</td><td>'+r[1]+'</td></tr>';}).join('')+
     '</table>'+
-    '<div style="font-size:8.5pt;color:#333;margin:9px 0 5px;font-style:italic">'+
-      'We are honoured to enclose the following submissions for the kind perusal of the Buyer:'+
+    regBox+
+    '<div style="font-size:7.5pt;color:#333;margin:8px 0 4px;font-style:italic;border-left:2px solid var(--fgold);padding-left:8px;">'+
+      'The following duly executed Submissions are enclosed herewith for the kind consideration of the Buyer:'+
     '</div>'+
     '<table class="pidx">'+
-      '<tr><th>Sub.</th><th>Submission Title</th></tr>'+
+      '<tr><th>No.</th><th>Submission</th></tr>'+
       idx.map(function(r){return'<tr><td>'+r[0]+'</td><td>'+r[1]+'</td></tr>';}).join('')+
     '</table>'+
     sigBlock(f,inp);
@@ -1247,76 +1301,77 @@ function genSub(num,f,inp,n,tot){
   var cs=[],note='',closing='';
 
   if(num===1){
-    cs=['That M/s '+nm+' is an established and reputed supplier to the Indian Army and Defence establishments, with a consistent record of satisfactory performance on the GeM portal.'];
+    cs=['That M/s '+nm+' is a well-established, reputable, and duly compliant supplier to the Indian Army and allied Defence establishments, with a documented record of satisfactory contract performance on the Government e-Marketplace (GeM) portal.'];
     if(inp.hasPast){
-      cs.push('That, most pertinently, we have already supplied <b>'+xe(inp.pfam)+'</b> to this very Buyer — vide GeM Contract <b>'+xe(inp.pcn)+'</b> dated <b>'+inp.pcd+'</b> for <b>'+xe(inp.pitm)+'</b> to <b>'+xe(inp.pto)+'</b> — which was delivered well within the stipulated timeline to the entire satisfaction of the consignee.');
-      cs.push('That the said contract, being for goods of the same product family and to the same consignee as the present Bid, demonstrates our proven capability and reliability for the instant requirement.');
+      cs.push('That, of particular relevance to the instant Bid, this firm has already executed the supply of <b>'+xe(inp.pfam)+'</b> to the very same Buyer &mdash; vide GeM Contract No. <b>'+xe(inp.pcn)+'</b> dated <b>'+inp.pcd+'</b>, covering <b>'+xe(inp.pitm)+'</b> consigned to <b>'+xe(inp.pto)+'</b> &mdash; which was delivered well within the stipulated timeline, to the complete satisfaction of the consignee.');
+      cs.push('That the aforementioned contract, being for goods of an identical product family and for the same consignee as the present Bid, furnishes compelling and direct evidence of this firm\'s proven technical capability, logistical reliability, and commitment to the standards of the Indian Defence establishment.');
     }
-    cs.push('That our firm, being a duly registered Micro &amp; Small Enterprise (Udyam No. '+udyam+'), is additionally entitled to the complete relaxation of the Experience Criterion graciously extended to MSEs under this Bid (MSE Relaxation: Yes | Complete).');
-    cs.push('That we therefore respectfully submit that the experience and past-performance requirement stands amply met, and that all particulars stated herein are true and correct to the best of our knowledge and belief.');
-    closing='The above declarations are made in good faith and shall be substantiated by documentary evidence upon request.';
+    cs.push('That our firm is a duly registered Micro &amp; Small Enterprise vide Udyam Registration No. '+udyam+' and is accordingly entitled, as a matter of right, to the complete relaxation of the Bidder\'s Experience &amp; Past-Performance Criterion graciously extended to MSEs under this Bid (MSE Relaxation — Experience: Yes | Complete).');
+    cs.push('That we solemnly affirm that the experience and past-performance requirement as stipulated in the Bid Document stands amply satisfied, and that every particular declared herein is true and correct to the best of our knowledge and belief.');
+    closing='The foregoing declarations are tendered in good faith; supporting documentary evidence shall be furnished to the Buyer\'s satisfaction upon request.';
   }
   else if(num===2){
     cs=[
-      'That M/s '+nm+' is a duly registered Micro &amp; Small Enterprise vide Udyam Registration No. '+udyam+', valid and subsisting as on the date of bid opening.',
-      'That the Bid Document kindly extends complete relaxation of the Bidder\'s Average Annual Turnover criterion to MSEs (MSE Relaxation for Turnover: Yes | Complete), and we respectfully seek the benefit of the said provision.',
-      'That this relaxation is sought solely on the strength of our valid MSE status, and without prejudice to our capability to honour the contract in full.',
-      'That the requirement pertaining to the OEM\'s Average Annual Turnover shall be duly substantiated through the certificate of the Original Equipment Manufacturer, furnished separately.',
-      'That the particulars stated above are true and correct to the best of our knowledge and belief.',
+      'That M/s '+nm+' is a duly registered Micro &amp; Small Enterprise vide Udyam Registration No. '+udyam+', which certificate is valid and subsisting as on the date of bid opening, and the same is enclosed herewith.',
+      'That the Bid Document extends complete relaxation of the Bidder\'s Average Annual Turnover (AAT) eligibility criterion to MSEs registered under the MSMED Act, 2006 (MSE Relaxation — Turnover: Yes | Complete); this firm respectfully invokes and claims the benefit of the said provision in terms of its valid MSE status.',
+      'That such relaxation is claimed solely on the strength of the firm\'s Udyam registration, and the same is without prejudice whatsoever to the firm\'s demonstrated operational capacity and its unequivocal commitment to honour all contractual obligations in full and on time.',
+      'That insofar as the Bid specifies a turnover threshold for the Original Equipment Manufacturer, the requisite OEM certificate establishing compliance with the said threshold shall be furnished to the Buyer separately, in the prescribed form.',
+      'That every statement contained in this declaration is true and correct; the undersigned is duly authorised to make and subscribe to this declaration on behalf of the firm.',
     ];
-    closing='This declaration is furnished in compliance with the Bid Document requirements and in good faith.';
+    closing='This declaration is tendered in full compliance with the Bid Document requirements, the MSMED Act, 2006, and the Public Procurement Policy for Micro &amp; Small Enterprises, 2012.';
   }
   else if(num===3){
     cs=[
-      'That our firm is not under liquidation, court receivership or any like proceeding, nor has it been declared bankrupt or insolvent under any law in force.',
-      'That M/s '+nm+' is financially sound and solvent, and is fully capable of executing the contract, should the same be entrusted to us, in accordance with the Bid terms.',
-      'That no proceeding is pending against our firm or its Proprietor which would render us ineligible to participate in this Bid.',
-      'That this affirmation is furnished in good faith in fulfilment of the Buyer\'s requirement to certify our financial standing.',
-      'That the statements made herein are true and correct to the best of our knowledge and belief.',
+      'That M/s '+nm+' is financially sound, solvent, and in a position of good commercial standing; the firm is fully capable of mobilising the necessary resources, supply chain, and logistics to execute the instant contract in its entirety, should the same be awarded.',
+      'That neither our firm nor its Proprietor is presently undergoing, or has at any time been subject to, any proceeding by way of liquidation, winding-up, court receivership, voluntary arrangement, insolvency, or any analogous proceeding under any statute in force in India or elsewhere.',
+      'That no decree, order, or judgement of any court, tribunal, or regulatory authority is presently in force against this firm or its Proprietor that would restrict, impair, or render it ineligible to participate in, or to perform obligations arising from, a government procurement contract.',
+      'That this declaration is made voluntarily and in good faith, in fulfilment of the Buyer\'s due-diligence requirement relating to the financial standing and legal eligibility of the Bidder.',
+      'That the statements made herein are true and correct to the best of our knowledge and belief; the undersigned bears full personal and professional responsibility for the accuracy thereof.',
     ];
-    closing='This declaration is made on behalf of the firm and its Proprietor; the undersigned is duly authorised to make this declaration.';
+    closing='This declaration is subscribed to on behalf of the firm by its duly authorised Proprietor &amp; Signatory.';
   }
   else if(num===4){
     cs=[
-      'That we have carefully studied the General Terms &amp; Conditions, the Special Terms and all Buyer-added Bid-Specific Conditions (ATC), and accept the same unconditionally and without deviation.',
-      'That we shall effect delivery, installation, commissioning and demonstration (as applicable) at <b>'+xe(inp.con)+'</b>, within the stipulated delivery period.',
-      'That we shall honour the prescribed warranty and attend to any defect during the warranty period at no additional cost to the Buyer.',
-      'That we shall furnish all documents for Vendor Code creation (PAN, GSTIN, Cancelled Cheque, EFT Mandate) and raise GeM invoices in the prescribed manner.',
-      'That we accept GST reimbursement as per actuals or the applicable rate, whichever is lower, subject to our quoted GST.',
-      'That the goods supplied shall be genuine and sourced through authorised OEM channels, with chain documents furnished at delivery, and that we shall abide by all applicable labour laws.',
-      'That every declaration made by us in this Bid is true and correct, and any misstatement shall render our bid / contract liable to such action as the Buyer may deem fit.',
+      'That we have read, carefully examined, and thoroughly understood all provisions of the Bid Document, including the General Terms &amp; Conditions, the Special Terms &amp; Conditions, all Schedules, and every Buyer-added Bid-Specific Additional Term or Condition (ATC) as appearing on the GeM portal; we accept the same unconditionally, without reservation, exception, or deviation of any nature.',
+      'That we shall arrange for delivery, and (where so required) installation, commissioning, performance demonstration, and user-training, at <b>'+xe(inp.con)+'</b>, within the delivery period stipulated in the Bid Document, at no additional cost to the Buyer beyond the quoted price.',
+      'That we shall scrupulously honour the prescribed warranty obligations and shall attend to, rectify, or replace, as the case may be, any defect, deficiency, or non-conformity arising during the warranty period, within the response timeline specified, entirely at our own cost.',
+      'That we shall promptly furnish all documents required for Vendor Code activation (including PAN card, GSTIN certificate, Cancelled Cheque, and duly completed EFT Mandate), and shall raise all GeM-platform invoices in strict conformity with the format and procedure mandated by the Buyer.',
+      'That we accept GST reimbursement at the rate quoted by us, or the rate actually applicable, whichever is lower, and undertake to file all requisite GST returns and issue tax invoices in compliance with the Goods &amp; Services Tax laws in force.',
+      'That all goods supplied shall be genuine, brand-new, unused, and sourced exclusively through authorised channels of the Original Equipment Manufacturer; complete chain documents (OEM authorisation letter, invoice trail, GST-compliant tax invoices) shall be furnished at delivery; and we shall at all times comply with applicable labour, environmental, and statutory laws.',
+      'That each and every declaration made in this Bid is true and correct; any material misstatement or misrepresentation shall render the Bid, and any resultant contract, liable to rejection, termination, and such further legal action as the Buyer may deem fit and proper.',
     ];
-    closing='We remain committed to the letter and spirit of the Bid terms and look forward to serving the Buyer with distinction.';
+    closing='We stand committed to the letter and spirit of every term of this Bid Document and look forward to serving the Buyer with the highest standards of integrity and professional excellence.';
   }
   else if(num===5){
     cs=[
-      'That the goods offered — <b>'+xe(inp.item)+'</b> — conform to the minimum local content prescribed to qualify as a Class-I / Class-II Local Supplier under the Public Procurement (Preference to Make-in-India) Order, 2017, as amended.',
-      'That we shall furnish, wherever required, the OEM\'s certificate specifying the percentage of local content and the place(s) of local value addition, in support of any purchase preference claimed.',
-      'That we are conscious of the consequences attaching to any incorrect declaration of local content under the said Order, and we accept the same.',
-      'That the particulars stated above are true and correct to the best of our knowledge and belief.',
+      'That the goods offered hereunder &mdash; <b>'+xe(inp.item)+'</b> &mdash; meet the minimum local content threshold prescribed under the Public Procurement (Preference to Make-in-India) Order, 2017, as amended from time to time, and thereby qualify for consideration as a Class-I or Class-II Local Supplier, as applicable.',
+      'That we shall furnish, wherever required, the Original Equipment Manufacturer\'s certificate specifying in express terms the percentage of local content incorporated in the goods and identifying the places and processes of domestic value addition, in support of any purchase preference claimed under the said Order.',
+      'That we are fully cognisant of, and unreservedly accept, all legal, commercial, and contractual consequences that may be visited upon us in the event of an incorrect, exaggerated, or otherwise inadmissible declaration of local content under the said Order.',
+      'That we further confirm that no component, sub-assembly, or material of Chinese origin is incorporated in the offered goods in a manner that would violate any extant Government of India directive, order, or notification restricting or prohibiting such use in public procurement.',
+      'That each statement made in this submission is true and correct; the undersigned affirms this declaration with full personal responsibility and in good faith.',
     ];
-    note='The precise local-content percentage may kindly be read from the OEM\'s certificate before the Class-I claim is finalised; the applicable class may be amended accordingly.';
-    closing='This declaration is made in sincere compliance with the Public Procurement (Preference to Make-in-India) Order, 2017.';
+    note='The precise local-content percentage, and the consequent Class-I or Class-II designation, should be read directly from the OEM\'s certification before the applicable preference is finalised. In the event the OEM\'s certificate places the goods below the Class-I threshold, the preference claim shall be appropriately revised.';
+    closing='This submission is made in earnest compliance with the Public Procurement (Preference to Make-in-India) Order, 2017, as amended, and all associated Government directives.';
   }
   else if(num===6){
     cs=[
-      'That our firm is an Indian entity and does not attract any restriction applicable to bidders from a country sharing a land border with India under GeM GTC Clause 26, and that no registration with the Competent Authority is attracted in our case.',
-      'That we are fully eligible to participate in this Bid in our own right.',
-      'That the goods to be supplied shall be genuine, brand-new and unused, drawn from an authorised distributor / dealer / channel partner of the OEM, with the requisite chain / GST documents furnished at delivery.',
-      'That we accept that any incorrect declaration or non-compliance herein shall constitute valid ground for termination of the contract and such further action as may be warranted in law.',
-      'That every statement made herein is true and correct to the best of our knowledge and belief.',
+      'That M/s '+nm+' is a bona fide Indian entity, incorporated and operating exclusively under Indian law; it does not share, directly or indirectly, any ownership, beneficial interest, control, management, or operational nexus with any entity registered in, or controlled by nationals of, any country sharing a land border with India, within the meaning of GeM General Terms &amp; Conditions Clause 26 and the attendant Government of India orders.',
+      'That no registration or prior approval of any Competent Authority is required or applicable in the case of this firm, which is therefore fully eligible in its own right to participate in and be awarded this Bid, without any restriction, condition, or encumbrance of any nature arising from the land-border policy.',
+      'That all goods to be supplied shall be genuine, brand-new, unused, and in all respects conforming to the specifications set out in the Bid Document; they shall be sourced exclusively through the authorised distributor, dealer, or channel-partner network of the Original Equipment Manufacturer; and the complete chain of authorisation and GST-compliant commercial documents shall be made available to the Buyer at, or before, the time of delivery.',
+      'That we acknowledge and accept without reservation that any incorrect declaration made herein, or any non-compliance with the requirements of GeM GTC Clause 26 or the allied Government orders, shall constitute sufficient grounds for immediate rejection of this Bid and / or termination of any resulting contract, with liability for damages and recovery as may be determined by the Buyer or any competent authority.',
+      'That each and every statement contained in this submission is true and correct to the best of our knowledge and belief; the undersigned is duly authorised to make, sign, and submit this declaration on behalf of the firm.',
     ];
-    closing='This declaration is made in compliance with GeM General Terms &amp; Conditions and the Bid Document requirements.';
+    closing='This declaration is submitted in faithful compliance with GeM General Terms &amp; Conditions, the Bid Document requirements, and all applicable orders and directives of the Government of India.';
   }
 
   var body=
-    '<div class="doc-ey">'+ey+'</div>'+
+    '<div class="doc-ey">'+ey+'&nbsp;&nbsp;&bull;&nbsp;&nbsp;'+xe(f.name)+'</div>'+
     '<div class="doc-ttl">'+titles[num]+'</div>'+
     '<div class="doc-div"><span class="doc-dmd"></span></div>'+
     toLine(f,inp)+
-    '<div class="doc-intro">We, M/s '+nm+', hereby solemnly affirm and declare as under:</div>'+
+    '<div class="doc-intro">We, <b>M/s '+nm+'</b>, by the hand of the undersigned Proprietor &amp; Authorised Signatory, hereby solemnly affirm, declare, and undertake as follows:</div>'+
     clauses(f,cs)+
-    (note?'<div class="doc-note"><b>Note: </b>'+note+'</div>':'')+
+    (note?'<div class="doc-note"><b>Note:&ensp;</b>'+note+'</div>':'')+
     (closing?'<div class="doc-closing">'+closing+'</div>':'')+
     sigBlock(f,inp);
 
@@ -1334,30 +1389,29 @@ function genEMD(f,inp,n,tot){
   if(!rows)  rows='<tr><td colspan="2" style="text-align:center;color:#999;font-style:italic">EMD amount not entered — please fill in the form</td></tr>';
 
   var cs=[
-    'That M/s '+xe(f.name)+' is a duly registered Micro &amp; Small Enterprise vide Udyam Registration No. '+udyam+', valid and subsisting as on the date of bid opening.',
-    'That, in keeping with the GeM General Terms &amp; Conditions and the Public Procurement Policy for MSEs, 2012, bidders registered as MSEs are exempted from payment of Earnest Money Deposit (EMD), and we respectfully seek the benefit of the said exemption against this Bid.',
-    'That the EMD applicable to the Bid, from which exemption is sought, is as under:'+
+    'That M/s '+xe(f.name)+' is a duly registered Micro &amp; Small Enterprise vide Udyam Registration No. '+udyam+', which certificate is valid and subsisting as on the date of bid opening; a self-attested copy is enclosed herewith for ready reference.',
+    'That in terms of Clause 11 of the GeM General Terms &amp; Conditions, read with the Public Procurement Policy for Micro and Small Enterprises (MSEs) Order, 2012, as amended, all MSEs registered under the MSMED Act, 2006 are exempt from furnishing Earnest Money Deposit (EMD) in procurement by Government buyers. This firm respectfully invokes and claims the benefit of the said statutory exemption against the present Bid.',
+    'That the quantum of EMD applicable to this Bid, from which exemption is sought by this firm on account of its MSE status, is as under:'+
       '<table class="etbl" style="margin:6px 0">'+
-        '<thead><tr><th>Schedule</th><th>EMD Amount</th></tr></thead>'+
+        '<thead><tr><th>Schedule / Lot</th><th>EMD Amount</th></tr></thead>'+
         '<tbody>'+rows+'</tbody>'+
       '</table>',
-    'That a copy of our valid Udyam Registration Certificate is enclosed herewith in support of this request.',
-    'That, in the event this exemption is found inadmissible under the specific terms of the Bid, we respectfully undertake to deposit the applicable EMD as required.',
-    'That the particulars stated above are true and correct to the best of our knowledge and belief.',
+    'That the enclosed Udyam Registration Certificate constitutes conclusive and sufficient documentary evidence of this firm\'s MSE status for the purposes of the aforesaid exemption, in terms of the Office Memorandum of the Ministry of MSME and the GeM GTC.',
+    'That notwithstanding the foregoing, in the event this application for exemption is determined to be inadmissible under the specific terms, scope, or conditions of this Bid (including, without limitation, where the Bid document restricts exemption exclusively to manufacturers of the bid item), this firm unconditionally undertakes to deposit the full applicable EMD forthwith, upon such determination, and without causing any delay to the bid process.',
+    'That each and every statement and declaration contained herein is true and correct to the best of our knowledge and belief; we acknowledge personal responsibility for the accuracy of all particulars set out above.',
   ];
 
   var body=
-    '<div class="doc-ey">EMD Exemption Request</div>'+
-    '<div class="doc-ttl">Earnest Money Deposit —<br>Exemption under MSE / Udyam</div>'+
+    '<div class="doc-ey">EMD Exemption Request &nbsp;&bull;&nbsp; '+xe(f.name)+'</div>'+
+    '<div class="doc-ttl">Earnest Money Deposit — Exemption under MSE / Udyam</div>'+
     '<div class="doc-div"><span class="doc-dmd"></span></div>'+
     toLine(f,inp)+
-    '<div class="doc-intro">With reference to Bid No.&nbsp;<b>'+(inp.ref||'&mdash;')+'</b>'+
-      (inp.bd?' dated <b>'+inp.bd+'</b>':'')+
-      ', we respectfully submit the following in the matter of Earnest Money Deposit:'+
+    '<div class="doc-intro">With reference to GeM Bid No.&ensp;<b>'+(inp.ref||'&mdash;')+'</b>'+(inp.bd?'&ensp;dated&ensp;<b>'+inp.bd+'</b>':'')+
+      ', we, <b>M/s '+xe(f.name)+'</b>, do hereby most respectfully submit the following application for exemption from Earnest Money Deposit, on the grounds and particulars set out below:'+
     '</div>'+
     clauses(f,cs)+
-    '<div class="doc-note"><b>Note: </b>This exemption is sought solely on the basis of valid MSE (Udyam) registration. Should the Bid\'s specific terms confine EMD exemption to manufacturers of the bid item, the bidder shall deposit the applicable EMD accordingly.</div>'+
-    '<div class="doc-closing">We request that this application for EMD exemption may kindly be considered and accepted in its true spirit.</div>'+
+    '<div class="doc-note"><b>Note:&ensp;</b>This exemption application is preferred exclusively on the basis of the firm\'s valid Udyam (MSE) registration. In the event that the Bid\'s specific provisions, or any applicable Government order, limits the EMD exemption to manufacturers of the bid item, this firm, being a registered trader / supplier (non-manufacturer), shall promptly furnish the applicable EMD deposit as directed, without objection or delay.</div>'+
+    '<div class="doc-closing">We earnestly request that this application for EMD exemption may be favourably considered and duly accepted in terms of the applicable policy and law.</div>'+
     sigBlock(f,inp);
 
   return page(f,inp,body,'EMD Exemption Request',n,tot);

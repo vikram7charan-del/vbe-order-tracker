@@ -273,6 +273,26 @@ body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:var(--bg)
 /* ── CONFETTI CANVAS ── */
 #confettiCanvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:499;display:none}
 
+/* ── BARAKHADI ── */
+.bk-scroll{overflow-x:auto;border-radius:16px;box-shadow:0 3px 12px rgba(109,40,217,.1);margin-bottom:14px}
+.bk-table{width:100%;border-collapse:collapse;font-size:13px}
+.bk-table th{background:linear-gradient(135deg,var(--p),var(--pk));color:#fff;padding:9px 5px;font-size:11px;font-weight:800;text-align:center;position:sticky;top:0;z-index:2}
+.bk-table td{background:#fff;border:1px solid #e9d5ff;padding:9px 4px;text-align:center;font-size:17px;font-weight:800;color:var(--p);cursor:pointer;transition:all .15s;min-width:36px}
+.bk-table td:hover,.bk-table td:active{background:var(--p);color:#fff;transform:scale(1.12)}
+.bk-table .bkc{background:#f5f3ff;color:var(--text);font-size:16px;font-weight:900;cursor:default}
+.bk-table .bkc:hover,.bk-table .bkc:active{background:#f5f3ff;color:var(--text);transform:none}
+/* ── VOCAB ── */
+.vcat-tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px}
+.vcat-btn{padding:8px 14px;border-radius:20px;border:2px solid #e5e7eb;background:#fff;font-size:13px;font-weight:800;color:var(--muted);cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0}
+.vcat-btn.active{background:var(--p);color:#fff;border-color:var(--p)}
+.vcrd-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.vcrd{background:#fff;border-radius:18px;padding:16px 12px;text-align:center;box-shadow:0 3px 12px rgba(109,40,217,.08);cursor:pointer;border:3px solid transparent;transition:all .2s}
+.vcrd.vlearned{border-color:var(--g2);background:#f0fdf4}
+.vcrd:active{transform:scale(.95)}
+.vcrd-em{font-size:44px;display:block;margin-bottom:6px}
+.vcrd-hi{font-size:18px;font-weight:900;color:var(--text)}
+.vcrd-en{font-size:13px;font-weight:700;color:var(--muted);margin-top:2px}
+.vcrd-tick{font-size:14px;color:var(--g);font-weight:900;margin-top:4px}
 /* ── UTILS ── */
 .mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}
 .hidden{display:none!important}
@@ -395,7 +415,7 @@ body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:var(--bg)
       <button class="mcard mc-o ripple-host" onclick="goTo('games')">
         <span class="mcard-icon">🎮</span>
         <div class="mcard-name">खेलो</div>
-        <div class="mcard-sub">5 मज़ेदार Games</div>
+        <div class="mcard-sub">9 मज़ेदार Games</div>
       </button>
       <button class="mcard mc-b ripple-host" onclick="goTo('stories')">
         <span class="mcard-icon">📖</span>
@@ -413,23 +433,41 @@ body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:var(--bg)
   <!-- LEARN -->
   <div id="screen-learn" class="screen">
     <div class="tabs">
-      <button class="tb active" id="tabH" onclick="switchTab('hindi')">🇮🇳 हिंदी</button>
-      <button class="tb" id="tabE" onclick="switchTab('english')">🔤 English</button>
+      <button class="tb active" id="tabVar" onclick="switchTab('var')">📝 वर्णमाला</button>
+      <button class="tb" id="tabBK" onclick="switchTab('bk')">🔡 बाराखड़ी</button>
+      <button class="tb" id="tabVoc" onclick="switchTab('voc')">📖 शब्द ज्ञान</button>
     </div>
-    <div id="learnH">
-      <div class="sub-tabs" id="hindiSubTabs">
-        <button class="stb active" onclick="showHindiGroup('swar',this)">स्वर</button>
-        <button class="stb" onclick="showHindiGroup('ka',this)">क-ङ</button>
-        <button class="stb" onclick="showHindiGroup('cha',this)">च-ञ</button>
-        <button class="stb" onclick="showHindiGroup('ta',this)">ट-ण</button>
-        <button class="stb" onclick="showHindiGroup('ta2',this)">त-न</button>
-        <button class="stb" onclick="showHindiGroup('pa',this)">प-म</button>
-        <button class="stb" onclick="showHindiGroup('ya',this)">य-ह</button>
+    <div id="learnVar">
+      <div class="tabs" style="margin-bottom:10px">
+        <button class="tb active" id="tabH" onclick="switchVarTab('hindi')">🇮🇳 हिंदी</button>
+        <button class="tb" id="tabE" onclick="switchVarTab('english')">🔤 English</button>
       </div>
-      <div class="lgrid" id="hindiGrid"></div>
+      <div id="learnH">
+        <div class="sub-tabs" id="hindiSubTabs">
+          <button class="stb active" onclick="showHindiGroup('swar',this)">स्वर</button>
+          <button class="stb" onclick="showHindiGroup('ka',this)">क-ङ</button>
+          <button class="stb" onclick="showHindiGroup('cha',this)">च-ञ</button>
+          <button class="stb" onclick="showHindiGroup('ta',this)">ट-ण</button>
+          <button class="stb" onclick="showHindiGroup('ta2',this)">त-न</button>
+          <button class="stb" onclick="showHindiGroup('pa',this)">प-म</button>
+          <button class="stb" onclick="showHindiGroup('ya',this)">य-ह</button>
+        </div>
+        <div class="lgrid" id="hindiGrid"></div>
+      </div>
+      <div id="learnE" style="display:none">
+        <div class="lgrid" id="englishGrid"></div>
+      </div>
     </div>
-    <div id="learnE" style="display:none">
-      <div class="lgrid" id="englishGrid"></div>
+    <div id="learnBK" style="display:none">
+      <div class="stitle" style="margin-bottom:10px">बाराखड़ी चार्ट 🔡</div>
+      <div class="bk-scroll">
+        <table class="bk-table" id="bkTable"></table>
+      </div>
+    </div>
+    <div id="learnVoc" style="display:none">
+      <div class="stitle" style="margin-bottom:10px">शब्द ज्ञान 📖</div>
+      <div class="vcat-tabs" id="vcatTabs"></div>
+      <div class="vcrd-grid" id="vcrdGrid"></div>
     </div>
   </div>
 
@@ -476,6 +514,22 @@ body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:var(--bg)
         <button class="gcrd ripple-host" onclick="startGame('english')">
           <div class="gcrd-icon" style="background:#dbeafe">🐝</div>
           <div><div class="gcrd-name">English Quiz</div><div class="gcrd-desc">Emoji देखो – letter चुनो</div></div>
+        </button>
+        <button class="gcrd ripple-host" onclick="startGame('vocabquiz')">
+          <div class="gcrd-icon" style="background:#fce7f3">🌸</div>
+          <div><div class="gcrd-name">शब्द ज्ञान Quiz</div><div class="gcrd-desc">चित्र देखो – सही नाम चुनो</div></div>
+        </button>
+        <button class="gcrd ripple-host" onclick="startGame('sentence')">
+          <div class="gcrd-icon" style="background:#d1fae5">✍️</div>
+          <div><div class="gcrd-name">वाक्य पूरा करो</div><div class="gcrd-desc">खाली जगह सही शब्द भरो</div></div>
+        </button>
+        <button class="gcrd ripple-host" onclick="startGame('antonym')">
+          <div class="gcrd-icon" style="background:#fef3c7">🔄</div>
+          <div><div class="gcrd-name">उल्टे शब्द</div><div class="gcrd-desc">Antonym ढूंढो</div></div>
+        </button>
+        <button class="gcrd ripple-host" onclick="startGame('bkquiz')">
+          <div class="gcrd-icon" style="background:#ede9fe">🔡</div>
+          <div><div class="gcrd-name">बाराखड़ी Quiz</div><div class="gcrd-desc">मात्रा वाला अक्षर पहचानो</div></div>
         </button>
       </div>
     </div>
@@ -528,6 +582,31 @@ body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:var(--bg)
             <button class="btn btn-gray ripple-host" onclick="exitGame()">बाहर जाओ</button>
           </div>
         </div>
+      </div>
+      <!-- vocab quiz -->
+      <div id="gVocabQuiz" class="hidden">
+        <div class="qhdr"><div class="qscore">⭐ <span id="vqSc">0</span></div><div class="qprog"><span id="vqCur">1</span>/<span id="vqTot">10</span></div></div>
+        <div class="qprog-bar"><div class="qprog-fill" id="vqFill" style="width:0%"></div></div>
+        <div class="qbox" id="vqBox"><span class="qbig" id="vqBig"></span><div class="qtext" id="vqTxt"></div></div>
+        <div class="qopts" id="vqOpts"></div>
+      </div>
+      <!-- sentence game -->
+      <div id="gSentence" class="hidden">
+        <div class="qhdr"><div class="qscore">⭐ <span id="sqSc">0</span></div><div class="qprog">सवाल <span id="sqCur">1</span>/8</div></div>
+        <div class="qbox" id="sqBox" style="min-height:120px;display:flex;align-items:center;justify-content:center;line-height:2"></div>
+        <div class="qopts" id="sqOpts"></div>
+      </div>
+      <!-- antonym game -->
+      <div id="gAntonym" class="hidden">
+        <div class="qhdr"><div class="qscore">⭐ <span id="aqSc">0</span></div><div class="qprog">सवाल <span id="aqCur">1</span>/10</div></div>
+        <div class="qbox"><span class="qbig" id="aqBig"></span><div class="qtext">इस शब्द का उल्टा क्या है?</div></div>
+        <div class="qopts" id="aqOpts"></div>
+      </div>
+      <!-- barakhadi quiz -->
+      <div id="gBKQuiz" class="hidden">
+        <div class="qhdr"><div class="qscore">⭐ <span id="bkqSc">0</span></div><div class="qprog">सवाल <span id="bkqCur">1</span>/10</div></div>
+        <div class="qbox"><span class="qbig" id="bkqBig" style="font-size:60px"></span><div class="qtext" id="bkqTxt">यह अक्षर बोलो – सही चुनो</div></div>
+        <div class="qopts" id="bkqOpts"></div>
       </div>
     </div>
   </div>
@@ -638,12 +717,42 @@ const LEVELS = [
   {name:'गुरु 👑',min:200,max:200},
 ];
 
+const MATRAS = ['','ा','ि','ी','ु','ू','े','ै','ो','ौ','ं'];
+const MATRA_HDR = ['अ','आ','इ','ई','उ','ऊ','ए','ऐ','ओ','औ','अं'];
+const BK_CONS = ['क','ख','ग','घ','च','छ','ज','झ','ट','ठ','ड','ढ','त','थ','द','ध','न','प','फ','ब','भ','म','य','र','ल','व','स','ह'];
+
+const VOCAB = {
+  'फल':   [{e:'🍎',h:'सेब',en:'Apple'},{e:'🥭',h:'आम',en:'Mango'},{e:'🍌',h:'केला',en:'Banana'},{e:'🍇',h:'अंगूर',en:'Grapes'},{e:'🍊',h:'संतरा',en:'Orange'},{e:'🍋',h:'नींबू',en:'Lemon'},{e:'🍉',h:'तरबूज',en:'Watermelon'},{e:'🍓',h:'स्ट्रॉबेरी',en:'Strawberry'},{e:'🍑',h:'आड़ू',en:'Peach'},{e:'🍍',h:'अनानास',en:'Pineapple'}],
+  'सब्जी': [{e:'🥕',h:'गाजर',en:'Carrot'},{e:'🥔',h:'आलू',en:'Potato'},{e:'🍅',h:'टमाटर',en:'Tomato'},{e:'🧅',h:'प्याज',en:'Onion'},{e:'🧄',h:'लहसुन',en:'Garlic'},{e:'🥦',h:'ब्रोकली',en:'Broccoli'},{e:'🌽',h:'मक्का',en:'Corn'},{e:'🥒',h:'खीरा',en:'Cucumber'},{e:'🍆',h:'बैंगन',en:'Brinjal'},{e:'🫛',h:'मटर',en:'Peas'}],
+  'जानवर': [{e:'🐘',h:'हाथी',en:'Elephant'},{e:'🐯',h:'बाघ',en:'Tiger'},{e:'🦁',h:'शेर',en:'Lion'},{e:'🐄',h:'गाय',en:'Cow'},{e:'🐕',h:'कुत्ता',en:'Dog'},{e:'🐈',h:'बिल्ली',en:'Cat'},{e:'🐒',h:'बंदर',en:'Monkey'},{e:'🐇',h:'खरगोश',en:'Rabbit'},{e:'🦚',h:'मोर',en:'Peacock'},{e:'🐬',h:'डॉल्फिन',en:'Dolphin'}],
+  'रंग':   [{e:'🔴',h:'लाल',en:'Red'},{e:'🟠',h:'नारंगी',en:'Orange'},{e:'🟡',h:'पीला',en:'Yellow'},{e:'🟢',h:'हरा',en:'Green'},{e:'🔵',h:'नीला',en:'Blue'},{e:'🟣',h:'बैंगनी',en:'Purple'},{e:'⚫',h:'काला',en:'Black'},{e:'⚪',h:'सफेद',en:'White'},{e:'🟤',h:'भूरा',en:'Brown'},{e:'🩷',h:'गुलाबी',en:'Pink'}],
+  'शरीर':  [{e:'👁️',h:'आँख',en:'Eye'},{e:'👂',h:'कान',en:'Ear'},{e:'👃',h:'नाक',en:'Nose'},{e:'👄',h:'मुँह',en:'Mouth'},{e:'🦷',h:'दाँत',en:'Teeth'},{e:'🤲',h:'हाथ',en:'Hand'},{e:'🦶',h:'पैर',en:'Foot'},{e:'💪',h:'बाहु',en:'Arm'},{e:'🫀',h:'दिल',en:'Heart'},{e:'🧠',h:'दिमाग',en:'Brain'}],
+};
+const VOCAB_CATS = Object.keys(VOCAB);
+
+const SENTENCES = [
+  {q:'सेब का रंग ___ होता है।',ans:'लाल',opts:['लाल','नीला','काला','पीला']},
+  {q:'सूरज ___ में चमकता है।',ans:'आसमान',opts:['आसमान','पानी','ज़मीन','पेड़']},
+  {q:'बिल्ली ___ पीती है।',ans:'दूध',opts:['दूध','चाय','रस','पानी']},
+  {q:'पक्षी ___ में उड़ते हैं।',ans:'आसमान',opts:['आसमान','पानी','ज़मीन','जंगल']},
+  {q:'मछली ___ में रहती है।',ans:'पानी',opts:['पानी','ज़मीन','पेड़','आसमान']},
+  {q:'हाथी बहुत ___ जानवर है।',ans:'बड़ा',opts:['बड़ा','छोटा','तेज़','धीमा']},
+  {q:'गुलाब का फूल ___ होता है।',ans:'लाल',opts:['लाल','काला','नीला','हरा']},
+  {q:'बच्चे ___ में पढ़ते हैं।',ans:'स्कूल',opts:['स्कूल','दुकान','खेत','नदी']},
+];
+
+const ANTONYMS = [
+  {w:'बड़ा',a:'छोटा'},{w:'गर्म',a:'ठंडा'},{w:'दिन',a:'रात'},{w:'ऊपर',a:'नीचे'},{w:'सुख',a:'दुःख'},
+  {w:'अच्छा',a:'बुरा'},{w:'आना',a:'जाना'},{w:'खुश',a:'उदास'},{w:'नया',a:'पुराना'},{w:'तेज़',a:'धीमा'},
+];
+
 // ═══════════════════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════════════════
 let P = loadState();
 let curLesson = null;
-let curLang = 'hindi';
+let curLearnTab = 'var';
+let curVarTab = 'hindi';
 let curHindiGroup = 'swar';
 let curTrace = {letter:'अ',lang:'hi'};
 let curStory = null, curPage = 0;
@@ -763,8 +872,17 @@ function saveAvatar() {
 // ═══════════════════════════════════════════════════════════
 // LEARN
 // ═══════════════════════════════════════════════════════════
-function switchTab(lang) {
-  curLang = lang;
+function switchTab(tab) {
+  curLearnTab = tab;
+  ['learnVar','learnBK','learnVoc'].forEach(id=>document.getElementById(id).style.display='none');
+  ['tabVar','tabBK','tabVoc'].forEach(id=>document.getElementById(id).classList.remove('active'));
+  document.getElementById('learn'+{var:'Var',bk:'BK',voc:'Voc'}[tab]).style.display='';
+  document.getElementById('tab'+{var:'Var',bk:'BK',voc:'Voc'}[tab]).classList.add('active');
+  if(tab==='bk') initBarakhadi();
+  else if(tab==='voc') initVocab();
+}
+function switchVarTab(lang) {
+  curVarTab = lang;
   document.getElementById('learnH').style.display = lang==='hindi'?'':'none';
   document.getElementById('learnE').style.display = lang==='english'?'':'none';
   document.getElementById('tabH').classList.toggle('active',lang==='hindi');
@@ -844,6 +962,62 @@ function markLearned() {
   if(type==='e') renderEnglish(); else renderHindiGroup(curHindiGroup);
 }
 
+// ── BARAKHADI ──
+function initBarakhadi() {
+  const table = document.getElementById('bkTable');
+  if(!table || table.innerHTML) return;
+  let html = '<tr><th>व्यंजन</th>'+MATRA_HDR.map(h=>`<th>${h}</th>`).join('')+'</tr>';
+  BK_CONS.forEach(con=>{
+    html += '<tr><td class="bkc">'+con+'</td>';
+    MATRAS.forEach(m=>{ const s=con+m; html+=`<td onclick="speakBK('${s}')">${s}</td>`; });
+    html += '</tr>';
+  });
+  table.innerHTML = html;
+}
+function speakBK(s) { speak(s,'hi-IN'); showMini('🔊 '+s); }
+
+// ── VOCAB ──
+let curVocabCat = '';
+function initVocab() {
+  if(!P.vocab) P.vocab=[];
+  const tabs = document.getElementById('vcatTabs');
+  if(!tabs.innerHTML) {
+    tabs.innerHTML = VOCAB_CATS.map((cat,i)=>`<button class="vcat-btn${i===0?' active':''} ripple-host" onclick="showVocabCat('${cat}',this)">${cat}</button>`).join('');
+  }
+  showVocabCat(VOCAB_CATS[0], tabs.children[0]);
+}
+function showVocabCat(cat, btn) {
+  if(!P.vocab) P.vocab=[];
+  curVocabCat = cat;
+  document.querySelectorAll('.vcat-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  const words = VOCAB[cat]||[];
+  document.getElementById('vcrdGrid').innerHTML = words.map(w=>{
+    const key = cat+':'+w.h;
+    const learned = P.vocab.includes(key);
+    return `<div class="vcrd${learned?' vlearned':''} ripple-host" onclick="tapVocab('${cat}','${w.h.replace(/'/g,"\\'")}',this)">
+      <span class="vcrd-em">${w.e}</span>
+      <div class="vcrd-hi">${w.h}</div>
+      <div class="vcrd-en">${w.en}</div>
+      ${learned?'<div class="vcrd-tick">✓ सीखा!</div>':''}
+    </div>`;
+  }).join('');
+}
+function tapVocab(cat, word, el) {
+  const w = VOCAB[cat].find(x=>x.h===word);
+  if(!w) return;
+  speak(w.h,'hi-IN');
+  setTimeout(()=>speak(w.en,'en-US'),900);
+  const key = cat+':'+word;
+  if(!P.vocab) P.vocab=[];
+  if(!P.vocab.includes(key)) {
+    P.vocab.push(key); P.stars++; save();
+    el.classList.add('vlearned');
+    el.innerHTML=`<span class="vcrd-em">${w.e}</span><div class="vcrd-hi">${w.h}</div><div class="vcrd-en">${w.en}</div><div class="vcrd-tick">✓ सीखा!</div>`;
+    showMini('⭐ नया शब्द सीखा!');
+  }
+}
+
 // ═══════════════════════════════════════════════════════════
 // TRACE
 // ═══════════════════════════════════════════════════════════
@@ -910,9 +1084,9 @@ function doneTrace() {
 // GAMES
 // ═══════════════════════════════════════════════════════════
 function showGamePanel(id) {
-  ['gQuiz','gBubble','gMemory','gWordBuild','gResult'].forEach(d=>{
+  ['gQuiz','gBubble','gMemory','gWordBuild','gResult','gVocabQuiz','gSentence','gAntonym','gBKQuiz'].forEach(d=>{
     const el=document.getElementById(d);
-    el.classList.toggle('hidden',el.id!==id);
+    if(el) el.classList.toggle('hidden',el.id!==id);
   });
 }
 function startGame(type) {
@@ -925,6 +1099,10 @@ function startGame(type) {
   else if(type==='bubble') startBubble();
   else if(type==='memory') startMemory();
   else if(type==='wordbuild') startWordBuild();
+  else if(type==='vocabquiz') startVocabQuiz();
+  else if(type==='sentence') startSentenceGame();
+  else if(type==='antonym') startAntonymGame();
+  else if(type==='bkquiz') startBKQuiz();
 }
 function exitGame() {
   if(bTimer) {clearInterval(bTimer);bTimer=null;}
@@ -1128,6 +1306,152 @@ function endWB() {
   document.getElementById('resText').textContent=`Word Builder: ${wbSc} Stars!`;
   document.getElementById('resPlayAgain').onclick=()=>startGame('wordbuild');
   if(wbSc>10) launchConfetti();
+}
+
+/* ── VOCAB QUIZ ── */
+let vqItems=[],vqIdx=0,vqSc=0;
+function startVocabQuiz() {
+  showGamePanel('gVocabQuiz'); vqSc=0; vqIdx=0;
+  const all=[]; Object.values(VOCAB).forEach(arr=>all.push(...arr));
+  vqItems=shuffle(all).slice(0,10);
+  document.getElementById('vqTot').textContent=vqItems.length;
+  renderVQ();
+}
+function renderVQ() {
+  if(vqIdx>=vqItems.length){endVQ();return;}
+  document.getElementById('vqSc').textContent=vqSc;
+  document.getElementById('vqCur').textContent=vqIdx+1;
+  document.getElementById('vqFill').style.width=Math.round(vqIdx/vqItems.length*100)+'%';
+  const q=vqItems[vqIdx];
+  document.getElementById('vqBig').textContent=q.e;
+  document.getElementById('vqTxt').textContent='इस चित्र का हिंदी नाम?';
+  speak(q.h,'hi-IN');
+  const all=[]; Object.values(VOCAB).forEach(arr=>all.push(...arr));
+  const wrong=shuffle(all.filter(x=>x.h!==q.h)).slice(0,3);
+  document.getElementById('vqOpts').innerHTML=shuffle([q,...wrong]).map(o=>{
+    const isC=o.h===q.h;
+    return `<button class="qopt ripple-host" data-c="${isC}" onclick="checkVQ(this,${isC})"><span style="font-size:22px">${o.e}</span><span class="qopt-lbl">${o.h}</span></button>`;
+  }).join('');
+}
+function checkVQ(btn,isC) {
+  document.querySelectorAll('#vqOpts .qopt').forEach(o=>o.classList.add('disabled'));
+  btn.classList.add(isC?'correct':'wrong');
+  if(!isC) document.querySelectorAll('#vqOpts .qopt[data-c="true"]').forEach(o=>o.classList.add('show-correct'));
+  if(isC){vqSc++;P.stars++;save();}
+  setTimeout(()=>{vqIdx++;renderVQ();},900);
+}
+function endVQ() {
+  showGamePanel('gResult');
+  const pct=Math.round(vqSc/vqItems.length*100);
+  document.getElementById('resEmoji').textContent=pct>=80?'🎉':pct>=50?'👍':'💪';
+  document.getElementById('resText').textContent=`शब्द ज्ञान: ${vqSc}/${vqItems.length} सही!`;
+  document.getElementById('resPlayAgain').onclick=()=>startGame('vocabquiz');
+  if(pct>=80) launchConfetti();
+}
+
+/* ── SENTENCE GAME ── */
+let sqItems=[],sqIdx=0,sqSc=0;
+function startSentenceGame() {
+  showGamePanel('gSentence'); sqSc=0; sqIdx=0;
+  sqItems=shuffle([...SENTENCES]); renderSQ();
+}
+function renderSQ() {
+  if(sqIdx>=sqItems.length){endSQ();return;}
+  document.getElementById('sqSc').textContent=sqSc;
+  document.getElementById('sqCur').textContent=sqIdx+1;
+  const q=sqItems[sqIdx];
+  document.getElementById('sqBox').innerHTML=`<div style="font-size:17px;font-weight:800;color:var(--text);line-height:2.2;text-align:center">${q.q.replace('___','<span style="background:#e9d5ff;border-radius:8px;padding:3px 14px;color:var(--p)">___</span>')}</div>`;
+  document.getElementById('sqOpts').innerHTML=q.opts.map(o=>{
+    const isC=o===q.ans;
+    return `<button class="qopt ripple-host" style="font-size:18px" data-c="${isC}" onclick="checkSQ(this,${isC})">${o}</button>`;
+  }).join('');
+}
+function checkSQ(btn,isC) {
+  document.querySelectorAll('#sqOpts .qopt').forEach(o=>o.classList.add('disabled'));
+  btn.classList.add(isC?'correct':'wrong');
+  if(!isC) document.querySelectorAll('#sqOpts .qopt[data-c="true"]').forEach(o=>o.classList.add('show-correct'));
+  if(isC){sqSc++;P.stars++;save();}
+  setTimeout(()=>{sqIdx++;renderSQ();},900);
+}
+function endSQ() {
+  showGamePanel('gResult');
+  const pct=Math.round(sqSc/sqItems.length*100);
+  document.getElementById('resEmoji').textContent=pct>=80?'🎉':pct>=50?'👍':'💪';
+  document.getElementById('resText').textContent=`वाक्य खेल: ${sqSc}/${sqItems.length} सही!`;
+  document.getElementById('resPlayAgain').onclick=()=>startGame('sentence');
+  if(pct>=80) launchConfetti();
+}
+
+/* ── ANTONYM GAME ── */
+let aqItems=[],aqIdx=0,aqSc=0;
+function startAntonymGame() {
+  showGamePanel('gAntonym'); aqSc=0; aqIdx=0;
+  aqItems=shuffle([...ANTONYMS]); renderAQ();
+}
+function renderAQ() {
+  if(aqIdx>=aqItems.length){endAQ();return;}
+  document.getElementById('aqSc').textContent=aqSc;
+  document.getElementById('aqCur').textContent=aqIdx+1;
+  const q=aqItems[aqIdx];
+  document.getElementById('aqBig').textContent=q.w;
+  speak(q.w,'hi-IN');
+  const wrong=shuffle(ANTONYMS.filter(x=>x.a!==q.a)).slice(0,3).map(x=>x.a);
+  document.getElementById('aqOpts').innerHTML=shuffle([q.a,...wrong]).map(o=>{
+    const isC=o===q.a;
+    return `<button class="qopt ripple-host" style="font-size:22px" data-c="${isC}" onclick="checkAQ(this,${isC})">${o}</button>`;
+  }).join('');
+}
+function checkAQ(btn,isC) {
+  document.querySelectorAll('#aqOpts .qopt').forEach(o=>o.classList.add('disabled'));
+  btn.classList.add(isC?'correct':'wrong');
+  if(!isC) document.querySelectorAll('#aqOpts .qopt[data-c="true"]').forEach(o=>o.classList.add('show-correct'));
+  if(isC){aqSc++;P.stars++;save();}
+  setTimeout(()=>{aqIdx++;renderAQ();},900);
+}
+function endAQ() {
+  showGamePanel('gResult');
+  const pct=Math.round(aqSc/aqItems.length*100);
+  document.getElementById('resEmoji').textContent=pct>=80?'🎉':pct>=50?'👍':'💪';
+  document.getElementById('resText').textContent=`उल्टे शब्द: ${aqSc}/${aqItems.length} सही!`;
+  document.getElementById('resPlayAgain').onclick=()=>startGame('antonym');
+  if(pct>=80) launchConfetti();
+}
+
+/* ── BARAKHADI QUIZ ── */
+let bkqItems=[],bkqIdx=0,bkqSc=0;
+function startBKQuiz() {
+  showGamePanel('gBKQuiz'); bkqSc=0; bkqIdx=0;
+  const pool=[];
+  BK_CONS.slice(0,12).forEach(con=>MATRAS.slice(1,6).forEach(m=>pool.push({syl:con+m,con,m})));
+  bkqItems=shuffle(pool).slice(0,10); renderBKQ();
+}
+function renderBKQ() {
+  if(bkqIdx>=bkqItems.length){endBKQ();return;}
+  document.getElementById('bkqSc').textContent=bkqSc;
+  document.getElementById('bkqCur').textContent=bkqIdx+1;
+  const q=bkqItems[bkqIdx];
+  document.getElementById('bkqBig').textContent=q.syl;
+  speak(q.syl,'hi-IN');
+  const wrongs=shuffle(bkqItems.filter(x=>x.syl!==q.syl)).slice(0,3);
+  document.getElementById('bkqOpts').innerHTML=shuffle([q,...wrongs]).map(o=>{
+    const isC=o.syl===q.syl;
+    return `<button class="qopt ripple-host" style="font-size:28px" data-c="${isC}" onclick="checkBKQ(this,${isC})">${o.syl}</button>`;
+  }).join('');
+}
+function checkBKQ(btn,isC) {
+  document.querySelectorAll('#bkqOpts .qopt').forEach(o=>o.classList.add('disabled'));
+  btn.classList.add(isC?'correct':'wrong');
+  if(!isC) document.querySelectorAll('#bkqOpts .qopt[data-c="true"]').forEach(o=>o.classList.add('show-correct'));
+  if(isC){bkqSc++;P.stars++;save();}
+  setTimeout(()=>{bkqIdx++;renderBKQ();},900);
+}
+function endBKQ() {
+  showGamePanel('gResult');
+  const pct=Math.round(bkqSc/bkqItems.length*100);
+  document.getElementById('resEmoji').textContent=pct>=80?'🎉':pct>=50?'👍':'💪';
+  document.getElementById('resText').textContent=`बाराखड़ी Quiz: ${bkqSc}/${bkqItems.length} सही!`;
+  document.getElementById('resPlayAgain').onclick=()=>startGame('bkquiz');
+  if(pct>=80) launchConfetti();
 }
 
 /* ── MINI TOAST ── */

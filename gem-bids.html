@@ -254,20 +254,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
 .vbe-strip b{color:#0A2540;font-weight:700;}
 .vbe-ft{border-top:1px solid #D4A017;padding-top:3px;margin-top:5px;font-size:5.5pt;color:#888;display:flex;justify-content:space-between;flex-shrink:0;}
 
-/* LAYOUT 3: BCT — editorial-dark (espresso) */
-.bct-page{font-family:'Jost',Arial,sans-serif;background:#fbf8f2;display:flex;flex-direction:column;}
-.bct-hband{background:#241C18;padding:6mm 8mm 5mm;display:flex;align-items:center;gap:6mm;flex-shrink:0;}
-.bct-seal{width:54px;height:54px;border-radius:50%;border:2.5px solid #B5762F;background:rgba(181,118,47,.1);display:flex;align-items:center;justify-content:center;color:#B5762F;font-weight:900;font-size:15px;flex-shrink:0;font-family:'Fraunces',Georgia,serif;}
+/* LAYOUT 3: BCT — editorial-dark (charcoal) */
+.bct-page{font-family:'Jost',Arial,sans-serif;background:#f8f9fa;display:flex;flex-direction:column;}
+.bct-hband{background:#1C2630;padding:6mm 8mm 5mm;display:flex;align-items:center;gap:6mm;flex-shrink:0;}
+.bct-seal{width:54px;height:54px;border-radius:50%;border:2.5px solid #B0843A;background:rgba(176,132,58,.1);display:flex;align-items:center;justify-content:center;color:#B0843A;font-weight:900;font-size:15px;flex-shrink:0;font-family:'Fraunces',Georgia,serif;}
 .bct-ht{flex:1;}
 .bct-hname{font-family:'Fraunces',Georgia,serif;font-size:16pt;font-weight:900;color:#fff;letter-spacing:1.8px;text-transform:uppercase;line-height:1;margin-bottom:3px;}
-.bct-htagline{font-size:6pt;letter-spacing:.2em;text-transform:uppercase;color:#B5762F;}
+.bct-htagline{font-size:6pt;letter-spacing:.2em;text-transform:uppercase;color:#B0843A;}
 .bct-hids{font-size:5.5pt;color:rgba(255,255,255,.58);line-height:1.6;text-align:right;max-width:52mm;flex-shrink:0;}
-.bct-crule{height:2px;background:#B5762F;flex-shrink:0;}
-.bct-wrule{height:1px;background:#6B2230;opacity:.45;flex-shrink:0;margin-top:1px;}
+.bct-crule{height:2px;background:#B0843A;flex-shrink:0;}
+.bct-wrule{height:1px;background:#2d3e50;opacity:.6;flex-shrink:0;margin-top:1px;}
 .bct-body{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:4mm 8mm 3mm;min-height:0;}
-.bct-bid{border-left:3px solid #B5762F;padding:3px 8px;margin-bottom:5px;font-size:7pt;color:#221d18;line-height:1.7;flex-shrink:0;}
-.bct-bid b{color:#241C18;font-weight:600;}
-.bct-fband{background:#241C18;padding:2.5mm 8mm;flex-shrink:0;font-size:5.5pt;color:rgba(255,255,255,.48);display:flex;justify-content:space-between;}
+.bct-bid{border-left:3px solid #B0843A;padding:3px 8px;margin-bottom:5px;font-size:7pt;color:#1e2c38;line-height:1.7;flex-shrink:0;}
+.bct-bid b{color:#1C2630;font-weight:600;}
+.bct-fband{background:#1C2630;padding:2.5mm 8mm;flex-shrink:0;font-size:5.5pt;color:rgba(255,255,255,.48);display:flex;justify-content:space-between;}
 
 /* LAYOUT 4: BI — ornamental-certificate (maroon) */
 .bi-page{font-family:'Mukta',Arial,sans-serif;background:#fffef9;}
@@ -520,7 +520,7 @@ var FD=[
    tagline:'Government & Defence Procurement · Authorised Supplier',
    prop:'Smt. Sushila Kanwar',sign:'SUSHILA KANWAR',
    addr:'Dan Ji Ki Hodi, Barmer, Rajasthan – 344001',place:'Barmer',
-   phone:'9509553600',email:'shreehinglaj177@gmail.com',
+   phone:'',email:'shreehinglaj177@gmail.com',
    gstin:'08JFDPK3839G1Z6',udyam:'UDYAM-RJ-05-0030912',
    gem:'JVC3230008273178',
    bank:'State Bank of India, Mahavir Nagar Branch, Barmer',
@@ -537,33 +537,39 @@ var FD=[
    bank:'State Bank of India, Jalori Gate Branch, Jodhpur',
    acc:'42188239871',ifsc:'SBIN0031201',
    mse:true,woman:false,obc:false},
-  /* BI — ornamental-certificate: regal maroon #6E1023 */
+  /* BI — ornamental-certificate: maroon #6E1023 */
   {id:'bi',badge:'BI',prim:'#6E1023',gold:'#C99A2E',
    name:'Bright India Enterprises',biz:'Sole Proprietorship',
    tagline:'Quality · Trust · Service',
-   prop:'',sign:'',addr:'Sheo, Barmer, Rajasthan',place:'Barmer',phone:'',email:'',
+   prop:'',sign:'',
+   addr:'Muharon Ki Dhani, Sheo, Barmer – 344001',place:'Barmer',
+   phone:'7387710655',email:'brightindiaenterprises3600@gmail.com',
    gstin:'08DLMPN4869L1Z4',udyam:'UDYAM-RJ-05-0048073',gem:'F9ZB260013901739',
-   bank:'State Bank of India, Jalipa Cantt Branch, Barmer',
-   acc:'43362997445',ifsc:'SBIN0061231',
+   bank:'State Bank of India, Military Station Barmer Branch',
+   acc:'43362997445',ifsc:'SBIN0064678',
    mse:true,woman:true,obc:true},
-  /* BCT — editorial-dark: espresso #241C18 */
-  {id:'bct',badge:'BC',prim:'#241C18',gold:'#B5762F',
+  /* BCT — editorial-dark: charcoal #1C2630 */
+  {id:'bct',badge:'BC',prim:'#1C2630',gold:'#B0843A',
    name:'Best Choice Traders',biz:'Sole Proprietorship',
    tagline:'Trade · Supply · Service',
    prop:'Smt. Kamala Kanwar',sign:'KAMALA KANWAR',
-   addr:'All India Radio, Bidasar Road, Barmer, Rajasthan – 344001',place:'Barmer',
-   phone:'9509553600',email:'bestchoicetraders@gmail.com',
-   gstin:'08PCYPK9338C1ZN',udyam:'',gem:'',
+   addr:'Shanti Nagar, Sirohi, Rajasthan – 307001',place:'Sirohi',
+   phone:'9461283600',email:'bestchoicetradersss@gmail.com',
+   gstin:'08PCYPK9338C1ZN',udyam:'UDYAM-RJ-05-0048635',gem:'RSDI260013906030',
    bank:'State Bank of India, Jalipa Cantt Branch, Barmer',
    acc:'43363032156',ifsc:'SBIN0061231',
-   mse:true,woman:true,obc:false},
+   mse:true,woman:true,obc:true},
   /* UB — gradient-modern: indigo #2B2A78 */
   {id:'ub',badge:'UB',prim:'#2B2A78',gold:'#E0B13A',
    name:'Ujjwal Bharat Infratech',biz:'Sole Proprietorship',
    tagline:'Infrastructure · Supply Solutions',
    prop:'Shri Manoj Dan',sign:'MANOJ DAN',
-   addr:'Barmer, Rajasthan',place:'Barmer',phone:'',email:'',gstin:'',udyam:'',gem:'',
-   bank:'',acc:'',ifsc:'',mse:true,woman:false,obc:false}
+   addr:'7, Dan Ji Ki Hodi, All India Radio Road, Barmer – 344001',place:'Barmer',
+   phone:'6367183480',email:'mhwetcanteen@gmail.com',
+   gstin:'08CMOPD9658P2ZX',udyam:'UDYAM-RJ-05-0016963',gem:'DT5Q220005896501',
+   bank:'AU Small Finance Bank, Barmer-Roy Colony Branch',
+   acc:'2502229282370628',ifsc:'AUBL0002292',
+   mse:true,woman:false,obc:true}
 ];
 
 var DOCS=[
@@ -586,10 +592,14 @@ var firms=loadFirms(), selF=0, selDocs={}, pastOn=false, prevOpen=false, editIdx
 function lsG(k,d){try{var v=localStorage.getItem(k);return v!==null?JSON.parse(v):d;}catch(e){return d;}}
 function lsS(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
 
+var DATA_VER=3;
 function loadFirms(){
+  if(lsG('gem_data_ver',0)!==DATA_VER){
+    localStorage.removeItem('gem_firms');
+    lsS('gem_data_ver',DATA_VER);
+  }
   var s=lsG('gem_firms',null);
   if(!s||s.length!==FD.length)return JSON.parse(JSON.stringify(FD));
-  // Merge saved with defaults (new fields get defaults)
   return s.map(function(sf,i){return Object.assign({},FD[i],sf);});
 }
 

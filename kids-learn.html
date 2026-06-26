@@ -3,273 +3,530 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#6d28d9">
 <title>पढ़ो और सीखो ⭐</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700;900&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-:root{--purple:#7c3aed;--pink:#ec4899;--green:#22c55e;--blue:#3b82f6;--orange:#f97316}
-body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:linear-gradient(135deg,#667eea,#764ba2);min-height:100vh;display:flex;align-items:center;justify-content:center}
-.app{width:100%;max-width:480px;min-height:100vh;background:#f8f6ff;display:flex;flex-direction:column;position:relative}
-.header{background:linear-gradient(135deg,#7c3aed,#ec4899);padding:16px 20px 20px;color:white;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.header-title{font-size:22px;font-weight:900}
-.header-sub{font-size:13px;opacity:.85}
-.header-stars{background:rgba(255,255,255,.25);border-radius:20px;padding:6px 14px;font-size:16px;font-weight:800}
-.screen{display:none;flex:1;overflow-y:auto;padding:16px;padding-bottom:90px}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+:root{
+  --p:#6d28d9;--p2:#a855f7;--pk:#ec4899;--g:#16a34a;--g2:#4ade80;
+  --b:#2563eb;--b2:#60a5fa;--o:#ea580c;--o2:#fb923c;--y:#d97706;--y2:#fbbf24;
+  --r:#dc2626;--bg:#f5f3ff;--card:#fff;--text:#1e1b4b;--muted:#6b7280;
+}
+body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:var(--bg);min-height:100vh;display:flex;justify-content:center;overflow-x:hidden}
+.app{width:100%;max-width:480px;min-height:100vh;background:var(--bg);display:flex;flex-direction:column;position:relative;overflow:hidden}
+
+/* ── RIPPLE ── */
+.ripple-host{position:relative;overflow:hidden}
+.ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.45);transform:scale(0);animation:rip .55s linear;pointer-events:none}
+@keyframes rip{to{transform:scale(4);opacity:0}}
+
+/* ── HEADER ── */
+.hdr{background:linear-gradient(135deg,var(--p),var(--pk));padding:14px 18px 18px;color:#fff;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:sticky;top:0;z-index:50}
+.hdr-left{display:flex;align-items:center;gap:10px}
+.avatar-chip{font-size:28px;width:44px;height:44px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.hdr-title{font-size:19px;font-weight:900;line-height:1.1}
+.hdr-sub{font-size:12px;opacity:.85}
+.hdr-right{display:flex;align-items:center;gap:8px}
+.star-chip{background:rgba(255,255,255,.2);border-radius:20px;padding:6px 12px;font-size:15px;font-weight:900}
+.streak-chip{background:rgba(255,255,255,.2);border-radius:20px;padding:6px 10px;font-size:13px;font-weight:900}
+
+/* ── SCREEN ── */
+.screen{display:none;flex:1;overflow-y:auto;padding:14px;padding-bottom:85px}
 .screen.active{display:block}
-.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:white;border-top:2px solid #e5e7eb;display:flex;z-index:100}
-.nav-btn{flex:1;padding:10px 4px 8px;border:none;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
-.nav-icon{font-size:22px}
-.nav-label{font-size:11px;font-weight:700;color:#9ca3af}
-.nav-btn.active .nav-label{color:#7c3aed}
-.nav-btn.active .nav-icon{transform:scale(1.15)}
 
-/* HOME */
-.home-hero{background:linear-gradient(135deg,#7c3aed,#ec4899);border-radius:20px;padding:28px 24px;color:white;text-align:center;margin-bottom:20px}
-.mascot{font-size:72px;display:block;margin-bottom:12px;animation:bounce 2s infinite}
-@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
-.home-greeting{font-size:26px;font-weight:900;margin-bottom:6px}
-.home-sub{font-size:16px;opacity:.9}
-.quick-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px}
-.stat-card{background:white;border-radius:16px;padding:16px 12px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,.08)}
-.stat-icon{font-size:28px}
-.stat-num{font-size:22px;font-weight:900;color:#7c3aed;display:block}
-.stat-lbl{font-size:11px;color:#6b7280;font-weight:700}
-.section-title{font-size:18px;font-weight:900;color:#1e1b4b;margin-bottom:12px}
-.menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.menu-card{border-radius:20px;padding:22px 16px;text-align:center;cursor:pointer;color:white;font-weight:900;border:none;box-shadow:0 4px 15px rgba(0,0,0,.15);font-family:inherit;transition:transform .15s}
-.menu-card:active{transform:scale(.96)}
-.menu-icon{font-size:40px;display:block;margin-bottom:8px}
-.menu-name{font-size:16px}
-.menu-sub{font-size:12px;opacity:.85;margin-top:3px}
-.card-purple{background:linear-gradient(135deg,#7c3aed,#a855f7)}
-.card-orange{background:linear-gradient(135deg,#f97316,#fb923c)}
-.card-blue{background:linear-gradient(135deg,#3b82f6,#60a5fa)}
-.card-green{background:linear-gradient(135deg,#22c55e,#4ade80)}
+/* ── BOTTOM NAV ── */
+.bnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#fff;border-top:2px solid #e5e7eb;display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom)}
+.nb{flex:1;padding:10px 2px 7px;border:none;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px;font-family:inherit}
+.nb .ni{font-size:24px;transition:transform .2s}
+.nb .nl{font-size:10px;font-weight:800;color:#9ca3af;transition:color .2s}
+.nb.active .nl{color:var(--p)}
+.nb.active .ni{transform:scale(1.2) translateY(-2px)}
 
-/* LEARN */
-.tab-bar{display:flex;background:white;border-radius:12px;padding:4px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
-.tab-btn{flex:1;padding:10px;border:none;background:none;border-radius:10px;font-size:14px;font-weight:800;color:#6b7280;cursor:pointer;font-family:inherit;transition:all .2s}
-.tab-btn.active{background:linear-gradient(135deg,#7c3aed,#ec4899);color:white}
-.letter-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.letter-card{background:white;border-radius:16px;padding:14px 8px;text-align:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08);border:3px solid transparent;transition:all .2s;position:relative}
-.letter-card.learned{border-color:#22c55e;background:#f0fdf4}
-.letter-card:active{transform:scale(.95)}
-.letter-main{font-size:32px;font-weight:900;color:#7c3aed;display:block}
-.letter-emoji{font-size:26px;display:block;margin:4px 0}
-.letter-word{font-size:12px;font-weight:700;color:#374151}
-.letter-eng{font-size:11px;color:#6b7280}
-.learned-badge{position:absolute;top:6px;right:6px;font-size:14px}
-.mt-16{margin-top:16px}
+/* ── HOME ── */
+.hero{background:linear-gradient(135deg,var(--p),var(--pk));border-radius:24px;padding:24px 20px;color:#fff;text-align:center;margin-bottom:16px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.08)}
+.hero::after{content:'';position:absolute;bottom:-20px;left:-20px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,.06)}
+.mascot-big{font-size:64px;display:block;animation:dance 2.5s ease-in-out infinite}
+@keyframes dance{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-12px) rotate(3deg)}}
+.hero-name{font-size:22px;font-weight:900;margin:6px 0 2px}
+.hero-sub{font-size:14px;opacity:.9}
+.level-bar-wrap{background:rgba(255,255,255,.2);border-radius:10px;height:10px;margin-top:12px;overflow:hidden}
+.level-bar{height:100%;background:#fff;border-radius:10px;transition:width .8s ease}
+.level-lbl{font-size:12px;opacity:.85;margin-top:4px;display:flex;justify-content:space-between}
 
-/* MODAL */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;align-items:flex-end;justify-content:center}
-.modal-overlay.open{display:flex}
-.modal-sheet{background:white;border-radius:24px 24px 0 0;padding:28px 24px 40px;width:100%;max-width:480px;text-align:center;animation:slideUp .3s ease}
-@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-.lesson-letter{font-size:96px;font-weight:900;color:#7c3aed;display:block}
-.lesson-emoji{font-size:72px;display:block;margin:8px 0}
-.lesson-word{font-size:28px;font-weight:900;color:#1e1b4b}
-.lesson-meaning{font-size:18px;color:#6b7280;margin:4px 0 24px}
-.lesson-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
-.btn{padding:14px 28px;border:none;border-radius:14px;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;transition:transform .15s}
-.btn:active{transform:scale(.96)}
-.btn-primary{background:linear-gradient(135deg,#7c3aed,#ec4899);color:white}
-.btn-secondary{background:#f3f4f6;color:#374151}
-.btn-green{background:linear-gradient(135deg,#22c55e,#16a34a);color:white}
-.btn-sm{padding:10px 20px;font-size:14px}
+.qstats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.qsc{background:#fff;border-radius:16px;padding:14px 10px;text-align:center;box-shadow:0 2px 12px rgba(109,40,217,.1)}
+.qsc-icon{font-size:26px}
+.qsc-n{font-size:20px;font-weight:900;color:var(--p);display:block}
+.qsc-l{font-size:11px;color:var(--muted);font-weight:700}
 
-/* GAMES */
-.game-select{display:grid;gap:14px}
-.game-card{background:white;border-radius:20px;padding:20px;display:flex;align-items:center;gap:16px;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.08);border:none;width:100%;text-align:left;font-family:inherit;transition:transform .15s}
-.game-card:active{transform:scale(.98)}
-.game-card-icon{font-size:44px;flex-shrink:0}
-.game-card-name{font-size:18px;font-weight:900;color:#1e1b4b}
-.game-card-desc{font-size:13px;color:#6b7280;font-weight:600;margin-top:3px}
-.quiz-container{display:none}
-.quiz-container.active{display:block}
-.quiz-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
-.quiz-score{font-size:18px;font-weight:900;color:#7c3aed}
-.quiz-progress{font-size:14px;color:#6b7280;font-weight:700}
-.quiz-question{background:white;border-radius:20px;padding:32px 24px;text-align:center;margin-bottom:20px;box-shadow:0 2px 10px rgba(0,0,0,.08)}
-.quiz-q-text{font-size:17px;color:#374151;font-weight:700;margin-bottom:16px}
-.quiz-big{font-size:80px;line-height:1.2}
-.quiz-options{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.quiz-opt{background:white;border:3px solid #e5e7eb;border-radius:16px;padding:16px 10px;font-size:28px;text-align:center;cursor:pointer;transition:all .2s;font-family:inherit;width:100%}
-.quiz-opt-label{font-size:13px;font-weight:700;color:#374151;display:block;margin-top:4px}
-.quiz-opt.correct{border-color:#22c55e;background:#f0fdf4;animation:pulse .4s}
-.quiz-opt.wrong{border-color:#ef4444;background:#fef2f2;animation:shake .4s}
-.quiz-opt.disabled{pointer-events:none}
-@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
-@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.stitle{font-size:17px;font-weight:900;color:var(--text);margin-bottom:12px}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mcard{border-radius:22px;padding:22px 14px;text-align:center;cursor:pointer;color:#fff;font-weight:900;border:none;font-family:inherit;box-shadow:0 6px 20px rgba(0,0,0,.15);position:relative;overflow:hidden;transition:transform .15s}
+.mcard:active{transform:scale(.95)}
+.mcard-icon{font-size:44px;display:block;margin-bottom:8px}
+.mcard-name{font-size:16px}
+.mcard-sub{font-size:11px;opacity:.85;margin-top:2px}
+.mc-p{background:linear-gradient(135deg,var(--p),var(--p2))}
+.mc-o{background:linear-gradient(135deg,var(--o),var(--o2))}
+.mc-b{background:linear-gradient(135deg,var(--b),var(--b2))}
+.mc-g{background:linear-gradient(135deg,var(--g),var(--g2))}
+.mc-y{background:linear-gradient(135deg,var(--y),var(--y2))}
 
-/* STORIES */
-.stories-grid{display:grid;gap:14px}
-.story-card{background:white;border-radius:20px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.08);cursor:pointer;border:none;width:100%;font-family:inherit;text-align:left}
-.story-banner{height:100px;display:flex;align-items:center;justify-content:center;font-size:56px}
-.story-info{padding:16px}
-.story-title{font-size:18px;font-weight:900;color:#1e1b4b}
-.story-meta{font-size:13px;color:#6b7280;font-weight:600;margin-top:4px}
-.story-read{font-size:12px;color:#22c55e;font-weight:800;margin-top:6px}
-.story-reader{display:none}
-.story-reader.active{display:block}
-.story-page{background:white;border-radius:20px;padding:32px 24px;text-align:center;min-height:280px;display:flex;flex-direction:column;align-items:center;justify-content:center;margin-bottom:20px;box-shadow:0 2px 10px rgba(0,0,0,.08)}
-.page-emoji{font-size:80px;margin-bottom:20px;display:block}
-.page-text{font-size:24px;font-weight:800;color:#1e1b4b;line-height:1.5}
-.story-controls{display:flex;align-items:center;justify-content:space-between;padding:0 8px}
-.story-dots{display:flex;gap:8px}
-.dot{width:10px;height:10px;border-radius:50%;background:#d1d5db;transition:all .2s}
-.dot.active{background:#7c3aed;width:24px;border-radius:6px}
+/* daily challenge banner */
+.challenge-banner{background:linear-gradient(135deg,#0f172a,#1e3a5f);border-radius:18px;padding:16px 18px;color:#fff;display:flex;align-items:center;gap:14px;margin-bottom:16px;cursor:pointer;border:none;width:100%;font-family:inherit;text-align:left}
+.challenge-banner:active{transform:scale(.98)}
+.ch-icon{font-size:36px;flex-shrink:0}
+.ch-title{font-size:16px;font-weight:900}
+.ch-sub{font-size:13px;opacity:.8}
+.ch-arrow{font-size:20px;margin-left:auto;opacity:.7}
 
-/* PROGRESS */
-.progress-hero{background:linear-gradient(135deg,#7c3aed,#ec4899);border-radius:20px;padding:28px;color:white;text-align:center;margin-bottom:20px}
-.big-star{font-size:64px;display:block}
-.star-count{font-size:52px;font-weight:900;display:block}
-.star-label{font-size:16px;opacity:.9}
-.progress-item{background:white;border-radius:16px;padding:16px;margin-bottom:10px;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
-.prog-icon{font-size:32px;flex-shrink:0}
-.prog-info{flex:1}
-.prog-name{font-size:15px;font-weight:800;color:#1e1b4b}
-.prog-bar-wrap{background:#f3f4f6;border-radius:8px;height:10px;margin-top:6px;overflow:hidden}
-.prog-bar{height:100%;background:linear-gradient(90deg,#7c3aed,#ec4899);border-radius:8px;transition:width .6s ease}
-.prog-pct{font-size:13px;font-weight:800;color:#7c3aed;flex-shrink:0}
-.badges-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.badge-item{background:white;border-radius:14px;padding:14px 8px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.06)}
-.badge-icon{font-size:32px;display:block}
-.badge-name{font-size:10px;font-weight:700;color:#6b7280;margin-top:4px}
-.badge-item.locked{filter:grayscale(1);opacity:.4}
+/* ── LEARN ── */
+.tabs{display:flex;background:#fff;border-radius:14px;padding:4px;margin-bottom:14px;box-shadow:0 2px 10px rgba(0,0,0,.07)}
+.tb{flex:1;padding:10px;border:none;background:none;border-radius:11px;font-size:13px;font-weight:800;color:var(--muted);cursor:pointer;font-family:inherit;transition:all .2s}
+.tb.active{background:linear-gradient(135deg,var(--p),var(--pk));color:#fff}
+.sub-tabs{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px}
+.stb{padding:8px 14px;border-radius:20px;border:2px solid #e5e7eb;background:#fff;font-size:13px;font-weight:800;color:var(--muted);cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0}
+.stb.active{background:var(--p);color:#fff;border-color:var(--p)}
 
-/* REWARD */
-.reward-overlay{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.55);align-items:center;justify-content:center;flex-direction:column}
+/* flip card */
+.lgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.lcard{height:110px;cursor:pointer;perspective:600px}
+.lcard-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .45s cubic-bezier(.4,0,.2,1)}
+.lcard.flipped .lcard-inner{transform:rotateY(180deg)}
+.lcard-front,.lcard-back{position:absolute;inset:0;backface-visibility:hidden;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.lcard-front{background:#fff;box-shadow:0 3px 12px rgba(109,40,217,.12);border:2px solid transparent}
+.lcard.learned .lcard-front{border-color:var(--g)}
+.lcard-back{background:linear-gradient(135deg,var(--p),var(--pk));transform:rotateY(180deg);color:#fff}
+.lc-letter{font-size:30px;font-weight:900;color:var(--p)}
+.lc-emoji{font-size:24px}
+.lc-word{font-size:11px;font-weight:700;color:var(--text)}
+.lc-learned{position:absolute;top:4px;right:6px;font-size:12px}
+.lc-back-letter{font-size:42px;font-weight:900}
+.lc-back-word{font-size:13px;font-weight:800;opacity:.9}
+.lc-back-meaning{font-size:11px;opacity:.75}
+.speak-btn{font-size:18px;opacity:.8}
+
+/* ── TRACE ── */
+.trace-wrap{background:#fff;border-radius:20px;padding:16px;box-shadow:0 3px 14px rgba(109,40,217,.1);margin-bottom:14px}
+.trace-letter-show{font-size:80px;font-weight:900;color:rgba(109,40,217,.12);text-align:center;margin-bottom:4px;line-height:1}
+#traceCanvas{display:block;border-radius:16px;background:#f5f3ff;touch-action:none;cursor:crosshair;border:3px dashed #c4b5fd}
+.trace-hint{text-align:center;font-size:14px;font-weight:700;color:var(--muted);margin-top:10px}
+.trace-controls{display:flex;gap:10px;margin-top:12px}
+.tselect{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px}
+.tsel-btn{background:#fff;border:2px solid #e5e7eb;border-radius:12px;padding:10px 4px;font-size:22px;font-weight:900;color:var(--p);cursor:pointer;font-family:inherit;text-align:center;transition:all .2s}
+.tsel-btn.active{background:var(--p);color:#fff;border-color:var(--p)}
+
+/* ── GAMES ── */
+.game-list{display:grid;gap:12px}
+.gcrd{background:#fff;border-radius:20px;padding:18px;display:flex;align-items:center;gap:14px;cursor:pointer;box-shadow:0 3px 12px rgba(0,0,0,.07);border:none;width:100%;text-align:left;font-family:inherit;transition:transform .15s}
+.gcrd:active{transform:scale(.97)}
+.gcrd-icon{font-size:42px;flex-shrink:0;width:54px;height:54px;border-radius:14px;display:flex;align-items:center;justify-content:center}
+.gcrd-name{font-size:17px;font-weight:900;color:var(--text)}
+.gcrd-desc{font-size:13px;color:var(--muted);font-weight:600;margin-top:2px}
+.game-area{display:none}
+.game-area.active{display:block}
+
+/* quiz */
+.qhdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.qscore{font-size:18px;font-weight:900;color:var(--p)}
+.qprog{font-size:14px;color:var(--muted);font-weight:700}
+.qprog-bar{background:#e9d5ff;border-radius:8px;height:8px;margin-bottom:14px;overflow:hidden}
+.qprog-fill{height:100%;background:linear-gradient(90deg,var(--p),var(--pk));border-radius:8px;transition:width .4s ease}
+.qbox{background:#fff;border-radius:20px;padding:28px 20px;text-align:center;margin-bottom:16px;box-shadow:0 3px 14px rgba(109,40,217,.1)}
+.qbig{font-size:80px;line-height:1.1;display:block;margin-bottom:8px}
+.qtext{font-size:16px;font-weight:700;color:var(--muted)}
+.qopts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.qopt{background:#fff;border:3px solid #e5e7eb;border-radius:16px;padding:14px 8px;font-size:30px;text-align:center;cursor:pointer;font-family:inherit;width:100%;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:4px}
+.qopt-lbl{font-size:13px;font-weight:700;color:var(--text)}
+.qopt.correct{border-color:var(--g2);background:#f0fdf4;animation:pop .35s}
+.qopt.wrong{border-color:#fca5a5;background:#fef2f2;animation:wag .35s}
+.qopt.show-correct{border-color:var(--g2);background:#f0fdf4}
+.qopt.disabled{pointer-events:none}
+@keyframes pop{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+@keyframes wag{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+
+/* bubble pop */
+.bubble-arena{position:relative;background:linear-gradient(180deg,#0f172a,#1e3a5f);border-radius:20px;height:340px;overflow:hidden;margin-bottom:14px}
+.bubble-target{background:#fff;border-radius:14px;padding:18px 24px;text-align:center;margin-bottom:12px;box-shadow:0 3px 12px rgba(0,0,0,.08)}
+.btarget-label{font-size:14px;font-weight:700;color:var(--muted);margin-bottom:4px}
+.btarget-letter{font-size:64px;font-weight:900;color:var(--p)}
+.bubble{position:absolute;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:24px;font-weight:900;color:#fff;animation:floatUp linear forwards;border:3px solid rgba(255,255,255,.3);backdrop-filter:blur(2px)}
+@keyframes floatUp{from{transform:translateY(340px) scale(.8)}to{transform:translateY(-80px) scale(1)}}
+
+/* memory match */
+.mmgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.mcard-wrap{height:75px;cursor:pointer;perspective:400px}
+.mcard-i{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .4s}
+.mcard-wrap.flipped .mcard-i,.mcard-wrap.matched .mcard-i{transform:rotateY(180deg)}
+.mcard-f,.mcard-b{position:absolute;inset:0;backface-visibility:hidden;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:28px}
+.mcard-f{background:linear-gradient(135deg,var(--p),var(--p2));font-size:20px;color:rgba(255,255,255,.6)}
+.mcard-b{background:#fff;border:2px solid #e9d5ff;transform:rotateY(180deg)}
+.mcard-wrap.matched .mcard-b{background:#f0fdf4;border-color:var(--g2)}
+
+/* word builder */
+.wb-target{background:#fff;border-radius:18px;padding:20px;text-align:center;margin-bottom:14px;box-shadow:0 3px 12px rgba(109,40,217,.08)}
+.wb-emoji{font-size:72px;display:block;margin-bottom:8px}
+.wb-hint{font-size:15px;font-weight:700;color:var(--muted);margin-bottom:14px}
+.wb-slots{display:flex;justify-content:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.wb-slot{min-width:44px;height:50px;border-radius:12px;border:3px dashed #c4b5fd;background:#f5f3ff;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;color:var(--p);padding:0 8px}
+.wb-slot.filled{border-style:solid;border-color:var(--p);background:linear-gradient(135deg,var(--p),var(--p2));color:#fff}
+.wb-choices{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+.wb-choice{min-width:44px;height:50px;border-radius:12px;background:#fff;border:2px solid #e9d5ff;font-size:24px;font-weight:900;color:var(--p);cursor:pointer;font-family:inherit;padding:0 8px;transition:all .15s}
+.wb-choice:active{transform:scale(.9)}
+.wb-choice.used{opacity:.3;pointer-events:none}
+
+/* result card */
+.result-card{background:#fff;border-radius:22px;padding:28px;text-align:center;box-shadow:0 4px 20px rgba(109,40,217,.12)}
+.result-big{font-size:72px;display:block;margin-bottom:12px}
+.result-text{font-size:22px;font-weight:900;color:var(--text);margin-bottom:20px}
+.result-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+
+/* ── STORIES ── */
+.slist{display:grid;gap:12px}
+.scrd{background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 3px 12px rgba(0,0,0,.07);cursor:pointer;border:none;width:100%;font-family:inherit;text-align:left;transition:transform .15s}
+.scrd:active{transform:scale(.98)}
+.sbanner{height:110px;display:flex;align-items:center;justify-content:center;font-size:60px;position:relative}
+.sinfo{padding:14px}
+.stitle-card{font-size:17px;font-weight:900;color:var(--text)}
+.smeta{font-size:12px;color:var(--muted);font-weight:600;margin-top:3px}
+.sread{font-size:12px;color:var(--g);font-weight:800;margin-top:5px}
+
+/* story reader */
+.sreader{display:none}
+.sreader.active{display:block}
+.spage{background:#fff;border-radius:22px;padding:30px 22px;min-height:300px;display:flex;flex-direction:column;align-items:center;justify-content:center;margin-bottom:16px;box-shadow:0 3px 14px rgba(109,40,217,.1);text-align:center}
+.spage-emoji{font-size:90px;margin-bottom:18px;display:block;animation:fadeIn .4s}
+@keyframes fadeIn{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+.spage-text{font-size:22px;font-weight:800;color:var(--text);line-height:1.6;word-spacing:4px}
+.sword{cursor:pointer;display:inline-block;border-radius:6px;padding:0 2px;transition:all .2s}
+.sword:hover,.sword.active{background:var(--y2);transform:scale(1.1)}
+.sread-btn{display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,var(--b),var(--b2));color:#fff;border:none;border-radius:14px;padding:12px 24px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;margin:10px auto;width:fit-content}
+.scontrols{display:flex;align-items:center;justify-content:space-between;padding:0 4px}
+.sdots{display:flex;gap:7px}
+.sdot{width:9px;height:9px;border-radius:50%;background:#d1d5db;transition:all .3s}
+.sdot.active{background:var(--p);width:22px;border-radius:5px}
+
+/* ── PROGRESS ── */
+.prog-hero{background:linear-gradient(135deg,var(--p),var(--pk));border-radius:22px;padding:26px;color:#fff;text-align:center;margin-bottom:16px}
+.prog-star{font-size:56px;display:block}
+.prog-count{font-size:48px;font-weight:900;display:block}
+.prog-label{font-size:15px;opacity:.9}
+.level-badge{display:inline-block;background:rgba(255,255,255,.2);border-radius:20px;padding:6px 16px;font-size:14px;font-weight:800;margin-top:10px}
+.pitem{background:#fff;border-radius:16px;padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.pitem-icon{font-size:30px;flex-shrink:0}
+.pitem-info{flex:1}
+.pitem-name{font-size:14px;font-weight:800;color:var(--text)}
+.pbar-wrap{background:#f3f4f6;border-radius:8px;height:10px;margin-top:5px;overflow:hidden}
+.pbar{height:100%;background:linear-gradient(90deg,var(--p),var(--pk));border-radius:8px;transition:width .7s ease}
+.ppct{font-size:13px;font-weight:800;color:var(--p);flex-shrink:0}
+.bdg-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.bdg{background:#fff;border-radius:14px;padding:12px 6px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.bdg-icon{font-size:28px;display:block}
+.bdg-name{font-size:10px;font-weight:700;color:var(--muted);margin-top:4px}
+.bdg.locked{filter:grayscale(1);opacity:.35}
+
+/* ── AVATAR MODAL ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:300;align-items:flex-end;justify-content:center}
+.overlay.open{display:flex}
+.sheet{background:#fff;border-radius:26px 26px 0 0;padding:26px 22px 40px;width:100%;max-width:480px;animation:up .35s ease}
+@keyframes up{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sheet-title{font-size:20px;font-weight:900;color:var(--text);text-align:center;margin-bottom:18px}
+.avatar-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.av-btn{background:#f5f3ff;border:3px solid transparent;border-radius:18px;padding:14px 8px;font-size:36px;text-align:center;cursor:pointer;border-color:#e9d5ff;transition:all .2s}
+.av-btn.selected{border-color:var(--p);background:#ede9fe}
+.name-row{display:flex;gap:10px;margin-top:16px}
+.name-input{flex:1;border:2px solid #e9d5ff;border-radius:14px;padding:12px 16px;font-size:16px;font-weight:700;font-family:inherit;color:var(--text);outline:none}
+.name-input:focus{border-color:var(--p)}
+
+/* lesson sheet */
+.lesson-letter{font-size:90px;font-weight:900;color:var(--p);display:block;text-align:center}
+.lesson-emoji{font-size:68px;display:block;text-align:center;margin:6px 0}
+.lesson-word{font-size:26px;font-weight:900;color:var(--text);text-align:center}
+.lesson-meaning{font-size:17px;color:var(--muted);text-align:center;margin:4px 0 22px}
+.lesson-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.speak-big{font-size:32px;display:block;text-align:center;cursor:pointer;margin:8px 0;animation:pulse2 2s infinite}
+@keyframes pulse2{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+
+/* ── BUTTONS ── */
+.btn{padding:13px 26px;border:none;border-radius:14px;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;transition:transform .15s;display:inline-flex;align-items:center;gap:6px}
+.btn:active{transform:scale(.95)}
+.btn-p{background:linear-gradient(135deg,var(--p),var(--pk));color:#fff}
+.btn-g{background:linear-gradient(135deg,var(--g),var(--g2));color:#fff}
+.btn-o{background:linear-gradient(135deg,var(--o),var(--o2));color:#fff}
+.btn-gray{background:#f3f4f6;color:var(--text)}
+.btn-sm{padding:10px 18px;font-size:14px}
+.back-btn{background:none;border:none;font-size:17px;cursor:pointer;font-family:inherit;font-weight:800;color:var(--p);display:inline-flex;align-items:center;gap:7px;padding:6px 0;margin-bottom:12px}
+
+/* ── REWARD ── */
+.reward-overlay{display:none;position:fixed;inset:0;z-index:500;align-items:center;justify-content:center;flex-direction:column}
 .reward-overlay.show{display:flex}
-.reward-emoji{font-size:80px;animation:starPop .5s ease}
-.reward-text{font-size:30px;font-weight:900;color:white;margin-top:16px;text-shadow:0 2px 10px rgba(0,0,0,.5);text-align:center}
-@keyframes starPop{0%{transform:scale(0) rotate(-30deg)}70%{transform:scale(1.3) rotate(10deg)}100%{transform:scale(1) rotate(0)}}
+.reward-bg{position:absolute;inset:0;background:rgba(0,0,0,.5)}
+.reward-content{position:relative;text-align:center;z-index:1;animation:popIn .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes popIn{from{transform:scale(0) rotate(-20deg)}to{transform:scale(1) rotate(0)}}
+.reward-big{font-size:80px;display:block}
+.reward-text{font-size:28px;font-weight:900;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.4);margin-top:12px}
+.reward-sub{font-size:16px;color:rgba(255,255,255,.85);margin-top:4px}
 
-.back-btn{background:none;border:none;font-size:18px;cursor:pointer;margin-bottom:12px;font-family:inherit;font-weight:800;color:#7c3aed;display:inline-flex;align-items:center;gap:8px;padding:6px 0}
+/* ── CONFETTI CANVAS ── */
+#confettiCanvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:499;display:none}
+
+/* ── UTILS ── */
+.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}
+.hidden{display:none!important}
 </style>
 </head>
 <body>
-<div class="app">
+<canvas id="confettiCanvas"></canvas>
 
-  <!-- HEADER -->
-  <div class="header">
-    <div>
-      <div class="header-sub">नमस्ते! 👋</div>
-      <div class="header-title">पढ़ो और सीखो</div>
+<!-- AVATAR PICKER -->
+<div class="overlay" id="avatarOverlay">
+  <div class="sheet">
+    <div class="sheet-title">अपना दोस्त चुनो! 🎉</div>
+    <div class="avatar-grid" id="avatarGrid">
+      <div class="av-btn selected" data-av="🦁" onclick="pickAvatar(this)">🦁</div>
+      <div class="av-btn" data-av="🐯" onclick="pickAvatar(this)">🐯</div>
+      <div class="av-btn" data-av="🐘" onclick="pickAvatar(this)">🐘</div>
+      <div class="av-btn" data-av="🦊" onclick="pickAvatar(this)">🦊</div>
+      <div class="av-btn" data-av="🐬" onclick="pickAvatar(this)">🐬</div>
+      <div class="av-btn" data-av="🦋" onclick="pickAvatar(this)">🦋</div>
+      <div class="av-btn" data-av="🐼" onclick="pickAvatar(this)">🐼</div>
+      <div class="av-btn" data-av="🦄" onclick="pickAvatar(this)">🦄</div>
     </div>
-    <div class="header-stars">⭐ <span id="headerStars">0</span></div>
+    <div class="name-row">
+      <input class="name-input" id="nameInput" placeholder="अपना नाम लिखो..." maxlength="20">
+    </div>
+    <button class="btn btn-p mt16 ripple-host" style="width:100%;justify-content:center" onclick="saveAvatar()">शुरू करो! 🚀</button>
+  </div>
+</div>
+
+<!-- LESSON MODAL -->
+<div class="overlay" id="lessonModal">
+  <div class="sheet" style="text-align:center">
+    <span class="lesson-letter" id="lLetter">अ</span>
+    <span class="lesson-emoji" id="lEmoji">🍎</span>
+    <div class="speak-big" id="lSpeakBtn" onclick="speakLesson()" title="सुनो">🔊</div>
+    <div class="lesson-word" id="lWord">अनार</div>
+    <div class="lesson-meaning" id="lMeaning">Pomegranate</div>
+    <div class="lesson-actions">
+      <button class="btn btn-gray ripple-host" onclick="closeLesson()">बंद करो</button>
+      <button class="btn btn-g ripple-host" onclick="markLearned()">✓ सीख लिया! +⭐</button>
+    </div>
+  </div>
+</div>
+
+<!-- REWARD -->
+<div class="reward-overlay" id="rewardOverlay" onclick="closeReward()">
+  <div class="reward-bg"></div>
+  <div class="reward-content">
+    <span class="reward-big" id="rewardBig">⭐</span>
+    <div class="reward-text" id="rewardText">शाबाश!</div>
+    <div class="reward-sub" id="rewardSub"></div>
+  </div>
+</div>
+
+<div class="app">
+  <!-- HEADER -->
+  <div class="hdr">
+    <div class="hdr-left">
+      <div class="avatar-chip ripple-host" id="avatarChip" onclick="openAvatarPicker()">🦁</div>
+      <div>
+        <div class="hdr-title">पढ़ो और सीखो</div>
+        <div class="hdr-sub" id="hdrName">नमस्ते! 👋</div>
+      </div>
+    </div>
+    <div class="hdr-right">
+      <div class="streak-chip">🔥 <span id="hStreak">0</span></div>
+      <div class="star-chip">⭐ <span id="hStars">0</span></div>
+    </div>
   </div>
 
   <!-- HOME -->
   <div id="screen-home" class="screen active">
-    <div class="home-hero">
-      <span class="mascot">🦋</span>
-      <div class="home-greeting">आज क्या सीखें?</div>
-      <div class="home-sub">हर दिन कुछ नया सीखो!</div>
-    </div>
-    <div class="quick-stats">
-      <div class="stat-card">
-        <div class="stat-icon">📝</div>
-        <span class="stat-num" id="statLearned">0</span>
-        <div class="stat-lbl">सीखे</div>
+    <div class="hero">
+      <span class="mascot-big" id="heroMascot">🦁</span>
+      <div class="hero-name" id="heroName">आज क्या सीखें?</div>
+      <div class="hero-sub" id="heroLevelName">Level: नया सितारा</div>
+      <div class="level-bar-wrap">
+        <div class="level-bar" id="levelBar" style="width:5%"></div>
       </div>
-      <div class="stat-card">
-        <div class="stat-icon">🎮</div>
-        <span class="stat-num" id="statGames">0</span>
-        <div class="stat-lbl">खेले</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">📖</div>
-        <span class="stat-num" id="statStories">0</span>
-        <div class="stat-lbl">कहानियां</div>
+      <div class="level-lbl">
+        <span id="levelLblL">0 XP</span>
+        <span id="levelLblR">अगला: 20 XP</span>
       </div>
     </div>
-    <div class="section-title">शुरू करो ▶</div>
-    <div class="menu-grid">
-      <button class="menu-card card-purple" onclick="goTo('learn')">
-        <span class="menu-icon">📚</span>
-        <div class="menu-name">वर्णमाला</div>
-        <div class="menu-sub">अ आ इ · A B C</div>
+
+    <button class="challenge-banner ripple-host" onclick="goTo('games');startGame('quiz')">
+      <span class="ch-icon">⚡</span>
+      <div>
+        <div class="ch-title">रोज़ का Challenge</div>
+        <div class="ch-sub">आज 10 सवाल करो → +5 ⭐</div>
+      </div>
+      <span class="ch-arrow">›</span>
+    </button>
+
+    <div class="qstats">
+      <div class="qsc">
+        <div class="qsc-icon">📝</div>
+        <span class="qsc-n" id="stLearned">0</span>
+        <div class="qsc-l">सीखे</div>
+      </div>
+      <div class="qsc">
+        <div class="qsc-icon">🎮</div>
+        <span class="qsc-n" id="stGames">0</span>
+        <div class="qsc-l">खेले</div>
+      </div>
+      <div class="qsc">
+        <div class="qsc-icon">📖</div>
+        <span class="qsc-n" id="stStories">0</span>
+        <div class="qsc-l">कहानियां</div>
+      </div>
+    </div>
+
+    <div class="stitle">शुरू करो ▶</div>
+    <div class="mgrid">
+      <button class="mcard mc-p ripple-host" onclick="goTo('learn')">
+        <span class="mcard-icon">📚</span>
+        <div class="mcard-name">वर्णमाला</div>
+        <div class="mcard-sub">अ आ इ · A B C</div>
       </button>
-      <button class="menu-card card-orange" onclick="goTo('games')">
-        <span class="menu-icon">🎮</span>
-        <div class="menu-name">खेलो</div>
-        <div class="menu-sub">Quiz · Match</div>
+      <button class="mcard mc-o ripple-host" onclick="goTo('games')">
+        <span class="mcard-icon">🎮</span>
+        <div class="mcard-name">खेलो</div>
+        <div class="mcard-sub">5 मज़ेदार Games</div>
       </button>
-      <button class="menu-card card-blue" onclick="goTo('stories')">
-        <span class="menu-icon">📖</span>
-        <div class="menu-name">कहानियां</div>
-        <div class="menu-sub">3 मजेदार कहानियां</div>
+      <button class="mcard mc-b ripple-host" onclick="goTo('stories')">
+        <span class="mcard-icon">📖</span>
+        <div class="mcard-name">कहानियां</div>
+        <div class="mcard-sub">5 कहानियां · बोलेगा भी</div>
       </button>
-      <button class="menu-card card-green" onclick="goTo('progress')">
-        <span class="menu-icon">⭐</span>
-        <div class="menu-name">प्रगति</div>
-        <div class="menu-sub">मेरे Stars देखो</div>
+      <button class="mcard mc-y ripple-host" onclick="goTo('trace')">
+        <span class="mcard-icon">✏️</span>
+        <div class="mcard-name">लिखो-सीखो</div>
+        <div class="mcard-sub">Tracing Practice</div>
       </button>
     </div>
   </div>
 
   <!-- LEARN -->
   <div id="screen-learn" class="screen">
-    <div class="tab-bar">
-      <button class="tab-btn active" id="tabHindi" onclick="switchLearnTab('hindi')">🇮🇳 हिंदी</button>
-      <button class="tab-btn" id="tabEnglish" onclick="switchLearnTab('english')">🔤 English</button>
+    <div class="tabs">
+      <button class="tb active" id="tabH" onclick="switchTab('hindi')">🇮🇳 हिंदी</button>
+      <button class="tb" id="tabE" onclick="switchTab('english')">🔤 English</button>
     </div>
-    <div id="learnHindi">
-      <div class="section-title">स्वर (Vowels)</div>
-      <div class="letter-grid" id="hindiSwarGrid"></div>
-      <div class="section-title mt-16">व्यंजन (Consonants)</div>
-      <div class="letter-grid" id="hindiVyanjanGrid"></div>
+    <div id="learnH">
+      <div class="sub-tabs" id="hindiSubTabs">
+        <button class="stb active" onclick="showHindiGroup('swar',this)">स्वर</button>
+        <button class="stb" onclick="showHindiGroup('ka',this)">क-ङ</button>
+        <button class="stb" onclick="showHindiGroup('cha',this)">च-ञ</button>
+        <button class="stb" onclick="showHindiGroup('ta',this)">ट-ण</button>
+        <button class="stb" onclick="showHindiGroup('ta2',this)">त-न</button>
+        <button class="stb" onclick="showHindiGroup('pa',this)">प-म</button>
+        <button class="stb" onclick="showHindiGroup('ya',this)">य-ह</button>
+      </div>
+      <div class="lgrid" id="hindiGrid"></div>
     </div>
-    <div id="learnEnglish" style="display:none">
-      <div class="section-title">Alphabets A – Z</div>
-      <div class="letter-grid" id="englishGrid"></div>
+    <div id="learnE" style="display:none">
+      <div class="lgrid" id="englishGrid"></div>
+    </div>
+  </div>
+
+  <!-- TRACE -->
+  <div id="screen-trace" class="screen">
+    <div class="stitle">अक्षर लिखो ✏️</div>
+    <div class="tabs">
+      <button class="tb active" id="trTabH" onclick="switchTraceTab('hindi')">🇮🇳 हिंदी</button>
+      <button class="tb" id="trTabE" onclick="switchTraceTab('english')">🔤 English</button>
+    </div>
+    <div class="tselect" id="traceLetterBtns"></div>
+    <div class="trace-wrap">
+      <div class="trace-letter-show" id="traceGuide">अ</div>
+      <canvas id="traceCanvas" width="320" height="200"></canvas>
+      <div class="trace-hint">उँगली से ऊपर वाला अक्षर बनाओ</div>
+      <div class="trace-controls">
+        <button class="btn btn-gray btn-sm ripple-host" onclick="clearTrace()">🗑️ साफ करो</button>
+        <button class="btn btn-g btn-sm ripple-host" onclick="doneTrace()">✓ हो गया! +⭐</button>
+      </div>
     </div>
   </div>
 
   <!-- GAMES -->
   <div id="screen-games" class="screen">
-    <div id="gameSelect" class="game-select">
-      <div class="section-title">खेलो और सीखो 🎯</div>
-      <button class="game-card" onclick="startGame('letterQuiz')">
-        <span class="game-card-icon">🔤</span>
-        <div>
-          <div class="game-card-name">अक्षर पहचानो</div>
-          <div class="game-card-desc">Hindi अक्षर देखो — सही शब्द चुनो</div>
-        </div>
-      </button>
-      <button class="game-card" onclick="startGame('wordMatch')">
-        <span class="game-card-icon">🎯</span>
-        <div>
-          <div class="game-card-name">चित्र से अक्षर</div>
-          <div class="game-card-desc">चित्र देखो — सही हिंदी अक्षर चुनो</div>
-        </div>
-      </button>
-      <button class="game-card" onclick="startGame('spellingBee')">
-        <span class="game-card-icon">🐝</span>
-        <div>
-          <div class="game-card-name">English Quiz</div>
-          <div class="game-card-desc">Emoji देखो — सही English letter चुनो</div>
-        </div>
-      </button>
+    <div id="gameListView">
+      <div class="stitle">खेलो और सीखो 🎯</div>
+      <div class="game-list">
+        <button class="gcrd ripple-host" onclick="startGame('quiz')">
+          <div class="gcrd-icon" style="background:#ede9fe">🔤</div>
+          <div><div class="gcrd-name">अक्षर Quiz</div><div class="gcrd-desc">अक्षर देखो – सही शब्द चुनो</div></div>
+        </button>
+        <button class="gcrd ripple-host" onclick="startGame('bubble')">
+          <div class="gcrd-icon" style="background:#fce7f3">🫧</div>
+          <div><div class="gcrd-name">Bubble Pop!</div><div class="gcrd-desc">सही अक्षर वाला Bubble फोड़ो</div></div>
+        </button>
+        <button class="gcrd ripple-host" onclick="startGame('memory')">
+          <div class="gcrd-icon" style="background:#d1fae5">🃏</div>
+          <div><div class="gcrd-name">Memory Match</div><div class="gcrd-desc">जोड़ी मिलाओ – अक्षर और चित्र</div></div>
+        </button>
+        <button class="gcrd ripple-host" onclick="startGame('wordbuild')">
+          <div class="gcrd-icon" style="background:#fef3c7">🧩</div>
+          <div><div class="gcrd-name">Word Builder</div><div class="gcrd-desc">अक्षर जोड़कर शब्द बनाओ</div></div>
+        </button>
+        <button class="gcrd ripple-host" onclick="startGame('english')">
+          <div class="gcrd-icon" style="background:#dbeafe">🐝</div>
+          <div><div class="gcrd-name">English Quiz</div><div class="gcrd-desc">Emoji देखो – letter चुनो</div></div>
+        </button>
+      </div>
     </div>
-    <div id="quizArea" class="quiz-container">
-      <button class="back-btn" onclick="endGame()">← वापस जाओ</button>
-      <div class="quiz-header">
-        <div class="quiz-score">⭐ <span id="quizScore">0</span></div>
-        <div class="quiz-progress"><span id="quizCurrent">1</span> / <span id="quizTotal">10</span></div>
+    <div id="gamePlayView" class="game-area">
+      <button class="back-btn" onclick="exitGame()">← वापस</button>
+      <!-- quiz + english -->
+      <div id="gQuiz">
+        <div class="qhdr">
+          <div class="qscore">⭐ <span id="qSc">0</span></div>
+          <div class="qprog"><span id="qCur">1</span>/<span id="qTot">10</span></div>
+        </div>
+        <div class="qprog-bar"><div class="qprog-fill" id="qFill" style="width:0%"></div></div>
+        <div class="qbox" id="qBox">
+          <span class="qbig" id="qBig"></span>
+          <div class="qtext" id="qTxt"></div>
+        </div>
+        <div class="qopts" id="qOpts"></div>
       </div>
-      <div id="quizQuestion" class="quiz-question">
-        <div class="quiz-q-text" id="quizQText"></div>
-        <div class="quiz-big" id="quizBig"></div>
+      <!-- bubble pop -->
+      <div id="gBubble" class="hidden">
+        <div class="bubble-target">
+          <div class="btarget-label">इस अक्षर वाला Bubble फोड़ो! 👆</div>
+          <div class="btarget-letter" id="bTarget">क</div>
+        </div>
+        <div class="bubble-arena" id="bArena"></div>
+        <div class="qhdr"><div class="qscore">⭐ <span id="bSc">0</span></div><div class="qprog">Round <span id="bRnd">1</span>/10</div></div>
       </div>
-      <div class="quiz-options" id="quizOptions"></div>
-      <div id="quizResult" style="display:none;text-align:center;padding:24px;background:white;border-radius:20px;">
-        <div style="font-size:60px" id="resultEmoji">🎉</div>
-        <div style="font-size:22px;font-weight:900;color:#1e1b4b;margin:12px 0" id="resultText"></div>
-        <div style="display:flex;gap:12px;justify-content:center;margin-top:16px;flex-wrap:wrap">
-          <button class="btn btn-primary" onclick="startGame(currentGame)">फिर खेलो 🔄</button>
-          <button class="btn btn-secondary" onclick="endGame()">बाहर जाओ</button>
+      <!-- memory match -->
+      <div id="gMemory" class="hidden">
+        <div class="qhdr"><div class="qscore">🃏 Pairs: <span id="mPairs">0</span>/8</div><div class="qprog">⭐ <span id="mSc">0</span></div></div>
+        <div class="mmgrid" id="mmGrid"></div>
+      </div>
+      <!-- word builder -->
+      <div id="gWordBuild" class="hidden">
+        <div class="qhdr"><div class="qscore">⭐ <span id="wbSc">0</span></div><div class="qprog"><span id="wbCur">1</span>/8</div></div>
+        <div class="wb-target">
+          <span class="wb-emoji" id="wbEmoji">🐘</span>
+          <div class="wb-hint" id="wbHint">शब्द बनाओ!</div>
+          <div class="wb-slots" id="wbSlots"></div>
+        </div>
+        <div class="wb-choices" id="wbChoices"></div>
+      </div>
+      <!-- result -->
+      <div id="gResult" class="hidden">
+        <div class="result-card">
+          <span class="result-big" id="resEmoji">🎉</span>
+          <div class="result-text" id="resText"></div>
+          <div class="result-btns">
+            <button class="btn btn-p ripple-host" id="resPlayAgain" onclick="">फिर खेलो 🔄</button>
+            <button class="btn btn-gray ripple-host" onclick="exitGame()">बाहर जाओ</button>
+          </div>
         </div>
       </div>
     </div>
@@ -277,470 +534,757 @@ body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:linear-gr
 
   <!-- STORIES -->
   <div id="screen-stories" class="screen">
-    <div id="storyList" class="stories-grid"></div>
-    <div id="storyReader" class="story-reader">
-      <button class="back-btn" onclick="closeStory()">← वापस जाओ</button>
-      <div id="storyTitle" style="font-size:20px;font-weight:900;color:#1e1b4b;margin-bottom:16px;text-align:center"></div>
-      <div class="story-page">
-        <span class="page-emoji" id="pageEmoji">📖</span>
-        <div class="page-text" id="pageText"></div>
+    <div id="storyList" class="slist"></div>
+    <div id="storyReader" class="sreader">
+      <button class="back-btn" onclick="closeStory()">← वापस</button>
+      <div id="storyTitle" style="font-size:19px;font-weight:900;color:var(--text);text-align:center;margin-bottom:14px"></div>
+      <div class="spage">
+        <span class="spage-emoji" id="spEmoji">📖</span>
+        <div class="spage-text" id="spText"></div>
       </div>
-      <div class="story-controls">
-        <button class="btn btn-secondary btn-sm" id="prevBtn" onclick="changePage(-1)">← पिछला</button>
-        <div class="story-dots" id="storyDots"></div>
-        <button class="btn btn-primary btn-sm" id="nextBtn" onclick="changePage(1)">अगला →</button>
+      <button class="sread-btn ripple-host" onclick="readPageAloud()">🔊 सुनो</button>
+      <div class="scontrols">
+        <button class="btn btn-gray btn-sm ripple-host" id="spPrev" onclick="changePage(-1)">← पिछला</button>
+        <div class="sdots" id="spDots"></div>
+        <button class="btn btn-p btn-sm ripple-host" id="spNext" onclick="changePage(1)">अगला →</button>
       </div>
     </div>
   </div>
 
   <!-- PROGRESS -->
   <div id="screen-progress" class="screen">
-    <div class="progress-hero">
-      <span class="big-star">⭐</span>
-      <span class="star-count" id="progStars">0</span>
-      <div class="star-label">कुल Stars</div>
+    <div class="prog-hero">
+      <span class="prog-star">⭐</span>
+      <span class="prog-count" id="pStars">0</span>
+      <div class="prog-label">कुल Stars</div>
+      <div class="level-badge" id="pLevel">नया सितारा</div>
     </div>
-    <div class="section-title">मेरी प्रगति</div>
-    <div class="progress-item">
-      <div class="prog-icon">🇮🇳</div>
-      <div class="prog-info">
-        <div class="prog-name">हिंदी वर्णमाला</div>
-        <div class="prog-bar-wrap"><div class="prog-bar" id="barHindi" style="width:0%"></div></div>
-      </div>
-      <div class="prog-pct" id="pctHindi">0%</div>
-    </div>
-    <div class="progress-item">
-      <div class="prog-icon">🔤</div>
-      <div class="prog-info">
-        <div class="prog-name">English Alphabet</div>
-        <div class="prog-bar-wrap"><div class="prog-bar" id="barEnglish" style="width:0%"></div></div>
-      </div>
-      <div class="prog-pct" id="pctEnglish">0%</div>
-    </div>
-    <div class="progress-item">
-      <div class="prog-icon">🎮</div>
-      <div class="prog-info">
-        <div class="prog-name">Games खेले</div>
-        <div class="prog-bar-wrap"><div class="prog-bar" id="barGames" style="width:0%"></div></div>
-      </div>
-      <div class="prog-pct" id="pctGames">0</div>
-    </div>
-    <div class="progress-item">
-      <div class="prog-icon">📖</div>
-      <div class="prog-info">
-        <div class="prog-name">कहानियां पढ़ीं</div>
-        <div class="prog-bar-wrap"><div class="prog-bar" id="barStories" style="width:0%"></div></div>
-      </div>
-      <div class="prog-pct" id="pctStories">0/3</div>
-    </div>
-    <div class="section-title mt-16">मेरे Badges 🏅</div>
-    <div class="badges-grid" id="badgesGrid"></div>
+    <div class="stitle">मेरी प्रगति</div>
+    <div class="pitem"><div class="pitem-icon">🇮🇳</div><div class="pitem-info"><div class="pitem-name">हिंदी वर्णमाला</div><div class="pbar-wrap"><div class="pbar" id="barH" style="width:0%"></div></div></div><div class="ppct" id="pctH">0%</div></div>
+    <div class="pitem"><div class="pitem-icon">🔤</div><div class="pitem-info"><div class="pitem-name">English A–Z</div><div class="pbar-wrap"><div class="pbar" id="barE" style="width:0%"></div></div></div><div class="ppct" id="pctE">0%</div></div>
+    <div class="pitem"><div class="pitem-icon">✏️</div><div class="pitem-info"><div class="pitem-name">Tracing</div><div class="pbar-wrap"><div class="pbar" id="barT" style="width:0%"></div></div></div><div class="ppct" id="pctT">0</div></div>
+    <div class="pitem"><div class="pitem-icon">🎮</div><div class="pitem-info"><div class="pitem-name">Games खेले</div><div class="pbar-wrap"><div class="pbar" id="barG" style="width:0%"></div></div></div><div class="ppct" id="pctG">0</div></div>
+    <div class="pitem"><div class="pitem-icon">📖</div><div class="pitem-info"><div class="pitem-name">कहानियां</div><div class="pbar-wrap"><div class="pbar" id="barS" style="width:0%"></div></div></div><div class="ppct" id="pctS">0/5</div></div>
+    <div class="stitle mt16">Badges 🏅</div>
+    <div class="bdg-grid" id="bdgGrid"></div>
   </div>
 
-  <!-- BOTTOM NAV -->
-  <nav class="bottom-nav">
-    <button class="nav-btn active" id="nav-home" onclick="goTo('home')">
-      <span class="nav-icon">🏠</span><span class="nav-label">होम</span>
-    </button>
-    <button class="nav-btn" id="nav-learn" onclick="goTo('learn')">
-      <span class="nav-icon">📚</span><span class="nav-label">सीखो</span>
-    </button>
-    <button class="nav-btn" id="nav-games" onclick="goTo('games')">
-      <span class="nav-icon">🎮</span><span class="nav-label">खेलो</span>
-    </button>
-    <button class="nav-btn" id="nav-stories" onclick="goTo('stories')">
-      <span class="nav-icon">📖</span><span class="nav-label">कहानी</span>
-    </button>
-    <button class="nav-btn" id="nav-progress" onclick="goTo('progress')">
-      <span class="nav-icon">⭐</span><span class="nav-label">प्रगति</span>
-    </button>
+  <nav class="bnav">
+    <button class="nb active" id="nav-home" onclick="goTo('home')"><span class="ni">🏠</span><span class="nl">होम</span></button>
+    <button class="nb" id="nav-learn" onclick="goTo('learn')"><span class="ni">📚</span><span class="nl">सीखो</span></button>
+    <button class="nb" id="nav-trace" onclick="goTo('trace')"><span class="ni">✏️</span><span class="nl">लिखो</span></button>
+    <button class="nb" id="nav-games" onclick="goTo('games')"><span class="ni">🎮</span><span class="nl">खेलो</span></button>
+    <button class="nb" id="nav-stories" onclick="goTo('stories')"><span class="ni">📖</span><span class="nl">कहानी</span></button>
+    <button class="nb" id="nav-progress" onclick="goTo('progress')"><span class="ni">⭐</span><span class="nl">प्रगति</span></button>
   </nav>
 </div>
 
-<!-- LESSON MODAL -->
-<div class="modal-overlay" id="lessonModal">
-  <div class="modal-sheet">
-    <span class="lesson-letter" id="lessonLetter">अ</span>
-    <span class="lesson-emoji" id="lessonEmoji">🍎</span>
-    <div class="lesson-word" id="lessonWord">अनार</div>
-    <div class="lesson-meaning" id="lessonMeaning">Pomegranate</div>
-    <div class="lesson-actions">
-      <button class="btn btn-secondary" onclick="closeLesson()">बंद करो</button>
-      <button class="btn btn-green" onclick="markLearned()">✓ सीख लिया! +⭐</button>
-    </div>
-  </div>
-</div>
-
-<!-- REWARD OVERLAY -->
-<div class="reward-overlay" id="rewardOverlay">
-  <div class="reward-emoji" id="rewardEmoji">⭐</div>
-  <div class="reward-text" id="rewardText">शाबाश!</div>
-</div>
-
 <script>
-// ── DATA ──────────────────────────────────────────────────────
-const HINDI_SWAR = [
-  {letter:'अ',emoji:'🍎',word:'अनार',meaning:'Pomegranate'},
-  {letter:'आ',emoji:'🥭',word:'आम',meaning:'Mango'},
-  {letter:'इ',emoji:'🌿',word:'इमली',meaning:'Tamarind'},
-  {letter:'ई',emoji:'🎋',word:'ईख',meaning:'Sugarcane'},
-  {letter:'उ',emoji:'🦉',word:'उल्लू',meaning:'Owl'},
-  {letter:'ऊ',emoji:'🧶',word:'ऊन',meaning:'Wool'},
-  {letter:'ए',emoji:'👓',word:'ऐनक',meaning:'Glasses'},
-  {letter:'ओ',emoji:'☀️',word:'ओस',meaning:'Dew'},
-  {letter:'औ',emoji:'🔧',word:'औजार',meaning:'Tool'},
-  {letter:'अं',emoji:'🍇',word:'अंगूर',meaning:'Grapes'},
-  {letter:'अः',emoji:'🌺',word:'अःस्वर',meaning:'Visarga'},
+// ═══════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════
+const HINDI_GROUPS = {
+  swar:   [{l:'अ',e:'🍎',w:'अनार',m:'Pomegranate'},{l:'आ',e:'🥭',w:'आम',m:'Mango'},{l:'इ',e:'🌿',w:'इमली',m:'Tamarind'},{l:'ई',e:'🎋',w:'ईख',m:'Sugarcane'},{l:'उ',e:'🦉',w:'उल्लू',m:'Owl'},{l:'ऊ',e:'🧶',w:'ऊन',m:'Wool'},{l:'ए',e:'☝️',w:'एक',m:'One'},{l:'ऐ',e:'👓',w:'ऐनक',m:'Glasses'},{l:'ओ',e:'🌊',w:'ओस',m:'Dew'},{l:'औ',e:'🔧',w:'औजार',m:'Tool'},{l:'अं',e:'🍇',w:'अंगूर',m:'Grapes'}],
+  ka:     [{l:'क',e:'🕊️',w:'कबूतर',m:'Pigeon'},{l:'ख',e:'🐇',w:'खरगोश',m:'Rabbit'},{l:'ग',e:'🐄',w:'गाय',m:'Cow'},{l:'घ',e:'⏰',w:'घड़ी',m:'Clock'},{l:'ङ',e:'🐍',w:'ङ',m:'(rare)'}],
+  cha:    [{l:'च',e:'🌙',w:'चाँद',m:'Moon'},{l:'छ',e:'☂️',w:'छाता',m:'Umbrella'},{l:'ज',e:'🫙',w:'जग',m:'Jug'},{l:'झ',e:'💧',w:'झील',m:'Lake'},{l:'ञ',e:'🐘',w:'ञ',m:'(rare)'}],
+  ta:     [{l:'ट',e:'🍅',w:'टमाटर',m:'Tomato'},{l:'ठ',e:'🛒',w:'ठेला',m:'Cart'},{l:'ड',e:'🥁',w:'ढोल',m:'Drum'},{l:'ढ',e:'🐊',w:'ढाका',m:'Dhaka'},{l:'ण',e:'🌼',w:'ण',m:'(rare)'}],
+  ta2:    [{l:'त',e:'🍉',w:'तरबूज',m:'Watermelon'},{l:'थ',e:'🍽️',w:'थाली',m:'Plate'},{l:'द',e:'🥛',w:'दूध',m:'Milk'},{l:'ध',e:'🌞',w:'धूप',m:'Sunshine'},{l:'न',e:'🚢',w:'नाव',m:'Boat'}],
+  pa:     [{l:'प',e:'🌸',w:'पुष्प',m:'Flower'},{l:'फ',e:'🏀',w:'फुटबॉल',m:'Football'},{l:'ब',e:'🐐',w:'बकरी',m:'Goat'},{l:'भ',e:'🐻',w:'भालू',m:'Bear'},{l:'म',e:'🦚',w:'मोर',m:'Peacock'}],
+  ya:     [{l:'य',e:'🚂',w:'यान',m:'Vehicle'},{l:'र',e:'🌈',w:'रंग',m:'Colour'},{l:'ल',e:'🦊',w:'लोमड़ी',m:'Fox'},{l:'व',e:'🌲',w:'वन',m:'Forest'},{l:'श',e:'🔔',w:'शंख',m:'Conch'},{l:'ष',e:'⚡',w:'षट',m:'Six'},{l:'स',e:'☀️',w:'सूरज',m:'Sun'},{l:'ह',e:'🐘',w:'हाथी',m:'Elephant'}],
+};
+const ALL_HINDI = Object.values(HINDI_GROUPS).flat();
+
+const ENGLISH = [
+  {l:'A',e:'🍎',w:'Apple',m:'सेब'},{l:'B',e:'⚽',w:'Ball',m:'गेंद'},{l:'C',e:'🐱',w:'Cat',m:'बिल्ली'},{l:'D',e:'🐶',w:'Dog',m:'कुत्ता'},{l:'E',e:'🐘',w:'Elephant',m:'हाथी'},{l:'F',e:'🐟',w:'Fish',m:'मछली'},{l:'G',e:'🐐',w:'Goat',m:'बकरी'},{l:'H',e:'🏠',w:'House',m:'घर'},{l:'I',e:'🍦',w:'Ice cream',m:'आइसक्रीम'},{l:'J',e:'🫙',w:'Jar',m:'जार'},{l:'K',e:'🪁',w:'Kite',m:'पतंग'},{l:'L',e:'🦁',w:'Lion',m:'शेर'},{l:'M',e:'🐒',w:'Monkey',m:'बंदर'},{l:'N',e:'🪺',w:'Nest',m:'घोंसला'},{l:'O',e:'🍊',w:'Orange',m:'संतरा'},{l:'P',e:'🦜',w:'Parrot',m:'तोता'},{l:'Q',e:'👑',w:'Queen',m:'रानी'},{l:'R',e:'🌈',w:'Rainbow',m:'इंद्रधनुष'},{l:'S',e:'☀️',w:'Sun',m:'सूरज'},{l:'T',e:'🐯',w:'Tiger',m:'बाघ'},{l:'U',e:'☂️',w:'Umbrella',m:'छाता'},{l:'V',e:'🚐',w:'Van',m:'वैन'},{l:'W',e:'🌊',w:'Water',m:'पानी'},{l:'X',e:'🎵',w:'Xylophone',m:'झाइलोफोन'},{l:'Y',e:'💛',w:'Yellow',m:'पीला'},{l:'Z',e:'🦓',w:'Zebra',m:'जेब्रा'},
 ];
 
-const HINDI_VYANJAN = [
-  {letter:'क',emoji:'🕊️',word:'कबूतर',meaning:'Pigeon'},
-  {letter:'ख',emoji:'🐇',word:'खरगोश',meaning:'Rabbit'},
-  {letter:'ग',emoji:'🐄',word:'गाय',meaning:'Cow'},
-  {letter:'घ',emoji:'⏰',word:'घड़ी',meaning:'Clock'},
-  {letter:'च',emoji:'🌙',word:'चाँद',meaning:'Moon'},
-  {letter:'छ',emoji:'☂️',word:'छाता',meaning:'Umbrella'},
-  {letter:'ज',emoji:'🫙',word:'जग',meaning:'Jug'},
-  {letter:'झ',emoji:'💧',word:'झील',meaning:'Lake'},
-  {letter:'ट',emoji:'🍅',word:'टमाटर',meaning:'Tomato'},
-  {letter:'ठ',emoji:'🛒',word:'ठेला',meaning:'Cart'},
-  {letter:'ड',emoji:'🥁',word:'ढोल',meaning:'Drum'},
-  {letter:'त',emoji:'🍉',word:'तरबूज',meaning:'Watermelon'},
-  {letter:'थ',emoji:'🍽️',word:'थाली',meaning:'Plate'},
-  {letter:'द',emoji:'🥛',word:'दूध',meaning:'Milk'},
-  {letter:'न',emoji:'🚢',word:'नाव',meaning:'Boat'},
-  {letter:'प',emoji:'🌸',word:'पुष्प',meaning:'Flower'},
-  {letter:'फ',emoji:'🏀',word:'फुटबॉल',meaning:'Football'},
-  {letter:'ब',emoji:'🐐',word:'बकरी',meaning:'Goat'},
-  {letter:'भ',emoji:'🐻',word:'भालू',meaning:'Bear'},
-  {letter:'म',emoji:'🦚',word:'मोर',meaning:'Peacock'},
-  {letter:'य',emoji:'🚂',word:'यान',meaning:'Vehicle'},
-  {letter:'र',emoji:'🌈',word:'रंग',meaning:'Colour'},
-  {letter:'ल',emoji:'🦊',word:'लोमड़ी',meaning:'Fox'},
-  {letter:'व',emoji:'🌲',word:'वन',meaning:'Forest'},
-  {letter:'स',emoji:'☀️',word:'सूरज',meaning:'Sun'},
-  {letter:'ह',emoji:'🐘',word:'हाथी',meaning:'Elephant'},
-];
-
-const ENGLISH_ABC = [
-  {letter:'A',emoji:'🍎',word:'Apple',meaning:'सेब'},
-  {letter:'B',emoji:'⚽',word:'Ball',meaning:'गेंद'},
-  {letter:'C',emoji:'🐱',word:'Cat',meaning:'बिल्ली'},
-  {letter:'D',emoji:'🐶',word:'Dog',meaning:'कुत्ता'},
-  {letter:'E',emoji:'🐘',word:'Elephant',meaning:'हाथी'},
-  {letter:'F',emoji:'🐟',word:'Fish',meaning:'मछली'},
-  {letter:'G',emoji:'🐐',word:'Goat',meaning:'बकरी'},
-  {letter:'H',emoji:'🏠',word:'House',meaning:'घर'},
-  {letter:'I',emoji:'🍦',word:'Ice cream',meaning:'आइसक्रीम'},
-  {letter:'J',emoji:'🫙',word:'Jar',meaning:'जार'},
-  {letter:'K',emoji:'🪁',word:'Kite',meaning:'पतंग'},
-  {letter:'L',emoji:'🦁',word:'Lion',meaning:'शेर'},
-  {letter:'M',emoji:'🐒',word:'Monkey',meaning:'बंदर'},
-  {letter:'N',emoji:'🪺',word:'Nest',meaning:'घोंसला'},
-  {letter:'O',emoji:'🍊',word:'Orange',meaning:'संतरा'},
-  {letter:'P',emoji:'🦜',word:'Parrot',meaning:'तोता'},
-  {letter:'Q',emoji:'👑',word:'Queen',meaning:'रानी'},
-  {letter:'R',emoji:'🌈',word:'Rainbow',meaning:'इंद्रधनुष'},
-  {letter:'S',emoji:'☀️',word:'Sun',meaning:'सूरज'},
-  {letter:'T',emoji:'🐯',word:'Tiger',meaning:'बाघ'},
-  {letter:'U',emoji:'☂️',word:'Umbrella',meaning:'छाता'},
-  {letter:'V',emoji:'🚐',word:'Van',meaning:'वैन'},
-  {letter:'W',emoji:'🌊',word:'Water',meaning:'पानी'},
-  {letter:'X',emoji:'🎵',word:'Xylophone',meaning:'झाइलोफोन'},
-  {letter:'Y',emoji:'💛',word:'Yellow',meaning:'पीला'},
-  {letter:'Z',emoji:'🦓',word:'Zebra',meaning:'जेब्रा'},
+const WORD_BUILD_WORDS = [
+  {e:'🐘',w:'हाथी',m:'Elephant',lang:'hi'},{e:'🐄',w:'गाय',m:'Cow',lang:'hi'},{e:'🌙',w:'चाँद',m:'Moon',lang:'hi'},{e:'🥭',w:'आम',m:'Mango',lang:'hi'},{e:'🌊',w:'नदी',m:'River',lang:'hi'},{e:'🐱',w:'CAT',m:'बिल्ली',lang:'en'},{e:'⚽',w:'BALL',m:'गेंद',lang:'en'},{e:'☀️',w:'SUN',m:'सूरज',lang:'en'},
 ];
 
 const STORIES = [
-  {id:'s1',title:'बिल्ली और चूहा',subtitle:'हिंदी · 5 पन्ने',banner:'🐱',bg:'linear-gradient(135deg,#f97316,#fb923c)',
-   pages:[
-     {emoji:'🐱',text:'एक बिल्ली थी।'},
-     {emoji:'🐭',text:'एक छोटा चूहा था।'},
-     {emoji:'🏃',text:'बिल्ली ने दौड़ लगाई।'},
-     {emoji:'💨',text:'चूहा तेज भागा।'},
-     {emoji:'🤝',text:'दोनों अच्छे दोस्त बन गए! 🎉'},
-   ]},
-  {id:'s2',title:'सूरज और बादल',subtitle:'हिंदी · 5 पन्ने',banner:'☀️',bg:'linear-gradient(135deg,#fbbf24,#f59e0b)',
-   pages:[
-     {emoji:'☀️',text:'सूरज चमका।'},
-     {emoji:'☁️',text:'काले बादल आए।'},
-     {emoji:'🌧️',text:'ठंडी बारिश हुई।'},
-     {emoji:'🌈',text:'सुंदर इंद्रधनुष निकला।'},
-     {emoji:'😊',text:'सब बच्चे खुश हुए! 🎉'},
-   ]},
-  {id:'s3',title:'The Little Bird',subtitle:'English · 5 pages',banner:'🐦',bg:'linear-gradient(135deg,#3b82f6,#60a5fa)',
-   pages:[
-     {emoji:'🐦🌳',text:'A bird sat on a tree.'},
-     {emoji:'🎵',text:'It sang a sweet song.'},
-     {emoji:'🐱',text:'A cat came near.'},
-     {emoji:'🕊️',text:'The bird flew away.'},
-     {emoji:'😊',text:'The bird was safe and happy! 🎉'},
-   ]},
+  {id:'s1',title:'बिल्ली और चूहा',sub:'हिंदी · 5 पन्ने',banner:'🐱',bg:'linear-gradient(135deg,#f97316,#fb923c)',lang:'hi',
+   pages:[{e:'🐱',t:'एक बिल्ली थी।'},{e:'🐭',t:'एक छोटा चूहा था।'},{e:'🏃',t:'बिल्ली ने दौड़ लगाई।'},{e:'💨',t:'चूहा तेज भागा।'},{e:'🤝',t:'दोनों अच्छे दोस्त बन गए!'}]},
+  {id:'s2',title:'सूरज और बादल',sub:'हिंदी · 5 पन्ने',banner:'☀️',bg:'linear-gradient(135deg,#fbbf24,#f59e0b)',lang:'hi',
+   pages:[{e:'☀️',t:'सूरज चमका।'},{e:'☁️',t:'काले बादल आए।'},{e:'🌧️',t:'ठंडी बारिश हुई।'},{e:'🌈',t:'सुंदर इंद्रधनुष निकला।'},{e:'😊',t:'सब बच्चे खुश हुए!'}]},
+  {id:'s3',title:'The Little Bird',sub:'English · 5 pages',banner:'🐦',bg:'linear-gradient(135deg,#3b82f6,#60a5fa)',lang:'en',
+   pages:[{e:'🐦🌳',t:'A bird sat on a tree.'},{e:'🎵',t:'It sang a sweet song.'},{e:'🐱',t:'A cat came near.'},{e:'🕊️',t:'The bird flew away fast.'},{e:'😊',t:'The bird was safe and happy!'}]},
+  {id:'s4',title:'अकल का फल',sub:'हिंदी · 5 पन्ने',banner:'🦊',bg:'linear-gradient(135deg,#8b5cf6,#7c3aed)',lang:'hi',
+   pages:[{e:'🦊',t:'एक चालाक लोमड़ी थी।'},{e:'🍇',t:'उसने अंगूर देखे।'},{e:'🙏',t:'लोमड़ी ने कोशिश की।'},{e:'😤',t:'अंगूर बहुत ऊँचे थे।'},{e:'💡',t:'मेहनत से ही फल मिलता है!'}]},
+  {id:'s5',title:'The Magic Seed',sub:'English · 5 pages',banner:'🌱',bg:'linear-gradient(135deg,#22c55e,#16a34a)',lang:'en',
+   pages:[{e:'🌱',t:'A boy found a tiny seed.'},{e:'💧',t:'He watered it every day.'},{e:'☀️',t:'The sun gave it warmth.'},{e:'🌳',t:'It grew into a big tree.'},{e:'🎉',t:'Hard work always grows big!'}]},
 ];
 
 const BADGES = [
-  {id:'star1',icon:'⭐',name:'पहला Star',ok:p=>p.stars>=1},
-  {id:'star5',icon:'🌟',name:'5 Stars',ok:p=>p.stars>=5},
-  {id:'star20',icon:'💫',name:'20 Stars',ok:p=>p.stars>=20},
-  {id:'hindi1',icon:'🇮🇳',name:'हिंदी शुरू',ok:p=>p.h.length>=1},
-  {id:'swarGuru',icon:'🏅',name:'स्वर गुरु',ok:p=>p.h.filter(l=>HINDI_SWAR.find(x=>x.letter===l)).length>=11},
-  {id:'eng1',icon:'🔤',name:'ABC शुरू',ok:p=>p.e.length>=1},
-  {id:'engAll',icon:'🏆',name:'ABC Master',ok:p=>p.e.length>=26},
-  {id:'reader',icon:'📖',name:'कहानीकार',ok:p=>p.s.length>=3},
+  {id:'b1',icon:'⭐',name:'पहला Star',ok:p=>p.stars>=1},
+  {id:'b2',icon:'🌟',name:'10 Stars',ok:p=>p.stars>=10},
+  {id:'b3',icon:'💫',name:'50 Stars',ok:p=>p.stars>=50},
+  {id:'b4',icon:'🇮🇳',name:'हिंदी शुरू',ok:p=>p.h.length>=1},
+  {id:'b5',icon:'🏅',name:'स्वर गुरु',ok:p=>HINDI_GROUPS.swar.every(x=>p.h.includes(x.l))},
+  {id:'b6',icon:'🔤',name:'ABC शुरू',ok:p=>p.e.length>=1},
+  {id:'b7',icon:'🏆',name:'ABC Master',ok:p=>p.e.length>=26},
+  {id:'b8',icon:'📖',name:'कहानीकार',ok:p=>p.s.length>=5},
+  {id:'b9',icon:'✏️',name:'लेखक',ok:p=>p.t>=10},
+  {id:'b10',icon:'🎮',name:'खिलाड़ी',ok:p=>p.games>=10},
+  {id:'b11',icon:'🔥',name:'Streak 7',ok:p=>p.streak>=7},
+  {id:'b12',icon:'👑',name:'सब सीखा!',ok:p=>p.h.length+p.e.length>=ALL_HINDI.length+26},
 ];
 
-// ── STATE ─────────────────────────────────────────────────────
-let prog = load();
-let currentLearnTab = 'hindi';
+const LEVELS = [
+  {name:'नया सितारा',min:0,max:20},
+  {name:'सीखो',min:20,max:60},
+  {name:'अभ्यासी',min:60,max:120},
+  {name:'विद्वान',min:120,max:200},
+  {name:'गुरु 👑',min:200,max:200},
+];
+
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+let P = loadState();
 let curLesson = null;
-let curStory = null;
-let curPage = 0;
-let currentGame = null;
-let qList = [], qIdx = 0, qScore = 0;
+let curLang = 'hindi';
+let curHindiGroup = 'swar';
+let curTrace = {letter:'अ',lang:'hi'};
+let curStory = null, curPage = 0;
+let curGame = null;
+let qItems=[], qIdx=0, qSc=0;
+let bItems=[], bRound=0, bSc=0, bTimer=null;
+let memCards=[], memFlipped=[], memPairs=0, memSc=0, memLocked=false;
+let wbItems=[], wbIdx=0, wbSc=0, wbCurrent=null, wbTyped=[];
+let traceDrawn = false;
 
-function load() {
-  try { const d = localStorage.getItem('vkids2');  if(d) return JSON.parse(d); } catch(e){}
-  return {stars:0, h:[], e:[], games:0, s:[]};
+function loadState() {
+  try { const d=localStorage.getItem('vkids3'); if(d) return JSON.parse(d); } catch(e){}
+  return {stars:0,h:[],e:[],t:0,games:0,s:[],streak:0,lastDay:'',avatar:'🦁',name:'',levelXP:0};
 }
-function save() { localStorage.setItem('vkids2', JSON.stringify(prog)); updateStats(); }
+function save() { localStorage.setItem('vkids3',JSON.stringify(P)); updateHdr(); updateHomeStats(); }
 
-// ── NAV ───────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// SPEECH
+// ═══════════════════════════════════════════════════════════
+function speak(text, lang='hi-IN') {
+  if(!window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = lang; u.rate = 0.75; u.pitch = 1.1;
+  speechSynthesis.speak(u);
+}
+
+// ═══════════════════════════════════════════════════════════
+// RIPPLE
+// ═══════════════════════════════════════════════════════════
+document.addEventListener('click', e => {
+  const host = e.target.closest('.ripple-host');
+  if(!host) return;
+  const r = document.createElement('span');
+  r.className = 'ripple';
+  const rect = host.getBoundingClientRect();
+  const size = Math.max(rect.width, rect.height) * 2;
+  r.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX-rect.left-size/2}px;top:${e.clientY-rect.top-size/2}px`;
+  host.appendChild(r);
+  setTimeout(() => r.remove(), 600);
+});
+
+// ═══════════════════════════════════════════════════════════
+// NAV
+// ═══════════════════════════════════════════════════════════
 function goTo(screen) {
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
   document.getElementById('screen-'+screen).classList.add('active');
-  document.getElementById('nav-'+screen).classList.add('active');
-  if(screen==='progress') updateProgressScreen();
+  const nb = document.getElementById('nav-'+screen);
+  if(nb) nb.classList.add('active');
+  if(screen==='progress') renderProgress();
   if(screen==='stories') renderStoryList();
+  if(screen==='trace') initTrace();
 }
 
-// ── LEARN ─────────────────────────────────────────────────────
-function switchLearnTab(tab) {
-  currentLearnTab = tab;
-  document.getElementById('learnHindi').style.display = tab==='hindi'?'':'none';
-  document.getElementById('learnEnglish').style.display = tab==='english'?'':'none';
-  document.getElementById('tabHindi').classList.toggle('active', tab==='hindi');
-  document.getElementById('tabEnglish').classList.toggle('active', tab==='english');
+// ═══════════════════════════════════════════════════════════
+// HEADER / STATS
+// ═══════════════════════════════════════════════════════════
+function updateHdr() {
+  document.getElementById('hStars').textContent = P.stars;
+  document.getElementById('hStreak').textContent = P.streak;
+  document.getElementById('avatarChip').textContent = P.avatar;
+  document.getElementById('heroMascot').textContent = P.avatar;
+  const name = P.name || 'दोस्त';
+  document.getElementById('hdrName').textContent = 'नमस्ते, '+name+' 👋';
+  document.getElementById('heroName').textContent = name+', आज क्या सीखें?';
+  updateLevel();
+}
+function updateHomeStats() {
+  document.getElementById('stLearned').textContent = P.h.length+P.e.length;
+  document.getElementById('stGames').textContent = P.games;
+  document.getElementById('stStories').textContent = P.s.length;
+}
+function updateLevel() {
+  const xp = P.stars;
+  let lvl = LEVELS[LEVELS.length-1];
+  for(let i=0;i<LEVELS.length;i++){if(xp<LEVELS[i].max){lvl=LEVELS[i];break;}}
+  document.getElementById('heroLevelName').textContent = 'Level: '+lvl.name;
+  const pct = lvl.min===lvl.max ? 100 : Math.round((xp-lvl.min)/(lvl.max-lvl.min)*100);
+  document.getElementById('levelBar').style.width = Math.min(100,pct)+'%';
+  document.getElementById('levelLblL').textContent = xp+' XP';
+  document.getElementById('levelLblR').textContent = lvl.max===200 ? 'MAX!' : '→ '+lvl.max+' XP';
+}
+function checkStreak() {
+  const today = new Date().toDateString();
+  if(P.lastDay===today) return;
+  const yday = new Date(Date.now()-86400000).toDateString();
+  P.streak = P.lastDay===yday ? P.streak+1 : 1;
+  P.lastDay = today;
+  save();
 }
 
-function renderLearnGrids() {
-  document.getElementById('hindiSwarGrid').innerHTML = HINDI_SWAR.map((it,i)=>card(it,i,'hs')).join('');
-  document.getElementById('hindiVyanjanGrid').innerHTML = HINDI_VYANJAN.map((it,i)=>card(it,i,'hv')).join('');
-  document.getElementById('englishGrid').innerHTML = ENGLISH_ABC.map((it,i)=>card(it,i,'en')).join('');
+// ═══════════════════════════════════════════════════════════
+// AVATAR
+// ═══════════════════════════════════════════════════════════
+let selectedAv = '🦁';
+function openAvatarPicker() {
+  document.getElementById('avatarOverlay').classList.add('open');
+  document.getElementById('nameInput').value = P.name||'';
+  selectedAv = P.avatar||'🦁';
+  document.querySelectorAll('.av-btn').forEach(b=>{b.classList.toggle('selected',b.dataset.av===selectedAv);});
+}
+function pickAvatar(btn) {
+  document.querySelectorAll('.av-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedAv = btn.dataset.av;
+}
+function saveAvatar() {
+  P.avatar = selectedAv;
+  P.name = document.getElementById('nameInput').value.trim()||'दोस्त';
+  save();
+  document.getElementById('avatarOverlay').classList.remove('open');
+  updateHdr();
 }
 
-function card(it, i, type) {
-  const learned = (type==='en'?prog.e:prog.h).includes(it.letter);
-  return `<div class="letter-card${learned?' learned':''}" onclick="openLesson('${type}',${i})">
-    ${learned?'<span class="learned-badge">✓</span>':''}
-    <span class="letter-main">${it.letter}</span>
-    <span class="letter-emoji">${it.emoji}</span>
-    <div class="letter-word">${it.word}</div>
-    ${type==='en'?`<div class="letter-eng">${it.meaning}</div>`:''}
+// ═══════════════════════════════════════════════════════════
+// LEARN
+// ═══════════════════════════════════════════════════════════
+function switchTab(lang) {
+  curLang = lang;
+  document.getElementById('learnH').style.display = lang==='hindi'?'':'none';
+  document.getElementById('learnE').style.display = lang==='english'?'':'none';
+  document.getElementById('tabH').classList.toggle('active',lang==='hindi');
+  document.getElementById('tabE').classList.toggle('active',lang==='english');
+  if(lang==='hindi') renderHindiGroup(curHindiGroup);
+  else renderEnglish();
+}
+function showHindiGroup(g,btn) {
+  curHindiGroup = g;
+  document.querySelectorAll('#hindiSubTabs .stb').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderHindiGroup(g);
+}
+function renderHindiGroup(g) {
+  const items = HINDI_GROUPS[g]||[];
+  document.getElementById('hindiGrid').innerHTML = items.map((it,i)=>flipCard(it,i,'h')).join('');
+}
+function renderEnglish() {
+  document.getElementById('englishGrid').innerHTML = ENGLISH.map((it,i)=>flipCard(it,i,'e')).join('');
+}
+function flipCard(it,i,type) {
+  const learned = (type==='e'?P.e:P.h).includes(it.l);
+  return `<div class="lcard${learned?' learned':''}" id="fc-${type}-${i}" onclick="tapCard(this,'${type}',${i})">
+    <div class="lcard-inner">
+      <div class="lcard-front">
+        ${learned?'<span class="lc-learned">✓</span>':''}
+        <span class="lc-letter">${it.l}</span>
+        <span class="lc-emoji">${it.e}</span>
+        <div class="lc-word">${it.w}</div>
+      </div>
+      <div class="lcard-back">
+        <span class="lc-back-letter">${it.l}</span>
+        <div class="lc-back-word">${it.w}</div>
+        <div class="lc-back-meaning">${it.m}</div>
+        <span class="speak-btn">🔊</span>
+      </div>
+    </div>
   </div>`;
 }
-
-function openLesson(type, index) {
-  const src = type==='hs'?HINDI_SWAR: type==='hv'?HINDI_VYANJAN: ENGLISH_ABC;
-  const it = src[index];
-  curLesson = {type, index, it};
-  document.getElementById('lessonLetter').textContent = it.letter;
-  document.getElementById('lessonEmoji').textContent = it.emoji;
-  document.getElementById('lessonWord').textContent = it.word;
-  document.getElementById('lessonMeaning').textContent = it.meaning;
+function tapCard(el, type, i) {
+  el.classList.toggle('flipped');
+  const item = type==='e' ? ENGLISH[i] : (HINDI_GROUPS[curHindiGroup]||[])[i];
+  if(!item) return;
+  if(el.classList.contains('flipped')) {
+    speak(item.w, type==='e'?'en-US':'hi-IN');
+    openLesson(type, i, item);
+  }
+}
+function openLesson(type, i, item) {
+  curLesson = {type,i,item};
+  document.getElementById('lLetter').textContent = item.l;
+  document.getElementById('lEmoji').textContent = item.e;
+  document.getElementById('lWord').textContent = item.w;
+  document.getElementById('lMeaning').textContent = item.m;
   document.getElementById('lessonModal').classList.add('open');
 }
-
-function closeLesson() { document.getElementById('lessonModal').classList.remove('open'); curLesson=null; }
-
+function closeLesson() {
+  document.getElementById('lessonModal').classList.remove('open');
+  document.querySelectorAll('.lcard.flipped').forEach(c=>c.classList.remove('flipped'));
+  curLesson=null;
+}
+function speakLesson() {
+  if(!curLesson) return;
+  speak(curLesson.item.w, curLesson.type==='e'?'en-US':'hi-IN');
+}
 function markLearned() {
   if(!curLesson) return;
-  const {type, it} = curLesson;
-  const arr = type==='en' ? prog.e : prog.h;
-  if(!arr.includes(it.letter)) {
-    arr.push(it.letter);
-    prog.stars++;
+  const {type,item} = curLesson;
+  const arr = type==='e'?P.e:P.h;
+  if(!arr.includes(item.l)) {
+    arr.push(item.l);
+    P.stars+=2;
     save();
-    showReward('⭐','शाबाश! +1 Star');
+    showReward('⭐⭐','शाबाश! +2 Stars','सीखते रहो!');
   }
   closeLesson();
-  renderLearnGrids();
+  if(type==='e') renderEnglish(); else renderHindiGroup(curHindiGroup);
 }
 
-// ── GAMES ─────────────────────────────────────────────────────
-function startGame(gameType) {
-  currentGame = gameType;
-  document.getElementById('gameSelect').style.display = 'none';
-  const qa = document.getElementById('quizArea');
-  qa.classList.add('active');
-  document.getElementById('quizResult').style.display = 'none';
-  document.getElementById('quizOptions').style.display = 'grid';
-  document.getElementById('quizQuestion').style.display = 'block';
-  qScore = 0; qIdx = 0;
+// ═══════════════════════════════════════════════════════════
+// TRACE
+// ═══════════════════════════════════════════════════════════
+function initTrace() {
+  const isHindi = document.getElementById('trTabH').classList.contains('active');
+  const items = isHindi ? HINDI_GROUPS.swar.concat(HINDI_GROUPS.ka) : ENGLISH.slice(0,10);
+  document.getElementById('traceLetterBtns').innerHTML = items.map(it=>
+    `<button class="tsel-btn${curTrace.letter===it.l?' active':''} ripple-host" onclick="selectTraceLetter('${it.l}','${isHindi?'hi':'en'}',this)">${it.l}</button>`
+  ).join('');
+  drawTraceGuide();
+}
+function switchTraceTab(lang) {
+  document.getElementById('trTabH').classList.toggle('active',lang==='hindi');
+  document.getElementById('trTabE').classList.toggle('active',lang==='english');
+  curTrace.letter = lang==='hindi'?'अ':'A';
+  curTrace.lang = lang==='hindi'?'hi':'en';
+  initTrace();
+}
+function selectTraceLetter(l,lang,btn) {
+  curTrace = {letter:l,lang};
+  document.querySelectorAll('.tsel-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  drawTraceGuide();
+  clearTrace();
+}
+function drawTraceGuide() {
+  document.getElementById('traceGuide').textContent = curTrace.letter;
+}
 
-  const pool = gameType==='spellingBee'
-    ? shuffle([...ENGLISH_ABC]).slice(0,10)
-    : shuffle([...HINDI_SWAR,...HINDI_VYANJAN]).slice(0,10);
-  qList = pool;
-  document.getElementById('quizTotal').textContent = qList.length;
+const tc = document.getElementById('traceCanvas');
+const ctx2 = tc.getContext('2d');
+let tDrawing = false, tStrokes = 0;
+function resizeCanvas() {
+  const w = Math.min(window.innerWidth-64, 420);
+  tc.width = w; tc.height = 200;
+  clearTrace();
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
 
-  const qtxt = gameType==='letterQuiz' ? 'इस अक्षर का शब्द क्या है?'
-             : gameType==='wordMatch' ? 'यह किस अक्षर से शुरू होता है?'
-             : 'इस emoji का English letter कौन सा है?';
-  document.getElementById('quizQText').textContent = qtxt;
+function getPos(e) {
+  const rect = tc.getBoundingClientRect();
+  const src = e.touches ? e.touches[0] : e;
+  return {x:(src.clientX-rect.left)*(tc.width/rect.width), y:(src.clientY-rect.top)*(tc.height/rect.height)};
+}
+tc.addEventListener('mousedown', e=>{tDrawing=true;ctx2.beginPath();const p=getPos(e);ctx2.moveTo(p.x,p.y);});
+tc.addEventListener('mousemove', e=>{if(!tDrawing)return;const p=getPos(e);ctx2.lineTo(p.x,p.y);ctx2.strokeStyle='#6d28d9';ctx2.lineWidth=6;ctx2.lineCap='round';ctx2.stroke();traceDrawn=true;});
+tc.addEventListener('mouseup', ()=>{if(tDrawing){tDrawing=false;tStrokes++;}});
+tc.addEventListener('touchstart', e=>{e.preventDefault();tDrawing=true;ctx2.beginPath();const p=getPos(e);ctx2.moveTo(p.x,p.y);},{passive:false});
+tc.addEventListener('touchmove', e=>{e.preventDefault();if(!tDrawing)return;const p=getPos(e);ctx2.lineTo(p.x,p.y);ctx2.strokeStyle='#6d28d9';ctx2.lineWidth=8;ctx2.lineCap='round';ctx2.stroke();traceDrawn=true;},{passive:false});
+tc.addEventListener('touchend', ()=>{if(tDrawing){tDrawing=false;tStrokes++;}});
+
+function clearTrace() { ctx2.clearRect(0,0,tc.width,tc.height); traceDrawn=false; tStrokes=0; }
+function doneTrace() {
+  if(!traceDrawn) { speak('पहले अक्षर बनाओ','hi-IN'); return; }
+  P.stars+=1; P.t++;
+  save();
+  speak(curTrace.letter, curTrace.lang==='hi'?'hi-IN':'en-US');
+  showReward('✏️⭐','बहुत अच्छा!','अक्षर लिखा — +1 Star');
+  clearTrace();
+}
+
+// ═══════════════════════════════════════════════════════════
+// GAMES
+// ═══════════════════════════════════════════════════════════
+function showGamePanel(id) {
+  ['gQuiz','gBubble','gMemory','gWordBuild','gResult'].forEach(d=>{
+    const el=document.getElementById(d);
+    el.classList.toggle('hidden',el.id!==id);
+  });
+}
+function startGame(type) {
+  curGame = type;
+  document.getElementById('gameListView').style.display='none';
+  document.getElementById('gamePlayView').classList.add('active');
+  document.getElementById('gResult').classList.add('hidden');
+  P.games++; save();
+  if(type==='quiz'||type==='english') startQuizGame(type);
+  else if(type==='bubble') startBubble();
+  else if(type==='memory') startMemory();
+  else if(type==='wordbuild') startWordBuild();
+}
+function exitGame() {
+  if(bTimer) {clearInterval(bTimer);bTimer=null;}
+  document.getElementById('gameListView').style.display='';
+  document.getElementById('gamePlayView').classList.remove('active');
+  curGame=null;
+}
+
+/* ── QUIZ ── */
+function startQuizGame(type) {
+  showGamePanel('gQuiz');
+  qSc=0; qIdx=0;
+  const pool = type==='english' ? ENGLISH : shuffle([...ALL_HINDI]).slice(0,10);
+  qItems = type==='english' ? shuffle([...pool]).slice(0,10) : pool.slice(0,10);
+  document.getElementById('qTot').textContent = qItems.length;
+  document.getElementById('qTxt').textContent = type==='english'?'इस emoji का English letter?':'इस अक्षर का शब्द क्या है?';
   renderQ();
 }
-
 function renderQ() {
-  if(qIdx >= qList.length) { showResult(); return; }
-  const q = qList[qIdx];
-  document.getElementById('quizScore').textContent = qScore;
-  document.getElementById('quizCurrent').textContent = qIdx+1;
-
-  if(currentGame==='letterQuiz') document.getElementById('quizBig').textContent = q.letter;
-  else document.getElementById('quizBig').textContent = q.emoji;
-
-  const fullPool = currentGame==='spellingBee' ? ENGLISH_ABC : [...HINDI_SWAR,...HINDI_VYANJAN];
-  const wrong = shuffle(fullPool.filter(x=>x.letter!==q.letter)).slice(0,3);
+  if(qIdx>=qItems.length){endQuiz();return;}
+  document.getElementById('qSc').textContent = qSc;
+  document.getElementById('qCur').textContent = qIdx+1;
+  document.getElementById('qFill').style.width = Math.round((qIdx/qItems.length)*100)+'%';
+  const q = qItems[qIdx];
+  if(curGame==='english') document.getElementById('qBig').textContent=q.e;
+  else document.getElementById('qBig').textContent=q.l;
+  speak(curGame==='english'?q.w:q.l, curGame==='english'?'en-US':'hi-IN');
+  const fullPool = curGame==='english'?ENGLISH:ALL_HINDI;
+  const wrong = shuffle(fullPool.filter(x=>x.l!==q.l)).slice(0,3);
   const opts = shuffle([q,...wrong]);
-
-  document.getElementById('quizOptions').innerHTML = opts.map(opt => {
-    const isC = opt.letter === q.letter;
-    let inner = '';
-    if(currentGame==='letterQuiz') inner = `<span style="font-size:20px">${opt.emoji}</span><span class="quiz-opt-label">${opt.word}</span>`;
-    else inner = `<span style="font-size:32px">${opt.letter}</span>`;
-    return `<button class="quiz-opt" data-c="${isC}" onclick="checkAns(this,${isC})">${inner}</button>`;
+  document.getElementById('qOpts').innerHTML = opts.map(o=>{
+    const isC = o.l===q.l;
+    const inner = curGame==='english'
+      ? `<span style="font-size:26px">${o.l}</span>`
+      : `<span style="font-size:22px">${o.e}</span><span class="qopt-lbl">${o.w}</span>`;
+    return `<button class="qopt ripple-host" data-c="${isC}" onclick="checkQ(this,${isC})">${inner}</button>`;
   }).join('');
 }
+function checkQ(btn, isC) {
+  document.querySelectorAll('.qopt').forEach(o=>o.classList.add('disabled'));
+  btn.classList.add(isC?'correct':'wrong');
+  if(!isC) document.querySelectorAll('.qopt[data-c="true"]').forEach(o=>o.classList.add('show-correct'));
+  if(isC){qSc++;P.stars++;save();}
+  setTimeout(()=>{qIdx++;renderQ();},900);
+}
+function endQuiz() {
+  showGamePanel('gResult');
+  const pct=Math.round(qSc/qItems.length*100);
+  document.getElementById('resEmoji').textContent=pct>=80?'🎉':pct>=50?'👍':'💪';
+  document.getElementById('resText').textContent=pct>=80?`शाबाश! ${qSc}/${qItems.length} सही!`:pct>=50?`अच्छा! ${qSc}/${qItems.length} सही`:`${qSc}/${qItems.length} — फिर कोशिश करो!`;
+  document.getElementById('resPlayAgain').onclick=()=>startGame(curGame);
+  if(pct>=80) launchConfetti();
+}
 
-function checkAns(btn, isC) {
-  document.querySelectorAll('.quiz-opt').forEach(o=>o.classList.add('disabled'));
-  if(isC) { btn.classList.add('correct'); qScore++; prog.stars++; save(); }
-  else {
-    btn.classList.add('wrong');
-    document.querySelectorAll('.quiz-opt[data-c="true"]').forEach(o=>o.classList.add('correct'));
+/* ── BUBBLE POP ── */
+const BUBBLE_COLORS=['#6d28d9','#ec4899','#2563eb','#16a34a','#ea580c','#d97706'];
+function startBubble() {
+  showGamePanel('gBubble');
+  bSc=0; bRound=0; bItems=shuffle([...ALL_HINDI]).slice(0,10);
+  nextBubbleRound();
+}
+function nextBubbleRound() {
+  if(bRound>=bItems.length){endBubble();return;}
+  const target=bItems[bRound];
+  document.getElementById('bTarget').textContent=target.l;
+  document.getElementById('bRnd').textContent=bRound+1;
+  document.getElementById('bSc').textContent=bSc;
+  speak(target.l,'hi-IN');
+  const arena=document.getElementById('bArena');
+  arena.innerHTML='';
+  const pool=shuffle(ALL_HINDI.filter(x=>x.l!==target.l)).slice(0,5);
+  const items=shuffle([target,...pool]);
+  items.forEach((it,i)=>{
+    const b=document.createElement('div');
+    b.className='bubble ripple-host';
+    const size=50+Math.random()*20;
+    const x=5+Math.random()*75;
+    const dur=3+Math.random()*2;
+    b.style.cssText=`width:${size}px;height:${size}px;left:${x}%;font-size:${size*.45}px;background:${BUBBLE_COLORS[i%BUBBLE_COLORS.length]};animation-duration:${dur}s`;
+    b.textContent=it.l;
+    b.dataset.correct=it.l===target.l;
+    b.addEventListener('click',()=>popBubble(b,it.l===target.l));
+    arena.appendChild(b);
+  });
+}
+function popBubble(btn,isC) {
+  if(isC){bSc++;P.stars++;save();showMini('✅ सही!');bRound++;}
+  else{showMini('❌ गलत!');}
+  const arena=document.getElementById('bArena');
+  arena.querySelectorAll('.bubble').forEach(b=>b.style.pointerEvents='none');
+  setTimeout(()=>{nextBubbleRound();},700);
+}
+function endBubble() {
+  showGamePanel('gResult');
+  document.getElementById('resEmoji').textContent=bSc>=7?'🎉':'👍';
+  document.getElementById('resText').textContent=`Bubble Pop: ${bSc}/10 सही!`;
+  document.getElementById('resPlayAgain').onclick=()=>startGame('bubble');
+  if(bSc>=7) launchConfetti();
+}
+
+/* ── MEMORY MATCH ── */
+function startMemory() {
+  showGamePanel('gMemory');
+  memPairs=0; memSc=0; memFlipped=[]; memLocked=false;
+  const pool=shuffle([...ENGLISH]).slice(0,8);
+  const cards=[...pool.map(it=>({...it,side:'letter'})),...pool.map(it=>({...it,side:'emoji'}))];
+  memCards=shuffle(cards);
+  document.getElementById('mPairs').textContent='0';
+  document.getElementById('mSc').textContent='0';
+  document.getElementById('mmGrid').innerHTML=memCards.map((_,i)=>`
+    <div class="mcard-wrap" id="mc-${i}" onclick="flipMem(${i})">
+      <div class="mcard-i">
+        <div class="mcard-f">❓</div>
+        <div class="mcard-b" id="mcb-${i}"></div>
+      </div>
+    </div>`).join('');
+}
+function flipMem(i) {
+  if(memLocked) return;
+  const el=document.getElementById(`mc-${i}`);
+  if(el.classList.contains('flipped')||el.classList.contains('matched')) return;
+  const card=memCards[i];
+  document.getElementById(`mcb-${i}`).textContent=card.side==='letter'?card.l:card.e;
+  el.classList.add('flipped');
+  speak(card.side==='letter'?card.l:card.w, 'en-US');
+  memFlipped.push(i);
+  if(memFlipped.length===2) {
+    memLocked=true;
+    setTimeout(checkMemMatch,700);
   }
-  setTimeout(()=>{ qIdx++; document.querySelectorAll('.quiz-opt').forEach(o=>o.classList.remove('correct','wrong','disabled')); renderQ(); }, 900);
+}
+function checkMemMatch() {
+  const [a,b]=memFlipped;
+  const ca=memCards[a], cb=memCards[b];
+  if(ca.l===cb.l&&ca.side!==cb.side) {
+    document.getElementById(`mc-${a}`).classList.add('matched');
+    document.getElementById(`mc-${b}`).classList.add('matched');
+    memPairs++; memSc+=2; P.stars+=2; save();
+    document.getElementById('mPairs').textContent=memPairs;
+    document.getElementById('mSc').textContent=memSc;
+    if(memPairs===8){setTimeout(endMemory,500);}
+  } else {
+    document.getElementById(`mc-${a}`).classList.remove('flipped');
+    document.getElementById(`mc-${b}`).classList.remove('flipped');
+  }
+  memFlipped=[]; memLocked=false;
+}
+function endMemory() {
+  showGamePanel('gResult');
+  document.getElementById('resEmoji').textContent='🎉';
+  document.getElementById('resText').textContent=`Memory Master! ${memSc} Stars मिले!`;
+  document.getElementById('resPlayAgain').onclick=()=>startGame('memory');
+  launchConfetti();
 }
 
-function showResult() {
-  document.getElementById('quizOptions').style.display = 'none';
-  document.getElementById('quizQuestion').style.display = 'none';
-  document.getElementById('quizResult').style.display = 'block';
-  prog.games++; save();
-  const pct = Math.round(qScore/qList.length*100);
-  document.getElementById('resultEmoji').textContent = pct>=80?'🎉':pct>=50?'👍':'💪';
-  document.getElementById('resultText').textContent = pct>=80?`बहुत अच्छा! ${qScore}/${qList.length} सही!`
-    : pct>=50?`अच्छा! ${qScore}/${qList.length} सही`:`${qScore}/${qList.length} — फिर कोशिश करो!`;
+/* ── WORD BUILDER ── */
+function startWordBuild() {
+  showGamePanel('gWordBuild');
+  wbSc=0; wbIdx=0;
+  wbItems=shuffle([...WORD_BUILD_WORDS]);
+  nextWBWord();
+}
+function nextWBWord() {
+  if(wbIdx>=wbItems.length){endWB();return;}
+  wbCurrent=wbItems[wbIdx]; wbTyped=[];
+  document.getElementById('wbSc').textContent=wbSc;
+  document.getElementById('wbCur').textContent=wbIdx+1;
+  document.getElementById('wbEmoji').textContent=wbCurrent.e;
+  document.getElementById('wbHint').textContent='शब्द बनाओ! ('+wbCurrent.m+')';
+  speak(wbCurrent.w,wbCurrent.lang==='hi'?'hi-IN':'en-US');
+  const letters=[...wbCurrent.w];
+  document.getElementById('wbSlots').innerHTML=letters.map((_,i)=>`<div class="wb-slot" id="wbs-${i}"></div>`).join('');
+  const shuffled=shuffle([...letters]);
+  document.getElementById('wbChoices').innerHTML=shuffled.map((ch,i)=>`<button class="wb-choice ripple-host" id="wbc-${i}" onclick="tapWBLetter('${ch}',${i})">${ch}</button>`).join('');
+}
+function tapWBLetter(ch, btnIdx) {
+  const btn=document.getElementById(`wbc-${btnIdx}`);
+  if(btn.classList.contains('used')) return;
+  wbTyped.push({ch,btnIdx});
+  btn.classList.add('used');
+  const slotEl=document.getElementById(`wbs-${wbTyped.length-1}`);
+  if(slotEl){slotEl.textContent=ch;slotEl.classList.add('filled');}
+  if(wbTyped.length===[...wbCurrent.w].length) {
+    const typed=wbTyped.map(x=>x.ch).join('');
+    if(typed===wbCurrent.w){
+      wbSc+=3;P.stars+=3;save();showMini('🎉 सही! +3 Stars');
+      setTimeout(()=>{wbIdx++;nextWBWord();},1000);
+    } else {
+      showMini('❌ गलत! फिर कोशिश करो');
+      setTimeout(()=>{
+        wbTyped=[];
+        document.querySelectorAll('.wb-slot').forEach(s=>{s.textContent='';s.classList.remove('filled');});
+        document.querySelectorAll('.wb-choice').forEach(b=>b.classList.remove('used'));
+      },800);
+    }
+  }
+}
+function endWB() {
+  showGamePanel('gResult');
+  document.getElementById('resEmoji').textContent='🧩';
+  document.getElementById('resText').textContent=`Word Builder: ${wbSc} Stars!`;
+  document.getElementById('resPlayAgain').onclick=()=>startGame('wordbuild');
+  if(wbSc>10) launchConfetti();
 }
 
-function endGame() {
-  document.getElementById('gameSelect').style.display = '';
-  document.getElementById('quizArea').classList.remove('active');
-  currentGame = null;
+/* ── MINI TOAST ── */
+function showMini(txt) {
+  let el=document.getElementById('miniToast');
+  if(!el){el=document.createElement('div');el.id='miniToast';el.style.cssText='position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#1e1b4b;color:#fff;padding:10px 20px;border-radius:20px;font-size:16px;font-weight:800;z-index:600;transition:opacity .3s';document.body.appendChild(el);}
+  el.textContent=txt; el.style.opacity='1';
+  clearTimeout(el._t); el._t=setTimeout(()=>el.style.opacity='0',1200);
 }
 
-// ── STORIES ───────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// STORIES
+// ═══════════════════════════════════════════════════════════
 function renderStoryList() {
-  document.getElementById('storyList').innerHTML = `<div class="section-title">कहानियां पढ़ो 📖</div>`
-    + STORIES.map(st => {
-        const read = prog.s.includes(st.id);
-        return `<button class="story-card" onclick="openStory('${st.id}')">
-          <div class="story-banner" style="background:${st.bg}">${st.banner}</div>
-          <div class="story-info">
-            <div class="story-title">${st.title}</div>
-            <div class="story-meta">${st.subtitle}</div>
-            ${read?'<div class="story-read">✓ पढ़ चुके हैं</div>':''}
-          </div>
-        </button>`;
-      }).join('');
+  document.getElementById('storyList').innerHTML=`<div class="stitle">कहानियां पढ़ो 📖</div>`+
+    STORIES.map(st=>{
+      const read=P.s.includes(st.id);
+      return `<button class="scrd ripple-host" onclick="openStory('${st.id}')">
+        <div class="sbanner" style="background:${st.bg}">${st.banner}</div>
+        <div class="sinfo">
+          <div class="stitle-card">${st.title}</div>
+          <div class="smeta">${st.sub}</div>
+          ${read?'<div class="sread">✓ पढ़ चुके हैं</div>':''}
+        </div>
+      </button>`;
+    }).join('');
 }
-
 function openStory(id) {
-  curStory = STORIES.find(s=>s.id===id); curPage=0;
+  curStory=STORIES.find(s=>s.id===id); curPage=0;
   document.getElementById('storyList').style.display='none';
   document.getElementById('storyReader').classList.add('active');
-  document.getElementById('storyTitle').textContent = curStory.title;
+  document.getElementById('storyTitle').textContent=curStory.title;
   renderSPage();
 }
-
 function closeStory() {
   document.getElementById('storyList').style.display='';
   document.getElementById('storyReader').classList.remove('active');
-  curStory=null;
+  curStory=null; speechSynthesis.cancel();
 }
-
 function renderSPage() {
-  const p = curStory.pages[curPage];
-  document.getElementById('pageEmoji').textContent = p.emoji;
-  document.getElementById('pageText').textContent = p.text;
-  const isLast = curPage===curStory.pages.length-1;
-  document.getElementById('prevBtn').style.visibility = curPage===0?'hidden':'';
-  document.getElementById('nextBtn').textContent = isLast?'★ पूरी पढ़ी!':'अगला →';
-  document.getElementById('storyDots').innerHTML = curStory.pages.map((_,i)=>`<div class="dot${i===curPage?' active':''}"></div>`).join('');
-  if(isLast && !prog.s.includes(curStory.id)) {
-    prog.s.push(curStory.id); prog.stars+=3; save();
-    setTimeout(()=>showReward('📖⭐⭐⭐','कहानी पूरी! +3 Stars'),600);
+  const p=curStory.pages[curPage];
+  document.getElementById('spEmoji').textContent=p.e;
+  const words=p.t.split(' ');
+  document.getElementById('spText').innerHTML=words.map((w,i)=>`<span class="sword ripple-host" onclick="tapWord(this,'${w.replace(/'/g,"\\'")}','${curStory.lang}')">${w}</span>`).join(' ');
+  const isLast=curPage===curStory.pages.length-1;
+  document.getElementById('spPrev').style.visibility=curPage===0?'hidden':'';
+  document.getElementById('spNext').textContent=isLast?'★ खत्म!':'अगला →';
+  document.getElementById('spDots').innerHTML=curStory.pages.map((_,i)=>`<div class="sdot${i===curPage?' active':''}"></div>`).join('');
+  if(isLast&&!P.s.includes(curStory.id)){
+    P.s.push(curStory.id);P.stars+=5;save();
+    setTimeout(()=>{showReward('📖🎉','कहानी पूरी!','+5 Stars मिले!');launchConfetti();},500);
   }
 }
-
+function tapWord(el,word,lang) {
+  document.querySelectorAll('.sword.active').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');
+  speak(word,lang==='hi'?'hi-IN':'en-US');
+}
+function readPageAloud() {
+  if(!curStory) return;
+  const p=curStory.pages[curPage];
+  speak(p.t,curStory.lang==='hi'?'hi-IN':'en-US');
+}
 function changePage(dir) {
-  const np = curPage+dir;
+  const np=curPage+dir;
   if(np<0) return;
   if(np>=curStory.pages.length){closeStory();return;}
   curPage=np; renderSPage();
 }
 
-// ── PROGRESS ──────────────────────────────────────────────────
-function updateStats() {
-  document.getElementById('headerStars').textContent = prog.stars;
-  document.getElementById('statLearned').textContent = prog.h.length+prog.e.length;
-  document.getElementById('statGames').textContent = prog.games;
-  document.getElementById('statStories').textContent = prog.s.length;
-}
-
-function updateProgressScreen() {
-  document.getElementById('progStars').textContent = prog.stars;
-  const totH = HINDI_SWAR.length+HINDI_VYANJAN.length;
-  const pH = Math.round(prog.h.length/totH*100);
-  document.getElementById('barHindi').style.width = pH+'%';
-  document.getElementById('pctHindi').textContent = pH+'%';
-  const pE = Math.round(prog.e.length/26*100);
-  document.getElementById('barEnglish').style.width = pE+'%';
-  document.getElementById('pctEnglish').textContent = pE+'%';
-  const pG = Math.min(100,Math.round(prog.games/30*100));
-  document.getElementById('barGames').style.width = pG+'%';
-  document.getElementById('pctGames').textContent = prog.games;
-  const pS = Math.round(prog.s.length/3*100);
-  document.getElementById('barStories').style.width = pS+'%';
-  document.getElementById('pctStories').textContent = prog.s.length+'/3';
-  document.getElementById('badgesGrid').innerHTML = BADGES.map(b=>`
-    <div class="badge-item${b.ok(prog)?'':' locked'}">
-      <span class="badge-icon">${b.icon}</span>
-      <div class="badge-name">${b.name}</div>
+// ═══════════════════════════════════════════════════════════
+// PROGRESS
+// ═══════════════════════════════════════════════════════════
+function renderProgress() {
+  document.getElementById('pStars').textContent=P.stars;
+  const lvl=LEVELS.find(l=>P.stars<l.max)||LEVELS[LEVELS.length-1];
+  document.getElementById('pLevel').textContent=lvl.name;
+  const totH=ALL_HINDI.length;
+  const pH=Math.round(P.h.length/totH*100);
+  document.getElementById('barH').style.width=pH+'%'; document.getElementById('pctH').textContent=pH+'%';
+  const pE=Math.round(P.e.length/26*100);
+  document.getElementById('barE').style.width=pE+'%'; document.getElementById('pctE').textContent=pE+'%';
+  document.getElementById('barT').style.width=Math.min(100,P.t*2)+'%'; document.getElementById('pctT').textContent=P.t;
+  document.getElementById('barG').style.width=Math.min(100,P.games*3)+'%'; document.getElementById('pctG').textContent=P.games;
+  const pS=Math.round(P.s.length/5*100);
+  document.getElementById('barS').style.width=pS+'%'; document.getElementById('pctS').textContent=P.s.length+'/5';
+  document.getElementById('bdgGrid').innerHTML=BADGES.map(b=>`
+    <div class="bdg${b.ok(P)?'':' locked'}">
+      <span class="bdg-icon">${b.icon}</span>
+      <div class="bdg-name">${b.name}</div>
     </div>`).join('');
 }
 
-// ── REWARD ────────────────────────────────────────────────────
-function showReward(emoji, text) {
-  const o = document.getElementById('rewardOverlay');
-  document.getElementById('rewardEmoji').textContent = emoji;
-  document.getElementById('rewardText').textContent = text;
-  o.classList.add('show');
-  setTimeout(()=>o.classList.remove('show'), 2200);
+// ═══════════════════════════════════════════════════════════
+// REWARD + CONFETTI
+// ═══════════════════════════════════════════════════════════
+function showReward(big,text,sub='') {
+  document.getElementById('rewardBig').textContent=big;
+  document.getElementById('rewardText').textContent=text;
+  document.getElementById('rewardSub').textContent=sub;
+  document.getElementById('rewardOverlay').classList.add('show');
+}
+function closeReward() { document.getElementById('rewardOverlay').classList.remove('show'); }
+
+function launchConfetti() {
+  const cv=document.getElementById('confettiCanvas');
+  cv.width=window.innerWidth; cv.height=window.innerHeight;
+  cv.style.display='block';
+  const ctx=cv.getContext('2d');
+  const colors=['#6d28d9','#ec4899','#22c55e','#f97316','#3b82f6','#fbbf24','#ef4444'];
+  const parts=Array.from({length:100},()=>({
+    x:Math.random()*cv.width, y:-20,
+    vx:(Math.random()-0.5)*7, vy:Math.random()*5+2,
+    color:colors[Math.floor(Math.random()*colors.length)],
+    size:Math.random()*9+4, spin:Math.random()*Math.PI*2,
+    sp:(Math.random()-.5)*.25, shape:Math.random()>.5?'rect':'circle'
+  }));
+  let frame=0;
+  function draw() {
+    ctx.clearRect(0,0,cv.width,cv.height);
+    parts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; p.vy+=0.08; p.spin+=p.sp;
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.spin); ctx.fillStyle=p.color;
+      if(p.shape==='circle'){ctx.beginPath();ctx.arc(0,0,p.size/2,0,Math.PI*2);ctx.fill();}
+      else ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size);
+      ctx.restore();
+    });
+    frame++;
+    if(frame<150) requestAnimationFrame(draw);
+    else cv.style.display='none';
+  }
+  draw();
 }
 
-// ── UTILS ─────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════════
 function shuffle(a) {
   const b=[...a];
   for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}
   return b;
 }
 
-// ── INIT ──────────────────────────────────────────────────────
-renderLearnGrids();
-renderStoryList();
-updateStats();
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+(function init() {
+  checkStreak();
+  updateHdr();
+  updateHomeStats();
+  renderHindiGroup('swar');
+  renderEnglish();
+  renderStoryList();
+  if(!P.name) {
+    setTimeout(()=>document.getElementById('avatarOverlay').classList.add('open'),600);
+  }
+})();
 </script>
 </body>
 </html>

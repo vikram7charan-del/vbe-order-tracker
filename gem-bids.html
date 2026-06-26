@@ -244,7 +244,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
 .sh-lbl{font-size:5pt;text-transform:uppercase;letter-spacing:.12em;color:#C9A227;margin-top:5px;margin-bottom:1px;}
 .sh-det{font-size:5.5pt;color:rgba(255,255,255,.78);line-height:1.55;word-break:break-word;}
 .sh-spacer{flex:1;}
-.sh-ids{font-size:5pt;color:rgba(255,255,255,.5);line-height:1.65;border-top:1px solid rgba(201,162,39,.3);padding-top:5px;margin-top:5px;}
+.sh-chips{display:flex;gap:3px;flex-wrap:wrap;margin:5px 0 3px;}
+.sh-chip{font-size:4.5pt;text-transform:uppercase;letter-spacing:.09em;font-weight:700;background:rgba(201,162,39,.18);color:#C9A227;padding:2px 5px;border-radius:2px;border:1px solid rgba(201,162,39,.4);}
+.sh-ids{font-size:5pt;color:rgba(255,255,255,.5);line-height:1.65;border-top:1px solid rgba(201,162,39,.3);padding-top:5px;margin-top:3px;}
 .sh-spine-rule{width:3px;flex-shrink:0;background:linear-gradient(to bottom,transparent 5%,#C9A227 18%,#C9A227 82%,transparent 95%);}
 .sh-main{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:8mm 8mm 6mm 6mm;}
 .sh-bid{border-left:3px solid #C9A227;background:rgba(15,110,99,.06);padding:4px 8px;margin-bottom:5px;font-size:7pt;color:#16201e;line-height:1.7;flex-shrink:0;}
@@ -265,6 +267,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
 .vbe-drule::before,.vbe-drule::after{content:'';height:1.5px;background:#D4A017;opacity:.8;}
 .vbe-ids{font-size:6.5pt;color:#444;letter-spacing:.04em;line-height:1.6;}
 .vbe-addr{font-size:6pt;color:#666;line-height:1.5;margin-top:1px;}
+.vbe-badges{display:flex;gap:3px;justify-content:center;flex-wrap:wrap;margin:3px 0 1px;}
+.vbe-badge{font-size:5pt;text-transform:uppercase;letter-spacing:.1em;color:#0A2540;padding:2px 8px;border:1px solid #D4A017;border-radius:2px;background:#f5f3ee;font-weight:600;}
 .vbe-strip{background:#f5f3ee;border-top:1.5px solid #D4A017;border-bottom:1.5px solid #D4A017;padding:4px 10px;margin:5px 0;font-size:7.5pt;color:#1a1f29;text-align:center;line-height:1.7;flex-shrink:0;}
 .vbe-strip b{color:#0A2540;font-weight:700;}
 .vbe-ft{border-top:1px solid #D4A017;padding-top:3px;margin-top:5px;font-size:5.5pt;color:#888;display:flex;justify-content:space-between;flex-shrink:0;}
@@ -277,10 +281,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
 .bct-hname{font-family:'Fraunces',Georgia,serif;font-size:16pt;font-weight:900;color:#fff;letter-spacing:1.8px;text-transform:uppercase;line-height:1;margin-bottom:3px;}
 .bct-htagline{font-size:6pt;letter-spacing:.2em;text-transform:uppercase;color:#B0843A;}
 .bct-hids{font-size:5.5pt;color:rgba(255,255,255,.58);line-height:1.6;text-align:right;max-width:52mm;flex-shrink:0;}
-.bct-crule{height:2px;background:#B0843A;flex-shrink:0;}
-.bct-wrule{height:1px;background:#2d3e50;opacity:.6;flex-shrink:0;margin-top:1px;}
+.bct-crule{height:2.5px;background:#B0843A;flex-shrink:0;}
+.bct-chips{display:flex;gap:3px;padding:2.5px 8mm;background:#eef1f4;flex-shrink:0;flex-wrap:wrap;align-items:center;}
+.bct-chip{font-size:4.8pt;text-transform:uppercase;letter-spacing:.12em;font-weight:700;color:#1C2630;padding:2px 7px;border:1px solid rgba(28,38,48,.35);border-radius:2px;}
+.bct-wrule{height:1px;background:#2d3e50;opacity:.4;flex-shrink:0;}
 .bct-body{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:4mm 8mm 3mm;min-height:0;}
-.bct-bid{border-left:3px solid #B0843A;padding:3px 8px;margin-bottom:5px;font-size:7pt;color:#1e2c38;line-height:1.7;flex-shrink:0;}
+.bct-bid{display:flex;justify-content:space-between;border-left:3px solid #B0843A;padding:4px 10px;margin-bottom:5px;font-size:7pt;color:#1e2c38;line-height:1.7;flex-shrink:0;}
 .bct-bid b{color:#1C2630;font-weight:600;}
 .bct-fband{background:#1C2630;padding:2.5mm 8mm;flex-shrink:0;font-size:5.5pt;color:rgba(255,255,255,.48);display:flex;justify-content:space-between;}
 
@@ -314,17 +320,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
 
 /* LAYOUT 5: UB — gradient-modern (indigo) */
 .ub-page{font-family:'Outfit',Arial,sans-serif;background:#f7f6fb;display:flex;flex-direction:column;}
-.ub-hero{flex-shrink:0;min-height:50mm;background:linear-gradient(135deg,#2B2A78 0%,#5B2B8A 55%,#7B3FB0 100%);clip-path:polygon(0 0,100% 0,100% 78%,0 100%);padding:8mm 9mm 12mm;display:flex;align-items:flex-start;gap:6mm;}
-.ub-logo{width:56px;height:56px;border-radius:10px;background:#E0B13A;display:flex;align-items:center;justify-content:center;color:#2B2A78;font-weight:900;font-size:15px;flex-shrink:0;font-family:'Sora',Arial,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.3);}
+.ub-hero{flex-shrink:0;background:linear-gradient(135deg,#2B2A78 0%,#5B2B8A 55%,#7B3FB0 100%);clip-path:polygon(0 0,100% 0,100% 82%,0 100%);padding:5mm 9mm 11mm;display:flex;flex-direction:column;gap:3px;}
+.ub-hero-top{display:flex;align-items:center;gap:5mm;}
+.ub-logo{width:52px;height:52px;border-radius:10px;background:#E0B13A;display:flex;align-items:center;justify-content:center;color:#2B2A78;font-weight:900;font-size:14px;flex-shrink:0;font-family:'Sora',Arial,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.3);}
 .ub-ht{flex:1;}
-.ub-hname{font-family:'Sora',Arial,sans-serif;font-size:15pt;font-weight:800;color:#fff;letter-spacing:.8px;line-height:1.15;margin-bottom:3px;}
-.ub-htagline{font-size:6pt;letter-spacing:.18em;text-transform:uppercase;color:#E0B13A;margin-bottom:6px;}
-.ub-chips{display:flex;gap:4px;flex-wrap:wrap;}
-.ub-chip{font-size:5.5pt;text-transform:uppercase;letter-spacing:.1em;background:rgba(255,255,255,.13);color:#fff;padding:2px 8px;border-radius:20px;border:1px solid rgba(224,177,58,.45);}
-.ub-hids{font-size:5.5pt;color:rgba(255,255,255,.6);line-height:1.65;text-align:right;max-width:48mm;flex-shrink:0;}
+.ub-hname{font-family:'Sora',Arial,sans-serif;font-size:15pt;font-weight:800;color:#fff;letter-spacing:.8px;line-height:1.1;margin-bottom:1px;}
+.ub-htagline{font-size:5.5pt;letter-spacing:.2em;text-transform:uppercase;color:#E0B13A;}
+.ub-ids-row{font-size:6pt;color:rgba(255,255,255,.9);line-height:1.5;font-weight:400;}
+.ub-ids-row b{color:#E0B13A;font-weight:600;}
+.ub-con-row{font-size:5.2pt;color:rgba(255,255,255,.62);line-height:1.5;}
+.ub-chips{display:flex;gap:3px;flex-wrap:wrap;margin-top:2px;}
+.ub-chip{font-size:4.8pt;text-transform:uppercase;letter-spacing:.12em;background:rgba(255,255,255,.12);color:#fff;padding:2px 7px;border-radius:20px;border:1px solid rgba(224,177,58,.4);}
 .ub-body{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:2mm 8mm 4mm;min-height:0;}
-.ub-bid{border-left:3px solid #E0B13A;background:rgba(43,42,120,.05);padding:3px 8px;margin-bottom:5px;font-size:7pt;color:#23252e;line-height:1.7;flex-shrink:0;}
-.ub-bid b{color:#2B2A78;font-weight:600;}
+.ub-bid{display:flex;justify-content:space-between;border-left:3px solid #E0B13A;background:rgba(43,42,120,.05);padding:4px 10px;margin-bottom:5px;font-size:7pt;color:#23252e;line-height:1.7;flex-shrink:0;}
+.ub-bid b{color:#2B2A78;font-weight:700;}
 .ub-ft{border-top:2px solid #2B2A78;padding-top:3px;margin-top:4px;font-size:5.5pt;color:#717584;display:flex;justify-content:space-between;flex-shrink:0;}
 
 /* ============================================================
@@ -596,7 +605,8 @@ var DOCS=[
   {k:'s4',     t:'Submission IV',         s:'Acceptance of Terms & Conditions'},
   {k:'s5',     t:'Submission V',          s:'Make-in-India / Local Content'},
   {k:'s6',     t:'Submission VI',         s:'Land-Border Eligibility & Authenticity'},
-  {k:'emd',    t:'EMD Exemption Request', s:'Exemption under MSE / Udyam Registration'},
+  {k:'emd',    t:'EMD Exemption Request',  s:'Exemption under MSE / Udyam Registration'},
+  {k:'ndc',    t:'Declaration VII',        s:'Non-Disclosure & Confidentiality Undertaking'},
 ];
 
 /* ============================================================
@@ -939,6 +949,15 @@ function clauses(f,arr){
   }).join('')+'</ul>';
 }
 
+function clausesH(arr){
+  return '<ul class="doc-cls">'+arr.map(function(c,i){
+    return '<li class="doc-cl">'+
+      '<span class="doc-cn">'+String(i+1)+'</span>'+
+      '<span class="doc-ctxt"><b>'+c[0]+'</b> &mdash; '+c[1]+'</span>'+
+    '</li>';
+  }).join('')+'</ul>';
+}
+
 function sigBlock(f,inp){
   var stored=lsG('gem_sig_'+f.id,null);
   var sigImg=stored
@@ -986,13 +1005,20 @@ function page(f,inp,body,lbl,n,tot){
 }
 
 function pageSH(f,inp,body,lbl,n,tot){
-  var strip='Bid&nbsp;Ref: <b>'+(inp.ref||'[Ref No.]')+'</b>';
-  if(inp.bd) strip+='&nbsp;&nbsp;•&nbsp;&nbsp;Dated: <b>'+inp.bd+'</b>';
-  if(inp.dd) strip+='&nbsp;&nbsp;•&nbsp;&nbsp;Due: <b>'+inp.dd+'</b>';
+  var bidParts=[];
+  bidParts.push('Bid&nbsp;No.:&nbsp;<b>'+(inp.ref||'[Ref No.]')+'</b>');
+  if(inp.bd) bidParts.push('Bid&nbsp;Dated:&nbsp;<b>'+inp.bd+'</b>');
+  if(inp.dd) bidParts.push('Bid&nbsp;Due:&nbsp;<b>'+inp.dd+'</b>');
   var ids=[];
-  if(f.gem)   ids.push('GeM: '+xe(f.gem));
+  if(f.gem)   ids.push('GeM&nbsp;ID: '+xe(f.gem));
   if(f.gstin) ids.push('GSTIN: '+xe(f.gstin));
   if(f.udyam) ids.push('Udyam: '+xe(f.udyam));
+  var chips=[];
+  if(f.mse)   chips.push('MSE');
+  if(f.woman) chips.push('Woman-Owned');
+  if(f.obc)   chips.push('OBC');
+  if(f.udyam) chips.push('Udyam');
+  if(f.gem)   chips.push('GeM Seller');
   var sv='style="--fprim:'+f.prim+';--fgold:'+f.gold+'"';
   return '<div class="doc-page sh-page" '+sv+'>'+
     '<div class="sh-sidebar">'+
@@ -1000,8 +1026,9 @@ function pageSH(f,inp,body,lbl,n,tot){
       '<div class="sh-logo">'+xe(f.badge)+'</div>'+
       '<div class="sh-firm">'+xe(f.name.toUpperCase()).replace(/ /g,'<br>')+'</div>'+
       '<div class="sh-grule"></div>'+
+      (chips.length?'<div class="sh-chips">'+chips.map(function(c){return'<span class="sh-chip">'+c+'</span>';}).join('')+'</div>':'')+
       (f.addr?'<div class="sh-lbl">Address</div><div class="sh-det">'+xe(f.addr)+'</div>':'')+
-      ((f.phone||f.email)?'<div class="sh-lbl">Contact</div><div class="sh-det">'+(f.phone?xe(f.phone)+' ':'')+xe(f.email||'')+'</div>':'')+
+      ((f.phone||f.email)?'<div class="sh-lbl">Contact</div><div class="sh-det">'+(f.phone?xe(f.phone)+'<br>':'')+xe(f.email||'')+'</div>':'')+
       (f.gstin?'<div class="sh-lbl">GSTIN</div><div class="sh-det">'+xe(f.gstin)+'</div>':'')+
       (f.bank?'<div class="sh-lbl">Bank</div><div class="sh-det">'+xe(f.bank)+'<br>A/c: '+xe(f.acc)+'<br>IFSC: '+xe(f.ifsc)+'</div>':'')+
       '<div class="sh-spacer"></div>'+
@@ -1009,7 +1036,7 @@ function pageSH(f,inp,body,lbl,n,tot){
     '</div>'+
     '<div class="sh-spine-rule"></div>'+
     '<div class="sh-main">'+
-      '<div class="sh-bid">'+strip+'</div>'+
+      '<div class="sh-bid">'+bidParts.join('&nbsp;&nbsp;&nbsp;')+'</div>'+
       '<div class="doc-body">'+body+'</div>'+
       '<div class="sh-ft"><span>'+xe(f.name)+'</span><span>'+xe(lbl)+'</span><span>'+n+' / '+tot+'</span></div>'+
     '</div>'+
@@ -1027,9 +1054,16 @@ function pageVBE(f,inp,body,lbl,n,tot){
   if(f.phone) con.push('Mob: '+xe(f.phone));
   if(f.email) con.push(xe(f.email));
   if(con.length) addr.push(con.join(' &nbsp; '));
-  var strip='Bid&nbsp;Ref: <b>'+(inp.ref||'[Ref No.]')+'</b>';
-  if(inp.bd) strip+='&nbsp;&nbsp;•&nbsp;&nbsp;Dated: <b>'+inp.bd+'</b>';
-  if(inp.dd) strip+='&nbsp;&nbsp;•&nbsp;&nbsp;Due: <b>'+inp.dd+'</b>';
+  var badges=[];
+  if(f.mse)   badges.push('MSE');
+  if(f.woman) badges.push('Woman-Owned');
+  if(f.obc)   badges.push('OBC');
+  if(f.udyam) badges.push('Udyam Registered');
+  if(f.gem)   badges.push('GeM Seller');
+  var bidParts=[];
+  bidParts.push('Bid&nbsp;No.:&nbsp;<b>'+(inp.ref||'[Ref No.]')+'</b>');
+  if(inp.bd) bidParts.push('Bid&nbsp;Dated:&nbsp;<b>'+inp.bd+'</b>');
+  if(inp.dd) bidParts.push('Bid&nbsp;Due:&nbsp;<b>'+inp.dd+'</b>');
   var sv='style="--fprim:'+f.prim+';--fgold:'+f.gold+'"';
   return '<div class="doc-page vbe-page" '+sv+'>'+
     '<div class="vbe-frame-out"></div><div class="vbe-frame-in"></div>'+
@@ -1042,8 +1076,9 @@ function pageVBE(f,inp,body,lbl,n,tot){
         '<div class="vbe-drule"></div>'+
         (ids.length?'<div class="vbe-ids">'+ids.join('&nbsp;&nbsp;•&nbsp;&nbsp;')+'</div>':'')+
         (addr.length?'<div class="vbe-addr">'+addr.join('<br>')+'</div>':'')+
+        (badges.length?'<div class="vbe-badges">'+badges.map(function(b){return'<span class="vbe-badge">'+b+'</span>';}).join('')+'</div>':'')+
       '</div>'+
-      '<div class="vbe-strip">'+strip+'</div>'+
+      '<div class="vbe-strip">'+bidParts.join('&nbsp;&nbsp;&nbsp;')+'</div>'+
       '<div class="doc-body">'+body+'</div>'+
       '<div class="vbe-ft"><span>'+xe(f.name)+'</span><span>'+xe(lbl)+'&nbsp;•&nbsp;'+(inp.ref||'Bid&nbsp;Ref')+'</span><span>'+n+' / '+tot+'</span></div>'+
     '</div>'+
@@ -1052,12 +1087,23 @@ function pageVBE(f,inp,body,lbl,n,tot){
 
 function pageBCT(f,inp,body,lbl,n,tot){
   var ids=[];
+  if(f.gem)   ids.push('GeM: '+xe(f.gem));
   if(f.gstin) ids.push('GSTIN: '+xe(f.gstin));
-  if(f.phone) ids.push('Mob: '+xe(f.phone));
-  if(f.email) ids.push(xe(f.email));
-  var strip='Bid&nbsp;Ref: <b>'+(inp.ref||'[Ref No.]')+'</b>';
-  if(inp.bd) strip+='&nbsp;&nbsp;•&nbsp;&nbsp;Dated: <b>'+inp.bd+'</b>';
-  if(inp.dd) strip+='&nbsp;&nbsp;•&nbsp;&nbsp;Due: <b>'+inp.dd+'</b>';
+  if(f.udyam) ids.push('Udyam: '+xe(f.udyam));
+  var addrStr='';
+  if(f.addr)  addrStr+=xe(f.addr);
+  if(f.phone) addrStr+=(addrStr?'&nbsp;|&nbsp;':'')+'Mob: '+xe(f.phone);
+  if(f.email) addrStr+=(addrStr?'&nbsp;|&nbsp;':'')+xe(f.email);
+  var chips=[];
+  if(f.mse)   chips.push('MSE');
+  if(f.woman) chips.push('Woman-Owned');
+  if(f.obc)   chips.push('OBC');
+  if(f.udyam) chips.push('Udyam Registered');
+  if(f.gem)   chips.push('GeM Seller');
+  var bidParts=[];
+  bidParts.push('Bid&nbsp;No.:&nbsp;<b>'+(inp.ref||'[Ref No.]')+'</b>');
+  if(inp.bd) bidParts.push('Bid&nbsp;Dated:&nbsp;<b>'+inp.bd+'</b>');
+  if(inp.dd) bidParts.push('Bid&nbsp;Due:&nbsp;<b>'+inp.dd+'</b>');
   var sv='style="--fprim:'+f.prim+';--fgold:'+f.gold+'"';
   return '<div class="doc-page bct-page" '+sv+'>'+
     '<div class="bct-hband">'+
@@ -1066,11 +1112,13 @@ function pageBCT(f,inp,body,lbl,n,tot){
         '<div class="bct-hname">'+xe(f.name)+'</div>'+
         '<div class="bct-htagline">'+xe(f.tagline||'Trade · Supply · Service')+'</div>'+
       '</div>'+
-      '<div class="bct-hids">'+ids.join('<br>')+(f.addr?'<br>'+xe(f.addr):'')+'</div>'+
+      '<div class="bct-hids">'+ids.join('<br>')+(addrStr?'<br><span style="opacity:.6;font-size:5pt">'+addrStr+'</span>':'')+'</div>'+
     '</div>'+
-    '<div class="bct-crule"></div><div class="bct-wrule"></div>'+
+    '<div class="bct-crule"></div>'+
+    (chips.length?'<div class="bct-chips">'+chips.map(function(c){return'<span class="bct-chip">'+c+'</span>';}).join('')+'</div>':'')+
+    '<div class="bct-wrule"></div>'+
     '<div class="bct-body">'+
-      '<div class="bct-bid">'+strip+'</div>'+
+      '<div class="bct-bid">'+bidParts.join('<span style="margin:0 8px;opacity:.35">|</span>')+'</div>'+
       '<div class="doc-body">'+body+'</div>'+
     '</div>'+
     '<div class="bct-fband"><span>'+xe(f.name)+'</span><span>'+xe(lbl)+'&nbsp;•&nbsp;'+(inp.ref||'Bid Ref')+'</span><span>'+n+' / '+tot+'</span></div>'+
@@ -1088,8 +1136,13 @@ function pageBI(f,inp,body,lbl,n,tot){
   var tl=[];
   if(f.mse)   tl.push('MSE');
   if(f.woman) tl.push('Woman-Owned');
-  if(f.obc)   tl.push('OBC MSE');
-  if(f.udyam) tl.push('Udyam');
+  if(f.obc)   tl.push('OBC');
+  if(f.udyam) tl.push('Udyam Registered');
+  if(f.gem)   tl.push('GeM Seller');
+  var bidParts=[];
+  bidParts.push('Bid&nbsp;No.:&nbsp;<b>'+(inp.ref||'[Ref No.]')+'</b>');
+  if(inp.bd) bidParts.push('Bid&nbsp;Dated:&nbsp;<b>'+inp.bd+'</b>');
+  if(inp.dd) bidParts.push('Bid&nbsp;Due:&nbsp;<b>'+inp.dd+'</b>');
   var sv='style="--fprim:'+f.prim+';--fgold:'+f.gold+'"';
   return '<div class="doc-page bi-page" '+sv+'>'+
     '<div class="bi-fm"></div><div class="bi-fg1"></div><div class="bi-fg2"></div>'+
@@ -1102,8 +1155,8 @@ function pageBI(f,inp,body,lbl,n,tot){
       (tl.length?'<div class="bi-badges">'+tl.map(function(t){return'<span class="bi-badge">'+t+'</span>';}).join('')+'</div>':'')+
       '<div class="bi-florish"><span class="bi-fdmd"></span></div>'+
       (ids.length?'<div class="bi-ids">'+ids.join('&nbsp;&nbsp;•&nbsp;&nbsp;')+'</div>':'')+
-      (f.addr?'<div class="bi-addr">'+xe(f.addr)+(f.phone?' &nbsp; Mob: '+xe(f.phone):'')+'</div>':'')+
-      '<div class="bi-strip">'+strip+'</div>'+
+      (f.addr?'<div class="bi-addr">'+xe(f.addr)+(f.phone?' &nbsp;&nbsp; Mob: '+xe(f.phone):'')+(f.email?' &nbsp;&nbsp; '+xe(f.email):'')+'</div>':'')+
+      '<div class="bi-strip">'+bidParts.join('&nbsp;&nbsp;&nbsp;')+'</div>'+
       '<div class="doc-body">'+body+'</div>'+
       '<div class="bi-ft"><span>'+xe(f.name)+'</span><span>'+xe(lbl)+'&nbsp;•&nbsp;'+(inp.ref||'Bid Ref')+'</span><span>'+n+' / '+tot+'</span></div>'+
     '</div>'+
@@ -1111,31 +1164,40 @@ function pageBI(f,inp,body,lbl,n,tot){
 }
 
 function pageUB(f,inp,body,lbl,n,tot){
-  var ids=[];
-  if(f.gstin) ids.push('GSTIN: '+xe(f.gstin));
-  if(f.phone) ids.push('Mob: '+xe(f.phone));
-  if(f.email) ids.push(xe(f.email));
-  var strip='Bid&nbsp;Ref: <b>'+(inp.ref||'[Ref No.]')+'</b>';
-  if(inp.bd) strip+='&nbsp;&nbsp;•&nbsp;&nbsp;Dated: <b>'+inp.bd+'</b>';
-  if(inp.dd) strip+='&nbsp;&nbsp;•&nbsp;&nbsp;Due: <b>'+inp.dd+'</b>';
   var chips=[];
   if(f.mse)   chips.push('MSE');
   if(f.woman) chips.push('Woman-Owned');
   if(f.obc)   chips.push('OBC');
-  if(f.gem)   chips.push('GeM Vendor');
+  if(f.udyam) chips.push('Udyam Registered');
+  if(f.gem)   chips.push('GeM Seller');
+  var regParts=[];
+  if(f.gem)   regParts.push('<b>GeM&nbsp;Seller&nbsp;ID:</b>&nbsp;'+xe(f.gem));
+  if(f.gstin) regParts.push('<b>GSTIN:</b>&nbsp;'+xe(f.gstin));
+  if(f.udyam) regParts.push('<b>Udyam:</b>&nbsp;'+xe(f.udyam));
+  var conParts=[];
+  if(f.addr)  conParts.push(xe(f.addr));
+  if(f.email) conParts.push(xe(f.email));
+  if(f.phone) conParts.push('Mob.&nbsp;'+xe(f.phone));
+  var bidParts=[];
+  bidParts.push('Bid&nbsp;No.:&nbsp;<b>'+(inp.ref||'[Ref No.]')+'</b>');
+  if(inp.bd) bidParts.push('Bid&nbsp;Dated:&nbsp;<b>'+inp.bd+'</b>');
+  if(inp.dd) bidParts.push('Bid&nbsp;Due:&nbsp;<b>'+inp.dd+'</b>');
   var sv='style="--fprim:'+f.prim+';--fgold:'+f.gold+'"';
   return '<div class="doc-page ub-page" '+sv+'>'+
     '<div class="ub-hero">'+
-      '<div class="ub-logo">'+xe(f.badge)+'</div>'+
-      '<div class="ub-ht">'+
-        '<div class="ub-hname">'+xe(f.name)+'</div>'+
-        '<div class="ub-htagline">'+xe(f.tagline||'Infrastructure · Supply Solutions')+'</div>'+
-        '<div class="ub-chips">'+chips.map(function(c){return'<span class="ub-chip">'+c+'</span>';}).join('')+'</div>'+
+      '<div class="ub-hero-top">'+
+        '<div class="ub-logo">'+xe(f.badge)+'</div>'+
+        '<div class="ub-ht">'+
+          '<div class="ub-hname">'+xe(f.name)+'</div>'+
+          '<div class="ub-htagline">'+xe(f.tagline||'Infrastructure · Supply Solutions')+'</div>'+
+        '</div>'+
       '</div>'+
-      (ids.length?'<div class="ub-hids">'+ids.join('<br>')+(f.addr?'<br>'+xe(f.addr):'')+'</div>':'')+
+      (regParts.length?'<div class="ub-ids-row">'+regParts.join('&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;')+'</div>':'')+
+      (conParts.length?'<div class="ub-con-row">'+conParts.join('&nbsp;&nbsp;|&nbsp;&nbsp;')+'</div>':'')+
+      (chips.length?'<div class="ub-chips">'+chips.map(function(c){return'<span class="ub-chip">'+c+'</span>';}).join('')+'</div>':'')+
     '</div>'+
     '<div class="ub-body">'+
-      '<div class="ub-bid">'+strip+'</div>'+
+      '<div class="ub-bid">'+bidParts.join('<span style="margin:0 6px;opacity:.3">|</span>')+'</div>'+
       '<div class="doc-body">'+body+'</div>'+
       '<div class="ub-ft"><span>'+xe(f.name)+'</span><span>'+xe(lbl)+'</span><span>'+n+' / '+tot+'</span></div>'+
     '</div>'+
@@ -1156,6 +1218,7 @@ function genDoc(k,f,inp,n,tot){
     case 's5': return genSub(5,f,inp,n,tot);
     case 's6': return genSub(6,f,inp,n,tot);
     case 'emd': return genEMD(f,inp,n,tot);
+    case 'ndc': return genNDC(f,inp,n,tot);
     default: return '';
   }
 }
@@ -1415,6 +1478,50 @@ function genEMD(f,inp,n,tot){
     sigBlock(f,inp);
 
   return page(f,inp,body,'EMD Exemption Request',n,tot);
+}
+
+/* ============================================================
+   NON-DISCLOSURE & CONFIDENTIALITY UNDERTAKING  (Declaration VII)
+   ============================================================ */
+function genNDC(f,inp,n,tot){
+  var nm=xe(f.name);
+  var prop=xe(f.prop||f.sign||'The Proprietor');
+  var subj='Non-Disclosure &amp; Confidentiality Undertaking against Bid No.&nbsp;<b>'+(inp.ref||'[Bid No.]')+'</b> for supply of <b>'+xe(inp.item)+'</b> to <b>'+xe(inp.con)+'</b>.';
+
+  var cs=[
+    ['Confidential Information',
+      'That all information, data, drawings, technical specifications, layouts, photographs, correspondence, location details, security arrangements and any other material ("<b>Confidential Information</b>") coming to our knowledge during participation in this Bid and/or execution of the resultant contract at the consignee premises shall be treated as <b>strictly confidential</b> and shall not be used or disclosed except as permitted herein.'],
+    ['Non-Disclosure',
+      'That we shall not, directly or indirectly, disclose, publish, reproduce, transmit or part with any such Confidential Information to <u>any third party</u>, person, firm, media or agency, whether for consideration or otherwise, at any time, without the prior written permission of the Buyer.'],
+    ['Restricted Use',
+      'That the Confidential Information shall be used <u>solely for the purpose of executing the contract</u> and for no other purpose whatsoever, and shall not be used to derive any commercial, competitive or personal advantage beyond the scope of the contract.'],
+    ['Military Premises',
+      'That while accessing the military station / consignee premises for delivery, installation, commissioning or service, we and our personnel shall <u>not photograph, video-graph, sketch or map</u> the premises, its installations, equipment or personnel in any manner, and shall at all times abide by all security instructions issued by the establishment.'],
+    ['Personnel &amp; Sub-contractors',
+      'That this undertaking shall be binding in equal measure upon all our employees, representatives, agents, drivers, delivery personnel and authorised sub-contractors engaged in the execution of this contract, and we shall be responsible for ensuring their strict and full compliance.'],
+    ['Return of Material',
+      'That on completion or termination of the contract for any reason, all Confidential Information and any material in any form or medium in our possession or control shall be returned to the Buyer or securely destroyed as directed by the Buyer, with no copies retained by any means.'],
+    ['Survival',
+      'That the obligations of confidentiality and non-disclosure herein shall <u>survive and continue in force</u> notwithstanding the completion, expiry or termination of the contract, and shall remain binding indefinitely unless the Buyer provides prior written consent to release.'],
+    ['Consequences of Breach',
+      'That any breach of this undertaking shall render the contract liable to <u>immediate termination</u> at our risk and cost, besides attracting penal and legal action including under the <b>Official Secrets Act, 1923</b> and all other applicable laws, and we shall be fully liable for all losses, damages and consequences arising therefrom.'],
+    ['Authenticity',
+      'That the statements made hereinabove are true and correct to the best of my knowledge and belief, and nothing material has been concealed or suppressed therefrom.'],
+  ];
+
+  var body=
+    '<div class="doc-ey">Declaration VII &nbsp;&bull;&nbsp; '+nm+'</div>'+
+    '<div class="doc-ttl">Non-Disclosure &amp; Confidentiality Undertaking</div>'+
+    '<div class="doc-div"><span class="doc-dmd"></span></div>'+
+    toLine(f,inp)+
+    '<div style="font-size:7.5pt;color:#222;margin:4px 0 6px;line-height:1.65;padding:5px 9px;background:rgba(0,0,0,.022);border-left:3px solid var(--fprim);border-radius:0 2px 2px 0;">'+
+      '<b>Subject:</b>&ensp;'+subj+
+    '</div>'+
+    '<div class="doc-intro">I,&ensp;<b>'+prop+'</b>, Proprietor of <b>M/s '+nm+'</b>, do hereby solemnly declare and irrevocably undertake as under:</div>'+
+    clausesH(cs)+
+    sigBlock(f,inp);
+
+  return page(f,inp,body,'Declaration VII',n,tot);
 }
 
 /* ============================================================

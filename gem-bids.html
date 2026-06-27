@@ -220,6 +220,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
 .doc-note{background:rgba(0,0,0,.025);border:1px solid var(--fgold);border-left:3.5px solid var(--fgold);border-radius:0 3px 3px 0;padding:6px 10px;font-size:7.5pt;color:#333;font-style:italic;margin:5px 0;line-height:1.6;}
 .doc-note b{color:var(--fprim);font-style:normal}
 .doc-closing{font-size:8.5pt;font-style:italic;color:#444;margin-top:6px;line-height:1.6;border-top:1px solid #ddd;padding-top:6px;text-align:right;}
+/* Doc reference bar */
+.doc-refbar{display:flex;justify-content:space-between;align-items:flex-start;font-size:6.8pt;color:#555;border-bottom:1px dashed rgba(0,0,0,.18);padding-bottom:5px;margin-bottom:8px;}
+.doc-refbar-lbl{font-size:5.5pt;text-transform:uppercase;letter-spacing:.13em;color:#999;font-weight:600;margin-bottom:1px;}
+.doc-refbar-num{font-family:'Courier New',monospace;color:var(--fprim);font-weight:700;font-size:7.2pt;letter-spacing:.04em;}
+.doc-refbar-date{text-align:right;font-size:6.8pt;color:#444;}
 .doc-hi{color:var(--fprim);font-weight:700;background:rgba(0,0,0,.05);padding:0 3px;border-radius:2px;}
 
 /* Key data highlight box */
@@ -1080,9 +1085,38 @@ function sigBlock(f,inp){
   '</div>';
 }
 
+/* Firm-specific ref prefixes and label styles */
+var REF_CFG={
+  sh: {prefix:'SHI', label:'Ref. No.'},
+  vbe:{prefix:'VBE', label:'Our Ref.'},
+  bct:{prefix:'BCT', label:'File No.'},
+  bi: {prefix:'BIE', label:'Ref. No.'},
+  ub: {prefix:'UBI', label:'Doc. Ref.'},
+};
+function docFY(){
+  var d=new Date(), yr=d.getFullYear(), mon=d.getMonth();
+  return mon>=3 ? yr+'-'+String(yr+1).slice(-2) : (yr-1)+'-'+String(yr).slice(-2);
+}
+function docRefBar(f,inp){
+  var cfg=REF_CFG[f.id]||{prefix:'REF',label:'Ref. No.'};
+  var bid=inp.ref||'----';
+  var refNo=cfg.prefix+'/'+docFY()+'/'+bid;
+  var dated=inp.date||docDate(new Date());
+  return '<div class="doc-refbar">'+
+    '<div>'+
+      '<div class="doc-refbar-lbl">'+cfg.label+'</div>'+
+      '<div class="doc-refbar-num">'+xe(refNo)+'</div>'+
+    '</div>'+
+    '<div class="doc-refbar-date">'+
+      '<div class="doc-refbar-lbl">Dated</div>'+
+      '<div>'+xe(dated)+'</div>'+
+    '</div>'+
+  '</div>';
+}
+
 function page(f,inp,body,lbl,n,tot){
   var d={sh:pageSH,vbe:pageVBE,bi:pageBI,bct:pageBCT,ub:pageUB};
-  return (d[f.id]||pageVBE)(f,inp,body,lbl,n,tot);
+  return (d[f.id]||pageVBE)(f,inp,docRefBar(f,inp)+body,lbl,n,tot);
 }
 
 function pageSH(f,inp,body,lbl,n,tot){

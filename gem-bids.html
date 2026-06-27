@@ -1817,6 +1817,7 @@ function parseBidDate(s){
 function applyBidImport(){
   var text=document.getElementById('bim-ta').value.trim();
   if(!text)return;
+  // Parse key: value lines (handle GEM/2025/B/xxx — multiple colons)
   var map={};
   text.split('\n').forEach(function(line){
     var idx=line.indexOf(':');
@@ -1825,7 +1826,16 @@ function applyBidImport(){
     var v=line.slice(idx+1).trim();
     if(v)map[k]=v;
   });
-  function fv(keys){for(var i=0;i<keys.length;i++){var v=map[keys[i].toLowerCase()];if(v)return v;}return'';}
+  // Filter null-like values ("N/A", "Not mentioned", "-", "none", "nil" etc.)
+  function isNull(v){
+    var lv=(v||'').toLowerCase().trim();
+    return !lv||lv==='n/a'||lv==='-'||lv==='–'||lv==='none'||lv==='nil'||lv==='na'||
+      lv.indexOf('not mention')>=0||lv.indexOf('not avail')>=0||lv.indexOf('not applic')>=0;
+  }
+  function fv(keys){
+    for(var i=0;i<keys.length;i++){var v=map[keys[i].toLowerCase()];if(v&&!isNull(v))return v;}
+    return'';
+  }
   function sv(id,val){var el=document.getElementById('i-'+id);if(el&&val)el.value=val;}
 
   sv('ref',fv(['bid number','bid no','bid ref','ref no','reference number','reference no']));
@@ -1837,17 +1847,21 @@ function applyBidImport(){
   var org=fv(['organisation','organization','buyer organisation']);
   var ministry=fv(['ministry']);
   var dept=fv(['department','dept']);
-  var buyerParts=[org,ministry,dept].filter(Boolean);
-  sv('buyer',buyerParts.join(', '));
+  // If org is valid use it first, else ministry+dept
+  var buyerParts=(org?[org,ministry,dept]:[ministry,dept]).filter(function(x){return x&&!isNull(x);});
+  if(buyerParts.length)sv('buyer',buyerParts.join(', '));
   sv('off',fv(['beneficiary','buyer officer','officer','consignee officer','attn','attention']));
   var addr=fv(['delivery address','ship to','consignee address','deliver to','address']);
   sv('con',addr);
+  // Extract city/place: strip PIN codes + em-dashes, take last meaningful segment
   if(addr&&!document.getElementById('i-place').value){
-    var parts=addr.split(',');
-    if(parts.length>1){
-      var last=parts[parts.length-1].replace(/\d{6}/g,'').trim();
-      if(last)sv('place',last);
+    var segs=addr.split(',');
+    var place='';
+    for(var i=segs.length-1;i>=0;i--){
+      var s=segs[i].replace(/[–—]\s*\d{6}/g,'').replace(/\d{6}/g,'').replace(/[–—]/g,'').trim();
+      if(s.length>2){place=s;break;}
     }
+    if(place)sv('place',place);
   }
   saveInputs();
   closeBidImport();

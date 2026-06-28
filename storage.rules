@@ -1,25 +1,28 @@
 rules_version = '2';
-
-// VBE Order Tracker — Firebase Storage Security Rules
-// Firebase Console > Storage > Rules में paste करें
-
 service firebase.storage {
   match /b/{bucket}/o {
 
-    // ─── Order photos ────────────────────────────────────────
-    // सिर्फ supplier (Vikram) upload और delete कर सकते हैं
-    // Customer tracking link से photo URL सीधे accessible रहेगी
-    match /vbe_photos/{orderId}/{fileName} {
-      allow read:  if request.auth != null;
-      allow write: if request.auth != null
-                   && request.auth.uid == "tjkS5tg2vMflpndGHSQRjFYgRv03"
-                   && request.resource.size < 5 * 1024 * 1024  // max 5MB
-                   && request.resource.contentType.matches('image/.*');
-      allow delete: if request.auth != null
-                    && request.auth.uid == "tjkS5tg2vMflpndGHSQRjFYgRv03";
+    function isSupplier() {
+      return request.auth != null
+          && (request.auth.uid == "FqJeXbb3YJfSER09jtXLosCSpVy2"
+           || request.auth.uid == "tjkS5tg2vMflpndGHSQRjFYgRv03"
+           || request.auth.uid == "0CXFV9vDMSW7LBi0mLS9bW480mh1"
+           || request.auth.uid == "CrWrobyeWHY1ZLrLwKcncW0U9K03"
+           || request.auth.uid == "gdn0jahlzGOuWKaOyxsTht07mus2"
+           || request.auth.uid == "pFslWWEvLiRjr7YFq51TqwfOpFp2"
+           || request.auth.uid == "xY7dwh799LZrRIY7dK2CHVc5H262");
     }
 
-    // ─── Default: बाकी सब बंद ────────────────────────────────
+    // Order photos — supplier upload करे, सब पढ़ सकें (tracking link)
+    match /vbe_photos/{orderId}/{fileName} {
+      allow read:   if request.auth != null;
+      allow write:  if isSupplier()
+                    && request.resource.size < 5 * 1024 * 1024
+                    && request.resource.contentType.matches('image/.*');
+      allow delete: if isSupplier();
+    }
+
+    // बाकी सब बंद
     match /{allPaths=**} {
       allow read, write: if false;
     }

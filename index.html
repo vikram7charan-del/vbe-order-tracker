@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
 <title>VBE Portal — Barmer Operations</title>
 <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' https://*.googleapis.com https://*.gstatic.com https://*.firebaseapp.com https://*.firebaseio.com https://*.firebase.com https://firebasestorage.googleapis.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.gstatic.com https://*.firebaseapp.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://firebasestorage.googleapis.com; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.firebase.com https://fcmregistrations.googleapis.com; worker-src 'self' blob:; frame-src 'none'; object-src 'none'">
 <link rel="manifest" href="manifest.json"/>
 <meta name="theme-color" content="#050a14"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
@@ -6444,6 +6445,14 @@ async function saveOrder(){
   const it=document.getElementById('f-it').value.trim();
   const dl=document.getElementById('f-dl').value;
   if(!cu||!it||!dl){await vbeAlert('Customer, Item और Deadline जरूरी है!','⚠️');return;}
+  const ph=document.getElementById('f-ph').value.trim();
+  if(ph && !/^\d{10}$/.test(ph)){await vbeAlert('Phone नंबर 10 अंकों का होना चाहिए!','⚠️');return;}
+  const qt=document.getElementById('f-qt').value.trim();
+  if(qt && (isNaN(Number(qt)) || Number(qt) < 0)){await vbeAlert('Quantity सही नंबर होना चाहिए!','⚠️');return;}
+  const no=document.getElementById('f-no').value.trim();
+  if(no.length > 500){await vbeAlert('Note 500 अक्षरों से ज्यादा नहीं हो सकता!','⚠️');return;}
+  if(cu.length > 150){await vbeAlert('Customer नाम बहुत लंबा है (max 150)!','⚠️');return;}
+  if(it.length > 200){await vbeAlert('Item नाम बहुत लंबा है (max 200)!','⚠️');return;}
   const editId=document.getElementById('f-id').value;
   const staff=document.getElementById('f-st').value;
   const staffSel=document.getElementById('f-st');
@@ -7290,19 +7299,19 @@ function renderArchive(){
         <span style="font-size:9px;background:#10b98122;color:#10b981;padding:2px 7px;border-radius:5px;font-weight:800">✅ DELIVERED</span>
         <span style="font-size:9px;background:#1e293b;color:#6366f1;padding:2px 7px;border-radius:5px;font-weight:800">${o.orderNo}</span>
       </div>
-      <div style="font-size:14px;font-weight:800;color:#e2e8f0">${o.customer}</div>
+      <div style="font-size:14px;font-weight:800;color:#e2e8f0">${esc(o.customer)}</div>
     </div>
     ${delivEntry?.photo?`<img src="${delivEntry.photo}" style="width:38px;height:38px;border-radius:6px;object-fit:cover;border:1px solid #10b98144;flex-shrink:0"/>`:
       '<div style="width:38px;height:38px;border-radius:6px;background:#10b98111;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">✅</div>'}
   </div>
-  <div style="font-size:12px;color:#94a3b8;margin:4px 0">📦 ${o.item}${o.qty?' · '+o.qty:''}</div>
+  <div style="font-size:12px;color:#94a3b8;margin:4px 0">📦 ${esc(o.item)}${o.qty?' · '+esc(String(o.qty)):''}</div>
   <div style="display:flex;flex-wrap:wrap;gap:8px;font-size:10px;color:#475569;margin-top:5px">
-    ${o.staff?`<span>👤 <b style="color:#a5b4fc">${o.staff}</b></span>`:''}
+    ${o.staff?`<span>👤 <b style="color:#a5b4fc">${esc(o.staff)}</b></span>`:''}
     <span>📅 Order: ${createdTime}</span>
     <span style="color:#10b981">🏁 Deliver: ${delivTime}</span>
     ${timeTaken?`<span style="color:#f59e0b">⏱️ ${timeTaken} में</span>`:''}
   </div>
-  ${delivEntry?.note&&delivEntry.note!=='पहुंच गया ✓'?`<div style="font-size:10px;color:#334155;margin-top:5px;background:#0d1526;border-radius:6px;padding:4px 8px">📝 ${delivEntry.note}</div>`:''}
+  ${delivEntry?.note&&delivEntry.note!=='पहुंच गया ✓'?`<div style="font-size:10px;color:#334155;margin-top:5px;background:#0d1526;border-radius:6px;padding:4px 8px">📝 ${esc(delivEntry.note)}</div>`:''}
   <div style="display:flex;gap:6px;margin-top:9px">
     <button onclick="openChallanForOrder('${o.id}')" style="flex:1;padding:7px;border-radius:8px;border:none;background:linear-gradient(135deg,#064e3b,#10b981);color:#fff;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit">🧾 Challan</button>
     <button onclick="closeArchive();setTimeout(()=>editOrder('${o.id}'),100);" style="padding:7px 12px;border-radius:8px;border:1px solid #1e3a5f;background:#1e293b;color:#a5b4fc;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit">✏️ Edit</button>
@@ -9919,12 +9928,12 @@ function gsSearch(q){
             </div>
             <span style="font-size:11px;color:${tl.color};font-weight:700">${tl.text}</span>
           </div>
-          <div style="font-size:14px;font-weight:800;color:#e2e8f0">${o.customer||'—'}</div>
-          <div style="font-size:11px;color:#94a3b8;margin:2px 0">📦 ${o.item||'—'}${o.qty?' · '+o.qty:''}</div>
-          ${o.phone?`<div style="font-size:10px;color:#10b981">📱 ${o.phone}</div>`:''}
+          <div style="font-size:14px;font-weight:800;color:#e2e8f0">${esc(o.customer)||'—'}</div>
+          <div style="font-size:11px;color:#94a3b8;margin:2px 0">📦 ${esc(o.item)||'—'}${o.qty?' · '+esc(String(o.qty)):''}</div>
+          ${o.phone?`<div style="font-size:10px;color:#10b981">📱 ${esc(o.phone)}</div>`:''}
           <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;align-items:center">
             <span style="font-size:10px;color:${stg.color}">${stg.emoji} ${stg.hi}</span>
-            ${o.staff?`<span style="font-size:10px;color:#475569">👤 ${o.staff}</span>`:''}
+            ${o.staff?`<span style="font-size:10px;color:#475569">👤 ${esc(o.staff)}</span>`:''}
             <span style="font-size:9px;color:#6366f1;background:#1e293b;padding:1px 6px;border-radius:4px">📦 Order</span>
             <span style="font-size:9px;color:#f59e0b;margin-left:auto">${ageStr}</span>
           </div>

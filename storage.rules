@@ -13,9 +13,9 @@ service firebase.storage {
            || request.auth.uid == "xY7dwh799LZrRIY7dK2CHVc5H262");
     }
 
-    // Order photos — supplier upload करे, सब पढ़ सकें (tracking link)
+    // Order photos — केवल supplier पढ़ और upload कर सकते हैं
     match /vbe_photos/{orderId}/{fileName} {
-      allow read:   if request.auth != null;
+      allow read:   if isSupplier();
       allow write:  if isSupplier()
                     && request.resource.size < 5 * 1024 * 1024
                     && request.resource.contentType.matches('image/.*');

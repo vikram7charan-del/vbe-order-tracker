@@ -4664,7 +4664,7 @@ window.doUndo=async function(){
 };
 
 // ══ SORT MODE ══
-var _sortMode=localStorage.getItem('vbe_sort')||'deadline'; // 'deadline'|'customer'|'newest'
+var _sortMode=localStorage.getItem('vbe_sort')||'newest'; // 'newest'|'deadline'|'customer'
 var _sortLabels={deadline:'⇅ DL',customer:'⇅ A-Z',newest:'⇅ New'};
 function cycleSortMode(){
   var modes=['deadline','customer','newest'];
@@ -5020,15 +5020,18 @@ function renderList(){
       return true;
     })
     .sort((a,b)=>{
-      // Pinned orders always first
+      // 1️⃣ Pinned (Emergency) — always top
       if(!!a.isPinned!==!!b.isPinned) return a.isPinned?-1:1;
+      // 2️⃣ isNow (⚡ अभी) — next priority
+      if(!!a.isNow!==!!b.isNow) return a.isNow?-1:1;
+      // 3️⃣ Hidden — always last
       const ah = a.isHidden?1:0, bh = b.isHidden?1:0;
       if(ah!==bh) return ah-bh;
-      const pv=p=>(p||'').includes('Urgent')?0:(p||'').includes('High')?1:2;
-      if(pv(a.priority)!==pv(b.priority)) return pv(a.priority)-pv(b.priority);
+      // 4️⃣ User sort preference
       if(_sortMode==='customer') return (a.customer||'').localeCompare(b.customer||'');
-      if(_sortMode==='newest') return (b.createdAt||b.id||0)>(a.createdAt||a.id||0)?1:-1;
-      return new Date(a.deadline)-new Date(b.deadline);
+      if(_sortMode==='deadline') return new Date(a.deadline)-new Date(b.deadline);
+      // Default: newest added first (descending createdAt)
+      return (b.createdAt||b.id||'') > (a.createdAt||a.id||'') ? 1 : -1;
     });
 
   const el=document.getElementById('olist');
@@ -5203,7 +5206,10 @@ function renderList(){
         ? `<button class="mb-rail-btn" style="background:linear-gradient(135deg,#92400e,#f59e0b);color:#fff" onclick="event.stopPropagation();toggleNow('${o.id}',false)" title="Active में जाओ">🔥</button>`
         : `<button class="mb-rail-btn mb-rail-now" onclick="event.stopPropagation();toggleNow('${o.id}',true)" title="अभी करना है">⚡</button>`
       }
-      ${o.phone ? `<button class="mb-rail-btn mb-rail-wa" onclick="event.stopPropagation();sendWA('${o.id}')" title="Party को WhatsApp">📱</button>` : `<button class="mb-rail-btn" style="background:#1e293b;color:#475569" title="Phone नहीं">📱</button>`}
+      <button class="mb-rail-btn mb-rail-wa" onclick="event.stopPropagation();openWaEditor('${o.id}')" title="Party को WhatsApp · नाम/नंबर यहाँ से बदलें" style="height:auto;min-height:34px;padding:3px 2px;flex-direction:column;gap:1px;display:flex;align-items:center;justify-content:center">
+        <span style="font-size:14px;line-height:1">📱</span>
+        <span style="font-size:7px;font-weight:800;line-height:1.2;max-width:35px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:${o.phone?'#bbf7d0':'#fca5a5'}">${o.phone ? (o.customer||'').split(' ')[0].slice(0,8) : 'No #'}</span>
+      </button>
     </div>
   </div>
 
@@ -6703,6 +6709,71 @@ function sendWA(id){
   const msg=`🙏 नमस्ते *${o.customer}* जी!\n\n📦 *${o.item}${o.qty?' ('+o.qty+')':''}* का order confirm है।\n📅 Delivery: *${dl}*\n🚦 Status: ${stg.emoji} ${stg.hi}${staffLine}\n\n🔗 Live Track:\n${trackUrl}\n\n💬 कोई सवाल हो तो reply करें।`;
   window.open('https://wa.me/91'+o.phone+'?text='+encodeURIComponent(msg),'_blank');
 }
+
+// ══ 📱 WA PARTY EDITOR — party का नाम + नंबर देखो, बदलो, फिर WA भेजो ══
+function openWaEditor(orderId){
+  const o = _orders.find(x=>x.id===orderId);
+  if(!o) return;
+  document.getElementById('wa-editor-modal')?.remove();
+  const el = document.createElement('div');
+  el.id = 'wa-editor-modal';
+  el.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:9999;display:flex;align-items:flex-end;padding:0;touch-action:manipulation';
+  el.innerHTML = `
+    <div style="width:100%;max-width:480px;margin:0 auto;background:#0d1526;border-radius:18px 18px 0 0;padding:20px 16px 30px;border:1px solid #1e3a5f;box-shadow:0 -8px 32px rgba(0,0,0,.6)">
+      <div style="width:40px;height:4px;background:#1e3a5f;border-radius:2px;margin:0 auto 14px"></div>
+      <div style="font-size:13px;font-weight:800;color:#22c55e;margin-bottom:2px">📱 Party को WhatsApp</div>
+      <div style="font-size:11px;color:#475569;margin-bottom:14px">जिसे message जाएगा उसका नाम और नंबर यहाँ से बदलें</div>
+      <div style="margin-bottom:10px">
+        <div style="font-size:10px;color:#94a3b8;margin-bottom:4px;font-weight:700;letter-spacing:.5px">👤 PARTY / CUSTOMER नाम</div>
+        <input id="wa-ed-name" value="${esc(o.customer||'')}" placeholder="जैसे: Col Suyash Raghuvanshi" style="width:100%;box-sizing:border-box;padding:10px 12px;border-radius:9px;border:1px solid #1e3a5f;background:#050a14;color:#e2e8f0;font-size:13px;font-family:inherit;outline:none"/>
+      </div>
+      <div style="margin-bottom:16px">
+        <div style="font-size:10px;color:#94a3b8;margin-bottom:4px;font-weight:700;letter-spacing:.5px">📞 WHATSAPP नंबर (10 अंक)</div>
+        <input id="wa-ed-phone" value="${esc(o.phone||'')}" placeholder="9876543210" maxlength="10" inputmode="numeric" style="width:100%;box-sizing:border-box;padding:10px 12px;border-radius:9px;border:1px solid ${o.phone?'#1e3a5f':'#7f1d1d'};background:#050a14;color:#e2e8f0;font-size:15px;font-family:monospace;outline:none;letter-spacing:2px"/>
+        ${!o.phone ? '<div style="font-size:10px;color:#f87171;margin-top:4px">⚠️ अभी कोई नंबर नहीं — यहाँ डालें</div>' : ''}
+      </div>
+      <div style="display:flex;gap:7px">
+        <button onclick="document.getElementById(\'wa-editor-modal\').remove()" style="flex:1;padding:11px;border-radius:10px;border:1px solid #334155;background:#1e293b;color:#94a3b8;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">✕ बंद</button>
+        <button onclick="saveWaParty('${orderId}')" style="flex:1;padding:11px;border-radius:10px;border:none;background:linear-gradient(135deg,#1e3a8a,#3b82f6);color:#fff;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit">💾 Save</button>
+        <button onclick="saveAndSendWA('${orderId}')" style="flex:2;padding:11px;border-radius:10px;border:none;background:linear-gradient(135deg,#052e16,#16a34a);color:#fff;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit">📱 Save + भेजो</button>
+      </div>
+    </div>`;
+  el.addEventListener('click', function(e){ if(e.target===el) el.remove(); });
+  document.body.appendChild(el);
+  setTimeout(()=>{ const f=document.getElementById(o.phone?'wa-ed-name':'wa-ed-phone'); f&&f.focus(); },120);
+}
+window.openWaEditor = openWaEditor;
+
+async function saveWaParty(orderId){
+  const o = _orders.find(x=>x.id===orderId);
+  if(!o) return;
+  const name  = (document.getElementById('wa-ed-name')?.value||'').trim();
+  const phone = (document.getElementById('wa-ed-phone')?.value||'').trim();
+  if(phone && !/^\d{10}$/.test(phone)){ notif('📞 नंबर 10 अंकों का होना चाहिए','danger'); return; }
+  await fbSave({...o, customer:name||o.customer, phone:phone||o.phone});
+  document.getElementById('wa-editor-modal')?.remove();
+  notif('✅ Party details save हो गई','ok');
+}
+window.saveWaParty = saveWaParty;
+
+async function saveAndSendWA(orderId){
+  const o = _orders.find(x=>x.id===orderId);
+  if(!o) return;
+  const name  = (document.getElementById('wa-ed-name')?.value||'').trim() || o.customer;
+  const phone = (document.getElementById('wa-ed-phone')?.value||'').trim() || o.phone;
+  if(!phone){ notif('📞 पहले नंबर डालें','danger'); return; }
+  if(!/^\d{10}$/.test(phone)){ notif('📞 नंबर 10 अंकों का होना चाहिए','danger'); return; }
+  const updatedO = {...o, customer:name, phone};
+  await fbSave(updatedO);
+  document.getElementById('wa-editor-modal')?.remove();
+  const stg = STAGES.find(s=>s.id===updatedO.stage)||STAGES[0];
+  const dl  = new Date(updatedO.deadline).toLocaleString('hi-IN',{weekday:'long',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+  const trackUrl = (typeof SITE_URL!=='undefined'?SITE_URL:location.origin+location.pathname)+'#track='+updatedO.id;
+  const staffLine = updatedO.staff?`\n👤 Assigned: *${updatedO.staff}*${updatedO.staffPhone?' | 📞 '+updatedO.staffPhone:''}`:'' ;
+  const msg = `🙏 नमस्ते *${name}* जी!\n\n📦 *${updatedO.item}${updatedO.qty?' ('+updatedO.qty+')':''}* का order confirm है।\n📅 Delivery: *${dl}*\n🚦 Status: ${stg.emoji} ${stg.hi}${staffLine}\n\n🔗 Live Track:\n${trackUrl}\n\n💬 कोई सवाल हो तो reply करें।`;
+  window.open('https://wa.me/91'+phone+'?text='+encodeURIComponent(msg),'_blank');
+}
+window.saveAndSendWA = saveAndSendWA;
 
 function sendSMS(id){
   const o=_orders.find(x=>x.id===id); if(!o) return;

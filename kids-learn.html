@@ -4,7 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="पढ़ो सीखो">
 <meta name="theme-color" content="#6d28d9">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="kids-learn-manifest.json">
+<link rel="apple-touch-icon" href="kids-icons/icon-192.png">
 <title>पढ़ो और सीखो ⭐</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700;900&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
@@ -92,6 +97,28 @@ body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:var(--bg)
 .stb.active{background:var(--p);color:#fff;border-color:var(--p)}
 #learnTabs{flex-wrap:wrap;overflow:visible;padding-bottom:0;gap:7px}
 #learnTabs .stb{flex:1 1 calc(33.33% - 5px);min-width:0;font-size:12px;padding:8px 6px;text-align:center;white-space:normal}
+
+/* ── PARENT DASHBOARD ── */
+.btn-parent{width:100%;padding:14px;background:linear-gradient(135deg,#1e3a5f,#2563eb);color:#fff;border:none;border-radius:16px;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;margin-top:16px;display:flex;align-items:center;justify-content:center;gap:8px}
+.parent-modal{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:500;overflow-y:auto;display:flex;align-items:flex-start;justify-content:center;padding:16px}
+.parent-inner{background:#fff;border-radius:24px;padding:20px;width:100%;max-width:440px;margin:auto}
+.parent-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #f3f4f6}
+.parent-hdr-title{font-size:17px;font-weight:900;color:var(--text)}
+.p-close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);padding:4px}
+.pin-box{border:3px solid #e9d5ff;border-radius:14px;width:100%;font-size:30px;padding:12px;text-align:center;font-family:inherit;letter-spacing:10px;color:var(--p);outline:none}
+.pin-box:focus{border-color:var(--p)}
+.pin-submit{width:100%;margin-top:12px;padding:14px;background:linear-gradient(135deg,var(--p),var(--pk));color:#fff;border:none;border-radius:14px;font-size:16px;font-weight:900;cursor:pointer;font-family:inherit}
+.parent-stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}
+.pstat{background:#f5f3ff;border-radius:14px;padding:12px 8px;text-align:center}
+.pstat-val{font-size:22px;font-weight:900;color:var(--p)}
+.pstat-lbl{font-size:10px;font-weight:700;color:var(--muted);margin-top:2px}
+.sess-item{background:#f5f3ff;border-radius:12px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.sess-name{font-size:12px;font-weight:800;color:var(--text)}
+.sess-sub{font-size:10px;color:var(--muted);font-weight:600}
+.sess-dur{font-size:14px;font-weight:900;color:var(--p)}
+.score-item{background:#f0fdf4;border-radius:12px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.score-game{font-size:12px;font-weight:800;color:var(--text)}
+.score-pct-val{font-size:16px;font-weight:900}
 
 /* ── LETTER CARDS — direct tap = speak ── */
 .lgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
@@ -740,6 +767,42 @@ body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:var(--bg)
     <div class="pitem"><div class="pitem-icon">📖</div><div class="pitem-info"><div class="pitem-name">कहानियां</div><div class="pbar-wrap"><div class="pbar" id="barS" style="width:0%"></div></div></div><div class="ppct" id="pctS">0/5</div></div>
     <div class="stitle mt16">Badges 🏅</div>
     <div class="bdg-grid" id="bdgGrid"></div>
+    <button class="btn-parent ripple-host" onclick="openParentDash()">👨‍👩‍👧 माता-पिता डैशबोर्ड देखें</button>
+  </div>
+
+  <!-- PARENT DASHBOARD MODAL -->
+  <div id="parentModal" class="parent-modal" style="display:none" onclick="if(event.target===this)closeParentDash()">
+    <div class="parent-inner">
+      <div class="parent-hdr">
+        <div class="parent-hdr-title">👨‍👩‍👧 माता-पिता डैशबोर्ड</div>
+        <button class="p-close" onclick="closeParentDash()">✕</button>
+      </div>
+      <div id="parentPinWrap">
+        <p style="text-align:center;margin:8px 0 12px;font-weight:700;color:var(--muted)">PIN डालें (डिफ़ॉल्ट: 1234)</p>
+        <input id="parentPinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" class="pin-box" onkeydown="if(event.key==='Enter')checkParentPin()">
+        <button class="pin-submit" onclick="checkParentPin()">प्रवेश करें →</button>
+        <div id="pinError" style="color:#dc2626;text-align:center;margin-top:8px;font-weight:700;display:none">❌ गलत PIN</div>
+      </div>
+      <div id="parentDashContent" style="display:none">
+        <div class="parent-stat-row" id="parentStats">
+          <div class="pstat"><div class="pstat-val" id="pds1">—</div><div class="pstat-lbl">Stars ⭐</div></div>
+          <div class="pstat"><div class="pstat-val" id="pds2">—</div><div class="pstat-lbl">मिनट 📚</div></div>
+          <div class="pstat"><div class="pstat-val" id="pds3">—</div><div class="pstat-lbl">Games 🎮</div></div>
+        </div>
+        <div class="stitle" style="margin:10px 0 8px;font-size:14px">📅 हाल की Activity</div>
+        <div id="parentSessions"><div style="text-align:center;color:var(--muted);padding:10px">लोड हो रहा है...</div></div>
+        <div class="stitle" style="margin:14px 0 8px;font-size:14px">🎮 Game Scores</div>
+        <div id="parentScores"><div style="text-align:center;color:var(--muted);padding:10px">लोड हो रहा है...</div></div>
+        <div style="margin-top:16px;padding-top:14px;border-top:2px solid #f3f4f6;font-size:11px;color:var(--muted)">
+          <div style="font-weight:700">Device ID: <span id="parentDeviceId" style="font-family:monospace;color:var(--p)"></span></div>
+          <div style="margin-top:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span style="font-weight:700">PIN बदलें:</span>
+            <input id="newPinInput" type="password" inputmode="numeric" maxlength="4" placeholder="नया PIN" style="width:80px;padding:6px;border:2px solid #e9d5ff;border-radius:8px;font-size:14px;text-align:center;font-family:inherit">
+            <button onclick="changeParentPin()" style="padding:6px 14px;background:var(--p);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:900;cursor:pointer;font-family:inherit">बदलें</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <nav class="bnav">
@@ -845,14 +908,65 @@ const READING_WORDS = [
   {word:'घर',syls:['घ','र'],emoji:'🏠',meaning:'House',colors:['#ea580c','#2563eb']},
   {word:'फूल',syls:['फू','ल'],emoji:'🌸',meaning:'Flower',colors:['#ec4899','#16a34a']},
   {word:'खरगोश',syls:['ख','र','गो','श'],emoji:'🐇',meaning:'Rabbit',colors:['#7c3aed','#ea580c','#059669','#dc2626']},
+  {word:'कार',syls:['का','र'],emoji:'🚗',meaning:'Car',colors:['#dc2626','#2563eb']},
+  {word:'बादल',syls:['बा','द','ल'],emoji:'☁️',meaning:'Cloud',colors:['#6b7280','#2563eb','#6d28d9']},
+  {word:'सूरज',syls:['सू','र','ज'],emoji:'☀️',meaning:'Sun',colors:['#d97706','#ea580c','#dc2626']},
+  {word:'चाँद',syls:['चाँ','द'],emoji:'🌙',meaning:'Moon',colors:['#7c3aed','#2563eb']},
+  {word:'तारा',syls:['ता','रा'],emoji:'⭐',meaning:'Star',colors:['#d97706','#ea580c']},
+  {word:'पेड़',syls:['पे','ड़'],emoji:'🌳',meaning:'Tree',colors:['#16a34a','#059669']},
+  {word:'काम',syls:['का','म'],emoji:'💼',meaning:'Work',colors:['#2563eb','#dc2626']},
+  {word:'खाना',syls:['खा','ना'],emoji:'🍽️',meaning:'Food',colors:['#ea580c','#16a34a']},
+  {word:'सोना',syls:['सो','ना'],emoji:'😴',meaning:'Sleep',colors:['#7c3aed','#0891b2']},
+  {word:'जाना',syls:['जा','ना'],emoji:'🚶',meaning:'Go',colors:['#16a34a','#ea580c']},
+  {word:'लाल',syls:['ला','ल'],emoji:'🔴',meaning:'Red',colors:['#dc2626','#ea580c']},
+  {word:'नीला',syls:['नी','ला'],emoji:'🔵',meaning:'Blue',colors:['#2563eb','#0891b2']},
+  {word:'हरा',syls:['ह','रा'],emoji:'🟢',meaning:'Green',colors:['#16a34a','#059669']},
+  {word:'दूध',syls:['दू','ध'],emoji:'🥛',meaning:'Milk',colors:['#6b7280','#2563eb']},
+  {word:'रोटी',syls:['रो','टी'],emoji:'🫓',meaning:'Bread',colors:['#d97706','#ea580c']},
+  {word:'चावल',syls:['चा','व','ल'],emoji:'🍚',meaning:'Rice',colors:['#6b7280','#16a34a','#2563eb']},
+  {word:'दाल',syls:['दा','ल'],emoji:'🍲',meaning:'Lentils',colors:['#d97706','#ea580c']},
+  {word:'माँ',syls:['माँ'],emoji:'👩',meaning:'Mother',colors:['#ec4899']},
+  {word:'पापा',syls:['पा','पा'],emoji:'👨',meaning:'Father',colors:['#2563eb','#6d28d9']},
+  {word:'भाई',syls:['भा','ई'],emoji:'👦',meaning:'Brother',colors:['#ea580c','#dc2626']},
+  {word:'बहन',syls:['ब','ह','न'],emoji:'👧',meaning:'Sister',colors:['#ec4899','#6d28d9','#16a34a']},
+  {word:'दोस्त',syls:['दो','स्त'],emoji:'🤝',meaning:'Friend',colors:['#059669','#7c3aed']},
+  {word:'स्कूल',syls:['स्कू','ल'],emoji:'🏫',meaning:'School',colors:['#2563eb','#6d28d9']},
+  {word:'शेर',syls:['शे','र'],emoji:'🦁',meaning:'Lion',colors:['#d97706','#ea580c']},
+  {word:'हाथी',syls:['हा','थी'],emoji:'🐘',meaning:'Elephant',colors:['#6b7280','#7c3aed']},
+  {word:'बाघ',syls:['बा','घ'],emoji:'🐯',meaning:'Tiger',colors:['#d97706','#dc2626']},
+  {word:'मछली',syls:['म','छ','ली'],emoji:'🐟',meaning:'Fish',colors:['#0891b2','#2563eb','#059669']},
+  {word:'गेंद',syls:['गें','द'],emoji:'⚽',meaning:'Ball',colors:['#16a34a','#2563eb']},
+  {word:'नाम',syls:['ना','म'],emoji:'✏️',meaning:'Name',colors:['#6d28d9','#ec4899']},
+  {word:'खेल',syls:['खे','ल'],emoji:'🎮',meaning:'Game',colors:['#7c3aed','#ec4899']},
+  {word:'रात',syls:['रा','त'],emoji:'🌙',meaning:'Night',colors:['#1e1b4b','#2563eb']},
+  {word:'दिन',syls:['दि','न'],emoji:'☀️',meaning:'Day',colors:['#d97706','#ea580c']},
+  {word:'आँख',syls:['आँ','ख'],emoji:'👁️',meaning:'Eye',colors:['#2563eb','#6d28d9']},
+  {word:'कान',syls:['का','न'],emoji:'👂',meaning:'Ear',colors:['#ec4899','#d97706']},
+  {word:'नाक',syls:['ना','क'],emoji:'👃',meaning:'Nose',colors:['#ea580c','#6d28d9']},
+  {word:'हाथ',syls:['हा','थ'],emoji:'✋',meaning:'Hand',colors:['#d97706','#16a34a']},
+  {word:'बाघ',syls:['बा','घ'],emoji:'🐯',meaning:'Tiger',colors:['#d97706','#dc2626']},
+  {word:'ऊँट',syls:['ऊँ','ट'],emoji:'🐪',meaning:'Camel',colors:['#d97706','#ea580c']},
+  {word:'तोता',syls:['तो','ता'],emoji:'🦜',meaning:'Parrot',colors:['#16a34a','#059669']},
+  {word:'हंस',syls:['हं','स'],emoji:'🦢',meaning:'Swan',colors:['#2563eb','#6b7280']},
+  {word:'दवा',syls:['द','वा'],emoji:'💊',meaning:'Medicine',colors:['#dc2626','#ec4899']},
+  {word:'खिड़की',syls:['खि','ड़','की'],emoji:'🪟',meaning:'Window',colors:['#0891b2','#2563eb','#6d28d9']},
+  {word:'बगीचा',syls:['ब','गी','चा'],emoji:'🌻',meaning:'Garden',colors:['#16a34a','#d97706','#059669']},
+  {word:'रसोई',syls:['र','सो','ई'],emoji:'🍳',meaning:'Kitchen',colors:['#ea580c','#d97706','#dc2626']},
 ];
 
 const VOCAB = {
-  'फल':   [{e:'🍎',h:'सेब',en:'Apple'},{e:'🥭',h:'आम',en:'Mango'},{e:'🍌',h:'केला',en:'Banana'},{e:'🍇',h:'अंगूर',en:'Grapes'},{e:'🍊',h:'संतरा',en:'Orange'},{e:'🍋',h:'नींबू',en:'Lemon'},{e:'🍉',h:'तरबूज',en:'Watermelon'},{e:'🍓',h:'स्ट्रॉबेरी',en:'Strawberry'},{e:'🍑',h:'आड़ू',en:'Peach'},{e:'🍍',h:'अनानास',en:'Pineapple'}],
-  'सब्जी': [{e:'🥕',h:'गाजर',en:'Carrot'},{e:'🥔',h:'आलू',en:'Potato'},{e:'🍅',h:'टमाटर',en:'Tomato'},{e:'🧅',h:'प्याज',en:'Onion'},{e:'🧄',h:'लहसुन',en:'Garlic'},{e:'🥦',h:'ब्रोकली',en:'Broccoli'},{e:'🌽',h:'मक्का',en:'Corn'},{e:'🥒',h:'खीरा',en:'Cucumber'},{e:'🍆',h:'बैंगन',en:'Brinjal'},{e:'🫛',h:'मटर',en:'Peas'}],
-  'जानवर': [{e:'🐘',h:'हाथी',en:'Elephant'},{e:'🐯',h:'बाघ',en:'Tiger'},{e:'🦁',h:'शेर',en:'Lion'},{e:'🐄',h:'गाय',en:'Cow'},{e:'🐕',h:'कुत्ता',en:'Dog'},{e:'🐈',h:'बिल्ली',en:'Cat'},{e:'🐒',h:'बंदर',en:'Monkey'},{e:'🐇',h:'खरगोश',en:'Rabbit'},{e:'🦚',h:'मोर',en:'Peacock'},{e:'🐬',h:'डॉल्फिन',en:'Dolphin'}],
-  'रंग':   [{e:'🔴',h:'लाल',en:'Red'},{e:'🟠',h:'नारंगी',en:'Orange'},{e:'🟡',h:'पीला',en:'Yellow'},{e:'🟢',h:'हरा',en:'Green'},{e:'🔵',h:'नीला',en:'Blue'},{e:'🟣',h:'बैंगनी',en:'Purple'},{e:'⚫',h:'काला',en:'Black'},{e:'⚪',h:'सफेद',en:'White'},{e:'🟤',h:'भूरा',en:'Brown'},{e:'🩷',h:'गुलाबी',en:'Pink'}],
-  'शरीर':  [{e:'👁️',h:'आँख',en:'Eye'},{e:'👂',h:'कान',en:'Ear'},{e:'👃',h:'नाक',en:'Nose'},{e:'👄',h:'मुँह',en:'Mouth'},{e:'🦷',h:'दाँत',en:'Teeth'},{e:'🤲',h:'हाथ',en:'Hand'},{e:'🦶',h:'पैर',en:'Foot'},{e:'💪',h:'बाहु',en:'Arm'},{e:'🫀',h:'दिल',en:'Heart'},{e:'🧠',h:'दिमाग',en:'Brain'}],
+  'फल':    [{e:'🍎',h:'सेब',en:'Apple'},{e:'🥭',h:'आम',en:'Mango'},{e:'🍌',h:'केला',en:'Banana'},{e:'🍇',h:'अंगूर',en:'Grapes'},{e:'🍊',h:'संतरा',en:'Orange'},{e:'🍋',h:'नींबू',en:'Lemon'},{e:'🍉',h:'तरबूज',en:'Watermelon'},{e:'🍓',h:'स्ट्रॉबेरी',en:'Strawberry'},{e:'🍑',h:'आड़ू',en:'Peach'},{e:'🍍',h:'अनानास',en:'Pineapple'},{e:'🍐',h:'नाशपाती',en:'Pear'},{e:'🥝',h:'कीवी',en:'Kiwi'},{e:'🍒',h:'चेरी',en:'Cherry'},{e:'🫐',h:'ब्लूबेरी',en:'Blueberry'},{e:'🥥',h:'नारियल',en:'Coconut'}],
+  'सब्जी': [{e:'🥕',h:'गाजर',en:'Carrot'},{e:'🥔',h:'आलू',en:'Potato'},{e:'🍅',h:'टमाटर',en:'Tomato'},{e:'🧅',h:'प्याज',en:'Onion'},{e:'🧄',h:'लहसुन',en:'Garlic'},{e:'🥦',h:'ब्रोकली',en:'Broccoli'},{e:'🌽',h:'मक्का',en:'Corn'},{e:'🥒',h:'खीरा',en:'Cucumber'},{e:'🍆',h:'बैंगन',en:'Brinjal'},{e:'🫛',h:'मटर',en:'Peas'},{e:'🥬',h:'पालक',en:'Spinach'},{e:'🌶️',h:'मिर्च',en:'Chilli'},{e:'🫚',h:'अदरक',en:'Ginger'},{e:'🥗',h:'गोभी',en:'Cabbage'},{e:'🫘',h:'बीन्स',en:'Beans'}],
+  'जानवर': [{e:'🐘',h:'हाथी',en:'Elephant'},{e:'🐯',h:'बाघ',en:'Tiger'},{e:'🦁',h:'शेर',en:'Lion'},{e:'🐄',h:'गाय',en:'Cow'},{e:'🐕',h:'कुत्ता',en:'Dog'},{e:'🐈',h:'बिल्ली',en:'Cat'},{e:'🐒',h:'बंदर',en:'Monkey'},{e:'🐇',h:'खरगोश',en:'Rabbit'},{e:'🦚',h:'मोर',en:'Peacock'},{e:'🐬',h:'डॉल्फिन',en:'Dolphin'},{e:'🐴',h:'घोड़ा',en:'Horse'},{e:'🦒',h:'जिराफ',en:'Giraffe'},{e:'🐊',h:'मगरमच्छ',en:'Crocodile'},{e:'🦊',h:'लोमड़ी',en:'Fox'},{e:'🐻',h:'भालू',en:'Bear'},{e:'🐺',h:'भेड़िया',en:'Wolf'},{e:'🐸',h:'मेंढक',en:'Frog'},{e:'🦓',h:'ज़ेब्रा',en:'Zebra'}],
+  'रंग':   [{e:'🔴',h:'लाल',en:'Red'},{e:'🟠',h:'नारंगी',en:'Orange'},{e:'🟡',h:'पीला',en:'Yellow'},{e:'🟢',h:'हरा',en:'Green'},{e:'🔵',h:'नीला',en:'Blue'},{e:'🟣',h:'बैंगनी',en:'Purple'},{e:'⚫',h:'काला',en:'Black'},{e:'⚪',h:'सफेद',en:'White'},{e:'🟤',h:'भूरा',en:'Brown'},{e:'🩷',h:'गुलाबी',en:'Pink'},{e:'🩵',h:'आसमानी',en:'Sky Blue'},{e:'🌟',h:'सुनहरा',en:'Golden'},{e:'🩶',h:'स्लेटी',en:'Grey'},{e:'🫧',h:'चांदी',en:'Silver'}],
+  'शरीर':  [{e:'👁️',h:'आँख',en:'Eye'},{e:'👂',h:'कान',en:'Ear'},{e:'👃',h:'नाक',en:'Nose'},{e:'👄',h:'मुँह',en:'Mouth'},{e:'🦷',h:'दाँत',en:'Teeth'},{e:'🤲',h:'हाथ',en:'Hand'},{e:'🦶',h:'पैर',en:'Foot'},{e:'💪',h:'बाहु',en:'Arm'},{e:'🫀',h:'दिल',en:'Heart'},{e:'🧠',h:'दिमाग',en:'Brain'},{e:'🦴',h:'हड्डी',en:'Bone'},{e:'🫁',h:'फेफड़ा',en:'Lung'},{e:'🧍',h:'कंधा',en:'Shoulder'},{e:'🦵',h:'जाँघ',en:'Thigh'}],
+  'वाहन':  [{e:'🚗',h:'कार',en:'Car'},{e:'🚌',h:'बस',en:'Bus'},{e:'🚂',h:'ट्रेन',en:'Train'},{e:'🚲',h:'साइकिल',en:'Bicycle'},{e:'✈️',h:'हवाई जहाज़',en:'Airplane'},{e:'⛵',h:'नाव',en:'Boat'},{e:'🚛',h:'ट्रक',en:'Truck'},{e:'🏍️',h:'मोटरसाइकिल',en:'Motorcycle'},{e:'🛺',h:'रिक्शा',en:'Rickshaw'},{e:'🚁',h:'हेलीकॉप्टर',en:'Helicopter'},{e:'🚀',h:'रॉकेट',en:'Rocket'},{e:'🚢',h:'जहाज़',en:'Ship'},{e:'🛵',h:'स्कूटर',en:'Scooter'},{e:'🚑',h:'एम्बुलेंस',en:'Ambulance'}],
+  'पक्षी': [{e:'🦚',h:'मोर',en:'Peacock'},{e:'🦜',h:'तोता',en:'Parrot'},{e:'🕊️',h:'कबूतर',en:'Pigeon'},{e:'🐦‍⬛',h:'कौआ',en:'Crow'},{e:'🦅',h:'बाज़',en:'Eagle'},{e:'🦢',h:'हंस',en:'Swan'},{e:'🐓',h:'मुर्गा',en:'Rooster'},{e:'🦆',h:'बत्तख',en:'Duck'},{e:'🦩',h:'फ्लेमिंगो',en:'Flamingo'},{e:'🦉',h:'उल्लू',en:'Owl'},{e:'🐦',h:'गौरैया',en:'Sparrow'},{e:'🦃',h:'टर्की',en:'Turkey'},{e:'🐧',h:'पेंगुइन',en:'Penguin'},{e:'🦤',h:'कोयल',en:'Cuckoo'}],
+  'खाना':  [{e:'🫓',h:'रोटी',en:'Bread'},{e:'🍚',h:'चावल',en:'Rice'},{e:'🍲',h:'दाल',en:'Lentils'},{e:'🥗',h:'सलाद',en:'Salad'},{e:'🥛',h:'दूध',en:'Milk'},{e:'☕',h:'चाय',en:'Tea'},{e:'🍬',h:'मिठाई',en:'Sweets'},{e:'🍮',h:'हलवा',en:'Halwa'},{e:'🥞',h:'पूरी',en:'Puri'},{e:'🥘',h:'करी',en:'Curry'},{e:'🧆',h:'समोसा',en:'Samosa'},{e:'🫙',h:'दही',en:'Curd'},{e:'🍯',h:'शहद',en:'Honey'},{e:'🧈',h:'मक्खन',en:'Butter'},{e:'🥚',h:'अंडा',en:'Egg'}],
+  'कपड़े': [{e:'👕',h:'कमीज़',en:'Shirt'},{e:'👖',h:'पैंट',en:'Pants'},{e:'👗',h:'कुर्ता',en:'Kurta'},{e:'🥻',h:'साड़ी',en:'Saree'},{e:'🧣',h:'दुपट्टा',en:'Dupatta'},{e:'🎩',h:'टोपी',en:'Hat'},{e:'👟',h:'जूता',en:'Shoe'},{e:'🧦',h:'मोजा',en:'Socks'},{e:'🧥',h:'जैकेट',en:'Jacket'},{e:'👒',h:'टोपी',en:'Cap'},{e:'🧤',h:'दस्ताना',en:'Gloves'},{e:'👜',h:'थैला',en:'Bag'},{e:'👓',h:'चश्मा',en:'Glasses'},{e:'⌚',h:'घड़ी',en:'Watch'}],
+  'घर':    [{e:'🚪',h:'दरवाज़ा',en:'Door'},{e:'🪟',h:'खिड़की',en:'Window'},{e:'🛋️',h:'सोफा',en:'Sofa'},{e:'🛏️',h:'बिस्तर',en:'Bed'},{e:'🪑',h:'कुर्सी',en:'Chair'},{e:'🪞',h:'दर्पण',en:'Mirror'},{e:'💡',h:'बल्ब',en:'Bulb'},{e:'📺',h:'टीवी',en:'TV'},{e:'📱',h:'फ़ोन',en:'Phone'},{e:'📚',h:'किताब',en:'Book'},{e:'🖊️',h:'कलम',en:'Pen'},{e:'🧹',h:'झाड़ू',en:'Broom'},{e:'🪣',h:'बाल्टी',en:'Bucket'},{e:'🛁',h:'नल',en:'Tap'},{e:'🍳',h:'तवा',en:'Pan'}],
+  'मौसम':  [{e:'🌧️',h:'बारिश',en:'Rain'},{e:'☀️',h:'धूप',en:'Sunshine'},{e:'☁️',h:'बादल',en:'Cloud'},{e:'❄️',h:'बर्फ़',en:'Snow'},{e:'🌬️',h:'हवा',en:'Wind'},{e:'🌈',h:'इंद्रधनुष',en:'Rainbow'},{e:'⛈️',h:'आंधी',en:'Storm'},{e:'🌫️',h:'धुंध',en:'Fog'},{e:'🌡️',h:'गर्मी',en:'Heat'},{e:'🥶',h:'ठंड',en:'Cold'},{e:'🌊',h:'बाढ़',en:'Flood'},{e:'⚡',h:'बिजली',en:'Lightning'}],
+  'खेल':   [{e:'🏏',h:'क्रिकेट',en:'Cricket'},{e:'⚽',h:'फ़ुटबॉल',en:'Football'},{e:'🏊',h:'तैराकी',en:'Swimming'},{e:'🏃',h:'दौड़',en:'Running'},{e:'♟️',h:'शतरंज',en:'Chess'},{e:'🪁',h:'पतंग',en:'Kite'},{e:'🏸',h:'बैडमिंटन',en:'Badminton'},{e:'🏓',h:'टेबल टेनिस',en:'Table Tennis'},{e:'🤸',h:'कबड्डी',en:'Kabaddi'},{e:'🎯',h:'निशानेबाज़ी',en:'Shooting'},{e:'🏋️',h:'कुश्ती',en:'Wrestling'},{e:'🎮',h:'वीडियो गेम',en:'Video Game'}],
 };
 const VOCAB_CATS = Object.keys(VOCAB);
 
@@ -865,11 +979,42 @@ const SENTENCES = [
   {q:'हाथी बहुत ___ जानवर है।',ans:'बड़ा',opts:['बड़ा','छोटा','तेज़','धीमा']},
   {q:'गुलाब का फूल ___ होता है।',ans:'लाल',opts:['लाल','काला','नीला','हरा']},
   {q:'बच्चे ___ में पढ़ते हैं।',ans:'स्कूल',opts:['स्कूल','दुकान','खेत','नदी']},
+  {q:'केले का रंग ___ होता है।',ans:'पीला',opts:['पीला','लाल','हरा','नीला']},
+  {q:'घास का रंग ___ होता है।',ans:'हरा',opts:['हरा','लाल','नीला','पीला']},
+  {q:'आसमान का रंग ___ होता है।',ans:'नीला',opts:['नीला','लाल','पीला','हरा']},
+  {q:'बर्फ ___ होती है।',ans:'सफ़ेद',opts:['सफ़ेद','काली','लाल','नीली']},
+  {q:'कोयल ___ गाती है।',ans:'मधुर',opts:['मधुर','तेज़','ज़ोर से','धीमी']},
+  {q:'गाय ___ देती है।',ans:'दूध',opts:['दूध','अंडा','ऊन','शहद']},
+  {q:'मुर्गी ___ देती है।',ans:'अंडा',opts:['अंडा','दूध','शहद','ऊन']},
+  {q:'मधुमक्खी ___ बनाती है।',ans:'शहद',opts:['शहद','दूध','अंडा','ऊन']},
+  {q:'सूरज ___ में उगता है।',ans:'पूर्व',opts:['पूर्व','पश्चिम','उत्तर','दक्षिण']},
+  {q:'रात को ___ चमकता है।',ans:'चाँद',opts:['चाँद','सूरज','बादल','इंद्रधनुष']},
+  {q:'पानी ___ में बहता है।',ans:'नदी',opts:['नदी','पहाड़','आसमान','जंगल']},
+  {q:'पहाड़ पर ___ होती है।',ans:'बर्फ',opts:['बर्फ','बारिश','धूप','हवा']},
+  {q:'बारिश ___ से आती है।',ans:'बादल',opts:['बादल','सूरज','हवा','पहाड़']},
+  {q:'शेर ___ में रहता है।',ans:'जंगल',opts:['जंगल','घर','स्कूल','नदी']},
+  {q:'हम भोजन ___ से खाते हैं।',ans:'हाथ',opts:['हाथ','पैर','नाक','कान']},
+  {q:'हम संगीत ___ से सुनते हैं।',ans:'कान',opts:['कान','आँख','नाक','मुँह']},
+  {q:'हम देखते हैं ___ से।',ans:'आँख',opts:['आँख','कान','नाक','हाथ']},
+  {q:'हिंदी में अक्षरों की संख्या ___ है।',ans:'52',opts:['52','26','36','42']},
+  {q:'हफ्ते में ___ दिन होते हैं।',ans:'सात',opts:['सात','पाँच','छह','आठ']},
+  {q:'एक साल में ___ महीने होते हैं।',ans:'बारह',opts:['बारह','दस','आठ','नौ']},
+  {q:'एक दिन में ___ घंटे होते हैं।',ans:'चौबीस',opts:['चौबीस','बारह','बीस','सोलह']},
+  {q:'दो और दो मिलाकर ___ होते हैं।',ans:'चार',opts:['चार','तीन','पाँच','दो']},
+  {q:'पाँच से दो घटाने पर ___ मिलता है।',ans:'तीन',opts:['तीन','दो','एक','चार']},
+  {q:'तितली ___ चूसती है।',ans:'फूलों का रस',opts:['फूलों का रस','पानी','दूध','हवा']},
+  {q:'ऊँट को ___ जानवर कहते हैं।',ans:'रेगिस्तान का जहाज़',opts:['रेगिस्तान का जहाज़','पहाड़ का राजा','जंगल का राजा','नदी की रानी']},
 ];
 
 const ANTONYMS = [
   {w:'बड़ा',a:'छोटा'},{w:'गर्म',a:'ठंडा'},{w:'दिन',a:'रात'},{w:'ऊपर',a:'नीचे'},{w:'सुख',a:'दुःख'},
   {w:'अच्छा',a:'बुरा'},{w:'आना',a:'जाना'},{w:'खुश',a:'उदास'},{w:'नया',a:'पुराना'},{w:'तेज़',a:'धीमा'},
+  {w:'काला',a:'सफ़ेद'},{w:'लंबा',a:'नाटा'},{w:'भारी',a:'हल्का'},{w:'मीठा',a:'कड़वा'},{w:'खुला',a:'बंद'},
+  {w:'आसान',a:'मुश्किल'},{w:'अमीर',a:'गरीब'},{w:'शुरू',a:'खत्म'},{w:'सुबह',a:'शाम'},{w:'राजा',a:'रानी'},
+  {w:'लड़का',a:'लड़की'},{w:'सवाल',a:'जवाब'},{w:'हंसना',a:'रोना'},{w:'उठना',a:'बैठना'},{w:'जीत',a:'हार'},
+  {w:'प्यार',a:'नफरत'},{w:'शहर',a:'गाँव'},{w:'पहला',a:'आखिरी'},{w:'अंधेरा',a:'उजाला'},{w:'खाली',a:'भरा'},
+  {w:'सच',a:'झूठ'},{w:'आगे',a:'पीछे'},{w:'पूर्व',a:'पश्चिम'},{w:'उत्तर',a:'दक्षिण'},{w:'जल',a:'थल'},
+  {w:'मोटा',a:'पतला'},{w:'चौड़ा',a:'पतला'},{w:'कच्चा',a:'पक्का'},{w:'सूखा',a:'गीला'},{w:'साफ़',a:'गंदा'},
 ];
 
 // ═══════════════════════════════════════════════════════════
@@ -1396,6 +1541,7 @@ function endQuiz() {
   document.getElementById('resText').textContent=pct>=80?`शाबाश! ${qSc}/${qItems.length} सही!`:pct>=50?`अच्छा! ${qSc}/${qItems.length} सही`:`${qSc}/${qItems.length} — फिर कोशिश करो!`;
   document.getElementById('resPlayAgain').onclick=()=>startGame(curGame);
   if(pct>=80) launchConfetti();
+  saveScore(curGame==='english'?'English Quiz':'Hindi Quiz',qSc,qItems.length);
 }
 
 /* ── BUBBLE POP ── */
@@ -1442,6 +1588,7 @@ function endBubble() {
   document.getElementById('resText').textContent=`Bubble Pop: ${bSc}/10 सही!`;
   document.getElementById('resPlayAgain').onclick=()=>startGame('bubble');
   if(bSc>=7) launchConfetti();
+  saveScore('Bubble Pop',bSc,10);
 }
 
 /* ── MEMORY MATCH ── */
@@ -1547,6 +1694,7 @@ function endWB() {
   document.getElementById('resText').textContent=`Word Builder: ${wbSc} Stars!`;
   document.getElementById('resPlayAgain').onclick=()=>startGame('wordbuild');
   if(wbSc>10) launchConfetti();
+  saveScore('Word Builder',wbSc,wbItems.length);
 }
 
 /* ── VOCAB QUIZ ── */
@@ -1588,6 +1736,7 @@ function endVQ() {
   document.getElementById('resText').textContent=`शब्द ज्ञान: ${vqSc}/${vqItems.length} सही!`;
   document.getElementById('resPlayAgain').onclick=()=>startGame('vocabquiz');
   if(pct>=80) launchConfetti();
+  saveScore('शब्द ज्ञान Quiz',vqSc,vqItems.length);
 }
 
 /* ── SENTENCE GAME ── */
@@ -1621,6 +1770,7 @@ function endSQ() {
   document.getElementById('resText').textContent=`वाक्य खेल: ${sqSc}/${sqItems.length} सही!`;
   document.getElementById('resPlayAgain').onclick=()=>startGame('sentence');
   if(pct>=80) launchConfetti();
+  saveScore('वाक्य पूरा करो',sqSc,sqItems.length);
 }
 
 /* ── ANTONYM GAME ── */
@@ -1655,6 +1805,7 @@ function endAQ() {
   document.getElementById('resEmoji').textContent=pct>=80?'🎉':pct>=50?'👍':'💪';
   document.getElementById('resText').textContent=`उल्टे शब्द: ${aqSc}/${aqItems.length} सही!`;
   document.getElementById('resPlayAgain').onclick=()=>startGame('antonym');
+  saveScore('उल्टे शब्द',aqSc,aqItems.length);
   if(pct>=80) launchConfetti();
 }
 
@@ -1693,6 +1844,7 @@ function endBKQ() {
   document.getElementById('resText').textContent=`बाराखड़ी Quiz: ${bkqSc}/${bkqItems.length} सही!`;
   document.getElementById('resPlayAgain').onclick=()=>startGame('bkquiz');
   if(pct>=80) launchConfetti();
+  saveScore('बाराखड़ी Quiz',bkqSc,bkqItems.length);
 }
 
 /* ── MATRA QUIZ ── */
@@ -1733,6 +1885,7 @@ function endMQ() {
   document.getElementById('resText').textContent=`मात्रा Quiz: ${mqSc}/${mqItems.length} सही!`;
   document.getElementById('resPlayAgain').onclick=()=>startGame('matraquiz');
   if(pct>=80) launchConfetti();
+  saveScore('मात्रा Quiz',mqSc,mqItems.length);
 }
 
 /* ── WORD READ QUIZ ── */
@@ -1771,6 +1924,7 @@ function endWRQ() {
   document.getElementById('resText').textContent=`शब्द पढ़ो: ${wrqSc}/${wrqItems.length} सही!`;
   document.getElementById('resPlayAgain').onclick=()=>startGame('wordreadquiz');
   if(pct>=80) launchConfetti();
+  saveScore('शब्द पढ़ो Quiz',wrqSc,wrqItems.length);
 }
 
 /* ── MINI TOAST ── */
@@ -1915,6 +2069,112 @@ function shuffle(a) {
 }
 
 // ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
+// FIREBASE ACTIVITY TRACKING
+// ═══════════════════════════════════════════════════════════
+const _FBCFG = {
+  apiKey:"AIzaSyBCe5DKNKcthOl4umprfRm2QBfbVaFORg8",
+  authDomain:"vbe-order-tracker-60324.firebaseapp.com",
+  projectId:"vbe-order-tracker-60324",
+  storageBucket:"vbe-order-tracker-60324.firebasestorage.app",
+  messagingSenderId:"894023456122",
+  appId:"1:894023456122:web:6ee548f0913c887c67f2c3"
+};
+let _kDb=null, _kF=null;
+let _sessStart=Date.now();
+const DEVICE_ID=(()=>{let id=localStorage.getItem('vkids_dev');if(!id){id=Math.random().toString(36).slice(2,8).toUpperCase();localStorage.setItem('vkids_dev',id);}return id;})();
+
+async function initKidsFirebase() {
+  try {
+    const {initializeApp,getApps}=await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+    const {getFirestore,collection,addDoc,getDocs,query,orderBy,limit}=await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    const {getAuth,signInAnonymously}=await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
+    const apps=getApps(); const app=apps.find(a=>a.name==='kids')||initializeApp(_FBCFG,'kids');
+    _kDb=getFirestore(app); _kF={collection,addDoc,getDocs,query,orderBy,limit};
+    await signInAnonymously(getAuth(app));
+  } catch(e){console.warn('Kids Firebase offline');}
+}
+
+async function saveScore(game,score,total) {
+  if(!_kDb||!_kF) return;
+  try { await _kF.addDoc(_kF.collection(_kDb,'vkids_scores'),{deviceId:DEVICE_ID,childName:P.name||'बच्चा',game,score,total,pct:Math.round(score/total*100),timestamp:new Date(),date:new Date().toISOString().slice(0,10)}); } catch(e){}
+}
+
+async function saveSession() {
+  if(!_kDb||!_kF) return;
+  const dur=Math.round((Date.now()-_sessStart)/1000); if(dur<20) return;
+  try { await _kF.addDoc(_kF.collection(_kDb,'vkids_sessions'),{deviceId:DEVICE_ID,childName:P.name||'बच्चा',durationSec:dur,durationMin:+(dur/60).toFixed(1),date:new Date().toISOString().slice(0,10),stars:P.stars,startTime:new Date(_sessStart),endTime:new Date()}); } catch(e){}
+}
+window.addEventListener('beforeunload',saveSession);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)saveSession();});
+
+// ── PARENT DASHBOARD ──
+const _PPIN_KEY='vkids_ppin';
+function openParentDash() {
+  document.getElementById('parentModal').style.display='flex';
+  document.getElementById('parentPinWrap').style.display='';
+  document.getElementById('parentDashContent').style.display='none';
+  document.getElementById('parentPinInput').value='';
+  document.getElementById('pinError').style.display='none';
+  setTimeout(()=>document.getElementById('parentPinInput').focus(),200);
+}
+function closeParentDash() { document.getElementById('parentModal').style.display='none'; }
+function checkParentPin() {
+  const pin=document.getElementById('parentPinInput').value;
+  const stored=localStorage.getItem(_PPIN_KEY)||'1234';
+  if(pin===stored) {
+    document.getElementById('parentPinWrap').style.display='none';
+    document.getElementById('parentDashContent').style.display='';
+    document.getElementById('parentDeviceId').textContent=DEVICE_ID;
+    loadParentDash();
+  } else {
+    document.getElementById('pinError').style.display='';
+    document.getElementById('parentPinInput').value='';
+  }
+}
+function changeParentPin() {
+  const np=document.getElementById('newPinInput').value;
+  if(np.length<4){showMini('❌ PIN कम से कम 4 अंक');return;}
+  localStorage.setItem(_PPIN_KEY,np); showMini('✅ PIN बदल गया!');
+  document.getElementById('newPinInput').value='';
+}
+async function loadParentDash() {
+  // Local stats
+  document.getElementById('pds1').textContent=P.stars;
+  document.getElementById('pds2').textContent=Math.round((Date.now()-_sessStart)/60000);
+  document.getElementById('pds3').textContent=P.games;
+
+  if(!_kDb||!_kF) {
+    document.getElementById('parentSessions').innerHTML='<div style="text-align:center;padding:12px;color:var(--muted);font-weight:700">📡 Internet से connect होने पर सभी devices की activity दिखेगी</div>';
+    document.getElementById('parentScores').innerHTML='';
+    return;
+  }
+  try {
+    // Sessions
+    const ss=await _kF.getDocs(_kF.query(_kF.collection(_kDb,'vkids_sessions'),_kF.orderBy('endTime','desc'),_kF.limit(25)));
+    let totalMin=0, sHtml='';
+    ss.forEach(d=>{
+      const v=d.data(); totalMin+=(v.durationSec||0)/60;
+      const dur=v.durationSec>=60?`${Math.round(v.durationSec/60)} मिनट`:`${v.durationSec} सेकंड`;
+      sHtml+=`<div class="sess-item"><div><div class="sess-name">${v.childName||'बच्चा'} · ${v.date||''}</div><div class="sess-sub">${v.deviceId||''}</div></div><div class="sess-dur">${dur} ⭐${v.stars||0}</div></div>`;
+    });
+    document.getElementById('parentSessions').innerHTML=sHtml||'<div style="text-align:center;padding:12px;color:var(--muted)">अभी तक कोई session नहीं</div>';
+    document.getElementById('pds2').textContent=Math.round(totalMin);
+
+    // Scores
+    const sc=await _kF.getDocs(_kF.query(_kF.collection(_kDb,'vkids_scores'),_kF.orderBy('timestamp','desc'),_kF.limit(30)));
+    let scHtml='';
+    sc.forEach(d=>{
+      const v=d.data(); const col=v.pct>=80?'#16a34a':v.pct>=50?'#d97706':'#dc2626';
+      scHtml+=`<div class="score-item"><div><div class="score-game">${v.game} · ${v.childName||'बच्चा'}</div><div style="font-size:10px;color:var(--muted)">${v.date||''} · Device: ${v.deviceId||''}</div></div><div class="score-pct-val" style="color:${col}">${v.pct}%<div style="font-size:10px;font-weight:700;color:var(--muted)">${v.score}/${v.total}</div></div></div>`;
+    });
+    document.getElementById('parentScores').innerHTML=scHtml||'<div style="text-align:center;padding:12px;color:var(--muted)">अभी तक कोई game score नहीं</div>';
+  } catch(e) {
+    document.getElementById('parentSessions').innerHTML=`<div style="text-align:center;padding:12px;color:#dc2626;font-weight:700">❌ Firebase rules update करें:<br><small>vkids_sessions और vkids_scores को allow read, write: if request.auth != null;</small></div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════════
 (function init() {
@@ -1927,6 +2187,12 @@ function shuffle(a) {
   if(!P.name) {
     setTimeout(()=>document.getElementById('avatarOverlay').classList.add('open'),600);
   }
+  // PWA Service Worker
+  if('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./kids-learn-sw.js').catch(()=>{});
+  }
+  // Firebase (non-blocking)
+  initKidsFirebase();
 })();
 </script>
 </body>

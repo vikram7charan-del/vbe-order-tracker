@@ -18,7 +18,8 @@
 <script type="module">
 import { initializeApp }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, doc, setDoc, addDoc, serverTimestamp,
+import { initializeFirestore, persistentLocalCache, persistentSingleTabManager,
+         collection, doc, setDoc, addDoc, serverTimestamp,
          getDoc, getDocs, deleteDoc, updateDoc, onSnapshot,
          query, orderBy }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -26,6 +27,8 @@ import { getAuth, signInWithEmailAndPassword, signInAnonymously, onAuthStateChan
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getMessaging, getToken, onMessage }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
+import { getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 // ══ FIREBASE CONFIG ══
 const firebaseConfig = {
@@ -38,7 +41,15 @@ const firebaseConfig = {
 };
 
 const app  = initializeApp(firebaseConfig);
-const db   = getFirestore(app);
+// Offline persistence — internet बंद होने पर भी app काम करेगा
+const db = initializeFirestore(app, {
+  localCache: persistentLocalCache({ tabManager: persistentSingleTabManager() })
+});
+const storage = getStorage(app);
+window._storage    = storage;
+window._storageRef = storageRef;
+window._uploadBytesResumable = uploadBytesResumable;
+window._getDownloadURL = getDownloadURL;
 const auth = getAuth(app);
 
 // ══ FCM PUSH NOTIFICATIONS ══
@@ -223,6 +234,25 @@ window._updateDoc  = updateDoc;
 window._onSnapshot = onSnapshot;
 window._query      = query;
 window._orderBy    = orderBy;
+
+// ══ FIREBASE STORAGE UPLOAD ══
+// Photo को Cloud Storage में upload करता है, Firestore document छोटा रहेगा
+window._uploadPhoto = async function(file, path, onProgress){
+  return new Promise((resolve, reject) => {
+    const fileRef = storageRef(storage, path);
+    const task = uploadBytesResumable(fileRef, file);
+    task.on('state_changed',
+      snap => { if(onProgress) onProgress(Math.round(snap.bytesTransferred/snap.totalBytes*100)); },
+      err  => reject(err),
+      async () => {
+        try {
+          const url = await getDownloadURL(task.snapshot.ref);
+          resolve(url);
+        } catch(e) { reject(e); }
+      }
+    );
+  });
+};
 </script>
 
 <style>
@@ -1423,6 +1453,10 @@ mark.srch-hl{background:#f59e0b44;color:#fbbf24;border-radius:2px;padding:0 1px;
     <span style="font-size:10px;color:#d4a017;font-weight:800">▼</span>
     <div class="mb-peek-line"></div>
   </div>
+  <!-- Offline Banner — internet बंद होने पर दिखता है -->
+  <div id="vbe-offline-bar" style="display:none;background:#7f1d1d;color:#fca5a5;font-size:10px;font-weight:700;text-align:center;padding:4px 12px;letter-spacing:.5px">
+    📴 Offline — Data cached है, internet वापस आने पर sync होगा
+  </div>
   <div class="s-header" style="display:flex;align-items:center;justify-content:space-between;gap:8px">
     <div class="s-sub" style="flex:1">OPERATIONS · BARMER REGION · SUPPLY CHAIN · <span style="color:rgba(245,158,11,.5);font-size:9px">⚡ सारे फीचर नीचे-बाईं तरफ</span></div>
     <button id="vbe-compact-toggle" onclick="toggleCompactMode()" title="Compact / Card view">☰</button>
@@ -2051,9 +2085,20 @@ window.addEventListener('fbReady',()=>{
 
   document.getElementById('loading').style.display='none';
 
-  // ── ERROR SAFETY ──
-  window.addEventListener('online',  ()=>notif('🟢 Internet वापस आया — Data sync हो रहा है','ok'));
-  window.addEventListener('offline', ()=>notif('🔴 Internet नहीं — Orders दिख रहे हैं पर save नहीं होंगे','warn'));
+  // ── OFFLINE / ONLINE INDICATOR ──
+  function updateOfflineBar(){
+    const bar = document.getElementById('vbe-offline-bar');
+    if(bar) bar.style.display = navigator.onLine ? 'none' : 'block';
+  }
+  window.addEventListener('online', ()=>{
+    updateOfflineBar();
+    notif('🟢 Internet वापस आया — Data sync हो रहा है','ok');
+  });
+  window.addEventListener('offline', ()=>{
+    updateOfflineBar();
+    notif('📴 Offline — Cache से काम चलेगा, save बाद होगा','warn');
+  });
+  updateOfflineBar(); // पहली बार check
 
   const trackId=getTrackId();
   if(trackId){
@@ -4942,23 +4987,33 @@ window.openTplSheet=function(){
   bg.addEventListener('click',function(e){ if(e.target===bg) bg.style.display=''; },{once:true});
 };
 
-// ══ PHOTO CAPTURE ══
+// ══ PHOTO CAPTURE — Firebase Storage में upload होती है ══
 window.handlePhotoPick=async function(orderId,input){
   var file=input.files[0]; input.value=''; if(!file) return;
   var o=_orders.find(function(x){return x.id===orderId;}); if(!o) return;
-  notif('📷 Processing photo...','info');
+  notif('📷 Upload हो रही है...','info');
   try{
-    var img=await (function(f){ return new Promise(function(res,rej){ var i=new Image(); i.onload=function(){res(i);}; i.onerror=rej; i.src=URL.createObjectURL(f); }); })(file);
-    var MAX=600, canvas=document.createElement('canvas');
-    var scale=Math.min(1,MAX/Math.max(img.width,img.height));
-    canvas.width=Math.round(img.width*scale); canvas.height=Math.round(img.height*scale);
-    canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
-    var b64=canvas.toDataURL('image/jpeg',0.65);
-    if(b64.length>400000){ notif('📷 Photo बहुत बड़ी है — छोटी करके try करो','warn'); return; }
-    var timeline=[...(o.timeline||[]),{stage:o.stage,time:new Date().toISOString(),note:'📷 Photo added',photo:b64,by:'Vikram'}];
+    var photoURL=null;
+    if(window._uploadPhoto){
+      photoURL=await window._uploadPhoto(
+        file,
+        'vbe_photos/'+orderId+'/'+Date.now()+'_'+file.name,
+        function(pct){ notif('📷 '+pct+'% upload...','info'); }
+      );
+    } else {
+      // Fallback: base64 (Storage ready नहीं)
+      var img=await new Promise(function(res,rej){ var i=new Image(); i.onload=function(){res(i);}; i.onerror=rej; i.src=URL.createObjectURL(file); });
+      var MAX=600, canvas=document.createElement('canvas');
+      var scale=Math.min(1,MAX/Math.max(img.width,img.height));
+      canvas.width=Math.round(img.width*scale); canvas.height=Math.round(img.height*scale);
+      canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+      photoURL=canvas.toDataURL('image/jpeg',0.65);
+      if(photoURL.length>400000){ notif('📷 Photo बहुत बड़ी है — Storage available नहीं','warn'); return; }
+    }
+    var timeline=[...(o.timeline||[]),{stage:o.stage,time:new Date().toISOString(),note:'📷 Photo added',photo:photoURL,by:'Vikram'}];
     await fbSave({...o,timeline});
-    notif('📷 Photo saved to timeline','ok');
-  }catch(e){ notif('📷 Photo save नहीं हुई','warn'); }
+    notif('📷 Photo Cloud में save हो गई ✅','ok');
+  }catch(e){ notif('📷 Photo save नहीं हुई — '+e.message,'warn'); }
 };
 
 // ══ TAB SWIPE (olist background) ══
@@ -6663,12 +6718,9 @@ function closeStage(){
 
 function prevPhoto(input){
   const file=input.files[0]; if(!file) return;
-  const reader=new FileReader();
-  reader.onload=ev=>{
-    _stagePhoto=ev.target.result;
-    document.getElementById('sg-prev').innerHTML=`<img src="${_stagePhoto}" style="width:80px;height:80px;border-radius:8px;object-fit:cover;border:1px solid #1e3a5f"/>`;
-  };
-  reader.readAsDataURL(file);
+  _stagePhoto=file; // File object store — Storage पर upload होगा
+  const url=URL.createObjectURL(file);
+  document.getElementById('sg-prev').innerHTML=`<img src="${url}" style="width:80px;height:80px;border-radius:8px;object-fit:cover;border:1px solid #1e3a5f"/>`;
 }
 
 async function doAdvance(){
@@ -6677,10 +6729,25 @@ async function doAdvance(){
   const stg=STAGES.find(s=>s.id===nextStage);
   const note=document.getElementById('sg-note').value.trim()||stg.hi;
   const o=_orders.find(x=>x.id===orderId);
+  const btn=document.getElementById('sg-btn');
+  btn.disabled=true; btn.textContent='⏳ Save हो रहा है...';
+  let photoURL=null;
+  // Photo को Firebase Storage में upload करो
+  if(_stagePhoto && window._uploadPhoto){
+    try{
+      notif('📷 Photo upload हो रही है...','info');
+      photoURL=await window._uploadPhoto(
+        _stagePhoto,
+        `vbe_photos/${orderId}/${Date.now()}_${_stagePhoto.name}`,
+        pct=>{ btn.textContent=`⏳ Photo ${pct}%...`; }
+      );
+    }catch(e){ notif('⚠️ Photo upload fail — order बिना photo के save होगा','warn'); }
+  }
   const updated={...o,stage:nextStage,
-    timeline:[...o.timeline,{stage:nextStage,time:new Date().toISOString(),note,photo:_stagePhoto}]};
+    timeline:[...o.timeline,{stage:nextStage,time:new Date().toISOString(),note,photo:photoURL}]};
   await fbSave(updated);
   notif('✅ '+stg.label+' — Customer को दिख गया!','ok');
+  btn.disabled=false;
   // ── Award Reward Points on delivery ──
   if(nextStage === 'delivered') { awardOnDelivery(orderId); }
   closeStage();

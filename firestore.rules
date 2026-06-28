@@ -1,0 +1,92 @@
+rules_version = '2';
+
+// VBE Order Tracker — Firestore Security Rules
+// Firebase Console > Firestore Database > Rules में paste करें
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─── Helper functions ───────────────────────────────────
+    function isSupplier() {
+      return request.auth != null
+          && request.auth.uid == "tjkS5tg2vMflpndGHSQRjFYgRv03";
+    }
+
+    function isLoggedIn() {
+      return request.auth != null;
+    }
+
+    // ─── Orders — supplier full access, customer read-only ──
+    match /vbe_orders/{orderId} {
+      // Customer anonymously signed-in: अपना order पढ़ सकता है (tracking link)
+      allow read: if isLoggedIn();
+      // सिर्फ supplier write कर सकता है
+      allow write: if isSupplier();
+    }
+
+    // ─── Challans ───────────────────────────────────────────
+    match /vbe_challans/{id} {
+      allow read, write: if isSupplier();
+    }
+
+    // ─── Clients ────────────────────────────────────────────
+    match /vbe_clients_meta/{id} {
+      allow read, write: if isSupplier();
+    }
+
+    // ─── Bank ───────────────────────────────────────────────
+    match /vbe_bank_accounts/{id} {
+      allow read, write: if isSupplier();
+    }
+    match /vbe_bank_entries/{id} {
+      allow read, write: if isSupplier();
+    }
+
+    // ─── FCM tokens ─────────────────────────────────────────
+    match /vbe_fcm_tokens/{id} {
+      allow read, write: if isSupplier();
+    }
+
+    // ─── Projects ───────────────────────────────────────────
+    match /vbe_projects/{id} {
+      allow read, write: if isSupplier();
+    }
+
+    // ─── Staff ──────────────────────────────────────────────
+    match /vbe_staff/{id} {
+      allow read, write: if isSupplier();
+    }
+
+    // ─── Tasks / Time Master ────────────────────────────────
+    match /vbe_tasks/{id} {
+      allow read, write: if isSupplier();
+    }
+    match /vbe_rituals/{id} {
+      allow read, write: if isSupplier();
+    }
+    match /vbe_checkins/{id} {
+      allow read, write: if isSupplier();
+    }
+
+    // ─── Marwad Rasoi ───────────────────────────────────────
+    match /mrk_bills/{id} {
+      allow read, write: if isSupplier();
+    }
+    match /mrk_cash/{id} {
+      allow read, write: if isSupplier();
+    }
+    match /mrk_staff/{id} {
+      allow read, write: if isSupplier();
+    }
+
+    // ─── Gem Bids ───────────────────────────────────────────
+    match /vbe_gem_bids/{id} {
+      allow read, write: if isSupplier();
+    }
+
+    // ─── Default: बाकी सब बंद ───────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

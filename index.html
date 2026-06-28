@@ -2361,11 +2361,22 @@ async function fbGet(id){
 }
 
 function listenOrders(){
+  let _syncDone=false;
   const q=_query(ordersCol());
   _onSnapshot(q,snap=>{
     _orders=[];
     snap.forEach(d=>_orders.push(d.data()));
     renderAll();
+    // One-time: sync pre-existing category orders to KD diary on first load
+    if(!_syncDone && typeof window.kdHasOrder==='function' && typeof window.kdQuickAdd==='function'){
+      _syncDone=true;
+      const _cb={followup:'followup',gem:'gem',market:'market',kal:'morning'};
+      _orders.forEach(o=>{
+        if(o.stage!=='delivered' && o.category && _cb[o.category] && !window.kdHasOrder(o.id)){
+          window.kdQuickAdd(_cb[o.category], o.id);
+        }
+      });
+    }
   });
 }
 
@@ -6472,7 +6483,7 @@ async function saveOrder(){
   const cu=document.getElementById('f-cu').value.trim();
   const it=document.getElementById('f-it').value.trim();
   const dl=document.getElementById('f-dl').value;
-  if(!cu||!it||!dl){await vbeAlert('Customer, Item और Deadline जरूरी है!','⚠️');return;}
+  if(!it||!dl){await vbeAlert('Item और Deadline जरूरी है!','⚠️');return;}
   const ph=document.getElementById('f-ph').value.trim();
   if(ph && !/^\d{10}$/.test(ph)){await vbeAlert('Phone नंबर 10 अंकों का होना चाहिए!','⚠️');return;}
   const qt=document.getElementById('f-qt').value.trim();
@@ -6549,6 +6560,11 @@ async function saveOrder(){
     if(staff && staffWa){
       try { sendFCMToStaff(staff, staffWa, o); } catch(e){ console.warn('FCM error:',e); }
     }
+  }
+  // ── Sync to KD diary if category is set (Firestore listener updates _orders first via persistentCache) ──
+  if(data.category && _CAT_TO_BOARD[data.category] && typeof window.kdQuickAdd==='function'){
+    const _bk=_CAT_TO_BOARD[data.category], _oid=savedOrderId;
+    setTimeout(()=>{ if(window.kdHasOrder&&!window.kdHasOrder(_oid)) window.kdQuickAdd(_bk,_oid); }, 300);
   }
   // ── Auto-save contact to unit if unit selected & phone given ──
   if(unitId && data.customer && data.phone){
@@ -6763,7 +6779,9 @@ async function saveWaParty(orderId){
   const name  = (document.getElementById('wa-ed-name')?.value||'').trim();
   const phone = (document.getElementById('wa-ed-phone')?.value||'').trim();
   if(phone && !/^\d{10}$/.test(phone)){ notif('📞 नंबर 10 अंकों का होना चाहिए','danger'); return; }
-  await fbSave({...o, customer:name||o.customer, phone:phone||o.phone});
+  const newPhone = phone||o.phone;
+  await fbSave({...o, customer:name||o.customer, phone:newPhone});
+  if(newPhone && typeof window.kdUpdatePhone==='function') window.kdUpdatePhone(orderId, newPhone);
   document.getElementById('wa-editor-modal')?.remove();
   notif('✅ Party details save हो गई','ok');
 }
@@ -6778,6 +6796,7 @@ async function saveAndSendWA(orderId){
   if(!/^\d{10}$/.test(phone)){ notif('📞 नंबर 10 अंकों का होना चाहिए','danger'); return; }
   const updatedO = {...o, customer:name, phone};
   await fbSave(updatedO);
+  if(typeof window.kdUpdatePhone==='function') window.kdUpdatePhone(orderId, phone);
   document.getElementById('wa-editor-modal')?.remove();
   const stg = STAGES.find(s=>s.id===updatedO.stage)||STAGES[0];
   const dl  = new Date(updatedO.deadline).toLocaleString('hi-IN',{weekday:'long',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
@@ -11539,6 +11558,8 @@ window._db=window._db||null;
         if(x.phone){
           row2+='<button class="kd-tb call" onclick="kdCall(\''+x.id+'\')">📞 कॉल</button>'+
                 '<button class="kd-tb wa" onclick="kdWA(\''+x.id+'\')">🟢 WA</button>';
+        } else if(x.srcId){
+          row2+='<button class="kd-tb ph" onclick="event.stopPropagation();(window.openWaEditor||function(){})(\''+x.srcId+'\')">📱 पार्टी जोड़ें</button>';
         } else if(_openBoard==='followup'){
           row2+='<button class="kd-tb ph" onclick="kdSetPhone(\''+x.id+'\')">📱 नंबर जोड़ें</button>';
         }
@@ -11996,6 +12017,12 @@ window._db=window._db||null;
   window.kdMove=function(k,id,dir){ var a=KD.boards[k]||[]; var i=a.findIndex(function(x){return x.id===id;}); if(i<0)return; var j=i+dir; if(j<0||j>=a.length)return; var tmp=a[i];a[i]=a[j];a[j]=tmp; renderActive(); save(); };
   window.kdEdit=async function(k,id){ var t=(KD.boards[k]||[]).find(function(x){return x.id===id;}); if(!t)return; var v=await vbePrompt('काम बदलें:',t.text,'✏️'); if(v===null)return; v=v.trim(); if(v==='') return; t.text=v; renderActive(); save(); };
   window.kdSetPhone=async function(id){ var t=(KD.boards.followup||[]).find(function(x){return x.id===id;}); if(!t)return; var p=await vbePrompt('मोबाइल नंबर:',t.phone||'','📞'); if(p===null)return; t.phone=p.replace(/[^0-9+]/g,'')||undefined; renderActive(); save(); };
+  // Update phone on all diary tasks linked to a given orderId (called after saveWaParty)
+  window.kdUpdatePhone=function(orderId, phone){
+    var ph=(phone||'').replace(/[^0-9]/g,''); var changed=false;
+    KEYS.forEach(function(k){ (KD.boards[k]||[]).forEach(function(t){ if(t.srcId===orderId){ t.phone=ph; changed=true; } }); });
+    if(changed){ save(); renderActive(); }
+  };
   window.kdChangeDay=async function(id){
     var t=(KD.boards.morning||[]).find(function(x){return x.id===id;}); if(!t)return;
     var tIso=todayISO(), lines=[]; for(var i=0;i<7;i++){ var dd=isoToDate(tIso); dd.setDate(dd.getDate()+i); var iso=dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0'); lines.push((i+1)+') '+fmtDay(iso)); }

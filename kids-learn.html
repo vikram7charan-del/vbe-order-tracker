@@ -91,23 +91,50 @@ body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:var(--bg)
 .stb{padding:8px 14px;border-radius:20px;border:2px solid #e5e7eb;background:#fff;font-size:13px;font-weight:800;color:var(--muted);cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0}
 .stb.active{background:var(--p);color:#fff;border-color:var(--p)}
 
-/* flip card */
+/* ── LETTER CARDS — direct tap = speak ── */
 .lgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.lcard{height:110px;cursor:pointer;perspective:600px}
-.lcard-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .45s cubic-bezier(.4,0,.2,1)}
-.lcard.flipped .lcard-inner{transform:rotateY(180deg)}
-.lcard-front,.lcard-back{position:absolute;inset:0;backface-visibility:hidden;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
-.lcard-front{background:#fff;box-shadow:0 3px 12px rgba(109,40,217,.12);border:2px solid transparent}
-.lcard.learned .lcard-front{border-color:var(--g)}
-.lcard-back{background:linear-gradient(135deg,var(--p),var(--pk));transform:rotateY(180deg);color:#fff}
-.lc-letter{font-size:30px;font-weight:900;color:var(--p)}
-.lc-emoji{font-size:24px}
+.lcard{cursor:pointer;border-radius:18px;padding:14px 6px 26px;text-align:center;background:#fff;box-shadow:0 3px 14px rgba(109,40,217,.1);border:3px solid transparent;transition:all .2s;position:relative}
+.lcard.learned{border-color:var(--g2);background:#f0fdf4}
+.lcard.speaking{transform:scale(.88);background:#ede9fe;border-color:var(--p);box-shadow:0 0 0 5px rgba(109,40,217,.2)}
+.lc-letter{font-size:36px;font-weight:900;color:var(--p);display:block;line-height:1.1}
+.lc-emoji{font-size:22px;display:block;margin:3px 0}
 .lc-word{font-size:11px;font-weight:700;color:var(--text)}
-.lc-learned{position:absolute;top:4px;right:6px;font-size:12px}
-.lc-back-letter{font-size:42px;font-weight:900}
-.lc-back-word{font-size:13px;font-weight:800;opacity:.9}
-.lc-back-meaning{font-size:11px;opacity:.75}
-.speak-btn{font-size:18px;opacity:.8}
+.lc-learned{position:absolute;top:5px;right:8px;font-size:10px;color:var(--g);font-weight:900}
+.lc-star{position:absolute;bottom:2px;left:0;right:0;font-size:11px;background:none;border:none;cursor:pointer;padding:3px;font-family:inherit;color:var(--muted);font-weight:700;text-align:center}
+.lc-star:active{color:var(--y2)}
+/* ── MATRA CARDS ── */
+.matra-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.mcrd{background:#fff;border-radius:18px;padding:14px 10px;text-align:center;box-shadow:0 3px 12px rgba(109,40,217,.1);cursor:pointer;border:3px solid #e9d5ff;transition:all .2s;position:relative;overflow:hidden}
+.mcrd:active,.mcrd.speaking{transform:scale(.92);border-color:var(--p);background:#ede9fe}
+.mcrd-num{position:absolute;top:6px;left:10px;font-size:11px;font-weight:800;color:var(--muted)}
+.mcrd-sym{font-size:44px;font-weight:900;display:block;margin-bottom:2px}
+.mcrd-name{font-size:11px;font-weight:800;display:block;margin-bottom:4px}
+.mcrd-ex{font-size:30px;font-weight:900;color:var(--text);display:block}
+.mcrd-emoji{font-size:22px;display:block;margin:2px 0}
+.mcrd-word{font-size:11px;font-weight:700;color:var(--muted)}
+/* ── BARAKHADI BUILDER ── */
+.builder-display{background:linear-gradient(135deg,var(--p),var(--pk));border-radius:22px;padding:20px;text-align:center;color:#fff;margin-bottom:14px;cursor:pointer;min-height:110px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.builder-syl{font-size:80px;font-weight:900;line-height:1;display:block}
+.builder-label{font-size:14px;opacity:.85;margin-top:6px}
+.builder-parts{font-size:14px;opacity:.7;margin-top:2px;letter-spacing:1px}
+.builder-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:10px;-webkit-overflow-scrolling:touch}
+.bpill{min-width:44px;height:48px;border-radius:12px;background:#fff;border:2px solid #e9d5ff;font-size:20px;font-weight:900;color:var(--p);cursor:pointer;font-family:inherit;flex-shrink:0;transition:all .15s;display:flex;align-items:center;justify-content:center}
+.bpill.sel{background:var(--p);color:#fff;border-color:var(--p);transform:scale(1.1)}
+.bpill.mpill{background:#fce7f3;border-color:#f9a8d4;color:var(--pk)}
+.bpill.mpill.sel{background:var(--pk);color:#fff;border-color:var(--pk);transform:scale(1.1)}
+/* ── WORD READING ── */
+.wrd-cards{display:grid;gap:14px}
+.wrd-card{background:#fff;border-radius:20px;padding:16px;box-shadow:0 3px 12px rgba(109,40,217,.08)}
+.wrd-top{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.wrd-emoji{font-size:48px;flex-shrink:0}
+.wrd-info{flex:1}
+.wrd-full{font-size:20px;font-weight:900;color:var(--text);cursor:pointer;border:2px solid #e9d5ff;background:#f5f3ff;border-radius:10px;padding:4px 12px;font-family:inherit;transition:all .15s}
+.wrd-full:active{background:var(--p);color:#fff;border-color:var(--p)}
+.wrd-meaning{font-size:12px;color:var(--muted);font-weight:600;margin-top:3px}
+.wrd-syls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.wsyl{padding:8px 14px;border-radius:12px;font-size:22px;font-weight:900;color:#fff;cursor:pointer;border:none;font-family:inherit;transition:transform .15s;flex-shrink:0}
+.wsyl:active{transform:scale(.88)}
+.wrd-op{font-size:16px;color:var(--muted);font-weight:900;flex-shrink:0}
 
 /* ── TRACE ── */
 .trace-wrap{background:#fff;border-radius:20px;padding:16px;box-shadow:0 3px 14px rgba(109,40,217,.1);margin-bottom:14px}
@@ -415,7 +442,7 @@ body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:var(--bg)
       <button class="mcard mc-o ripple-host" onclick="goTo('games')">
         <span class="mcard-icon">🎮</span>
         <div class="mcard-name">खेलो</div>
-        <div class="mcard-sub">9 मज़ेदार Games</div>
+        <div class="mcard-sub">11 मज़ेदार Games</div>
       </button>
       <button class="mcard mc-b ripple-host" onclick="goTo('stories')">
         <span class="mcard-icon">📖</span>
@@ -432,11 +459,16 @@ body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:var(--bg)
 
   <!-- LEARN -->
   <div id="screen-learn" class="screen">
-    <div class="tabs">
-      <button class="tb active" id="tabVar" onclick="switchTab('var')">📝 वर्णमाला</button>
-      <button class="tb" id="tabBK" onclick="switchTab('bk')">🔡 बाराखड़ी</button>
-      <button class="tb" id="tabVoc" onclick="switchTab('voc')">📖 शब्द ज्ञान</button>
+    <!-- 5 scrollable top tabs -->
+    <div class="sub-tabs" id="learnTabs" style="margin-bottom:14px">
+      <button class="stb active" id="tabVar" onclick="switchTab('var')">📝 अक्षर</button>
+      <button class="stb" id="tabMatra" onclick="switchTab('matra')">🔤 मात्राएं</button>
+      <button class="stb" id="tabBK" onclick="switchTab('bk')">🔡 बाराखड़ी</button>
+      <button class="stb" id="tabRead" onclick="switchTab('read')">📖 शब्द पढ़ो</button>
+      <button class="stb" id="tabVoc" onclick="switchTab('voc')">💡 शब्द ज्ञान</button>
     </div>
+
+    <!-- VARNAMALA -->
     <div id="learnVar">
       <div class="tabs" style="margin-bottom:10px">
         <button class="tb active" id="tabH" onclick="switchVarTab('hindi')">🇮🇳 हिंदी</button>
@@ -452,20 +484,58 @@ body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:var(--bg)
           <button class="stb" onclick="showHindiGroup('pa',this)">प-म</button>
           <button class="stb" onclick="showHindiGroup('ya',this)">य-ह</button>
         </div>
+        <p style="font-size:12px;color:var(--muted);font-weight:600;margin-bottom:10px">किसी भी अक्षर पर दबाओ → आवाज़ सुनो 🔊</p>
         <div class="lgrid" id="hindiGrid"></div>
       </div>
       <div id="learnE" style="display:none">
+        <p style="font-size:12px;color:var(--muted);font-weight:600;margin-bottom:10px">Tap any letter to hear it 🔊</p>
         <div class="lgrid" id="englishGrid"></div>
       </div>
     </div>
+
+    <!-- MATRA SECTION -->
+    <div id="learnMatra" style="display:none">
+      <div class="stitle" style="margin-bottom:6px">मात्राएं सीखो 🔤</div>
+      <p style="font-size:13px;color:var(--muted);font-weight:600;margin-bottom:12px;line-height:1.6">व्यंजन + मात्रा = नया अक्षर! जैसे क + ा = का। किसी कार्ड पर दबाओ और सुनो।</p>
+      <div class="matra-grid" id="matraGrid"></div>
+    </div>
+
+    <!-- BARAKHADI SECTION -->
     <div id="learnBK" style="display:none">
-      <div class="stitle" style="margin-bottom:10px">बाराखड़ी चार्ट 🔡</div>
-      <div class="bk-scroll">
-        <table class="bk-table" id="bkTable"></table>
+      <div class="stitle" style="margin-bottom:10px">बाराखड़ी 🔡</div>
+      <div class="tabs" style="margin-bottom:12px">
+        <button class="tb active" id="bkTabBuild" onclick="switchBKTab('build')">🔨 Builder</button>
+        <button class="tb" id="bkTabChart" onclick="switchBKTab('chart')">📊 पूरा चार्ट</button>
+      </div>
+      <div id="bkBuild">
+        <p style="font-size:13px;color:var(--muted);font-weight:600;margin-bottom:10px;line-height:1.6">व्यंजन चुनो → मात्रा चुनो → नया अक्षर बनता है! 🎉</p>
+        <div class="builder-display" id="builderDisplay" onclick="speakBuilder()">
+          <span class="builder-syl" id="builderSyl">क</span>
+          <div class="builder-label" id="builderLabel">🔊 दबाओ और सुनो!</div>
+          <div class="builder-parts" id="builderParts">क + (अ) = क</div>
+        </div>
+        <div class="stitle" style="font-size:14px;margin-bottom:8px">👇 व्यंजन चुनो:</div>
+        <div class="builder-row" id="bkConsRow"></div>
+        <div class="stitle" style="font-size:14px;margin-bottom:8px">👇 मात्रा चुनो:</div>
+        <div class="builder-row" id="bkMatraRow"></div>
+      </div>
+      <div id="bkChart" style="display:none">
+        <div class="bk-scroll">
+          <table class="bk-table" id="bkTable"></table>
+        </div>
       </div>
     </div>
+
+    <!-- WORD READING SECTION -->
+    <div id="learnRead" style="display:none">
+      <div class="stitle" style="margin-bottom:6px">शब्द पढ़ो 📖</div>
+      <p style="font-size:13px;color:var(--muted);font-weight:600;margin-bottom:12px;line-height:1.6">हर रंगीन टुकड़े पर दबाओ → वह आवाज़ सुनो → फिर पूरा शब्द दबाओ और पढ़ो! 🎉</p>
+      <div class="wrd-cards" id="wrdCards"></div>
+    </div>
+
+    <!-- VOCAB SECTION -->
     <div id="learnVoc" style="display:none">
-      <div class="stitle" style="margin-bottom:10px">शब्द ज्ञान 📖</div>
+      <div class="stitle" style="margin-bottom:10px">शब्द ज्ञान 💡</div>
       <div class="vcat-tabs" id="vcatTabs"></div>
       <div class="vcrd-grid" id="vcrdGrid"></div>
     </div>
@@ -530,6 +600,14 @@ body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:var(--bg)
         <button class="gcrd ripple-host" onclick="startGame('bkquiz')">
           <div class="gcrd-icon" style="background:#ede9fe">🔡</div>
           <div><div class="gcrd-name">बाराखड़ी Quiz</div><div class="gcrd-desc">मात्रा वाला अक्षर पहचानो</div></div>
+        </button>
+        <button class="gcrd ripple-host" onclick="startGame('matraquiz')">
+          <div class="gcrd-icon" style="background:#fce7f3">🔤</div>
+          <div><div class="gcrd-name">मात्रा पहचानो</div><div class="gcrd-desc">शब्द में कौन सी मात्रा है?</div></div>
+        </button>
+        <button class="gcrd ripple-host" onclick="startGame('wordreadquiz')">
+          <div class="gcrd-icon" style="background:#d1fae5">📖</div>
+          <div><div class="gcrd-name">शब्द पढ़ो Quiz</div><div class="gcrd-desc">चित्र देखो – सही शब्द पढ़ो</div></div>
         </button>
       </div>
     </div>
@@ -607,6 +685,20 @@ body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:var(--bg)
         <div class="qhdr"><div class="qscore">⭐ <span id="bkqSc">0</span></div><div class="qprog">सवाल <span id="bkqCur">1</span>/10</div></div>
         <div class="qbox"><span class="qbig" id="bkqBig" style="font-size:60px"></span><div class="qtext" id="bkqTxt">यह अक्षर बोलो – सही चुनो</div></div>
         <div class="qopts" id="bkqOpts"></div>
+      </div>
+      <!-- matra quiz -->
+      <div id="gMatraQuiz" class="hidden">
+        <div class="qhdr"><div class="qscore">⭐ <span id="mqSc">0</span></div><div class="qprog"><span id="mqCur">1</span>/<span id="mqTot">10</span></div></div>
+        <div class="qprog-bar"><div class="qprog-fill" id="mqFill" style="width:0%"></div></div>
+        <div class="qbox"><span class="qbig" id="mqBig" style="font-size:64px"></span><div class="qtext" id="mqTxt">इस अक्षर में कौन सी मात्रा है?</div></div>
+        <div class="qopts" id="mqOpts"></div>
+      </div>
+      <!-- word reading quiz -->
+      <div id="gWordReadQuiz" class="hidden">
+        <div class="qhdr"><div class="qscore">⭐ <span id="wrqSc">0</span></div><div class="qprog"><span id="wrqCur">1</span>/<span id="wrqTot">10</span></div></div>
+        <div class="qprog-bar"><div class="qprog-fill" id="wrqFill" style="width:0%"></div></div>
+        <div class="qbox"><span class="qbig" id="wrqBig" style="font-size:64px"></span><div class="qtext" id="wrqTxt">इस चित्र का सही शब्द चुनो:</div></div>
+        <div class="qopts" id="wrqOpts"></div>
       </div>
     </div>
   </div>
@@ -720,6 +812,38 @@ const LEVELS = [
 const MATRAS = ['','ा','ि','ी','ु','ू','े','ै','ो','ौ','ं'];
 const MATRA_HDR = ['अ','आ','इ','ई','उ','ऊ','ए','ऐ','ओ','औ','अं'];
 const BK_CONS = ['क','ख','ग','घ','च','छ','ज','झ','ट','ठ','ड','ढ','त','थ','द','ध','न','प','फ','ब','भ','म','य','र','ल','व','स','ह'];
+
+const MATRA_INFO = [
+  {sym:'अ',name:'मूल स्वर (कोई मात्रा नहीं)',ex:'क',word:'कप',emoji:'🫙',color:'#6d28d9',m:''},
+  {sym:'ा',name:'आ की मात्रा',ex:'का',word:'काम',emoji:'💼',color:'#ec4899',m:'ा'},
+  {sym:'ि',name:'इ की मात्रा',ex:'कि',word:'किताब',emoji:'📚',color:'#2563eb',m:'ि'},
+  {sym:'ी',name:'ई की मात्रा',ex:'की',word:'कीड़ा',emoji:'🐛',color:'#16a34a',m:'ी'},
+  {sym:'ु',name:'उ की मात्रा',ex:'कु',word:'कुत्ता',emoji:'🐕',color:'#ea580c',m:'ु'},
+  {sym:'ू',name:'ऊ की मात्रा',ex:'कू',word:'कूड़ा',emoji:'🗑️',color:'#d97706',m:'ू'},
+  {sym:'े',name:'ए की मात्रा',ex:'के',word:'केला',emoji:'🍌',color:'#0891b2',m:'े'},
+  {sym:'ै',name:'ऐ की मात्रा',ex:'कै',word:'कैंची',emoji:'✂️',color:'#7c3aed',m:'ै'},
+  {sym:'ो',name:'ओ की मात्रा',ex:'को',word:'कोयल',emoji:'🐦',color:'#059669',m:'ो'},
+  {sym:'ौ',name:'औ की मात्रा',ex:'कौ',word:'कौआ',emoji:'🐦‍⬛',color:'#dc2626',m:'ौ'},
+  {sym:'ं',name:'अनुस्वार',ex:'कं',word:'कंघी',emoji:'🪮',color:'#9333ea',m:'ं'},
+];
+
+const READING_WORDS = [
+  {word:'कमल',syls:['क','म','ल'],emoji:'🌸',meaning:'Lotus',colors:['#6d28d9','#ec4899','#16a34a']},
+  {word:'नमक',syls:['न','म','क'],emoji:'🧂',meaning:'Salt',colors:['#ea580c','#2563eb','#6d28d9']},
+  {word:'पानी',syls:['पा','नी'],emoji:'💧',meaning:'Water',colors:['#2563eb','#0891b2']},
+  {word:'आम',syls:['आ','म'],emoji:'🥭',meaning:'Mango',colors:['#ea580c','#16a34a']},
+  {word:'केला',syls:['के','ला'],emoji:'🍌',meaning:'Banana',colors:['#d97706','#ec4899']},
+  {word:'सेब',syls:['से','ब'],emoji:'🍎',meaning:'Apple',colors:['#dc2626','#6d28d9']},
+  {word:'गाय',syls:['गा','य'],emoji:'🐄',meaning:'Cow',colors:['#16a34a','#ea580c']},
+  {word:'मोर',syls:['मो','र'],emoji:'🦚',meaning:'Peacock',colors:['#059669','#d97706']},
+  {word:'किताब',syls:['कि','ता','ब'],emoji:'📚',meaning:'Book',colors:['#2563eb','#ec4899','#6d28d9']},
+  {word:'नदी',syls:['न','दी'],emoji:'🌊',meaning:'River',colors:['#2563eb','#0891b2']},
+  {word:'गाजर',syls:['गा','ज','र'],emoji:'🥕',meaning:'Carrot',colors:['#ea580c','#16a34a','#6d28d9']},
+  {word:'राम',syls:['रा','म'],emoji:'👦',meaning:'Name',colors:['#6d28d9','#ec4899']},
+  {word:'घर',syls:['घ','र'],emoji:'🏠',meaning:'House',colors:['#ea580c','#2563eb']},
+  {word:'फूल',syls:['फू','ल'],emoji:'🌸',meaning:'Flower',colors:['#ec4899','#16a34a']},
+  {word:'खरगोश',syls:['ख','र','गो','श'],emoji:'🐇',meaning:'Rabbit',colors:['#7c3aed','#ea580c','#059669','#dc2626']},
+];
 
 const VOCAB = {
   'फल':   [{e:'🍎',h:'सेब',en:'Apple'},{e:'🥭',h:'आम',en:'Mango'},{e:'🍌',h:'केला',en:'Banana'},{e:'🍇',h:'अंगूर',en:'Grapes'},{e:'🍊',h:'संतरा',en:'Orange'},{e:'🍋',h:'नींबू',en:'Lemon'},{e:'🍉',h:'तरबूज',en:'Watermelon'},{e:'🍓',h:'स्ट्रॉबेरी',en:'Strawberry'},{e:'🍑',h:'आड़ू',en:'Peach'},{e:'🍍',h:'अनानास',en:'Pineapple'}],
@@ -872,14 +996,18 @@ function saveAvatar() {
 // ═══════════════════════════════════════════════════════════
 // LEARN
 // ═══════════════════════════════════════════════════════════
+const LTABS={var:'learnVar',matra:'learnMatra',bk:'learnBK',read:'learnRead',voc:'learnVoc'};
+const LBTNS={var:'tabVar',matra:'tabMatra',bk:'tabBK',read:'tabRead',voc:'tabVoc'};
 function switchTab(tab) {
   curLearnTab = tab;
-  ['learnVar','learnBK','learnVoc'].forEach(id=>document.getElementById(id).style.display='none');
-  ['tabVar','tabBK','tabVoc'].forEach(id=>document.getElementById(id).classList.remove('active'));
-  document.getElementById('learn'+{var:'Var',bk:'BK',voc:'Voc'}[tab]).style.display='';
-  document.getElementById('tab'+{var:'Var',bk:'BK',voc:'Voc'}[tab]).classList.add('active');
-  if(tab==='bk') initBarakhadi();
+  Object.values(LTABS).forEach(id=>document.getElementById(id).style.display='none');
+  Object.values(LBTNS).forEach(id=>document.getElementById(id).classList.remove('active'));
+  document.getElementById(LTABS[tab]).style.display='';
+  document.getElementById(LBTNS[tab]).classList.add('active');
+  if(tab==='matra') initMatra();
+  else if(tab==='bk') initBKBuilder();
   else if(tab==='voc') initVocab();
+  else if(tab==='read') initWordReading();
 }
 function switchVarTab(lang) {
   curVarTab = lang;
@@ -890,6 +1018,14 @@ function switchVarTab(lang) {
   if(lang==='hindi') renderHindiGroup(curHindiGroup);
   else renderEnglish();
 }
+function switchBKTab(t) {
+  document.getElementById('bkBuild').style.display=t==='build'?'':'none';
+  document.getElementById('bkChart').style.display=t==='chart'?'':'none';
+  document.getElementById('bkTabBuild').classList.toggle('active',t==='build');
+  document.getElementById('bkTabChart').classList.toggle('active',t==='chart');
+  if(t==='chart') initBarakhadi();
+  else initBKBuilder();
+}
 function showHindiGroup(g,btn) {
   curHindiGroup = g;
   document.querySelectorAll('#hindiSubTabs .stb').forEach(b=>b.classList.remove('active'));
@@ -898,38 +1034,39 @@ function showHindiGroup(g,btn) {
 }
 function renderHindiGroup(g) {
   const items = HINDI_GROUPS[g]||[];
-  document.getElementById('hindiGrid').innerHTML = items.map((it,i)=>flipCard(it,i,'h')).join('');
+  document.getElementById('hindiGrid').innerHTML = items.map((it,i)=>simpleCard(it,i,'h')).join('');
 }
 function renderEnglish() {
-  document.getElementById('englishGrid').innerHTML = ENGLISH.map((it,i)=>flipCard(it,i,'e')).join('');
+  document.getElementById('englishGrid').innerHTML = ENGLISH.map((it,i)=>simpleCard(it,i,'e')).join('');
 }
-function flipCard(it,i,type) {
+function simpleCard(it,i,type) {
   const learned = (type==='e'?P.e:P.h).includes(it.l);
-  return `<div class="lcard${learned?' learned':''}" id="fc-${type}-${i}" onclick="tapCard(this,'${type}',${i})">
-    <div class="lcard-inner">
-      <div class="lcard-front">
-        ${learned?'<span class="lc-learned">✓</span>':''}
-        <span class="lc-letter">${it.l}</span>
-        <span class="lc-emoji">${it.e}</span>
-        <div class="lc-word">${it.w}</div>
-      </div>
-      <div class="lcard-back">
-        <span class="lc-back-letter">${it.l}</span>
-        <div class="lc-back-word">${it.w}</div>
-        <div class="lc-back-meaning">${it.m}</div>
-        <span class="speak-btn">🔊</span>
-      </div>
-    </div>
+  return `<div class="lcard${learned?' learned':''} ripple-host" onclick="tapCard(this,'${type}',${i})">
+    ${learned?'<span class="lc-learned">✓</span>':''}
+    <span class="lc-letter">${it.l}</span>
+    <span class="lc-emoji">${it.e}</span>
+    <div class="lc-word">${it.w}</div>
+    <button class="lc-star" onclick="event.stopPropagation();quickLearn('${type}',${i})">⭐ सीखा!</button>
   </div>`;
 }
 function tapCard(el, type, i) {
-  el.classList.toggle('flipped');
+  el.classList.add('speaking');
+  setTimeout(()=>el.classList.remove('speaking'),500);
   const item = type==='e' ? ENGLISH[i] : (HINDI_GROUPS[curHindiGroup]||[])[i];
   if(!item) return;
-  if(el.classList.contains('flipped')) {
-    speak(item.w, type==='e'?'en-US':'hi-IN');
-    openLesson(type, i, item);
+  speak(item.l, type==='e'?'en-US':'hi-IN');
+  setTimeout(()=>speak(item.w, type==='e'?'en-US':'hi-IN'), 900);
+  showMini('🔊 '+item.l+' — '+item.w);
+}
+function quickLearn(type, i) {
+  const item = type==='e' ? ENGLISH[i] : (HINDI_GROUPS[curHindiGroup]||[])[i];
+  if(!item) return;
+  const arr = type==='e'?P.e:P.h;
+  if(!arr.includes(item.l)) {
+    arr.push(item.l); P.stars+=2; save();
+    showReward('⭐⭐','शाबाश! +2 Stars', item.l+' = '+item.w);
   }
+  if(type==='e') renderEnglish(); else renderHindiGroup(curHindiGroup);
 }
 function openLesson(type, i, item) {
   curLesson = {type,i,item};
@@ -962,7 +1099,66 @@ function markLearned() {
   if(type==='e') renderEnglish(); else renderHindiGroup(curHindiGroup);
 }
 
-// ── BARAKHADI ──
+// ── MATRA INTRO ──
+function initMatra() {
+  const grid = document.getElementById('matraGrid');
+  if(grid.innerHTML) return;
+  grid.innerHTML = MATRA_INFO.map((mi,i)=>`
+    <div class="mcrd ripple-host" onclick="tapMatra(this,'${mi.ex}','${mi.word}')" style="border-color:${mi.color}44">
+      <div class="mcrd-num">${i+1}</div>
+      <span class="mcrd-sym" style="color:${mi.color}">${mi.sym}</span>
+      <span class="mcrd-name" style="color:${mi.color}">${mi.name}</span>
+      <span class="mcrd-ex" style="color:${mi.color}">${mi.ex}</span>
+      <span class="mcrd-emoji">${mi.emoji}</span>
+      <div class="mcrd-word">${mi.word}</div>
+    </div>`).join('');
+}
+function tapMatra(el, ex, word) {
+  el.classList.add('speaking');
+  speak(ex,'hi-IN');
+  setTimeout(()=>speak(word,'hi-IN'), 700);
+  setTimeout(()=>el.classList.remove('speaking'), 500);
+  showMini('🔊 '+ex+' → '+word);
+}
+
+// ── BARAKHADI BUILDER ──
+let bkSelCon='क', bkSelMatra='';
+function initBKBuilder() {
+  const cr=document.getElementById('bkConsRow');
+  const mr=document.getElementById('bkMatraRow');
+  if(!cr||!mr) return;
+  if(!cr.innerHTML) {
+    cr.innerHTML=BK_CONS.map(c=>`<button class="bpill" onclick="selectBKCon(this,'${c}')">${c}</button>`).join('');
+    cr.children[0].classList.add('sel');
+  }
+  if(!mr.innerHTML) {
+    const mDisplay=['(अ)','ा','ि','ी','ु','ू','े','ै','ो','ौ','ं'];
+    mr.innerHTML=MATRAS.map((m,i)=>`<button class="bpill mpill" onclick="selectBKMatra(this,'${m}')">${mDisplay[i]}</button>`).join('');
+    mr.children[0].classList.add('sel');
+  }
+  updateBuilder();
+}
+function selectBKCon(btn,c) {
+  bkSelCon=c;
+  document.querySelectorAll('#bkConsRow .bpill').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel'); updateBuilder();
+}
+function selectBKMatra(btn,m) {
+  bkSelMatra=m;
+  document.querySelectorAll('#bkMatraRow .bpill').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel'); updateBuilder();
+}
+function updateBuilder() {
+  const syl=bkSelCon+bkSelMatra;
+  const mi=MATRAS.indexOf(bkSelMatra);
+  const mName=mi>=0?MATRA_HDR[mi]:'अ';
+  document.getElementById('builderSyl').textContent=syl;
+  document.getElementById('builderParts').textContent=bkSelCon+' + '+mName+' = '+syl;
+  speak(syl,'hi-IN');
+}
+function speakBuilder() { speak(bkSelCon+bkSelMatra,'hi-IN'); showMini('🔊 '+(bkSelCon+bkSelMatra)); }
+
+// ── BARAKHADI FULL CHART ──
 function initBarakhadi() {
   const table = document.getElementById('bkTable');
   if(!table || table.innerHTML) return;
@@ -975,6 +1171,35 @@ function initBarakhadi() {
   table.innerHTML = html;
 }
 function speakBK(s) { speak(s,'hi-IN'); showMini('🔊 '+s); }
+
+// ── WORD READING ──
+function initWordReading() {
+  const c=document.getElementById('wrdCards');
+  if(c.innerHTML) return;
+  c.innerHTML=READING_WORDS.map(w=>`
+    <div class="wrd-card">
+      <div class="wrd-top">
+        <span class="wrd-emoji">${w.emoji}</span>
+        <div class="wrd-info">
+          <button class="wrd-full ripple-host" onclick="speakWord('${w.word}')">${w.word}</button>
+          <div class="wrd-meaning">${w.meaning}</div>
+        </div>
+      </div>
+      <div class="wrd-syls">
+        ${w.syls.map((s,i)=>`
+          ${i>0?'<span class="wrd-op">+</span>':''}
+          <button class="wsyl ripple-host" style="background:${w.colors[i]||'#6d28d9'}" onclick="speakSyl('${s}',this)">${s}</button>
+        `).join('')}
+        <span class="wrd-op">=</span>
+        <button class="wrd-full ripple-host" onclick="speakWord('${w.word}')">${w.word}</button>
+      </div>
+    </div>`).join('');
+}
+function speakSyl(s,btn) {
+  speak(s,'hi-IN'); showMini('🔊 '+s);
+  btn.style.opacity='.6'; setTimeout(()=>btn.style.opacity='1',400);
+}
+function speakWord(w) { speak(w,'hi-IN'); showMini('🔊 '+w); }
 
 // ── VOCAB ──
 let curVocabCat = '';
@@ -1084,7 +1309,7 @@ function doneTrace() {
 // GAMES
 // ═══════════════════════════════════════════════════════════
 function showGamePanel(id) {
-  ['gQuiz','gBubble','gMemory','gWordBuild','gResult','gVocabQuiz','gSentence','gAntonym','gBKQuiz'].forEach(d=>{
+  ['gQuiz','gBubble','gMemory','gWordBuild','gResult','gVocabQuiz','gSentence','gAntonym','gBKQuiz','gMatraQuiz','gWordReadQuiz'].forEach(d=>{
     const el=document.getElementById(d);
     if(el) el.classList.toggle('hidden',el.id!==id);
   });
@@ -1103,6 +1328,8 @@ function startGame(type) {
   else if(type==='sentence') startSentenceGame();
   else if(type==='antonym') startAntonymGame();
   else if(type==='bkquiz') startBKQuiz();
+  else if(type==='matraquiz') startMatraQuiz();
+  else if(type==='wordreadquiz') startWordReadQuiz();
 }
 function exitGame() {
   if(bTimer) {clearInterval(bTimer);bTimer=null;}
@@ -1451,6 +1678,84 @@ function endBKQ() {
   document.getElementById('resEmoji').textContent=pct>=80?'🎉':pct>=50?'👍':'💪';
   document.getElementById('resText').textContent=`बाराखड़ी Quiz: ${bkqSc}/${bkqItems.length} सही!`;
   document.getElementById('resPlayAgain').onclick=()=>startGame('bkquiz');
+  if(pct>=80) launchConfetti();
+}
+
+/* ── MATRA QUIZ ── */
+let mqItems=[],mqIdx=0,mqSc=0;
+function startMatraQuiz() {
+  showGamePanel('gMatraQuiz'); mqSc=0; mqIdx=0;
+  const pool=[];
+  BK_CONS.slice(0,8).forEach(con=>MATRAS.slice(1,7).forEach((m,mi)=>pool.push({syl:con+m,matra:m,mName:MATRA_HDR[mi+1]})));
+  mqItems=shuffle(pool).slice(0,10);
+  document.getElementById('mqTot').textContent=mqItems.length;
+  renderMQ();
+}
+function renderMQ() {
+  if(mqIdx>=mqItems.length){endMQ();return;}
+  document.getElementById('mqSc').textContent=mqSc;
+  document.getElementById('mqCur').textContent=mqIdx+1;
+  document.getElementById('mqFill').style.width=Math.round(mqIdx/mqItems.length*100)+'%';
+  const q=mqItems[mqIdx];
+  document.getElementById('mqBig').textContent=q.syl;
+  speak(q.syl,'hi-IN');
+  const wrong=shuffle(MATRAS.slice(1).filter(m=>m!==q.matra)).slice(0,3);
+  document.getElementById('mqOpts').innerHTML=shuffle([q.matra,...wrong]).map(o=>{
+    const isC=o===q.matra;
+    return `<button class="qopt ripple-host" style="font-size:32px;font-weight:900" data-c="${isC}" onclick="checkMQ(this,${isC})">${o}</button>`;
+  }).join('');
+}
+function checkMQ(btn,isC) {
+  document.querySelectorAll('#mqOpts .qopt').forEach(o=>o.classList.add('disabled'));
+  btn.classList.add(isC?'correct':'wrong');
+  if(!isC) document.querySelectorAll('#mqOpts .qopt[data-c="true"]').forEach(o=>o.classList.add('show-correct'));
+  if(isC){mqSc++;P.stars++;save();}
+  setTimeout(()=>{mqIdx++;renderMQ();},900);
+}
+function endMQ() {
+  showGamePanel('gResult');
+  const pct=Math.round(mqSc/mqItems.length*100);
+  document.getElementById('resEmoji').textContent=pct>=80?'🎉':pct>=50?'👍':'💪';
+  document.getElementById('resText').textContent=`मात्रा Quiz: ${mqSc}/${mqItems.length} सही!`;
+  document.getElementById('resPlayAgain').onclick=()=>startGame('matraquiz');
+  if(pct>=80) launchConfetti();
+}
+
+/* ── WORD READ QUIZ ── */
+let wrqItems=[],wrqIdx=0,wrqSc=0;
+function startWordReadQuiz() {
+  showGamePanel('gWordReadQuiz'); wrqSc=0; wrqIdx=0;
+  wrqItems=shuffle([...READING_WORDS]).slice(0,10);
+  document.getElementById('wrqTot').textContent=wrqItems.length;
+  renderWRQ();
+}
+function renderWRQ() {
+  if(wrqIdx>=wrqItems.length){endWRQ();return;}
+  document.getElementById('wrqSc').textContent=wrqSc;
+  document.getElementById('wrqCur').textContent=wrqIdx+1;
+  document.getElementById('wrqFill').style.width=Math.round(wrqIdx/wrqItems.length*100)+'%';
+  const q=wrqItems[wrqIdx];
+  document.getElementById('wrqBig').textContent=q.emoji;
+  speak(q.word,'hi-IN');
+  const wrong=shuffle(READING_WORDS.filter(x=>x.word!==q.word)).slice(0,3);
+  document.getElementById('wrqOpts').innerHTML=shuffle([q,...wrong]).map(o=>{
+    const isC=o.word===q.word;
+    return `<button class="qopt ripple-host" style="font-size:22px;font-weight:900" data-c="${isC}" onclick="checkWRQ(this,${isC})">${o.word}</button>`;
+  }).join('');
+}
+function checkWRQ(btn,isC) {
+  document.querySelectorAll('#wrqOpts .qopt').forEach(o=>o.classList.add('disabled'));
+  btn.classList.add(isC?'correct':'wrong');
+  if(!isC) document.querySelectorAll('#wrqOpts .qopt[data-c="true"]').forEach(o=>o.classList.add('show-correct'));
+  if(isC){wrqSc++;P.stars++;save();}
+  setTimeout(()=>{wrqIdx++;renderWRQ();},900);
+}
+function endWRQ() {
+  showGamePanel('gResult');
+  const pct=Math.round(wrqSc/wrqItems.length*100);
+  document.getElementById('resEmoji').textContent=pct>=80?'🎉':pct>=50?'👍':'💪';
+  document.getElementById('resText').textContent=`शब्द पढ़ो: ${wrqSc}/${wrqItems.length} सही!`;
+  document.getElementById('resPlayAgain').onclick=()=>startGame('wordreadquiz');
   if(pct>=80) launchConfetti();
 }
 

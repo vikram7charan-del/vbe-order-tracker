@@ -5731,12 +5731,24 @@ async function quickAssignStaff(orderId, name, phone){
 }
 window.quickAssignStaff = quickAssignStaff;
 
-// ── 📂 Quick Category Set — डायरी button tap, toggle on/off ──
+// ── 📂 Quick Category Set — डायरी button tap, toggle on/off + KD diary sync ──
+const _CAT_TO_BOARD = {followup:'followup', gem:'gem', market:'market', kal:'morning'};
 async function quickSetCategory(orderId, cat){
   const o = _orders.find(x => x.id === orderId);
   if(!o) return;
   const newCat = (o.category === cat) ? '' : cat;
   await fbSave({...o, category: newCat});
+
+  // Sync with KD diary (localStorage boards)
+  const oldBoard = _CAT_TO_BOARD[o.category];
+  const newBoard = _CAT_TO_BOARD[newCat];
+  if(oldBoard !== newBoard && typeof window.kdRemoveByOrder === 'function'){
+    window.kdRemoveByOrder(orderId); // silently removes from old board (toasts only if actually removed)
+  }
+  if(newBoard && typeof window.kdQuickAdd === 'function'){
+    window.kdQuickAdd(newBoard, orderId);
+  }
+
   const label = newCat ? (CATEGORIES[newCat]?.label || newCat) : 'हटाई गई';
   notif(newCat ? `📂 ${label} में डाला` : `📂 Category हटाई गई`, 'ok');
 }
@@ -5755,6 +5767,7 @@ async function batchClearAll(){
   let done = 0;
   for(const o of active){
     await fbSave({...o, staff:'', staffPhone:'', staffCall:'', category:''});
+    if(typeof window.kdRemoveByOrder === 'function') window.kdRemoveByOrder(o.id);
     done++;
     if(done % 10 === 0) notif(`⏳ ${done}/${active.length} reset हुए...`,'info');
   }
@@ -11523,20 +11536,18 @@ window._db=window._db||null;
       if(!isDone){
         row2='<button class="kd-tb urg'+(x.urgent?' on':'')+'" onclick="event.stopPropagation();window.kdToggleUrgent(\''+_openBoard+'\',\''+x.id+'\')">'+(x.urgent?'🔴 जरूरी':'⚪ जरूरी')+'</button>';
         row2+='<button class="kd-tb rem" onclick="kdRemindOpen(\''+_openBoard+'\',\''+x.id+'\')">⏰ याद</button>';
-        if(_openBoard==='followup'){
-          if(x.phone){
-            row2+='<button class="kd-tb call" onclick="kdCall(\''+x.id+'\')">📞 कॉल</button>'+
-                  '<button class="kd-tb wa" onclick="kdWA(\''+x.id+'\')">🟢 WA</button>';
-          } else {
-            row2+='<button class="kd-tb ph" onclick="kdSetPhone(\''+x.id+'\')">📱 नंबर जोड़ें</button>';
-          }
+        if(x.phone){
+          row2+='<button class="kd-tb call" onclick="kdCall(\''+x.id+'\')">📞 कॉल</button>'+
+                '<button class="kd-tb wa" onclick="kdWA(\''+x.id+'\')">🟢 WA</button>';
+        } else if(_openBoard==='followup'){
+          row2+='<button class="kd-tb ph" onclick="kdSetPhone(\''+x.id+'\')">📱 नंबर जोड़ें</button>';
         }
         row2+='<button class="kd-tb" style="background:rgba(99,102,241,.12);color:#818cf8;border:1px solid rgba(99,102,241,.3)" onclick="event.stopPropagation();window.kdMoveBoardOpen(\''+_openBoard+'\',\''+x.id+'\')">🔄 बोर्ड</button>';
         if(!x.srcId) row2+='<button class="kd-tb" style="background:rgba(16,185,129,.14);color:#10b981;border:1px solid rgba(16,185,129,.35);font-weight:800" onclick="event.stopPropagation();window.kdPushToOrders(\''+_openBoard+'\',\''+x.id+'\')">📋 Order में</button>';
       } else {
         row2='<button class="kd-tb restore" onclick="event.stopPropagation();kdToggle(\''+_openBoard+'\',\''+x.id+'\')">↩ वापस लाओ</button>';
       }
-      var phoneLine=(_openBoard==='followup'&&x.phone)?'<span>📱 '+escH(x.phone)+'</span>':'';
+      var phoneLine=x.phone?'<span>📱 '+escH(x.phone)+'</span>':'';
       var srcBadge=x.srcId
         ?'<span style="font-size:9px;background:rgba(59,130,246,.1);color:#60a5fa;border:1px solid rgba(59,130,246,.25);border-radius:5px;padding:1px 6px;flex-shrink:0">🔗 VBE</span> '
         :'<span style="font-size:9px;background:rgba(251,146,60,.1);color:#fb923c;border:1px solid rgba(251,146,60,.3);border-radius:5px;padding:1px 6px;flex-shrink:0">📝 डायरी</span> ';
@@ -11995,8 +12006,9 @@ window._db=window._db||null;
     renderActive(); save();
   };
   function digits(p){ var s=(p||'').replace(/[^0-9]/g,''); if(s.length===10) s='91'+s; return s; }
-  window.kdCall=function(id){ var t=(KD.boards.followup||[]).find(function(x){return x.id===id;}); if(!t||!t.phone)return; window.location.href='tel:'+t.phone; };
-  window.kdWA=function(id){ var t=(KD.boards.followup||[]).find(function(x){return x.id===id;}); if(!t||!t.phone)return; window.open('https://wa.me/'+digits(t.phone),'_blank'); };
+  function kdFindTask(id){ var found=null; KEYS.forEach(function(k){ if(!found) found=(KD.boards[k]||[]).find(function(x){return x.id===id;}); }); return found; }
+  window.kdCall=function(id){ var t=kdFindTask(id); if(!t||!t.phone)return; window.location.href='tel:'+t.phone; };
+  window.kdWA=function(id){ var t=kdFindTask(id); if(!t||!t.phone)return; window.open('https://wa.me/'+digits(t.phone),'_blank'); };
 
   // ════════ open / close ════════
   window.kdOpen=function(){ var ov=document.getElementById('kd-overlay'); if(ov)ov.classList.add('open'); document.body.style.overflow='hidden'; renderGrid(); };
@@ -12053,6 +12065,8 @@ window._db=window._db||null;
     if(window.kdHasOrder(orderId)){ toast('📖 पहले से डायरी में है'); return false; }
     KD.boards[boardKey]=KD.boards[boardKey]||[];
     var t={id:uid(),text:orderToText(o),done:false,ts:Date.now(),srcId:orderId};
+    var ph=(o.phone||o.staffCall||'').replace(/[^0-9]/g,'');
+    if(ph) t.phone=ph;
     if(boardKey==='morning') t.day=todayISO();
     KD.boards[boardKey].unshift(t);
     save(); renderActive();

@@ -180,7 +180,8 @@ body{max-width:480px;margin:0 auto;padding-bottom:30px}
 <!-- ══ FIREBASE ══ -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, doc, setDoc, getDoc, getDocs, deleteDoc, onSnapshot }
+import { initializeFirestore, persistentLocalCache, persistentSingleTabManager,
+         collection, doc, setDoc, getDoc, getDocs, deleteDoc, onSnapshot }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getAuth, signInAnonymously, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -195,7 +196,7 @@ const firebaseConfig = {
 };
 
 const app  = initializeApp(firebaseConfig);
-const db   = getFirestore(app);
+const db   = initializeFirestore(app,{localCache:persistentLocalCache({tabManager:persistentSingleTabManager()})});
 const auth = getAuth(app);
 
 window._db = db;

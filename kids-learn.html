@@ -2086,24 +2086,31 @@ const DEVICE_ID=(()=>{let id=localStorage.getItem('vkids_dev');if(!id){id=Math.r
 
 async function initKidsFirebase() {
   try {
-    const {initializeApp,getApps}=await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
-    const {getFirestore,collection,addDoc,getDocs,query,orderBy,limit}=await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
-    const {getAuth,signInAnonymously}=await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
-    const apps=getApps(); const app=apps.find(a=>a.name==='kids')||initializeApp(_FBCFG,'kids');
-    _kDb=getFirestore(app); _kF={collection,addDoc,getDocs,query,orderBy,limit};
-    await signInAnonymously(getAuth(app));
+    const {initializeApp,getApps,getApp}=await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+    const {getFirestore,collection,addDoc,getDocs,query,where,orderBy,limit}=await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    const {getAuth,onAuthStateChanged}=await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
+    // Share the DEFAULT app — picks up supplier auth already persisted in IndexedDB by VBE tracker
+    const app=getApps().length?getApp():initializeApp(_FBCFG);
+    _kDb=getFirestore(app);
+    _kF={collection,addDoc,getDocs,query,where,orderBy,limit};
+    // Wait up to 5s for auth state; parent's phones already have supplier session
+    await new Promise(resolve=>{
+      const timer=setTimeout(()=>{unsub();resolve(null);},5000);
+      const unsub=onAuthStateChanged(getAuth(app),u=>{clearTimeout(timer);unsub();resolve(u);});
+    });
   } catch(e){console.warn('Kids Firebase offline');}
 }
 
 async function saveScore(game,score,total) {
   if(!_kDb||!_kF) return;
-  try { await _kF.addDoc(_kF.collection(_kDb,'vkids_scores'),{deviceId:DEVICE_ID,childName:P.name||'बच्चा',game,score,total,pct:Math.round(score/total*100),timestamp:new Date(),date:new Date().toISOString().slice(0,10)}); } catch(e){}
+  // Write to vbe_settings (supplier-accessible, no extra Firestore rule needed)
+  try { await _kF.addDoc(_kF.collection(_kDb,'vbe_settings'),{_type:'kids_score',deviceId:DEVICE_ID,childName:P.name||'बच्चा',game,score,total,pct:Math.round(score/total*100),timestamp:new Date(),date:new Date().toISOString().slice(0,10)}); } catch(e){}
 }
 
 async function saveSession() {
   if(!_kDb||!_kF) return;
   const dur=Math.round((Date.now()-_sessStart)/1000); if(dur<20) return;
-  try { await _kF.addDoc(_kF.collection(_kDb,'vkids_sessions'),{deviceId:DEVICE_ID,childName:P.name||'बच्चा',durationSec:dur,durationMin:+(dur/60).toFixed(1),date:new Date().toISOString().slice(0,10),stars:P.stars,startTime:new Date(_sessStart),endTime:new Date()}); } catch(e){}
+  try { await _kF.addDoc(_kF.collection(_kDb,'vbe_settings'),{_type:'kids_session',deviceId:DEVICE_ID,childName:P.name||'बच्चा',durationSec:dur,durationMin:+(dur/60).toFixed(1),date:new Date().toISOString().slice(0,10),stars:P.stars,startTime:new Date(_sessStart),endTime:new Date()}); } catch(e){}
 }
 window.addEventListener('beforeunload',saveSession);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)saveSession();});
@@ -2150,27 +2157,31 @@ async function loadParentDash() {
     return;
   }
   try {
-    // Sessions
-    const ss=await _kF.getDocs(_kF.query(_kF.collection(_kDb,'vkids_sessions'),_kF.orderBy('endTime','desc'),_kF.limit(25)));
+    // Sessions — query vbe_settings with _type filter, sort client-side (avoids composite index)
+    const ssSnap=await _kF.getDocs(_kF.query(_kF.collection(_kDb,'vbe_settings'),_kF.where('_type','==','kids_session'),_kF.limit(50)));
+    const sessions=[]; ssSnap.forEach(d=>sessions.push(d.data()));
+    sessions.sort((a,b)=>(b.endTime?.toMillis?.()??b.endTime??0)-(a.endTime?.toMillis?.()??a.endTime??0));
     let totalMin=0, sHtml='';
-    ss.forEach(d=>{
-      const v=d.data(); totalMin+=(v.durationSec||0)/60;
+    sessions.slice(0,25).forEach(v=>{
+      totalMin+=(v.durationSec||0)/60;
       const dur=v.durationSec>=60?`${Math.round(v.durationSec/60)} मिनट`:`${v.durationSec} सेकंड`;
       sHtml+=`<div class="sess-item"><div><div class="sess-name">${v.childName||'बच्चा'} · ${v.date||''}</div><div class="sess-sub">${v.deviceId||''}</div></div><div class="sess-dur">${dur} ⭐${v.stars||0}</div></div>`;
     });
     document.getElementById('parentSessions').innerHTML=sHtml||'<div style="text-align:center;padding:12px;color:var(--muted)">अभी तक कोई session नहीं</div>';
     document.getElementById('pds2').textContent=Math.round(totalMin);
 
-    // Scores
-    const sc=await _kF.getDocs(_kF.query(_kF.collection(_kDb,'vkids_scores'),_kF.orderBy('timestamp','desc'),_kF.limit(30)));
+    // Scores — same pattern
+    const scSnap=await _kF.getDocs(_kF.query(_kF.collection(_kDb,'vbe_settings'),_kF.where('_type','==','kids_score'),_kF.limit(60)));
+    const scores=[]; scSnap.forEach(d=>scores.push(d.data()));
+    scores.sort((a,b)=>(b.timestamp?.toMillis?.()??b.timestamp??0)-(a.timestamp?.toMillis?.()??a.timestamp??0));
     let scHtml='';
-    sc.forEach(d=>{
-      const v=d.data(); const col=v.pct>=80?'#16a34a':v.pct>=50?'#d97706':'#dc2626';
+    scores.slice(0,30).forEach(v=>{
+      const col=v.pct>=80?'#16a34a':v.pct>=50?'#d97706':'#dc2626';
       scHtml+=`<div class="score-item"><div><div class="score-game">${v.game} · ${v.childName||'बच्चा'}</div><div style="font-size:10px;color:var(--muted)">${v.date||''} · Device: ${v.deviceId||''}</div></div><div class="score-pct-val" style="color:${col}">${v.pct}%<div style="font-size:10px;font-weight:700;color:var(--muted)">${v.score}/${v.total}</div></div></div>`;
     });
     document.getElementById('parentScores').innerHTML=scHtml||'<div style="text-align:center;padding:12px;color:var(--muted)">अभी तक कोई game score नहीं</div>';
   } catch(e) {
-    document.getElementById('parentSessions').innerHTML=`<div style="text-align:center;padding:12px;color:#dc2626;font-weight:700">❌ Firebase rules update करें:<br><small>vkids_sessions और vkids_scores को allow read, write: if request.auth != null;</small></div>`;
+    document.getElementById('parentSessions').innerHTML=`<div style="text-align:center;padding:12px;color:#dc2626;font-weight:700">❌ पहले VBE Tracker में login करें, फिर यह डैशबोर्ड खोलें</div>`;
   }
 }
 

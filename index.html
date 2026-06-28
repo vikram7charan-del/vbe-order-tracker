@@ -2296,8 +2296,8 @@ function showSupplier(){
   listenParties();
   setTimeout(function(){ listenMarketList(); }, 1500);
   loadFwdPolicy(); // ← Firestore से settings load
-  // 🔗 Time Master sync शुरू करो (orders load होने के बाद थोड़ी देर से)
-  setTimeout(()=>listenTimeMasterTasks(), 2500);
+  // Time Master → Tracker sync disabled — diary में बदलाव tracker को affect नहीं करेंगे
+  // setTimeout(()=>listenTimeMasterTasks(), 2500);
   seedStaffIfEmpty();
   fv_loadAll().then(()=>{ _fv_loaded=true; });
   // 🔔 Notifications — permission माँगो + reminder watcher चालू करो
@@ -2402,28 +2402,8 @@ function listenTimeMasterTasks(){
 }
 
 async function handleTmTaskDone(task, taskId){
-  const orderId = task.sourceVbeOrderId;
-  const o = _orders.find(x=>x.id===orderId);
-  if(!o) return;
-  // पहले से sync हो चुका? skip
-  if(o.tmDoneSyncedAt && o.tmTaskId === taskId) return;
-
-  // Timeline में entry जोड़ो
-  const timeline = Array.isArray(o.timeline) ? o.timeline.slice() : [];
-  timeline.push({
-    stage: o.stage,
-    note: `✅ Time Master में पूरा हुआ — "${task.name||'task'}"`,
-    time: new Date().toISOString()
-  });
-  try {
-    await fbSave({
-      ...o,
-      timeline: timeline,
-      tmDoneSyncedAt: new Date().toISOString(),
-      tmTaskId: taskId
-    });
-    notif(`🔗 "${o.customer}" — Time Master में पूरा हुआ! Timeline में जुड़ गया`,'ok');
-  } catch(e){ console.error('TM sync save failed:', e); }
+  // Sync disabled — diary (Time Master) में बदलाव tracker को affect नहीं करते
+  // Tracker में delivery सिर्फ tracker app से ही होगी
 }
 
 // ══════════════════════════════════════════

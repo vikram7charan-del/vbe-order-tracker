@@ -90,6 +90,8 @@ body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:var(--bg)
 .sub-tabs{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px}
 .stb{padding:8px 14px;border-radius:20px;border:2px solid #e5e7eb;background:#fff;font-size:13px;font-weight:800;color:var(--muted);cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0}
 .stb.active{background:var(--p);color:#fff;border-color:var(--p)}
+#learnTabs{flex-wrap:wrap;overflow:visible;padding-bottom:0;gap:7px}
+#learnTabs .stb{flex:1 1 calc(33.33% - 5px);min-width:0;font-size:12px;padding:8px 6px;text-align:center;white-space:normal}
 
 /* ── LETTER CARDS — direct tap = speak ── */
 .lgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
@@ -896,11 +898,20 @@ function save() { localStorage.setItem('vkids3',JSON.stringify(P)); updateHdr();
 // ═══════════════════════════════════════════════════════════
 // SPEECH
 // ═══════════════════════════════════════════════════════════
+let _voices = [];
+function _loadVoices() { _voices = speechSynthesis.getVoices(); }
+if (window.speechSynthesis) {
+  speechSynthesis.onvoiceschanged = _loadVoices;
+  _loadVoices();
+}
 function speak(text, lang='hi-IN') {
-  if(!window.speechSynthesis) return;
+  if (!window.speechSynthesis || !text) return;
   speechSynthesis.cancel();
+  speechSynthesis.resume();
   const u = new SpeechSynthesisUtterance(text);
-  u.lang = lang; u.rate = 0.75; u.pitch = 1.1;
+  u.lang = lang; u.rate = 0.85; u.pitch = 1.1;
+  const v = _voices.find(v => v.lang.startsWith(lang.slice(0,2)));
+  if (v) u.voice = v;
   speechSynthesis.speak(u);
 }
 
@@ -1055,7 +1066,7 @@ function tapCard(el, type, i) {
   const item = type==='e' ? ENGLISH[i] : (HINDI_GROUPS[curHindiGroup]||[])[i];
   if(!item) return;
   speak(item.l, type==='e'?'en-US':'hi-IN');
-  setTimeout(()=>speak(item.w, type==='e'?'en-US':'hi-IN'), 900);
+  setTimeout(()=>speak(item.w, type==='e'?'en-US':'hi-IN'), 600);
   showMini('🔊 '+item.l+' — '+item.w);
 }
 function quickLearn(type, i) {

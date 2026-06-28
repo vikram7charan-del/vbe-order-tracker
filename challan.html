@@ -13,14 +13,15 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore,collection,doc,getDocs,setDoc,deleteDoc,onSnapshot,query,orderBy }
+import { initializeFirestore, persistentLocalCache, persistentSingleTabManager,
+         collection,doc,getDocs,setDoc,deleteDoc,onSnapshot,query,orderBy }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getAuth,onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const cfg={apiKey:"AIzaSyBCe5DKNKcthOl4umprfRm2QBfbVaFORg8",authDomain:"vbe-order-tracker-60324.firebaseapp.com",projectId:"vbe-order-tracker-60324",storageBucket:"vbe-order-tracker-60324.firebasestorage.app",messagingSenderId:"894023456122",appId:"1:894023456122:web:6ee548f0913c887c67f2c3"};
 const app=initializeApp(cfg);
-const db=getFirestore(app);
+const db=initializeFirestore(app,{localCache:persistentLocalCache({tabManager:persistentSingleTabManager()})});
 const auth=getAuth(app);
 
 window._db=db;

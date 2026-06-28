@@ -1,0 +1,135 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSupplier() {
+      return request.auth != null
+          && (request.auth.uid == "FqJeXbb3YJfSER09jtXLosCSpVy2"
+           || request.auth.uid == "tjkS5tg2vMflpndGHSQRjFYgRv03"
+           || request.auth.uid == "0CXFV9vDMSW7LBi0mLS9bW480mh1"
+           || request.auth.uid == "CrWrobyeWHY1ZLrLwKcncW0U9K03"
+           || request.auth.uid == "gdn0jahlzGOuWKaOyxsTht07mus2"
+           || request.auth.uid == "pFslWWEvLiRjr7YFq51TqwfOpFp2"
+           || request.auth.uid == "xY7dwh799LZrRIY7dK2CHVc5H262");
+    }
+
+    match /vbe_orders/{orderId} {
+      allow get: if true;
+      allow list: if isSupplier();
+      allow create, update, delete: if isSupplier();
+    }
+
+    match /vbe_tasks/{taskId} {
+      allow read, write, delete: if isSupplier();
+    }
+
+    match /vbe_staff/{staffId} {
+      allow read, write, delete: if isSupplier();
+    }
+
+    match /vbe_rewards/{rewardId} {
+      allow read, write, delete: if isSupplier();
+    }
+
+    match /vbe_parties/{partyId} {
+      allow read, write, delete: if isSupplier();
+    }
+
+    match /vbe_projects/{projectId} {
+      allow read, write, delete: if isSupplier();
+    }
+
+    match /vbe_challans/{challanId} {
+      allow read, write, delete: if isSupplier();
+    }
+
+    match /vbe_contacts/{contactId} {
+      allow read, write, delete: if isSupplier();
+    }
+
+    match /vbe_attendance/{docId} {
+      allow read, write, delete: if isSupplier();
+    }
+
+    match /vbe_settings/{docId} {
+      allow read, write, delete: if isSupplier();
+    }
+
+    match /vbe_bank_accounts/{docId} {
+      allow read, write, delete: if isSupplier();
+    }
+
+    match /vbe_bank_entries/{docId} {
+      allow read, write, delete: if isSupplier();
+    }
+
+    match /fvhq_assigns/{docId} {
+      allow read, write, delete: if isSupplier();
+    }
+
+    match /fvhq_summaries/{staffId} {
+      allow read, write, delete: if isSupplier();
+    }
+
+    match /fvhq_contacts/{unitId} {
+      allow read, write, delete: if isSupplier();
+    }
+
+    match /fvhq_custom_units/{unitId} {
+      allow read, write, delete: if isSupplier();
+    }
+
+    match /mr_bills/{id} {
+      allow read, write, delete: if isSupplier();
+    }
+
+    match /mr_cash/{id} {
+      allow read, write, delete: if isSupplier();
+    }
+
+    match /mr_staff/{id} {
+      allow read, write, delete: if isSupplier();
+    }
+
+    match /mrk_bills/{id} {
+      allow read, write, delete: if isSupplier();
+    }
+
+    match /mrk_cash/{id} {
+      allow read, write, delete: if isSupplier();
+    }
+
+    match /mrk_staff/{id} {
+      allow read, write, delete: if isSupplier();
+    }
+
+    match /vbe_karya/{docId} {
+      allow read, write, delete: if isSupplier();
+    }
+
+    match /vbe_clients_meta/{id} {
+      allow read, write, delete: if isSupplier();
+    }
+
+    match /vbe_fcm_tokens/{id} {
+      allow read, write, delete: if isSupplier();
+    }
+
+    match /vbe_rituals/{id} {
+      allow read, write, delete: if isSupplier();
+    }
+
+    match /vbe_checkins/{id} {
+      allow read, write, delete: if isSupplier();
+    }
+
+    match /vbe_gem_bids/{id} {
+      allow read, write, delete: if isSupplier();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+  }
+}

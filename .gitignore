@@ -1,0 +1,7 @@
+*service-account*.json
+*-service-account.json
+serviceAccount*.json
+node_modules/
+.env
+firebase-debug.log
+ui-debug.log

@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
 <title>VBE Portal — Barmer Operations</title>
 <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' https://*.googleapis.com https://*.gstatic.com https://*.firebaseapp.com https://*.firebaseio.com https://*.firebase.com https://firebasestorage.googleapis.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.gstatic.com https://*.firebaseapp.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://firebasestorage.googleapis.com; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.firebase.com https://fcmregistrations.googleapis.com; worker-src 'self' blob:; frame-src 'none'; object-src 'none'">
 <link rel="manifest" href="manifest.json"/>
 <meta name="theme-color" content="#050a14"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
@@ -18,7 +19,8 @@
 <script type="module">
 import { initializeApp }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, doc, setDoc, addDoc, serverTimestamp,
+import { initializeFirestore, persistentLocalCache, persistentSingleTabManager,
+         collection, doc, setDoc, addDoc, serverTimestamp,
          getDoc, getDocs, deleteDoc, updateDoc, onSnapshot,
          query, orderBy }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -26,6 +28,8 @@ import { getAuth, signInWithEmailAndPassword, signInAnonymously, onAuthStateChan
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getMessaging, getToken, onMessage }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
+import { getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 // ══ FIREBASE CONFIG ══
 const firebaseConfig = {
@@ -38,7 +42,15 @@ const firebaseConfig = {
 };
 
 const app  = initializeApp(firebaseConfig);
-const db   = getFirestore(app);
+// Offline persistence — internet बंद होने पर भी app काम करेगा
+const db = initializeFirestore(app, {
+  localCache: persistentLocalCache({ tabManager: persistentSingleTabManager() })
+});
+const storage = getStorage(app);
+window._storage    = storage;
+window._storageRef = storageRef;
+window._uploadBytesResumable = uploadBytesResumable;
+window._getDownloadURL = getDownloadURL;
 const auth = getAuth(app);
 
 // ══ FCM PUSH NOTIFICATIONS ══
@@ -223,6 +235,25 @@ window._updateDoc  = updateDoc;
 window._onSnapshot = onSnapshot;
 window._query      = query;
 window._orderBy    = orderBy;
+
+// ══ FIREBASE STORAGE UPLOAD ══
+// Photo को Cloud Storage में upload करता है, Firestore document छोटा रहेगा
+window._uploadPhoto = async function(file, path, onProgress){
+  return new Promise((resolve, reject) => {
+    const fileRef = storageRef(storage, path);
+    const task = uploadBytesResumable(fileRef, file);
+    task.on('state_changed',
+      snap => { if(onProgress) onProgress(Math.round(snap.bytesTransferred/snap.totalBytes*100)); },
+      err  => reject(err),
+      async () => {
+        try {
+          const url = await getDownloadURL(task.snapshot.ref);
+          resolve(url);
+        } catch(e) { reject(e); }
+      }
+    );
+  });
+};
 </script>
 
 <style>
@@ -1423,6 +1454,10 @@ mark.srch-hl{background:#f59e0b44;color:#fbbf24;border-radius:2px;padding:0 1px;
     <span style="font-size:10px;color:#d4a017;font-weight:800">▼</span>
     <div class="mb-peek-line"></div>
   </div>
+  <!-- Offline Banner — internet बंद होने पर दिखता है -->
+  <div id="vbe-offline-bar" style="display:none;background:#7f1d1d;color:#fca5a5;font-size:10px;font-weight:700;text-align:center;padding:4px 12px;letter-spacing:.5px">
+    📴 Offline — Data cached है, internet वापस आने पर sync होगा
+  </div>
   <div class="s-header" style="display:flex;align-items:center;justify-content:space-between;gap:8px">
     <div class="s-sub" style="flex:1">OPERATIONS · BARMER REGION · SUPPLY CHAIN · <span style="color:rgba(245,158,11,.5);font-size:9px">⚡ सारे फीचर नीचे-बाईं तरफ</span></div>
     <button id="vbe-compact-toggle" onclick="toggleCompactMode()" title="Compact / Card view">☰</button>
@@ -1478,16 +1513,16 @@ mark.srch-hl{background:#f59e0b44;color:#fbbf24;border-radius:2px;padding:0 1px;
     <button onclick="bulkSnoozeAll24h()" title="सभी pending/overdue को +24h आगे" style="padding:5px 9px;border-radius:8px;border:1px solid #7c2d12;background:linear-gradient(135deg,#7c2d1244,#ea580c44);color:#fb923c;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit">🚀 कल</button>
     <button id="sort-btn" onclick="cycleSortMode()" title="Sort करो" style="padding:5px 9px;border-radius:8px;border:1px solid #1e3a5f;background:transparent;color:#64748b;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit">⇅</button>
   </div>
-  <!-- Category Filter Chips — एक नज़र में पता चले कौन सा काम कौन सी category में -->
+  <!-- Category Filter Chips — डायरी के 4 पेज -->
   <div id="cat-chips-row" style="padding:0 12px 6px;display:flex;gap:5px;overflow-x:auto;scrollbar-width:none">
     <button onclick="setCategoryFilter('')" id="cat-chip-all" class="cat-chip cat-chip-on" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;border-radius:18px;padding:5px 11px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0">📋 सब <span id="cat-cnt-all" style="background:#ffffff33;border-radius:5px;padding:1px 5px;font-size:9px;margin-left:2px">0</span></button>
-    <button onclick="setCategoryFilter('market')" id="cat-chip-market" class="cat-chip cat-chip-off" style="background:#1e293b;color:#475569;border:1px solid #334155;border-radius:18px;padding:5px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0">🛒 Market <span id="cat-cnt-market" style="background:#0a0f1e;border-radius:5px;padding:1px 5px;font-size:9px;margin-left:2px">0</span></button>
-    <button onclick="setCategoryFilter('follow')" id="cat-chip-follow" class="cat-chip cat-chip-off" style="background:#1e293b;color:#475569;border:1px solid #334155;border-radius:18px;padding:5px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0">🔄 Follow <span id="cat-cnt-follow" style="background:#0a0f1e;border-radius:5px;padding:1px 5px;font-size:9px;margin-left:2px">0</span></button>
-    <button onclick="setCategoryFilter('jalipa')" id="cat-chip-jalipa" class="cat-chip cat-chip-off" style="background:#1e293b;color:#475569;border:1px solid #334155;border-radius:18px;padding:5px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0">🏛️ जालीपा <span id="cat-cnt-jalipa" style="background:#0a0f1e;border-radius:5px;padding:1px 5px;font-size:9px;margin-left:2px">0</span></button>
+    <button onclick="setCategoryFilter('followup')" id="cat-chip-followup" class="cat-chip cat-chip-off" style="background:#1e293b;color:#475569;border:1px solid #334155;border-radius:18px;padding:5px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0">🔄 फॉलो अप <span id="cat-cnt-followup" style="background:#0a0f1e;border-radius:5px;padding:1px 5px;font-size:9px;margin-left:2px">0</span></button>
     <button onclick="setCategoryFilter('gem')" id="cat-chip-gem" class="cat-chip cat-chip-off" style="background:#1e293b;color:#475569;border:1px solid #334155;border-radius:18px;padding:5px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0">💻 GeM <span id="cat-cnt-gem" style="background:#0a0f1e;border-radius:5px;padding:1px 5px;font-size:9px;margin-left:2px">0</span></button>
-    <button onclick="setCategoryFilter('other')" id="cat-chip-other" class="cat-chip cat-chip-off" style="background:#1e293b;color:#475569;border:1px solid #334155;border-radius:18px;padding:5px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0">📌 Other <span id="cat-cnt-other" style="background:#0a0f1e;border-radius:5px;padding:1px 5px;font-size:9px;margin-left:2px">0</span></button>
+    <button onclick="setCategoryFilter('market')" id="cat-chip-market" class="cat-chip cat-chip-off" style="background:#1e293b;color:#475569;border:1px solid #334155;border-radius:18px;padding:5px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0">🛒 Market <span id="cat-cnt-market" style="background:#0a0f1e;border-radius:5px;padding:1px 5px;font-size:9px;margin-left:2px">0</span></button>
+    <button onclick="setCategoryFilter('kal')" id="cat-chip-kal" class="cat-chip cat-chip-off" style="background:#1e293b;color:#475569;border:1px solid #334155;border-radius:18px;padding:5px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0">📅 कल का काम <span id="cat-cnt-kal" style="background:#0a0f1e;border-radius:5px;padding:1px 5px;font-size:9px;margin-left:2px">0</span></button>
+    <button onclick="batchClearAll()" title="⚠️ सभी staff + category assignments हटाओ — ताज़ा start के लिए" style="background:#1e293b;color:#ef4444;border:1px solid #450a0a;border-radius:18px;padding:5px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0">🔄 रीसेट</button>
   </div>
-  <div id="vbe-ptr">🔄</div>
+  <!-- vbe-ptr removed — PTR disabled, real-time onSnapshot handles refresh -->
   <div style="padding:0 12px 90px" id="olist"></div>
   <button class="fab" onclick="openAdd()">+</button>
 </div>
@@ -1581,11 +1616,10 @@ mark.srch-hl{background:#f59e0b44;color:#fbbf24;border-radius:2px;padding:0 1px;
       <div>
         <label class="lbl">📁 Category — काम किस तरह का है?</label>
         <div id="f-cat-row" style="display:flex;flex-wrap:wrap;gap:5px">
-          <button type="button" onclick="setFormCategory('market')" data-cat="market" class="cat-btn" style="flex:1;min-width:90px;padding:7px 4px;border-radius:8px;border:1px solid #334155;background:#1e293b;color:#94a3b8;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">🛒 Market</button>
-          <button type="button" onclick="setFormCategory('follow')" data-cat="follow" class="cat-btn" style="flex:1;min-width:90px;padding:7px 4px;border-radius:8px;border:1px solid #334155;background:#1e293b;color:#94a3b8;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">🔄 Follow</button>
-          <button type="button" onclick="setFormCategory('jalipa')" data-cat="jalipa" class="cat-btn" style="flex:1;min-width:90px;padding:7px 4px;border-radius:8px;border:1px solid #334155;background:#1e293b;color:#94a3b8;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">🏛️ जालीपा</button>
+          <button type="button" onclick="setFormCategory('followup')" data-cat="followup" class="cat-btn" style="flex:1;min-width:90px;padding:7px 4px;border-radius:8px;border:1px solid #334155;background:#1e293b;color:#94a3b8;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">🔄 फॉलो अप</button>
           <button type="button" onclick="setFormCategory('gem')" data-cat="gem" class="cat-btn" style="flex:1;min-width:90px;padding:7px 4px;border-radius:8px;border:1px solid #334155;background:#1e293b;color:#94a3b8;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">💻 GeM</button>
-          <button type="button" onclick="setFormCategory('other')" data-cat="other" class="cat-btn" style="flex:1;min-width:90px;padding:7px 4px;border-radius:8px;border:1px solid #334155;background:#1e293b;color:#94a3b8;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">📌 Other</button>
+          <button type="button" onclick="setFormCategory('market')" data-cat="market" class="cat-btn" style="flex:1;min-width:90px;padding:7px 4px;border-radius:8px;border:1px solid #334155;background:#1e293b;color:#94a3b8;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">🛒 Market</button>
+          <button type="button" onclick="setFormCategory('kal')" data-cat="kal" class="cat-btn" style="flex:1;min-width:90px;padding:7px 4px;border-radius:8px;border:1px solid #334155;background:#1e293b;color:#94a3b8;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">📅 कल का काम</button>
         </div>
         <input type="hidden" id="f-cat" value=""/>
       </div>
@@ -1996,23 +2030,22 @@ let _fcmToken       = null;      // FCM token (अगर setup हो)
 
 // Categories config
 const CATEGORIES = {
-  market: {emoji:'🛒', label:'Market',  color:'#f59e0b'},
-  follow: {emoji:'🔄', label:'Follow',  color:'#06b6d4'},
-  jalipa: {emoji:'🏛️', label:'जालीपा', color:'#a78bfa'},
-  gem:    {emoji:'💻', label:'GeM',     color:'#10b981'},
-  other:  {emoji:'📌', label:'Other',   color:'#64748b'}
+  followup: {emoji:'🔄', label:'फॉलो अप',    color:'#06b6d4'},
+  gem:      {emoji:'💻', label:'GeM',          color:'#10b981'},
+  market:   {emoji:'🛒', label:'Market',       color:'#f59e0b'},
+  kal:      {emoji:'📅', label:'कल का काम',   color:'#a78bfa'}
 };
 // बुक अपडेट मॉड्यूल के लिए expose
 window.STAGES = STAGES;
 window.CATEGORIES = CATEGORIES;
 
 // ═══ STAFF COLORS — हर मुख्य staff का अपना रंग (एक ही जगह से control) ═══
-//  Vikram = Blue · Manoj = नारंगी · Kailash = Yellow · Koda Swaroop = Green
+//  Vikram = Blue · Manoj = नारंगी · Kailash = Yellow · Swaroop Sa = Green
 const STAFF_COLORS = {
   vikram:  '#3b82f6',  // 🔵 Blue
   manoj:   '#f97316',  // 🟠 नारंगी / Orange
   kailash: '#eab308',  // 🟡 Yellow
-  koda:    '#22c55e'   // 🟢 Green (Koda Swaroop)
+  koda:    '#22c55e'   // 🟢 Green (Swaroop Sa)
 };
 const STAFF_FALLBACK_COLOR = '#64748b'; // बाकी सबके लिए grey
 // नाम चाहे "Vikram", "Vikram Charan", "विक्रम" — सब match होंगे
@@ -2051,9 +2084,20 @@ window.addEventListener('fbReady',()=>{
 
   document.getElementById('loading').style.display='none';
 
-  // ── ERROR SAFETY ──
-  window.addEventListener('online',  ()=>notif('🟢 Internet वापस आया — Data sync हो रहा है','ok'));
-  window.addEventListener('offline', ()=>notif('🔴 Internet नहीं — Orders दिख रहे हैं पर save नहीं होंगे','warn'));
+  // ── OFFLINE / ONLINE INDICATOR ──
+  function updateOfflineBar(){
+    const bar = document.getElementById('vbe-offline-bar');
+    if(bar) bar.style.display = navigator.onLine ? 'none' : 'block';
+  }
+  window.addEventListener('online', ()=>{
+    updateOfflineBar();
+    notif('🟢 Internet वापस आया — Data sync हो रहा है','ok');
+  });
+  window.addEventListener('offline', ()=>{
+    updateOfflineBar();
+    notif('📴 Offline — Cache से काम चलेगा, save बाद होगा','warn');
+  });
+  updateOfflineBar(); // पहली बार check
 
   const trackId=getTrackId();
   if(trackId){
@@ -4027,7 +4071,7 @@ function askCommentAuthor(o){
     // Build staff options — Vikram + Koda always + assigned staff if different
     const opts = [
       {name:'Vikram', emoji:'👨‍💼', color:'#fbbf24', bg:'linear-gradient(135deg,#92400e,#f59e0b)', sub:'Owner / CEO'},
-      {name:'Koda Swaroop', short:'Koda', emoji:'🚀', color:'#10b981', bg:'linear-gradient(135deg,#065f46,#10b981)', sub:'Field / Koda Swaroop'},
+      {name:'Swaroop Sa', short:'Swaroop', emoji:'🚀', color:'#22c55e', bg:'linear-gradient(135deg,#052e16,#22c55e)', sub:'Field / Swaroop Sa'},
       {name:'Manoj', emoji:'🪖', color:'#a78bfa', bg:'linear-gradient(135deg,#4c1d95,#7c3aed)', sub:'Field Manager'},
       {name:'Kailash', emoji:'💻', color:'#34d399', bg:'linear-gradient(135deg,#065f46,#10b981)', sub:'GeM / Accounts'},
       {name:'Ravi', emoji:'📦', color:'#fb923c', bg:'linear-gradient(135deg,#7c2d12,#ea580c)', sub:'Supply'}
@@ -4366,37 +4410,8 @@ function openSwipeActions(orderId){
 }
 
 // ══ PULL TO REFRESH ══
-(function(){
-  var _ptrSY=0,_ptrReady=false,_ptrActive=false;
-  var ptr=null;
-  function getPtr(){ return ptr||(ptr=document.getElementById('vbe-ptr')); }
-  window.addEventListener('touchstart',function(e){
-    if(window.scrollY===0&&e.touches.length===1){ _ptrSY=e.touches[0].clientY; _ptrActive=true; }
-  },{passive:true});
-  window.addEventListener('touchmove',function(e){
-    if(!_ptrActive||!_ptrSY) return;
-    var dy=e.touches[0].clientY-_ptrSY;
-    if(dy>0&&window.scrollY===0){
-      var pull=Math.min(dy*0.45,52);
-      getPtr().style.transform='translateX(-50%) translateY('+(pull-60)+'px)';
-      _ptrReady=dy>90;
-      getPtr().classList.toggle('ptr-ready',_ptrReady);
-      getPtr().textContent=_ptrReady?'✅':'🔄';
-    }
-  },{passive:true});
-  window.addEventListener('touchend',function(){
-    if(_ptrReady){
-      getPtr().style.transform='translateX(-50%) translateY(-60px)';
-      getPtr().textContent='🔄';
-      renderAll();
-      notif('🔄 Refreshed!','ok');
-    } else {
-      getPtr().style.transform='translateX(-50%) translateY(-60px)';
-    }
-    getPtr().classList.remove('ptr-ready');
-    _ptrSY=0; _ptrReady=false; _ptrActive=false;
-  },{passive:true});
-})();
+// Pull-to-refresh disabled — real-time auto-refresh via Firestore onSnapshot
+// ऊपर filter chips use करने में PTR interfere करता था, इसलिए हटाया
 
 // ══ COMPACT MODE ══
 let _compactMode = localStorage.getItem('vbe_compact')==='1';
@@ -4942,23 +4957,33 @@ window.openTplSheet=function(){
   bg.addEventListener('click',function(e){ if(e.target===bg) bg.style.display=''; },{once:true});
 };
 
-// ══ PHOTO CAPTURE ══
+// ══ PHOTO CAPTURE — Firebase Storage में upload होती है ══
 window.handlePhotoPick=async function(orderId,input){
   var file=input.files[0]; input.value=''; if(!file) return;
   var o=_orders.find(function(x){return x.id===orderId;}); if(!o) return;
-  notif('📷 Processing photo...','info');
+  notif('📷 Upload हो रही है...','info');
   try{
-    var img=await (function(f){ return new Promise(function(res,rej){ var i=new Image(); i.onload=function(){res(i);}; i.onerror=rej; i.src=URL.createObjectURL(f); }); })(file);
-    var MAX=600, canvas=document.createElement('canvas');
-    var scale=Math.min(1,MAX/Math.max(img.width,img.height));
-    canvas.width=Math.round(img.width*scale); canvas.height=Math.round(img.height*scale);
-    canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
-    var b64=canvas.toDataURL('image/jpeg',0.65);
-    if(b64.length>400000){ notif('📷 Photo बहुत बड़ी है — छोटी करके try करो','warn'); return; }
-    var timeline=[...(o.timeline||[]),{stage:o.stage,time:new Date().toISOString(),note:'📷 Photo added',photo:b64,by:'Vikram'}];
+    var photoURL=null;
+    if(window._uploadPhoto){
+      photoURL=await window._uploadPhoto(
+        file,
+        'vbe_photos/'+orderId+'/'+Date.now()+'_'+file.name,
+        function(pct){ notif('📷 '+pct+'% upload...','info'); }
+      );
+    } else {
+      // Fallback: base64 (Storage ready नहीं)
+      var img=await new Promise(function(res,rej){ var i=new Image(); i.onload=function(){res(i);}; i.onerror=rej; i.src=URL.createObjectURL(file); });
+      var MAX=600, canvas=document.createElement('canvas');
+      var scale=Math.min(1,MAX/Math.max(img.width,img.height));
+      canvas.width=Math.round(img.width*scale); canvas.height=Math.round(img.height*scale);
+      canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+      photoURL=canvas.toDataURL('image/jpeg',0.65);
+      if(photoURL.length>400000){ notif('📷 Photo बहुत बड़ी है — Storage available नहीं','warn'); return; }
+    }
+    var timeline=[...(o.timeline||[]),{stage:o.stage,time:new Date().toISOString(),note:'📷 Photo added',photo:photoURL,by:'Vikram'}];
     await fbSave({...o,timeline});
-    notif('📷 Photo saved to timeline','ok');
-  }catch(e){ notif('📷 Photo save नहीं हुई','warn'); }
+    notif('📷 Photo Cloud में save हो गई ✅','ok');
+  }catch(e){ notif('📷 Photo save नहीं हुई — '+e.message,'warn'); }
 };
 
 // ══ TAB SWIPE (olist background) ══
@@ -5141,14 +5166,27 @@ function renderList(){
       ${cat ? `<div style="display:inline-flex;align-items:center;gap:3px;background:${cat.color}18;border:1px solid ${cat.color}44;color:${cat.color};border-radius:5px;padding:1px 6px;font-size:9px;font-weight:700;margin-top:4px;max-width:fit-content"><span style="font-size:10px">${cat.emoji}</span>${esc(cat.label)}</div>` : ''}
       ${o.note?`<div style="font-size:11px;color:#94a3b8;margin-top:4px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">📝 ${esc(o.note)}</div>`:''}
       ${o.stage!=='delivered' ? `
-      <!-- ⚡ Quick action row — instant 1-tap actions, no expand needed -->
-      <div class="mb-quick" onclick="event.stopPropagation()">
-        <button onclick="event.stopPropagation();quickForward('${o.id}',24)" title="+24h आगे बढ़ाओ" style="background:linear-gradient(135deg,#1e3a8a,#3b82f6);border:none;color:#fff;border-radius:6px;padding:4px 8px;font-size:10px;font-weight:800;cursor:pointer;font-family:inherit">⏩+24h</button>
-        ${o.staff !== 'Koda Swaroop' ? `<button onclick="event.stopPropagation();reassignToKoda('${o.id}')" title="Koda Swaroop को असाइन करो (7014801350)" style="background:linear-gradient(135deg,#065f46,#10b981);border:none;color:#fff;border-radius:6px;padding:4px 8px;font-size:10px;font-weight:800;cursor:pointer;font-family:inherit">→ Koda</button>` : `<span style="background:#10b98122;border:1px solid #10b98166;color:#10b981;border-radius:6px;padding:3px 7px;font-size:10px;font-weight:800">✓ Koda</span>`}
-        ${(o.staffPhone || o.phone) ? `<button onclick="event.stopPropagation();openCallReminder('${o.id}')" title="कॉल करके reminder दो" style="background:linear-gradient(135deg,#831843,#ec4899);border:none;color:#fff;border-radius:6px;padding:4px 8px;font-size:10px;font-weight:800;cursor:pointer;font-family:inherit">📞Call</button>` : ''}
-        <button onclick="event.stopPropagation();quickCheck('${o.id}')" title="✓ Checking — देख लिया, attend किया (last check शो होगा)" style="background:${o.lastQuickCheckAt ? 'linear-gradient(135deg,#065f46,#10b981)' : 'linear-gradient(135deg,#0e7490,#06b6d4)'};border:none;color:#fff;border-radius:6px;padding:4px 8px;font-size:10px;font-weight:800;cursor:pointer;font-family:inherit">${o.lastQuickCheckAt ? '✓ Checked' : '✓ Check'}</button>
-        <button onclick="event.stopPropagation();openQuickCommentPrompt('${o.id}')" title="💬 तुरंत comment लिखो — कौन लिख रहा है पूछेगा" style="background:linear-gradient(135deg,#6d28d9,#a78bfa);border:none;color:#fff;border-radius:6px;padding:4px 8px;font-size:10px;font-weight:800;cursor:pointer;font-family:inherit">💬+</button>
-        <button onclick="event.stopPropagation();mbSetStage('${o.id}','delivered')" title="काम पूरा — Delivered मार्क करो" style="background:linear-gradient(135deg,#052e16,#10b981);border:1.5px solid rgba(16,185,129,.5);color:#6ee7b7;border-radius:6px;padding:4px 8px;font-size:10px;font-weight:800;cursor:pointer;font-family:inherit">🎉 Deliver</button>
+      <!-- ⚡ Quick action row — Staff assign + Diary category + Deliver -->
+      <div class="mb-quick" onclick="event.stopPropagation()" style="flex-direction:column;gap:4px">
+        <!-- Row 1: Staff quick-assign buttons -->
+        <div style="display:flex;gap:4px;width:100%">
+          <button onclick="event.stopPropagation();quickAssignStaff('${o.id}','Vikram Charan','9509553600')" style="flex:1;background:${o.staff==='Vikram Charan'?'linear-gradient(135deg,#1e3a8a,#3b82f6)':'#1e293b'};border:1.5px solid ${o.staff==='Vikram Charan'?'#3b82f6':'#334155'};color:${o.staff==='Vikram Charan'?'#fff':'#64748b'};border-radius:7px;padding:5px 2px;font-size:10px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation">👤 विक्रम</button>
+          <button onclick="event.stopPropagation();quickAssignStaff('${o.id}','Manoj Charan','8696283600')" style="flex:1;background:${o.staff==='Manoj Charan'?'linear-gradient(135deg,#7c2d12,#f97316)':'#1e293b'};border:1.5px solid ${o.staff==='Manoj Charan'?'#f97316':'#334155'};color:${o.staff==='Manoj Charan'?'#fff':'#64748b'};border-radius:7px;padding:5px 2px;font-size:10px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation">👤 मनोज</button>
+          <button onclick="event.stopPropagation();quickAssignStaff('${o.id}','Kailash Singh','8107093001')" style="flex:1;background:${o.staff==='Kailash Singh'?'linear-gradient(135deg,#713f12,#eab308)':'#1e293b'};border:1.5px solid ${o.staff==='Kailash Singh'?'#eab308':'#334155'};color:${o.staff==='Kailash Singh'?'#fff':'#64748b'};border-radius:7px;padding:5px 2px;font-size:10px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation">👤 कैलाश</button>
+          <button onclick="event.stopPropagation();quickAssignStaff('${o.id}','Swaroop Sa','9166753417')" style="flex:1;background:${o.staff==='Swaroop Sa'?'linear-gradient(135deg,#052e16,#22c55e)':'#1e293b'};border:1.5px solid ${o.staff==='Swaroop Sa'?'#22c55e':'#334155'};color:${o.staff==='Swaroop Sa'?'#fff':'#64748b'};border-radius:7px;padding:5px 2px;font-size:10px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation">👤 स्वरूप</button>
+        </div>
+        <!-- Row 2: Diary category buttons — जिस डायरी में है वह highlight होगा -->
+        <div style="display:flex;gap:4px;width:100%">
+          <button onclick="event.stopPropagation();quickSetCategory('${o.id}','followup')" style="flex:1;background:${o.category==='followup'?'linear-gradient(135deg,#0e4f5c,#06b6d4)':'#1e293b'};border:1.5px solid ${o.category==='followup'?'#06b6d4':'#334155'};color:${o.category==='followup'?'#fff':'#64748b'};border-radius:7px;padding:5px 2px;font-size:9px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation">🔄 फॉलो अप</button>
+          <button onclick="event.stopPropagation();quickSetCategory('${o.id}','gem')" style="flex:1;background:${o.category==='gem'?'linear-gradient(135deg,#052e16,#10b981)':'#1e293b'};border:1.5px solid ${o.category==='gem'?'#10b981':'#334155'};color:${o.category==='gem'?'#fff':'#64748b'};border-radius:7px;padding:5px 2px;font-size:9px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation">💻 GeM</button>
+          <button onclick="event.stopPropagation();quickSetCategory('${o.id}','market')" style="flex:1;background:${o.category==='market'?'linear-gradient(135deg,#78350f,#f59e0b)':'#1e293b'};border:1.5px solid ${o.category==='market'?'#f59e0b':'#334155'};color:${o.category==='market'?'#fff':'#64748b'};border-radius:7px;padding:5px 2px;font-size:9px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation">🛒 Market</button>
+          <button onclick="event.stopPropagation();quickSetCategory('${o.id}','kal')" style="flex:1;background:${o.category==='kal'?'linear-gradient(135deg,#1e1b4b,#a78bfa)':'#1e293b'};border:1.5px solid ${o.category==='kal'?'#a78bfa':'#334155'};color:${o.category==='kal'?'#fff':'#64748b'};border-radius:7px;padding:5px 2px;font-size:9px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation">📅 कल</button>
+        </div>
+        <!-- Row 3: Call + Deliver -->
+        <div style="display:flex;gap:4px;width:100%">
+          ${(o.staffPhone || o.phone) ? `<button onclick="event.stopPropagation();openCallReminder('${o.id}')" style="flex:1;background:linear-gradient(135deg,#831843,#ec4899);border:none;color:#fff;border-radius:7px;padding:6px 8px;font-size:10px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation">📞 Call</button>` : ''}
+          <button onclick="event.stopPropagation();mbSetStage('${o.id}','delivered')" style="flex:2;background:linear-gradient(135deg,#052e16,#10b981);border:1.5px solid rgba(16,185,129,.5);color:#6ee7b7;border-radius:7px;padding:6px 8px;font-size:10px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation">🎉 Deliver</button>
+        </div>
       </div>` : ''}
       <!-- 💬 LAST COMMENT PREVIEW — accountability ke liye card mein hi दिखे, time + author + text -->
       ${(() => {
@@ -5691,6 +5729,53 @@ async function reassignToKoda(id){
 }
 window.reassignToKoda = reassignToKoda;
 
+// ── ⚡ Quick Staff Assign — one tap, toggle on/off ──
+async function quickAssignStaff(orderId, name, phone){
+  const o = _orders.find(x => x.id === orderId);
+  if(!o) return;
+  const same = o.staff === name;
+  const newStaff    = same ? '' : name;
+  const newPhone    = same ? '' : phone;
+  const newStaffWa  = same ? '' : phone;
+  const now = new Date().toISOString();
+  const note = same ? `👤 Staff हटाया (${name})` : `👤 Assigned: ${o.staff||'—'} → ${name}`;
+  const timeline = [...(o.timeline||[]), {stage:o.stage, time:now, note, photo:null}];
+  await fbSave({...o, staff:newStaff, staffPhone:newPhone, staffCall:newStaffWa, timeline});
+  notif(same ? `👤 ${name} हटाया गया` : `✅ ${name} को असाइन हुआ`, 'ok');
+}
+window.quickAssignStaff = quickAssignStaff;
+
+// ── 📂 Quick Category Set — डायरी button tap, toggle on/off ──
+async function quickSetCategory(orderId, cat){
+  const o = _orders.find(x => x.id === orderId);
+  if(!o) return;
+  const newCat = (o.category === cat) ? '' : cat;
+  await fbSave({...o, category: newCat});
+  const label = newCat ? (CATEGORIES[newCat]?.label || newCat) : 'हटाई गई';
+  notif(newCat ? `📂 ${label} में डाला` : `📂 Category हटाई गई`, 'ok');
+}
+window.quickSetCategory = quickSetCategory;
+
+// ── 🔄 Batch Clear All — सब staff + category assignments हटाओ (fresh start) ──
+async function batchClearAll(){
+  const active = _orders.filter(o => o.stage !== 'delivered');
+  if(!active.length){ notif('कोई active order नहीं','info'); return; }
+  const ok = await vbeConfirm(
+    `⚠️ ${active.length} active orders के सभी Staff और Category assignments हटाए जाएंगे।\n\nFresh start के लिए ताकि आप दोबारा assign कर सकें?\n\nयह action undo नहीं होगी!`,
+    '🔄','हाँ, सब रीसेट करो','रुको'
+  );
+  if(!ok) return;
+  notif('⏳ Resetting...','info');
+  let done = 0;
+  for(const o of active){
+    await fbSave({...o, staff:'', staffPhone:'', staffCall:'', category:''});
+    done++;
+    if(done % 10 === 0) notif(`⏳ ${done}/${active.length} reset हुए...`,'info');
+  }
+  notif(`✅ ${done} orders reset — अब fresh assign करें!`,'ok');
+}
+window.batchClearAll = batchClearAll;
+
 // ══════════════════════════════════════════
 //  🚀 BULK SNOOZE — सभी pending tasks को +24h आगे (1-click)
 //  सिर्फ़ active/now/later में दिखने वाले tasks पर — delivered/hidden नहीं
@@ -5771,7 +5856,7 @@ function openCallReminder(id){
   }
   // Also offer Koda always (since Vikram wants quick call to him)
   if(!numbers.some(n => n.phone === '7014801350')){
-    numbers.push({ label: '👤 Koda Swaroop', phone: '7014801350', type: 'staff' });
+    numbers.push({ label: '👤 Swaroop Sa', phone: '9166753417', type: 'staff' });
   }
 
   // Add favorites
@@ -6389,6 +6474,14 @@ async function saveOrder(){
   const it=document.getElementById('f-it').value.trim();
   const dl=document.getElementById('f-dl').value;
   if(!cu||!it||!dl){await vbeAlert('Customer, Item और Deadline जरूरी है!','⚠️');return;}
+  const ph=document.getElementById('f-ph').value.trim();
+  if(ph && !/^\d{10}$/.test(ph)){await vbeAlert('Phone नंबर 10 अंकों का होना चाहिए!','⚠️');return;}
+  const qt=document.getElementById('f-qt').value.trim();
+  if(qt && (isNaN(Number(qt)) || Number(qt) < 0)){await vbeAlert('Quantity सही नंबर होना चाहिए!','⚠️');return;}
+  const no=document.getElementById('f-no').value.trim();
+  if(no.length > 500){await vbeAlert('Note 500 अक्षरों से ज्यादा नहीं हो सकता!','⚠️');return;}
+  if(cu.length > 150){await vbeAlert('Customer नाम बहुत लंबा है (max 150)!','⚠️');return;}
+  if(it.length > 200){await vbeAlert('Item नाम बहुत लंबा है (max 200)!','⚠️');return;}
   const editId=document.getElementById('f-id').value;
   const staff=document.getElementById('f-st').value;
   const staffSel=document.getElementById('f-st');
@@ -6663,12 +6756,9 @@ function closeStage(){
 
 function prevPhoto(input){
   const file=input.files[0]; if(!file) return;
-  const reader=new FileReader();
-  reader.onload=ev=>{
-    _stagePhoto=ev.target.result;
-    document.getElementById('sg-prev').innerHTML=`<img src="${_stagePhoto}" style="width:80px;height:80px;border-radius:8px;object-fit:cover;border:1px solid #1e3a5f"/>`;
-  };
-  reader.readAsDataURL(file);
+  _stagePhoto=file; // File object store — Storage पर upload होगा
+  const url=URL.createObjectURL(file);
+  document.getElementById('sg-prev').innerHTML=`<img src="${url}" style="width:80px;height:80px;border-radius:8px;object-fit:cover;border:1px solid #1e3a5f"/>`;
 }
 
 async function doAdvance(){
@@ -6677,10 +6767,25 @@ async function doAdvance(){
   const stg=STAGES.find(s=>s.id===nextStage);
   const note=document.getElementById('sg-note').value.trim()||stg.hi;
   const o=_orders.find(x=>x.id===orderId);
+  const btn=document.getElementById('sg-btn');
+  btn.disabled=true; btn.textContent='⏳ Save हो रहा है...';
+  let photoURL=null;
+  // Photo को Firebase Storage में upload करो
+  if(_stagePhoto && window._uploadPhoto){
+    try{
+      notif('📷 Photo upload हो रही है...','info');
+      photoURL=await window._uploadPhoto(
+        _stagePhoto,
+        `vbe_photos/${orderId}/${Date.now()}_${_stagePhoto.name}`,
+        pct=>{ btn.textContent=`⏳ Photo ${pct}%...`; }
+      );
+    }catch(e){ notif('⚠️ Photo upload fail — order बिना photo के save होगा','warn'); }
+  }
   const updated={...o,stage:nextStage,
-    timeline:[...o.timeline,{stage:nextStage,time:new Date().toISOString(),note,photo:_stagePhoto}]};
+    timeline:[...o.timeline,{stage:nextStage,time:new Date().toISOString(),note,photo:photoURL}]};
   await fbSave(updated);
   notif('✅ '+stg.label+' — Customer को दिख गया!','ok');
+  btn.disabled=false;
   // ── Award Reward Points on delivery ──
   if(nextStage === 'delivered') { awardOnDelivery(orderId); }
   closeStage();
@@ -7223,19 +7328,19 @@ function renderArchive(){
         <span style="font-size:9px;background:#10b98122;color:#10b981;padding:2px 7px;border-radius:5px;font-weight:800">✅ DELIVERED</span>
         <span style="font-size:9px;background:#1e293b;color:#6366f1;padding:2px 7px;border-radius:5px;font-weight:800">${o.orderNo}</span>
       </div>
-      <div style="font-size:14px;font-weight:800;color:#e2e8f0">${o.customer}</div>
+      <div style="font-size:14px;font-weight:800;color:#e2e8f0">${esc(o.customer)}</div>
     </div>
     ${delivEntry?.photo?`<img src="${delivEntry.photo}" style="width:38px;height:38px;border-radius:6px;object-fit:cover;border:1px solid #10b98144;flex-shrink:0"/>`:
       '<div style="width:38px;height:38px;border-radius:6px;background:#10b98111;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">✅</div>'}
   </div>
-  <div style="font-size:12px;color:#94a3b8;margin:4px 0">📦 ${o.item}${o.qty?' · '+o.qty:''}</div>
+  <div style="font-size:12px;color:#94a3b8;margin:4px 0">📦 ${esc(o.item)}${o.qty?' · '+esc(String(o.qty)):''}</div>
   <div style="display:flex;flex-wrap:wrap;gap:8px;font-size:10px;color:#475569;margin-top:5px">
-    ${o.staff?`<span>👤 <b style="color:#a5b4fc">${o.staff}</b></span>`:''}
+    ${o.staff?`<span>👤 <b style="color:#a5b4fc">${esc(o.staff)}</b></span>`:''}
     <span>📅 Order: ${createdTime}</span>
     <span style="color:#10b981">🏁 Deliver: ${delivTime}</span>
     ${timeTaken?`<span style="color:#f59e0b">⏱️ ${timeTaken} में</span>`:''}
   </div>
-  ${delivEntry?.note&&delivEntry.note!=='पहुंच गया ✓'?`<div style="font-size:10px;color:#334155;margin-top:5px;background:#0d1526;border-radius:6px;padding:4px 8px">📝 ${delivEntry.note}</div>`:''}
+  ${delivEntry?.note&&delivEntry.note!=='पहुंच गया ✓'?`<div style="font-size:10px;color:#334155;margin-top:5px;background:#0d1526;border-radius:6px;padding:4px 8px">📝 ${esc(delivEntry.note)}</div>`:''}
   <div style="display:flex;gap:6px;margin-top:9px">
     <button onclick="openChallanForOrder('${o.id}')" style="flex:1;padding:7px;border-radius:8px;border:none;background:linear-gradient(135deg,#064e3b,#10b981);color:#fff;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit">🧾 Challan</button>
     <button onclick="closeArchive();setTimeout(()=>editOrder('${o.id}'),100);" style="padding:7px 12px;border-radius:8px;border:1px solid #1e3a5f;background:#1e293b;color:#a5b4fc;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit">✏️ Edit</button>
@@ -8788,7 +8893,7 @@ function renderTopWorkers(){
     { name:'Vikram Charan',  short:'Vikram',  color:staffColor('vikram')  },
     { name:'Manoj Charan',   short:'Manoj',   color:staffColor('manoj')   },
     { name:'Kailash Singh',  short:'Kailash', color:staffColor('kailash') },
-    { name:'Koda Swaroop',   short:'Koda',    color:staffColor('koda')    }
+    { name:'Swaroop Sa',      short:'Swaroop', color:staffColor('swaroop') }
   ];
   const cards = TOP.map(w => {
     const active = _orders.filter(o => o.staff===w.name && o.stage!=='delivered');
@@ -9852,12 +9957,12 @@ function gsSearch(q){
             </div>
             <span style="font-size:11px;color:${tl.color};font-weight:700">${tl.text}</span>
           </div>
-          <div style="font-size:14px;font-weight:800;color:#e2e8f0">${o.customer||'—'}</div>
-          <div style="font-size:11px;color:#94a3b8;margin:2px 0">📦 ${o.item||'—'}${o.qty?' · '+o.qty:''}</div>
-          ${o.phone?`<div style="font-size:10px;color:#10b981">📱 ${o.phone}</div>`:''}
+          <div style="font-size:14px;font-weight:800;color:#e2e8f0">${esc(o.customer)||'—'}</div>
+          <div style="font-size:11px;color:#94a3b8;margin:2px 0">📦 ${esc(o.item)||'—'}${o.qty?' · '+esc(String(o.qty)):''}</div>
+          ${o.phone?`<div style="font-size:10px;color:#10b981">📱 ${esc(o.phone)}</div>`:''}
           <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;align-items:center">
             <span style="font-size:10px;color:${stg.color}">${stg.emoji} ${stg.hi}</span>
-            ${o.staff?`<span style="font-size:10px;color:#475569">👤 ${o.staff}</span>`:''}
+            ${o.staff?`<span style="font-size:10px;color:#475569">👤 ${esc(o.staff)}</span>`:''}
             <span style="font-size:9px;color:#6366f1;background:#1e293b;padding:1px 6px;border-radius:4px">📦 Order</span>
             <span style="font-size:9px;color:#f59e0b;margin-left:auto">${ageStr}</span>
           </div>

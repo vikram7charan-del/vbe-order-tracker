@@ -925,7 +925,8 @@ const firebaseConfig = {
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
-  getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot,
+  initializeFirestore, persistentLocalCache, persistentSingleTabManager,
+  collection, doc, setDoc, deleteDoc, onSnapshot,
   query, orderBy, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import {
@@ -943,7 +944,7 @@ if (!isConfigured) {
 let app, db, auth;
 try {
   app = initializeApp(firebaseConfig);
-  db = getFirestore(app);
+  db = initializeFirestore(app,{localCache:persistentLocalCache({tabManager:persistentSingleTabManager()})});
   auth = getAuth(app);
 } catch(e) {
   console.error('Firebase init error:', e);

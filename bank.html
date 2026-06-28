@@ -1990,7 +1990,8 @@ window.pdfjsLib && (pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.clou
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
-  getFirestore, collection, doc, setDoc, getDoc, deleteDoc, onSnapshot,
+  initializeFirestore, persistentLocalCache, persistentSingleTabManager,
+  collection, doc, setDoc, getDoc, deleteDoc, onSnapshot,
   query, orderBy, serverTimestamp, writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import {
@@ -2011,7 +2012,7 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig, 'bankApp');
-const db  = getFirestore(app);
+const db  = initializeFirestore(app,{localCache:persistentLocalCache({tabManager:persistentSingleTabManager()})});
 const auth = getAuth(app);
 setPersistence(auth, browserLocalPersistence).catch(()=>{});
 

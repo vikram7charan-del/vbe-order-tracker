@@ -1369,7 +1369,8 @@ button{cursor:pointer}
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, collection, query, orderBy, onSnapshot, addDoc,
+import { initializeFirestore, persistentLocalCache, persistentSingleTabManager,
+  collection, query, orderBy, onSnapshot, addDoc,
   updateDoc, deleteDoc, doc, serverTimestamp, where }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
@@ -1384,7 +1385,7 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
+const db = initializeFirestore(app,{localCache:persistentLocalCache({tabManager:persistentSingleTabManager()})});
 
 const COLL = 'vbe_tasks';           // same task collection
 const RITUAL_COLL = 'vbe_rituals';  // morning/evening reflections

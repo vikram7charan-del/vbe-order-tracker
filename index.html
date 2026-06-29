@@ -3645,18 +3645,75 @@ function mbSetReminder(orderId, minutes){
   }
 }
 
-// ─── एक click में Google Calendar में add — मज़बूत तरीका ───
-// pre-opened tab use करता है ताकि popup-blocker न रोके
+// ─── ICS (iCalendar) file builder — native calendar app के लिए ───
+function buildICS(o, remindAt){
+  const fmt = (d)=> d.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');
+  const now = new Date();
+  const endTime = new Date(remindAt.getTime() + 30*60*1000);
+  const icsEsc = (s)=> (s||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\r?\n/g,'\\n');
+  const taskName = (o.item||'') + (o.qty?' · '+o.qty:'');
+  const title = `VBE: ${taskName}${o.customer?' — '+o.customer:''}`;
+  const stg = (typeof STAGES!=='undefined') ? STAGES.find(s=>s.id===o.stage) : null;
+  const cat = o.category && typeof CATEGORIES!=='undefined' && CATEGORIES[o.category] ? CATEGORIES[o.category] : null;
+  const descLines = [
+    `Task: ${taskName}`,
+    `Party: ${o.customer||'—'}`,
+    o.staff ? `Staff: ${o.staff}${o.staffPhone?' ('+o.staffPhone+')':''}` : null,
+    o.phone ? `Phone: ${o.phone}` : null,
+    cat ? `Category: ${cat.label}` : null,
+    stg ? `Stage: ${stg.label}` : null,
+    o.orderNo ? `Order: ${o.orderNo}` : null,
+    o.note ? `Note: ${o.note}` : null,
+    `VBE Field Portal — Barmer`
+  ].filter(Boolean).join('\n');
+  return [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//VBE Order Tracker//EN',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    'BEGIN:VEVENT',
+    `UID:${o.id||Date.now()}@vbe-tracker`,
+    `DTSTAMP:${fmt(now)}`,
+    `DTSTART:${fmt(remindAt)}`,
+    `DTEND:${fmt(endTime)}`,
+    `SUMMARY:${icsEsc(title)}`,
+    `DESCRIPTION:${icsEsc(descLines)}`,
+    'LOCATION:VBE \\— Barmer Operations',
+    'BEGIN:VALARM',
+    'TRIGGER:PT0S',
+    'ACTION:DISPLAY',
+    'DESCRIPTION:VBE Reminder',
+    'END:VALARM',
+    'END:VEVENT',
+    'END:VCALENDAR'
+  ].join('\r\n');
+}
+
+// ─── एक click में Google Calendar में add ───
+// Mobile पर: ICS file download → native calendar app खुलता है
+// Desktop पर: Google Calendar web URL
 function addOrderToGCal(o, remindAt, markAdded){
   if(!remindAt) remindAt = new Date(Date.now() + (o.reminderMins||15)*60*1000);
-  const calUrl = buildGCalUrl(o, remindAt);
-  // popup-blocker से बचने के लिए पहले blank tab खोलो, फिर redirect
-  let win = null;
-  try { win = window.open('about:blank','_blank'); } catch(e){}
-  if(win && !win.closed){
-    win.location.href = calUrl;
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  if(isMobile){
+    try{
+      const ics = buildICS(o, remindAt);
+      const blob = new Blob([ics], {type:'text/calendar;charset=utf-8'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'vbe-reminder.ics';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(()=> URL.revokeObjectURL(url), 5000);
+    } catch(e){
+      // ICS fail → web URL fallback
+      window.location.href = buildGCalUrl(o, remindAt);
+    }
   } else {
-    // fallback — सीधा navigate (कुछ mobile browsers में)
+    const calUrl = buildGCalUrl(o, remindAt);
     try { window.open(calUrl,'_blank'); } catch(e){ window.location.href = calUrl; }
   }
   if(markAdded){

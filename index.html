@@ -2596,15 +2596,14 @@ function sendStaffSummaryWA(staffName){
   const totalPts = rp?.totalPoints||0;
   const today = new Date().toLocaleString('hi-IN',{weekday:'long',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'});
 
-  // ── Category-wise groups (CHANGE 1) ──
-  const CAT_ORDER = ['market','jalipa','gem','follow','other',''];
+  // ── Category-wise groups ──
+  const CAT_ORDER = ['followup','gem','market','kal',''];
   const CAT_LABELS = {
-    market: '🛒 *MARKET काम*',
-    jalipa: '🏛️ *जालीपा काम*',
-    gem:    '💻 *GeM काम*',
-    follow: '🔄 *Follow-up काम*',
-    other:  '📌 *अन्य काम*',
-    '':     '📋 *बाकी काम*'
+    followup: '🔄 *Follow-up काम*',
+    gem:      '💻 *GeM काम*',
+    market:   '🛒 *Market काम*',
+    kal:      '📅 *कल का काम*',
+    '':       '📋 *बाकी काम*'
   };
 
   let categoryBlocks = '';
@@ -2653,8 +2652,8 @@ function sendStaffShortSummaryWA(staffName){
   const active = staffOrders.filter(o=>o.stage!=='delivered'&&!o.isLater);
   if(!active.length){ notif(`${staffName} — कोई active order नहीं`,'info'); return; }
 
-  const CAT_ORDER = ['market','jalipa','gem','follow','other',''];
-  const CAT_LABELS_SHORT = {market:'🛒',jalipa:'🏛️',gem:'💻',follow:'🔄',other:'📌',''  :'📋'};
+  const CAT_ORDER = ['followup','gem','market','kal',''];
+  const CAT_LABELS_SHORT = {followup:'🔄',gem:'💻',market:'🛒',kal:'📅',''  :'📋'};
 
   let lines = [];
   let idx = 1;

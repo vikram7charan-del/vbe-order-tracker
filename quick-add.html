@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#050a14">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VBE Add">
+<meta name="robots" content="noindex,nofollow">
+<title>VBE – काम जोड़ो</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#050a14;color:#e2e8f0;font-family:'Noto Sans Devanagari',sans-serif;min-height:100dvh;padding:14px 14px 30px;max-width:480px;margin:0 auto}
+.lbl{font-size:11px;color:#64748b;font-weight:700;letter-spacing:.5px;margin-bottom:6px;display:block;text-transform:uppercase}
+.inp{background:#0d1526;border:1.5px solid #1e3a5f;color:#e2e8f0;border-radius:10px;padding:12px 13px;font-size:15px;font-family:inherit;width:100%;outline:none;transition:border-color .15s}
+.inp:focus{border-color:#3b82f6}
+.chip{border-radius:9px;padding:9px 2px;font-size:10px;font-weight:800;border:1.5px solid #334155;background:#1e293b;color:#64748b;flex:1;text-align:center;cursor:pointer;font-family:inherit;touch-action:manipulation;transition:all .15s}
+.save-btn{width:100%;padding:16px;border:none;border-radius:13px;background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;font-size:16px;font-weight:900;letter-spacing:.3px;box-shadow:0 4px 20px rgba(239,68,68,.35);cursor:pointer;font-family:inherit;touch-action:manipulation}
+.save-btn:disabled{opacity:.6}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#10b981;color:#fff;padding:11px 22px;border-radius:12px;font-size:13px;font-weight:800;opacity:0;transition:opacity .25s;white-space:nowrap;pointer-events:none;z-index:999}
+.toast.show{opacity:1}
+.toast.err{background:#dc2626}
+.section{margin-bottom:14px}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="s-login">
+  <div style="text-align:center;padding:44px 0 32px">
+    <div style="font-size:40px;margin-bottom:10px">📦</div>
+    <div style="font-size:19px;font-weight:900;color:#f59e0b;letter-spacing:.3px">VBE काम जोड़ो</div>
+    <div style="font-size:11px;color:#475569;margin-top:5px">Vande Bharat Enterprises · Barmer</div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:13px">
+    <div>
+      <label class="lbl">📱 Mobile Number</label>
+      <input class="inp" id="l-mob" type="tel" placeholder="9509553600" maxlength="10" inputmode="numeric">
+    </div>
+    <div>
+      <label class="lbl">🔑 PIN</label>
+      <input class="inp" id="l-pin" type="password" placeholder="••••••" maxlength="12"
+             onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button onclick="doLogin()" style="width:100%;padding:15px;border:none;border-radius:12px;background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;touch-action:manipulation">🔓 Login</button>
+  </div>
+  <div id="l-err" style="color:#f87171;font-size:12px;text-align:center;margin-top:12px;min-height:18px"></div>
+</div>
+
+<!-- ══ ADD FORM ══ -->
+<div id="s-add" style="display:none">
+
+  <!-- Header -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-top:6px">
+    <div>
+      <div style="font-size:15px;font-weight:900;color:#f59e0b">📦 VBE काम जोड़ो</div>
+      <div id="added-count" style="font-size:11px;color:#475569;margin-top:2px">जल्दी से काम add करो 🚀</div>
+    </div>
+    <a href="./" style="font-size:11px;color:#94a3b8;text-decoration:none;background:#0d1526;border:1px solid #1e3a5f;border-radius:8px;padding:6px 11px;font-weight:700">← App</a>
+  </div>
+
+  <!-- Item -->
+  <div class="section">
+    <label class="lbl">📦 काम / Item *</label>
+    <input class="inp" id="f-item" placeholder="Sugar, पैकिंग वायर, GeM order...">
+  </div>
+
+  <!-- Customer (optional) -->
+  <div class="section">
+    <label class="lbl">👤 Party / Customer (optional)</label>
+    <input class="inp" id="f-cu" placeholder="177 MH, Sharma Ji...">
+  </div>
+
+  <!-- Category chips -->
+  <div class="section">
+    <label class="lbl">📁 Category</label>
+    <div style="display:flex;gap:5px">
+      <button class="chip" id="cat-followup" onclick="toggleCat('followup')">🔄 फॉलो अप</button>
+      <button class="chip" id="cat-gem"      onclick="toggleCat('gem')">💻 GeM</button>
+      <button class="chip" id="cat-market"   onclick="toggleCat('market')">🛒 Market</button>
+      <button class="chip" id="cat-kal"      onclick="toggleCat('kal')">📅 कल</button>
+    </div>
+  </div>
+
+  <!-- Staff chips -->
+  <div class="section">
+    <label class="lbl">👤 Staff</label>
+    <div style="display:flex;gap:5px">
+      <button class="chip" id="stf-vikram"  onclick="toggleStaff('Vikram Charan','9509553600','vikram','#3b82f6')">विक्रम</button>
+      <button class="chip" id="stf-manoj"   onclick="toggleStaff('Manoj Charan','8696283600','manoj','#f97316')">मनोज</button>
+      <button class="chip" id="stf-kailash" onclick="toggleStaff('Kailash Singh','8107093001','kailash','#eab308')">कैलाश</button>
+      <button class="chip" id="stf-swaroop" onclick="toggleStaff('Swaroop Sa','9166753417','swaroop','#22c55e')">स्वरूप</button>
+    </div>
+  </div>
+
+  <!-- Deadline -->
+  <div class="section">
+    <label class="lbl">📅 Deadline *</label>
+    <input class="inp" id="f-deadline" type="datetime-local">
+  </div>
+
+  <!-- Note -->
+  <div class="section">
+    <label class="lbl">📝 Note (optional)</label>
+    <input class="inp" id="f-note" placeholder="जरूरी जानकारी...">
+  </div>
+
+  <!-- Save -->
+  <button class="save-btn" id="save-btn" onclick="saveQuick()">📥 Save करो</button>
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px">
+    <a href="./" style="font-size:12px;color:#475569;text-decoration:none">← Main App खोलें</a>
+    <span style="font-size:11px;color:#334155">VBE · Barmer</span>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp }                         from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, signInWithEmailAndPassword,
+         onAuthStateChanged }                    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { initializeFirestore, persistentLocalCache,
+         doc, setDoc }                           from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const FB_CFG = {
+  apiKey:            'AIzaSyBCe5DKNKcthOl4umprfRm2QBfbVaFORg8',
+  authDomain:        'vbe-order-tracker-60324.firebaseapp.com',
+  projectId:         'vbe-order-tracker-60324',
+  storageBucket:     'vbe-order-tracker-60324.firebasestorage.app',
+  messagingSenderId: '894023456122',
+  appId:             '1:894023456122:web:6ee548f0913c887c67f2c3'
+};
+const APPROVED_UID = 'tjkS5tg2vMflpndGHSQRjFYgRv03';
+
+const app  = initializeApp(FB_CFG, 'quick-add');
+const auth = getAuth(app);
+const db   = initializeFirestore(app, { localCache: persistentLocalCache() });
+
+let _cat = '', _staff = '', _staffPhone = '', _addedCount = 0;
+
+onAuthStateChanged(auth, u => {
+  if(u && u.uid === APPROVED_UID) showAdd();
+  else showLogin();
+});
+
+function showLogin(){
+  document.getElementById('s-login').style.display = 'block';
+  document.getElementById('s-add').style.display   = 'none';
+  setTimeout(()=>{ const m=document.getElementById('l-mob'); if(m)m.focus(); }, 120);
+}
+function showAdd(){
+  document.getElementById('s-login').style.display = 'none';
+  document.getElementById('s-add').style.display   = 'block';
+  setDefaultDeadline();
+  setTimeout(()=>{ const f=document.getElementById('f-item'); if(f)f.focus(); }, 120);
+}
+function setDefaultDeadline(){
+  const d = new Date(); d.setDate(d.getDate()+1); d.setHours(10,0,0,0);
+  const iso = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+'T10:00';
+  const el = document.getElementById('f-deadline');
+  if(el && !el.value) el.value = iso;
+}
+
+window.doLogin = async function(){
+  const mob = (document.getElementById('l-mob').value||'').trim();
+  const pin = (document.getElementById('l-pin').value||'').trim();
+  const err = document.getElementById('l-err');
+  if(!mob||!pin){ err.textContent='Mobile और PIN दोनों जरूरी'; return; }
+  err.textContent='⏳ Login हो रहे हैं...';
+  try{
+    await signInWithEmailAndPassword(auth, mob+'@vbe-tracker.local', pin);
+    err.textContent='';
+  } catch(e){
+    err.textContent='❌ गलत Mobile/PIN — दोबारा try करें';
+  }
+};
+
+const CAT_COLORS = {followup:'#06b6d4', gem:'#10b981', market:'#f59e0b', kal:'#a78bfa'};
+window.toggleCat = function(c){
+  _cat = (_cat===c) ? '' : c;
+  ['followup','gem','market','kal'].forEach(k=>{
+    const b = document.getElementById('cat-'+k);
+    if(!b) return;
+    if(k===_cat){ b.style.background=CAT_COLORS[k]+'2a'; b.style.borderColor=CAT_COLORS[k]; b.style.color=CAT_COLORS[k]; }
+    else         { b.style.background='#1e293b'; b.style.borderColor='#334155'; b.style.color='#64748b'; }
+  });
+};
+window.toggleStaff = function(name, phone, key, color){
+  const same = (_staff===name);
+  _staff = same ? '' : name;
+  _staffPhone = same ? '' : phone;
+  ['vikram','manoj','kailash','swaroop'].forEach(k=>{
+    const b = document.getElementById('stf-'+k);
+    if(!b) return;
+    b.style.background = '#1e293b'; b.style.borderColor = '#334155'; b.style.color = '#64748b';
+  });
+  if(!same){
+    const b = document.getElementById('stf-'+key);
+    if(b){ b.style.background=color+'2a'; b.style.borderColor=color; b.style.color=color; }
+  }
+};
+
+function newId(){ return 'VBE'+Date.now().toString(36).toUpperCase().slice(-4)+Math.random().toString(36).slice(2,4).toUpperCase(); }
+
+window.saveQuick = async function(){
+  const item = (document.getElementById('f-item').value||'').trim();
+  const cu   = (document.getElementById('f-cu').value||'').trim();
+  const dl   = document.getElementById('f-deadline').value;
+  const note = (document.getElementById('f-note').value||'').trim();
+  if(!item){ toast('⚠️ Item जरूरी है','err'); document.getElementById('f-item').focus(); return; }
+  if(!dl){   toast('⚠️ Deadline जरूरी है','err'); return; }
+
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true; btn.textContent = '⏳ Save हो रहा है...';
+  try{
+    const now = new Date().toISOString();
+    const id  = newId();
+    await setDoc(doc(db,'vbe_orders',id), {
+      id, item, note,
+      customer:   cu,
+      phone:      '',
+      qty:        '',
+      category:   _cat,
+      staff:      _staff,
+      staffPhone: _staffPhone,
+      staffCall:  _staffPhone,
+      priority:   'Normal',
+      deadline:   new Date(dl).toISOString(),
+      stage:      'received',
+      createdAt:  now,
+      isLater:    false,
+      isNow:      false,
+      isPinned:   false,
+      isHidden:   false,
+      orderNo:    'VBE-'+Date.now().toString(36).slice(-4).toUpperCase(),
+      timeline:   [{stage:'received', time:now, note:'Quick Add से जोड़ा गया', photo:null}]
+    });
+    _addedCount++;
+    document.getElementById('added-count').textContent = `✅ ${_addedCount} काम जोड़े — बढ़िया!`;
+    toast(`✅ "${item}" save हुआ!`);
+    // Reset form (keep deadline for next entry)
+    document.getElementById('f-item').value = '';
+    document.getElementById('f-cu').value   = '';
+    document.getElementById('f-note').value = '';
+    // Reset chips
+    _cat = ''; _staff = ''; _staffPhone = '';
+    [...document.querySelectorAll('.chip')].forEach(b=>{
+      b.style.background='#1e293b'; b.style.borderColor='#334155'; b.style.color='#64748b';
+    });
+    document.getElementById('f-item').focus();
+  } catch(e){
+    toast('❌ नहीं हुआ: '+e.message,'err');
+  } finally {
+    btn.disabled = false; btn.textContent = '📥 Save करो';
+  }
+};
+
+function toast(msg, type){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type==='err'?' err':'');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(()=>{ t.classList.remove('show'); }, 2800);
+}
+</script>
+</body>
+</html>

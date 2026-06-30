@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="theme-color" content="#050a14">
+<meta name="theme-color" content="#030810">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -16,33 +16,34 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html{height:100%}
 body{
-  background:#050a14;color:#e2e8f0;
+  background:#030810;color:#e2e8f0;
   font-family:'Noto Sans Devanagari',sans-serif;
   min-height:100dvh;max-width:480px;margin:0 auto;
-  padding-bottom:90px;
+  padding-bottom:80px;
 }
 
 /* ── Login ── */
 .login-wrap{padding:44px 20px 0}
 .login-logo{text-align:center;margin-bottom:28px}
-.login-logo .ico{font-size:48px;margin-bottom:8px}
-.login-logo .title{font-size:20px;font-weight:900;color:#f59e0b;letter-spacing:.3px}
-.login-logo .sub{font-size:11px;color:#475569;margin-top:4px}
-.lbl{font-size:11px;color:#64748b;font-weight:700;letter-spacing:.5px;margin-bottom:6px;display:block;text-transform:uppercase}
-.inp{background:#0d1526;border:1.5px solid #1e3a5f;color:#e2e8f0;border-radius:10px;padding:12px 13px;font-size:15px;font-family:inherit;width:100%;outline:none;transition:border-color .15s}
-.inp:focus{border-color:#3b82f6}
+.login-logo .ico{font-size:52px;margin-bottom:10px;display:block}
+.login-logo .title{font-size:22px;font-weight:900;color:#f59e0b;letter-spacing:.3px}
+.login-logo .sub{font-size:11px;color:#475569;margin-top:5px}
+.lbl{font-size:10px;color:#64748b;font-weight:700;letter-spacing:.6px;margin-bottom:5px;display:block;text-transform:uppercase}
+.inp{background:#0d1526;border:1.5px solid #1e3a5f;color:#e2e8f0;border-radius:11px;padding:12px 14px;font-size:15px;font-family:inherit;width:100%;outline:none;transition:border-color .2s,box-shadow .2s}
+.inp:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.12)}
 .fg{margin-bottom:14px}
-.btn-login{width:100%;padding:15px;border:none;border-radius:12px;background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;touch-action:manipulation}
+.btn-login{width:100%;padding:15px;border:none;border-radius:13px;background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;touch-action:manipulation;box-shadow:0 4px 16px rgba(59,130,246,.35)}
 .login-err{color:#f87171;font-size:12px;text-align:center;margin-top:10px;min-height:18px}
 
 /* ── App Header (sticky) ── */
 .app-hdr{
-  background:linear-gradient(180deg,#0b1426 0%,#050a14 100%);
-  border-bottom:1px solid #1e3a5f;
+  background:linear-gradient(180deg,#080f1e 0%,#030810 100%);
+  border-bottom:1px solid rgba(30,58,95,.6);
   padding:12px 14px 0;
   position:sticky;top:0;z-index:100;
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
 }
-.hdr-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.hdr-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
 .hdr-title{font-size:16px;font-weight:900;color:#f59e0b;letter-spacing:.2px}
 .hdr-sub{font-size:10px;color:#475569;margin-top:2px}
 .hdr-btns{display:flex;gap:8px;align-items:center}
@@ -51,164 +52,178 @@ body{
   background:linear-gradient(135deg,#f59e0b,#ef4444);
   border:none;color:#fff;font-size:22px;font-weight:900;
   cursor:pointer;display:flex;align-items:center;justify-content:center;
-  box-shadow:0 4px 14px rgba(239,68,68,.4);touch-action:manipulation;
+  box-shadow:0 4px 14px rgba(239,68,68,.45);touch-action:manipulation;
 }
 .btn-back{font-size:11px;color:#94a3b8;text-decoration:none;background:#0d1526;border:1px solid #1e3a5f;border-radius:8px;padding:6px 11px;font-weight:700}
 
 /* ── Stats row ── */
-.stats{display:flex;gap:7px;margin-bottom:10px}
-.stat{flex:1;background:#0d1526;border:1px solid #1e3a5f;border-radius:10px;padding:8px 4px;text-align:center}
-.stat-n{font-size:22px;font-weight:900;line-height:1.1;font-variant-numeric:tabular-nums}
+.stats{display:flex;gap:6px;margin-bottom:10px}
+.stat{
+  flex:1;border-radius:11px;padding:7px 3px;text-align:center;
+  background:linear-gradient(135deg,#0a1525,#0d1a30);
+  border:1px solid rgba(30,58,95,.7);
+}
+.stat-n{font-size:21px;font-weight:900;line-height:1.1;font-variant-numeric:tabular-nums}
 .stat-n.red{color:#f87171}
 .stat-n.amber{color:#fbbf24}
 .stat-n.green{color:#4ade80}
 .stat-n.blue{color:#60a5fa}
-.stat-l{font-size:9px;color:#475569;margin-top:2px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.stat-l{font-size:9px;color:#475569;margin-top:1px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
 
-/* ── Horizontal Contact Strip ── */
+/* ── Horizontal Contact Strip — pill chips ── */
 .strip{
-  display:flex;gap:10px;overflow-x:auto;
-  padding:8px 14px 12px;
+  display:flex;gap:7px;overflow-x:auto;
+  padding:6px 14px 10px;
   scrollbar-width:none;-ms-overflow-style:none;
 }
 .strip::-webkit-scrollbar{display:none}
+/* Pill chip: avatar + name side by side */
 .strip-chip{
-  display:flex;flex-direction:column;align-items:center;
-  gap:4px;cursor:pointer;flex-shrink:0;width:60px;
+  display:flex;align-items:center;gap:7px;
+  cursor:pointer;flex-shrink:0;
+  background:#0a1525;border:1.5px solid #1e3a5f;
+  border-radius:22px;padding:5px 10px 5px 5px;
+  transition:border-color .15s,background .15s;
+  touch-action:manipulation;
 }
+.strip-chip:active{opacity:.75}
+.strip-chip.overdue{border-color:rgba(239,68,68,.7);background:rgba(239,68,68,.07);animation:pulse-r 1.3s ease-in-out infinite}
+.strip-chip.due-soon{border-color:rgba(251,191,36,.6);background:rgba(251,191,36,.06)}
+.strip-chip.pinned-chip{border-color:rgba(251,191,36,.8)}
 .s-avatar{
-  width:46px;height:46px;border-radius:50%;
+  width:30px;height:30px;border-radius:50%;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
-  font-size:18px;font-weight:900;color:#fff;
-  border:2.5px solid transparent;position:relative;
+  font-size:13px;font-weight:900;color:#fff;position:relative;
 }
-.s-avatar.overdue{border-color:#ef4444;animation:pulse-r 1.2s ease-in-out infinite}
-.s-avatar.due-soon{border-color:#fbbf24;animation:pulse-a 1.5s ease-in-out infinite}
-.s-avatar.ok{border-color:#22c55e}
-.s-avatar.new{border-color:#334155}
 .s-dot{
-  position:absolute;top:0px;right:0px;
-  width:13px;height:13px;border-radius:50%;
-  border:2.5px solid #050a14;
+  position:absolute;bottom:-1px;right:-1px;
+  width:10px;height:10px;border-radius:50%;
+  border:2px solid #030810;
 }
 .s-dot.overdue{background:#ef4444}
 .s-dot.due-soon{background:#fbbf24}
 .s-dot.ok{background:#22c55e}
 .s-dot.new{background:#475569}
-.s-name{font-size:10px;font-weight:700;color:#94a3b8;text-align:center;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.s-timer{font-size:9px;color:#64748b;text-align:center;white-space:nowrap}
+.s-dot.pinned{background:#fbbf24}
+.s-label{display:flex;flex-direction:column;min-width:0}
+.s-name{font-size:11px;font-weight:800;color:#cbd5e1;white-space:nowrap;max-width:80px;overflow:hidden;text-overflow:ellipsis;line-height:1.3}
+.s-timer{font-size:9px;color:#64748b;white-space:nowrap;line-height:1.2}
 
 /* ── Section label ── */
 .sec-lbl{
-  font-size:10px;color:#475569;font-weight:700;letter-spacing:.5px;
-  text-transform:uppercase;padding:10px 14px 5px;
-  display:flex;align-items:center;gap:6px;
+  font-size:10px;color:#475569;font-weight:700;letter-spacing:.6px;
+  text-transform:uppercase;padding:9px 14px 5px;
+  display:flex;align-items:center;gap:7px;
 }
-.sec-lbl::after{content:'';flex:1;height:1px;background:#1e3a5f}
+.sec-lbl::after{content:'';flex:1;height:1px;background:rgba(30,58,95,.7)}
 
 /* ── Contact Card ── */
 .card{
-  margin:0 12px 12px;
-  background:#0d1526;border:1.5px solid #1e3a5f;
+  margin:0 12px 10px;
+  background:linear-gradient(160deg,#0b1526 0%,#080f1d 100%);
+  border:1.5px solid rgba(30,58,95,.8);
   border-radius:16px;overflow:hidden;
   transition:border-color .2s,box-shadow .2s;
 }
-.card.overdue{border-color:rgba(239,68,68,.5);box-shadow:0 0 16px rgba(239,68,68,.12)}
-.card.due-soon{border-color:rgba(251,191,36,.4);box-shadow:0 0 12px rgba(251,191,36,.08)}
+.card.overdue{border-color:rgba(239,68,68,.55);box-shadow:0 0 18px rgba(239,68,68,.1)}
+.card.due-soon{border-color:rgba(251,191,36,.45)}
+.card.pinned{border-color:rgba(251,191,36,.6);box-shadow:0 0 14px rgba(251,191,36,.08)}
 
-/* Card header */
+/* Card header — compact */
 .card-hdr{
-  display:flex;align-items:center;gap:12px;
-  padding:14px 14px 12px;border-bottom:1px solid #0f1e36;
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px 9px;border-bottom:1px solid rgba(15,30,54,.9);
 }
 .c-avatar{
-  width:48px;height:48px;border-radius:50%;flex-shrink:0;
+  width:40px;height:40px;border-radius:50%;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
-  font-size:20px;font-weight:900;color:#fff;
+  font-size:17px;font-weight:900;color:#fff;
 }
 .c-info{flex:1;min-width:0}
-.c-name{font-size:15px;font-weight:900;color:#e2e8f0;letter-spacing:.2px}
-.c-phone{font-size:12px;color:#64748b;margin-top:2px}
-.c-note{font-size:11px;color:#94a3b8;margin-top:3px;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.c-name{font-size:14px;font-weight:900;color:#e2e8f0;letter-spacing:.1px;display:flex;align-items:center;gap:5px}
+.c-phone{font-size:11px;color:#64748b;margin-top:1px}
+.c-note{font-size:10px;color:#94a3b8;margin-top:2px;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pin-icon{font-size:12px;opacity:.7}
 .status-badge{
-  font-size:9px;font-weight:900;padding:4px 8px;border-radius:7px;
+  font-size:9px;font-weight:900;padding:3px 7px;border-radius:6px;
   flex-shrink:0;text-transform:uppercase;letter-spacing:.4px;align-self:flex-start;
 }
 .status-badge.overdue{background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3)}
 .status-badge.due-soon{background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.3)}
 .status-badge.ok{background:rgba(34,197,94,.1);color:#4ade80;border:1px solid rgba(34,197,94,.25)}
-.status-badge.new{background:rgba(71,85,105,.2);color:#94a3b8;border:1px solid rgba(71,85,105,.3)}
+.status-badge.new{background:rgba(71,85,105,.18);color:#94a3b8;border:1px solid rgba(71,85,105,.3)}
+.status-badge.pinned-badge{background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.35)}
 
-/* Timer section */
+/* Timer section — compact */
 .card-timers{
-  padding:12px 14px 8px;border-bottom:1px solid #0f1e36;
+  padding:9px 12px 7px;border-bottom:1px solid rgba(15,30,54,.9);
 }
-.timer-row{display:flex;align-items:center;gap:0;margin-bottom:10px}
+.timer-row{display:flex;align-items:center;margin-bottom:8px}
 .timer-block{flex:1;text-align:center}
 .timer-v{
-  font-size:20px;font-weight:900;line-height:1.1;
+  font-size:18px;font-weight:900;line-height:1.1;
   font-variant-numeric:tabular-nums;letter-spacing:-0.5px;
 }
 .timer-v.red{color:#f87171}
 .timer-v.amber{color:#fbbf24}
 .timer-v.green{color:#4ade80}
 .timer-v.dim{color:#334155}
-.timer-l{font-size:9px;color:#475569;margin-top:3px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
-.timer-sep{color:#1e3a5f;font-size:24px;flex-shrink:0;padding:0 6px}
+.timer-l{font-size:8px;color:#475569;margin-top:2px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.timer-sep{color:#1e3a5f;font-size:18px;flex-shrink:0;padding:0 4px}
 
 /* Progress */
-.prog-wrap{height:7px;background:#0a1525;border-radius:4px;overflow:hidden}
-.prog-bar{height:100%;border-radius:4px;transition:width .8s cubic-bezier(.4,0,.2,1),background .4s}
-.prog-info{display:flex;justify-content:space-between;align-items:center;margin-top:6px}
-.interval-tag{
-  font-size:10px;color:#64748b;background:#0a1220;
-  border:1px solid #1e3a5f;border-radius:6px;padding:2px 8px;font-weight:700;
-}
-.last-call-tag{font-size:10px;color:#475569}
+.prog-wrap{height:5px;background:rgba(10,21,37,.9);border-radius:3px;overflow:hidden}
+.prog-bar{height:100%;border-radius:3px;transition:width 1s cubic-bezier(.4,0,.2,1),background .4s}
+.prog-info{display:flex;justify-content:space-between;align-items:center;margin-top:5px}
+.interval-tag{font-size:9px;color:#64748b;background:#07111f;border:1px solid #1e3a5f;border-radius:5px;padding:2px 6px;font-weight:700}
+.last-call-tag{font-size:9px;color:#475569}
 
-/* Action buttons */
-.card-actions{display:flex;gap:6px;padding:10px 12px}
+/* Action buttons — compact */
+.card-actions{display:flex;gap:5px;padding:7px 10px}
 .act{
-  flex:1;padding:10px 4px;border:none;border-radius:11px;
-  font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;
-  display:flex;align-items:center;justify-content:center;gap:5px;
-  touch-action:manipulation;transition:opacity .15s,transform .1s;
+  flex:1;padding:8px 3px;border:none;border-radius:9px;
+  font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;
+  display:flex;align-items:center;justify-content:center;gap:4px;
+  touch-action:manipulation;transition:opacity .15s,transform .12s;
   white-space:nowrap;
 }
-.act:active{opacity:.7;transform:scale(.96)}
-.act-call{background:linear-gradient(135deg,#059669,#22c55e);color:#fff;box-shadow:0 3px 10px rgba(34,197,94,.3)}
-.act-wa{background:#0f2a1e;border:1.5px solid rgba(34,197,94,.3);color:#4ade80}
-.act-edit{background:#1a2540;border:1.5px solid #1e3a5f;color:#94a3b8}
-.act-del{background:#1e0f0f;border:1.5px solid rgba(239,68,68,.25);color:#f87171}
+.act:active{opacity:.7;transform:scale(.95)}
+.act-call{background:linear-gradient(135deg,#059669,#22c55e);color:#fff;box-shadow:0 3px 10px rgba(34,197,94,.25)}
+.act-wa{background:#0a2118;border:1.5px solid rgba(34,197,94,.25);color:#4ade80}
+.act-pin{background:#13200e;border:1.5px solid rgba(251,191,36,.25);color:#fbbf24}
+.act-pin.active{background:rgba(251,191,36,.15);border-color:rgba(251,191,36,.6)}
+.act-edit{background:#131e30;border:1.5px solid rgba(30,58,95,.8);color:#94a3b8}
+.act-del{background:#1a0d0d;border:1.5px solid rgba(239,68,68,.2);color:#f87171}
 
-/* Call log */
+/* Call log — compact */
 .log-toggle{
-  padding:8px 14px;border-top:1px solid #0f1e36;
-  font-size:11px;color:#475569;cursor:pointer;
+  padding:6px 12px;border-top:1px solid rgba(15,30,54,.9);
+  font-size:10px;color:#475569;cursor:pointer;
   display:flex;align-items:center;justify-content:space-between;
   touch-action:manipulation;
 }
 .log-toggle:active{color:#94a3b8}
-.log-list{padding:2px 14px 10px;display:none}
+.log-list{padding:2px 12px 8px;display:none}
 .log-item{
-  display:flex;align-items:flex-start;gap:8px;
-  padding:8px 0;border-bottom:1px solid #0a1420;
+  display:flex;align-items:flex-start;gap:7px;
+  padding:5px 0;border-bottom:1px solid rgba(10,20,32,.9);
 }
 .log-item:last-child{border-bottom:none}
-.log-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;flex-shrink:0;margin-top:3px}
-.log-when{font-size:11px;color:#94a3b8;flex-shrink:0}
-.log-note{font-size:11px;color:#64748b;font-style:italic;word-break:break-word}
+.log-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;flex-shrink:0;margin-top:3px}
+.log-when{font-size:10px;color:#94a3b8;flex-shrink:0;white-space:nowrap}
+.log-note{font-size:10px;color:#64748b;font-style:italic;word-break:break-word}
 
 /* ── Modal ── */
 .modal-bg{
-  position:fixed;inset:0;background:rgba(0,0,0,.75);
+  position:fixed;inset:0;background:rgba(0,0,0,.8);
   z-index:200;display:flex;align-items:flex-end;justify-content:center;
   opacity:0;pointer-events:none;transition:opacity .2s;
 }
 .modal-bg.open{opacity:1;pointer-events:all}
 .modal-box{
-  width:100%;max-width:480px;background:#0d1526;
-  border-radius:22px 22px 0 0;border-top:1px solid #1e3a5f;
+  width:100%;max-width:480px;
+  background:linear-gradient(180deg,#0d1a30 0%,#080f1d 100%);
+  border-radius:22px 22px 0 0;border-top:1px solid rgba(30,58,95,.8);
   padding:20px 16px 44px;
   transform:translateY(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);
   max-height:90dvh;overflow-y:auto;
@@ -223,47 +238,48 @@ body{
 /* Interval picker */
 .int-btns{display:flex;flex-wrap:wrap;gap:6px}
 .int-btn{
-  padding:7px 11px;border-radius:9px;border:1.5px solid #1e3a5f;
-  background:#0a1220;color:#64748b;font-size:11px;font-weight:800;
+  padding:6px 10px;border-radius:8px;border:1.5px solid rgba(30,58,95,.8);
+  background:#07111f;color:#64748b;font-size:11px;font-weight:800;
   cursor:pointer;font-family:inherit;transition:all .15s;touch-action:manipulation;
 }
-.int-btn.on{background:rgba(59,130,246,.15);border-color:#3b82f6;color:#60a5fa}
+.int-btn.on{background:rgba(59,130,246,.14);border-color:#3b82f6;color:#60a5fa}
 
 /* Color picker */
 .clr-btns{display:flex;gap:9px;flex-wrap:wrap}
 .clr-btn{
   width:34px;height:34px;border-radius:50%;border:3px solid transparent;
-  cursor:pointer;transition:border-color .15s,transform .1s;
+  cursor:pointer;transition:border-color .15s,transform .12s;
   touch-action:manipulation;
 }
 .clr-btn:active{transform:scale(.9)}
-.clr-btn.on{border-color:#fff;transform:scale(1.1)}
+.clr-btn.on{border-color:#fff;transform:scale(1.12)}
 
 .btn-save{
   width:100%;padding:14px;border:none;border-radius:13px;
   background:linear-gradient(135deg,#1d4ed8,#3b82f6);
   color:#fff;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;
   margin-top:10px;touch-action:manipulation;
+  box-shadow:0 4px 16px rgba(59,130,246,.3);
 }
 .btn-confirm-call{
   width:100%;padding:14px;border:none;border-radius:13px;
   background:linear-gradient(135deg,#059669,#22c55e);
   color:#fff;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;
-  margin-top:10px;touch-action:manipulation;box-shadow:0 4px 14px rgba(34,197,94,.3);
+  margin-top:10px;touch-action:manipulation;
+  box-shadow:0 4px 14px rgba(34,197,94,.3);
 }
 
 /* ── Empty ── */
 .empty{text-align:center;padding:52px 20px}
 .empty-ico{font-size:52px;margin-bottom:14px}
-.empty-txt{font-size:13px;color:#475569;line-height:1.7}
+.empty-txt{font-size:13px;color:#475569;line-height:1.8}
 
 /* ── Toast ── */
 .toast{
-  position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
-  background:#10b981;color:#fff;padding:11px 22px;border-radius:13px;
+  position:fixed;bottom:26px;left:50%;transform:translateX(-50%);
+  background:#10b981;color:#fff;padding:10px 20px;border-radius:13px;
   font-size:13px;font-weight:800;opacity:0;transition:opacity .25s;
-  white-space:nowrap;pointer-events:none;z-index:999;max-width:90vw;
-  text-align:center;
+  white-space:nowrap;pointer-events:none;z-index:999;max-width:92vw;text-align:center;
 }
 .toast.show{opacity:1}
 .toast.err{background:#dc2626}
@@ -272,14 +288,14 @@ body{
 /* ── Animations ── */
 @keyframes pulse-r{
   0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.5)}
-  60%{box-shadow:0 0 0 7px rgba(239,68,68,0)}
+  60%{box-shadow:0 0 0 6px rgba(239,68,68,0)}
 }
 @keyframes pulse-a{
   0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,.4)}
-  60%{box-shadow:0 0 0 6px rgba(251,191,36,0)}
+  60%{box-shadow:0 0 0 5px rgba(251,191,36,0)}
 }
-@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-.card{animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.card{animation:fadeIn .22s ease}
 </style>
 </head>
 <body>
@@ -288,7 +304,7 @@ body{
 <div id="s-login" style="display:none">
   <div class="login-wrap">
     <div class="login-logo">
-      <div class="ico">📞</div>
+      <span class="ico">📞</span>
       <div class="title">VBE Call Tracker</div>
       <div class="sub">Follow-up · Accountability · Barmer</div>
     </div>
@@ -362,15 +378,15 @@ body{
       <input class="inp" id="f-name" placeholder="Ramesh Gupta, Sharma Ji, 177 MH...">
     </div>
     <div class="fg">
-      <label class="lbl">📱 Mobile Number *</label>
-      <input class="inp" id="f-phone" type="tel" inputmode="numeric" maxlength="10" placeholder="9876543210">
+      <label class="lbl">📱 Mobile Number * (+91 भी ठीक है)</label>
+      <input class="inp" id="f-phone" type="tel" inputmode="numeric" maxlength="15" placeholder="+91 9876543210">
     </div>
     <div class="fg">
       <label class="lbl">📝 Note (काम किस बारे में?)</label>
       <input class="inp" id="f-note" placeholder="Sugar supply, GeM order, pending bill...">
     </div>
     <div class="fg">
-      <label class="lbl">⏰ हर कितने मिनट बाद Follow-up?</label>
+      <label class="lbl">⏰ हर कितने बाद Follow-up?</label>
       <div class="int-btns" id="int-btns">
         <button class="int-btn" data-v="5">5 min</button>
         <button class="int-btn" data-v="10">10 min</button>
@@ -384,7 +400,7 @@ body{
         <button class="int-btn" data-v="180">3 घंटे</button>
         <button class="int-btn" data-v="240">4 घंटे</button>
         <button class="int-btn" data-v="480">8 घंटे</button>
-        <button class="int-btn" data-v="1440">कल (1 दिन)</button>
+        <button class="int-btn" data-v="1440">कल</button>
       </div>
     </div>
     <div class="fg">
@@ -402,7 +418,7 @@ body{
       <span>📞 Call Record करो</span>
       <span class="modal-x" onclick="closeModal('m-call')">✕</span>
     </div>
-    <div id="call-who" style="background:#0a1525;border:1px solid #1e3a5f;border-radius:12px;padding:12px 14px;margin-bottom:14px">
+    <div id="call-who" style="background:#07111f;border:1px solid rgba(30,58,95,.8);border-radius:13px;padding:12px 14px;margin-bottom:14px">
       <div id="call-name" style="font-size:15px;font-weight:900;color:#e2e8f0"></div>
       <div id="call-phone" style="font-size:12px;color:#64748b;margin-top:3px"></div>
       <div id="call-note-prev" style="font-size:11px;color:#94a3b8;margin-top:3px;font-style:italic"></div>
@@ -412,7 +428,7 @@ body{
       <input class="inp" id="f-callnote" placeholder="price confirm, delivery 3 दिन, फिर call करना...">
     </div>
     <button class="btn-confirm-call" onclick="confirmCall()">✅ Call हुई — Record &amp; Dial करो</button>
-    <button class="btn-save" style="background:#1a2a40;margin-top:8px" onclick="confirmCallNoRecord()">📝 सिर्फ Record करो (dial नहीं)</button>
+    <button class="btn-save" style="background:#131e30;box-shadow:none;margin-top:8px" onclick="confirmCallNoRecord()">📝 सिर्फ Record करो (dial नहीं)</button>
   </div>
 </div>
 
@@ -435,12 +451,9 @@ const APPROVED_UID = 'tjkS5tg2vMflpndGHSQRjFYgRv03';
 const app  = initializeApp(FB_CFG, 'call-tracker');
 const auth = getAuth(app);
 
-/* ──────── Constants ──────── */
 const STORAGE_KEY = 'vbe_calltracker';
 const COLORS = ['#3b82f6','#f97316','#eab308','#22c55e','#ec4899','#8b5cf6','#06b6d4','#f43f5e'];
-const INTERVALS = [5,10,15,20,30,45,60,90,120,180,240,480,1440];
 
-/* ──────── State ──────── */
 let contacts = [];
 let editingId = null;
 let selInterval = 30;
@@ -456,17 +469,15 @@ onAuthStateChanged(auth, u => {
 });
 
 window.doLogin = async function(){
-  const mob = (document.getElementById('l-mob').value||'').trim();
-  const pin = (document.getElementById('l-pin').value||'').trim();
-  const err = document.getElementById('l-err');
+  const mob=(document.getElementById('l-mob').value||'').trim();
+  const pin=(document.getElementById('l-pin').value||'').trim();
+  const err=document.getElementById('l-err');
   if(!mob||!pin){ err.textContent='Mobile और PIN दोनों जरूरी'; return; }
   err.textContent='⏳ Login...';
   try{
     await signInWithEmailAndPassword(auth, mob+'@vbe-tracker.local', pin);
     err.textContent='';
-  } catch(e){
-    err.textContent='❌ गलत Mobile/PIN';
-  }
+  } catch(e){ err.textContent='❌ गलत Mobile/PIN'; }
 };
 
 function showLogin(){
@@ -496,19 +507,28 @@ function persist(){
 }
 function genId(){ return 'CT'+Date.now().toString(36).toUpperCase()+Math.random().toString(36).slice(2,4).toUpperCase(); }
 
+/* ──────── Phone normalizer — strips +91 / 91 prefix ──────── */
+function normalizePhone(raw){
+  let d=(raw||'').replace(/[^0-9]/g,'');
+  // If 12 digits and starts with 91 → strip prefix
+  if(d.length===12 && d.startsWith('91')) d=d.slice(2);
+  // If 11 digits and starts with 0 → strip leading 0
+  if(d.length===11 && d.startsWith('0')) d=d.slice(1);
+  return d;
+}
+
 /* ──────── Status helpers ──────── */
 function status(c){
   if(!c.nextCallAt) return 'new';
-  const diff = new Date(c.nextCallAt).getTime() - Date.now();
-  if(diff <= 0) return 'overdue';
-  if(diff <= 5*60*1000) return 'due-soon';
+  const diff=new Date(c.nextCallAt).getTime()-Date.now();
+  if(diff<=0) return 'overdue';
+  if(diff<=5*60*1000) return 'due-soon';
   return 'ok';
 }
 
 function progress(c){
-  if(!c.lastCallAt || !c.intervalMins) return 0;
-  const elapsed = Date.now() - new Date(c.lastCallAt).getTime();
-  return Math.min(elapsed / (c.intervalMins*60*1000), 1.5);
+  if(!c.lastCallAt||!c.intervalMins) return 0;
+  return Math.min((Date.now()-new Date(c.lastCallAt).getTime())/(c.intervalMins*60*1000), 1.5);
 }
 
 function fmtDur(ms){
@@ -532,17 +552,17 @@ function progColor(p){
   return '#22c55e';
 }
 
-function statusLabel(s){
-  return {overdue:'🔴 LATE','due-soon':'⏰ जल्दी',ok:'✅ OK',new:'🆕 नया'}[s]||s;
-}
-
-/* ──────── Render ──────── */
+/* ──────── Sorting — pinned first, then by urgency ──────── */
 function sorted(){
-  const order={overdue:0,'due-soon':1,new:2,ok:3};
+  const urgency={overdue:0,'due-soon':1,new:2,ok:3};
   return [...contacts]
     .filter(c=>c.active!==false)
     .sort((a,b)=>{
-      const d=order[status(a)]-order[status(b)];
+      // Pinned always first
+      if(a.pinned && !b.pinned) return -1;
+      if(!a.pinned && b.pinned) return 1;
+      // Within same pin group: sort by urgency
+      const d=urgency[status(a)]-urgency[status(b)];
       if(d!==0) return d;
       const na=a.nextCallAt?new Date(a.nextCallAt).getTime():1e15;
       const nb=b.nextCallAt?new Date(b.nextCallAt).getTime():1e15;
@@ -550,6 +570,7 @@ function sorted(){
     });
 }
 
+/* ──────── Render ──────── */
 function render(){
   const list=sorted();
   renderStrip(list);
@@ -572,22 +593,28 @@ function updateHdrSub(){
   else el.textContent='Follow-up Accountability System';
 }
 
+/* Pill-shaped strip chips showing name */
 function renderStrip(list){
   const el=document.getElementById('strip');
   if(!list.length){
-    el.innerHTML='<div style="font-size:11px;color:#334155;padding:8px 0 4px">+ बटन से follow-up contact जोड़ें</div>';
+    el.innerHTML='<div style="font-size:11px;color:#334155;padding:4px 0">+ बटन से contact जोड़ें</div>';
     return;
   }
   el.innerHTML=list.map(c=>{
     const s=status(c);
+    const dotCls=c.pinned?'pinned':s;
+    const chipCls=c.pinned?'pinned-chip':(s==='overdue'?'overdue':s==='due-soon'?'due-soon':'');
     const since=c.lastCallAt?fmtDur(Date.now()-new Date(c.lastCallAt).getTime()):'नया';
     const init=(c.name||'?')[0].toUpperCase();
-    return `<div class="strip-chip" onclick="scrollTo('${c.id}')">
-      <div class="s-avatar ${s}" style="background:${c.color||COLORS[0]}">
-        ${init}<div class="s-dot ${s}"></div>
+    const shortName=c.name||'—';
+    return `<div class="strip-chip ${chipCls}" onclick="goToCard('${c.id}')">
+      <div class="s-avatar" style="background:${c.color||COLORS[0]}">
+        ${init}<div class="s-dot ${dotCls}"></div>
       </div>
-      <div class="s-name">${escH(c.name)}</div>
-      <div class="s-timer">${since}</div>
+      <div class="s-label">
+        <div class="s-name">${escH(shortName)}</div>
+        <div class="s-timer">${since}</div>
+      </div>
     </div>`;
   }).join('');
 }
@@ -597,18 +624,18 @@ function renderCards(list){
   if(!list.length){
     el.innerHTML=`<div class="empty">
       <div class="empty-ico">📞</div>
-      <div class="empty-txt">अभी कोई follow-up contact नहीं है<br>ऊपर <strong>+</strong> button से जोड़ें<br><br>जिसे बार-बार call करनी हो उसे यहाँ add करें</div>
+      <div class="empty-txt">अभी कोई follow-up contact नहीं है<br>ऊपर <strong>+</strong> button से जोड़ें<br><br>जिसे बार-बार call करनी हो<br>उसे यहाँ add करें</div>
     </div>`;
     return;
   }
 
-  let html='';
-  let lastSec='';
+  let html='', lastSec='';
   list.forEach(c=>{
     const s=status(c);
-    const sec=s==='overdue'?'🔴 अभी Call करो — Late हो रहा है':
-               s==='due-soon'?'⏰ जल्दी Call करो':
-               '📋 Follow-up Contacts';
+    const sec=c.pinned?'📌 Pinned — हमेशा ऊपर':
+              s==='overdue'?'🔴 अभी Call करो':
+              s==='due-soon'?'⏰ जल्दी Call करो':
+              '📋 Follow-up Contacts';
     if(sec!==lastSec){ html+=`<div class="sec-lbl">${sec}</div>`; lastSec=sec; }
     html+=cardHTML(c,s);
   });
@@ -626,7 +653,7 @@ function cardHTML(c,s){
   if(sinceMs>=0){ sinceV=fmtDur(sinceMs); sinceC=s==='overdue'?'red':s==='due-soon'?'amber':'green'; }
 
   let nextV='—', nextC='dim';
-  if(nextMs<0 && c.nextCallAt){ nextV='LATE!'; nextC='red'; }
+  if(nextMs<0&&c.nextCallAt){ nextV='LATE!'; nextC='red'; }
   else if(nextMs>=0){ nextV=fmtDur(nextMs); nextC=nextMs<5*60*1000?'amber':'green'; }
 
   const todayN=(c.callLog||[]).filter(l=>{
@@ -639,17 +666,23 @@ function cardHTML(c,s){
       <div class="log-dot"></div>
       <div class="log-when">${new Date(l.at).toLocaleString('hi-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
       ${l.note?`<div class="log-note">${escH(l.note)}</div>`:''}
-    </div>`).join('') || '<div style="font-size:11px;color:#334155;padding:6px 0">अभी कोई call नहीं हुई</div>';
+    </div>`).join('')||'<div style="font-size:10px;color:#334155;padding:4px 0">अभी कोई call नहीं हुई</div>';
 
-  return `<div class="card ${s}" id="c-${c.id}">
+  const cardCls=c.pinned?'card pinned':`card ${s}`;
+  const badgeCls=c.pinned?'status-badge pinned-badge':'status-badge '+s;
+  const badgeTxt=c.pinned?'📌 Pinned':{overdue:'🔴 LATE','due-soon':'⏰ जल्दी',ok:'✅ OK',new:'🆕 नया'}[s]||s;
+  const pinBtnCls=c.pinned?'act act-pin active':'act act-pin';
+  const pinBtnTxt=c.pinned?'📌':'📍';
+
+  return `<div class="${cardCls}" id="c-${c.id}">
     <div class="card-hdr">
       <div class="c-avatar" style="background:${c.color||COLORS[0]}">${(c.name||'?')[0].toUpperCase()}</div>
       <div class="c-info">
-        <div class="c-name">${escH(c.name)}</div>
+        <div class="c-name">${escH(c.name)}${c.pinned?'<span class="pin-icon">📌</span>':''}</div>
         <div class="c-phone">📱 ${escH(c.phone||'—')}</div>
         ${c.note?`<div class="c-note">📝 ${escH(c.note)}</div>`:''}
       </div>
-      <div class="status-badge ${s}">${statusLabel(s)}</div>
+      <div class="${badgeCls}">${badgeTxt}</div>
     </div>
 
     <div class="card-timers">
@@ -664,24 +697,23 @@ function cardHTML(c,s){
           <div class="timer-l">बाद Call करना है</div>
         </div>
       </div>
-      <div class="prog-wrap">
-        <div class="prog-bar" style="width:${pct}%;background:${pColor}"></div>
-      </div>
+      <div class="prog-wrap"><div class="prog-bar" style="width:${pct}%;background:${pColor}"></div></div>
       <div class="prog-info">
         <span class="interval-tag">⏰ हर ${c.intervalMins} min</span>
-        <span class="last-call-tag">आज ${todayN} call${todayN!==1?'s':''} हुई</span>
+        <span class="last-call-tag">आज ${todayN} call हुई</span>
       </div>
     </div>
 
     <div class="card-actions">
       <button class="act act-call" onclick="recordCall('${c.id}')">📞 Call</button>
       ${c.phone?`<button class="act act-wa" onclick="openWA('${c.id}')">🟢 WA</button>`:''}
+      <button class="${pinBtnCls}" onclick="togglePin('${c.id}')" title="Pin to top">${pinBtnTxt} Pin</button>
       <button class="act act-edit" onclick="editContact('${c.id}')">✏️</button>
       <button class="act act-del" onclick="delContact('${c.id}')">🗑️</button>
     </div>
 
     <div class="log-toggle" onclick="toggleLog('${c.id}')">
-      <span>📋 Call History (${(c.callLog||[]).length} total)</span>
+      <span>📋 History (${(c.callLog||[]).length})</span>
       <span id="tgl-${c.id}">▼</span>
     </div>
     <div class="log-list" id="log-${c.id}">${recentLog}</div>
@@ -697,35 +729,31 @@ function startTick(){
 function checkAlarms(){
   const now=Date.now();
   contacts.filter(c=>c.active!==false&&c.nextCallAt).forEach(c=>{
-    const nextTs=new Date(c.nextCallAt).getTime();
-    if(now>=nextTs && !_notifFired.has(c.id)){
+    const ts=new Date(c.nextCallAt).getTime();
+    if(now>=ts && !_notifFired.has(c.id)){
       _notifFired.add(c.id);
       fireNotif(c);
-    } else if(now<nextTs){
+    } else if(now<ts){
       _notifFired.delete(c.id);
     }
   });
 }
 
 function fireNotif(c){
-  toast(`📞 ${c.name} को Call करो!`, 'warn');
-  if(typeof Notification!=='undefined' && Notification.permission==='granted'){
+  toast(`📞 ${c.name} को Call करो!`,'warn');
+  if(typeof Notification!=='undefined'&&Notification.permission==='granted'){
     try{
       const n=new Notification(`📞 Call करो: ${c.name}`,{
-        body:`${c.name} को call करने का समय हो गया!\n📱 ${c.phone||''}`,
-        tag:`vbe-ct-${c.id}`,
-        requireInteraction:true,
-        vibrate:[300,100,300]
+        body:`${c.name} को call करने का समय!\n📱 ${c.phone||''}`,
+        tag:`vbe-ct-${c.id}`,requireInteraction:true
       });
-      n.onclick=()=>{ window.focus(); window.scrollTo(''+c.id); n.close(); };
+      n.onclick=()=>{ window.focus(); goToCard(c.id); n.close(); };
     }catch(e){}
   }
 }
 
 function askNotifPermission(){
-  if(typeof Notification!=='undefined'&&Notification.permission==='default'){
-    Notification.requestPermission();
-  }
+  if(typeof Notification!=='undefined'&&Notification.permission==='default') Notification.requestPermission();
 }
 
 /* ──────── Actions ──────── */
@@ -740,12 +768,8 @@ window.recordCall=function(id){
   openModal('m-call');
 };
 
-window.confirmCall=function(){
-  doRecordCall(true);
-};
-window.confirmCallNoRecord=function(){
-  doRecordCall(false);
-};
+window.confirmCall=function(){ doRecordCall(true); };
+window.confirmCallNoRecord=function(){ doRecordCall(false); };
 
 function doRecordCall(dial){
   const c=contacts.find(x=>x.id===pendingCallId);
@@ -755,23 +779,33 @@ function doRecordCall(dial){
   c.lastCallAt=now;
   c.nextCallAt=new Date(Date.now()+c.intervalMins*60*1000).toISOString();
   c.callLog=c.callLog||[];
-  c.callLog.push({at:now, note});
+  c.callLog.push({at:now,note});
   _notifFired.delete(c.id);
   persist();
   closeModal('m-call');
   render();
-  toast(`✅ ${c.name} की call record हुई — ${c.intervalMins} min बाद reminder`);
-  if(dial && c.phone) setTimeout(()=>{ window.location.href='tel:'+c.phone; },400);
+  toast(`✅ ${c.name} की call record — ${c.intervalMins}min बाद reminder`);
+  if(dial&&c.phone) setTimeout(()=>{ window.location.href='tel:'+c.phone; },400);
 }
 
 window.openWA=function(id){
   const c=contacts.find(x=>x.id===id);
   if(!c||!c.phone) return;
-  const ph=(c.phone||'').replace(/[^0-9]/g,'');
-  window.open('https://wa.me/91'+ph,'_blank');
+  const ph=c.phone.replace(/[^0-9]/g,'');
+  const num=ph.length===10?'91'+ph:ph;
+  window.open('https://wa.me/'+num,'_blank');
 };
 
-window.scrollTo=function(id){
+window.togglePin=function(id){
+  const c=contacts.find(x=>x.id===id);
+  if(!c) return;
+  c.pinned=!c.pinned;
+  persist();
+  render();
+  toast(c.pinned?`📌 ${c.name} pinned — हमेशा ऊपर रहेगा`:`📍 ${c.name} unpinned`);
+};
+
+window.goToCard=function(id){
   const el=document.getElementById('c-'+id);
   if(el) el.scrollIntoView({behavior:'smooth',block:'center'});
 };
@@ -827,21 +861,21 @@ window.openAddModal=function(){
 
 window.saveContact=function(){
   const name=(document.getElementById('f-name').value||'').trim();
-  const phone=(document.getElementById('f-phone').value||'').trim().replace(/[^0-9]/g,'');
+  const rawPhone=document.getElementById('f-phone').value||'';
+  const phone=normalizePhone(rawPhone);
   const note=(document.getElementById('f-note').value||'').trim();
   if(!name){ toast('⚠️ नाम जरूरी है','err'); return; }
-  if(!phone){ toast('⚠️ Mobile number जरूरी है','err'); return; }
-  if(phone.length<10){ toast('⚠️ 10 अंकों का नंबर डालें','err'); return; }
+  if(!phone||phone.length<10){ toast('⚠️ सही 10 अंकों का नंबर डालें','err'); return; }
 
   if(editingId){
     const c=contacts.find(x=>x.id===editingId);
-    if(c){ Object.assign(c,{name,phone,note,intervalMins:selInterval,color:selColor}); }
+    if(c) Object.assign(c,{name,phone,note,intervalMins:selInterval,color:selColor});
   } else {
     contacts.push({
       id:genId(), name, phone, note,
       color:selColor, intervalMins:selInterval,
       lastCallAt:null, nextCallAt:null,
-      callLog:[], active:true,
+      callLog:[], active:true, pinned:false,
       createdAt:new Date().toISOString()
     });
   }
@@ -861,9 +895,7 @@ function buildIntervalPicker(){
   });
 }
 function updateIntBtns(){
-  document.querySelectorAll('.int-btn').forEach(b=>{
-    b.classList.toggle('on',parseInt(b.dataset.v)===selInterval);
-  });
+  document.querySelectorAll('.int-btn').forEach(b=>b.classList.toggle('on',parseInt(b.dataset.v)===selInterval));
 }
 
 function buildColorPicker(){

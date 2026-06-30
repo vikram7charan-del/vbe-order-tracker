@@ -19,7 +19,7 @@ body{
   background:#030810;color:#e2e8f0;
   font-family:'Noto Sans Devanagari',sans-serif;
   min-height:100dvh;max-width:480px;margin:0 auto;
-  padding-bottom:80px;
+  padding-bottom:70px;
 }
 
 /* ── Login ── */
@@ -37,265 +37,195 @@ body{
 
 /* ── App Header (sticky) ── */
 .app-hdr{
-  background:linear-gradient(180deg,#080f1e 0%,#030810 100%);
-  border-bottom:1px solid rgba(30,58,95,.6);
-  padding:12px 14px 0;
+  background:linear-gradient(180deg,#07101e 0%,#030810 100%);
+  border-bottom:1px solid rgba(30,58,95,.5);
+  padding:11px 13px 0;
   position:sticky;top:0;z-index:100;
-  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
 }
 .hdr-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
-.hdr-title{font-size:16px;font-weight:900;color:#f59e0b;letter-spacing:.2px}
-.hdr-sub{font-size:10px;color:#475569;margin-top:2px}
-.hdr-btns{display:flex;gap:8px;align-items:center}
+.hdr-title{font-size:15px;font-weight:900;color:#f59e0b;letter-spacing:.2px}
+.hdr-sub{font-size:9px;color:#475569;margin-top:1px}
+.hdr-btns{display:flex;gap:6px;align-items:center}
 .btn-add{
-  width:36px;height:36px;border-radius:50%;
+  width:33px;height:33px;border-radius:50%;
   background:linear-gradient(135deg,#f59e0b,#ef4444);
-  border:none;color:#fff;font-size:22px;font-weight:900;
+  border:none;color:#fff;font-size:20px;font-weight:900;
   cursor:pointer;display:flex;align-items:center;justify-content:center;
-  box-shadow:0 4px 14px rgba(239,68,68,.45);touch-action:manipulation;
+  box-shadow:0 3px 12px rgba(239,68,68,.45);touch-action:manipulation;
 }
-.btn-back{font-size:11px;color:#94a3b8;text-decoration:none;background:#0d1526;border:1px solid #1e3a5f;border-radius:8px;padding:6px 11px;font-weight:700}
+.btn-icon{
+  font-size:13px;text-decoration:none;
+  background:#0d1526;border:1px solid #1e3a5f;border-radius:8px;
+  padding:5px 8px;color:#94a3b8;font-weight:700;white-space:nowrap;
+  display:flex;align-items:center;gap:3px;
+}
+.btn-back{font-size:11px;color:#94a3b8;text-decoration:none;background:#0d1526;border:1px solid #1e3a5f;border-radius:8px;padding:5px 10px;font-weight:700}
 
 /* ── Stats row ── */
-.stats{display:flex;gap:6px;margin-bottom:10px}
+.stats{display:flex;gap:5px;margin-bottom:8px}
 .stat{
-  flex:1;border-radius:11px;padding:7px 3px;text-align:center;
-  background:linear-gradient(135deg,#0a1525,#0d1a30);
-  border:1px solid rgba(30,58,95,.7);
+  flex:1;border-radius:10px;padding:6px 3px;text-align:center;
+  background:linear-gradient(135deg,#090f20,#0c1528);
+  border:1px solid rgba(30,58,95,.65);
 }
-.stat-n{font-size:21px;font-weight:900;line-height:1.1;font-variant-numeric:tabular-nums}
-.stat-n.red{color:#f87171}
-.stat-n.amber{color:#fbbf24}
-.stat-n.green{color:#4ade80}
-.stat-n.blue{color:#60a5fa}
-.stat-l{font-size:9px;color:#475569;margin-top:1px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.stat-n{font-size:19px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums}
+.stat-n.red{color:#f87171}.stat-n.amber{color:#fbbf24}.stat-n.green{color:#4ade80}.stat-n.blue{color:#60a5fa}
+.stat-l{font-size:8px;color:#475569;margin-top:1px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
 
-/* ── Horizontal Contact Strip — pill chips ── */
-.strip{
-  display:flex;gap:7px;overflow-x:auto;
-  padding:6px 14px 10px;
-  scrollbar-width:none;-ms-overflow-style:none;
-}
+/* ── Horizontal Strip — pill chips ── */
+.strip{display:flex;gap:7px;overflow-x:auto;padding:5px 13px 8px;scrollbar-width:none;-ms-overflow-style:none}
 .strip::-webkit-scrollbar{display:none}
-/* Pill chip: avatar + name side by side */
 .strip-chip{
-  display:flex;align-items:center;gap:7px;
-  cursor:pointer;flex-shrink:0;
-  background:#0a1525;border:1.5px solid #1e3a5f;
+  display:flex;align-items:center;gap:7px;cursor:pointer;flex-shrink:0;
+  background:#090f20;border:1.5px solid #1e3a5f;
   border-radius:22px;padding:5px 10px 5px 5px;
-  transition:border-color .15s,background .15s;
-  touch-action:manipulation;
+  transition:border-color .15s,background .15s;touch-action:manipulation;
 }
-.strip-chip:active{opacity:.75}
-.strip-chip.overdue{border-color:rgba(239,68,68,.7);background:rgba(239,68,68,.07);animation:pulse-r 1.3s ease-in-out infinite}
-.strip-chip.due-soon{border-color:rgba(251,191,36,.6);background:rgba(251,191,36,.06)}
-.strip-chip.pinned-chip{border-color:rgba(251,191,36,.8)}
-.s-avatar{
-  width:30px;height:30px;border-radius:50%;flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;
-  font-size:13px;font-weight:900;color:#fff;position:relative;
-}
-.s-dot{
-  position:absolute;bottom:-1px;right:-1px;
-  width:10px;height:10px;border-radius:50%;
-  border:2px solid #030810;
-}
-.s-dot.overdue{background:#ef4444}
-.s-dot.due-soon{background:#fbbf24}
-.s-dot.ok{background:#22c55e}
-.s-dot.new{background:#475569}
-.s-dot.pinned{background:#fbbf24}
-.s-label{display:flex;flex-direction:column;min-width:0}
-.s-name{font-size:11px;font-weight:800;color:#cbd5e1;white-space:nowrap;max-width:80px;overflow:hidden;text-overflow:ellipsis;line-height:1.3}
+.strip-chip:active{opacity:.72;transform:scale(.97)}
+.strip-chip.overdue{border-color:rgba(239,68,68,.75);background:rgba(239,68,68,.07);animation:pulse-r 1.3s ease-in-out infinite}
+.strip-chip.due-soon{border-color:rgba(251,191,36,.6);background:rgba(251,191,36,.05)}
+.strip-chip.pinned-c{border-color:rgba(251,191,36,.7)}
+.s-av{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#fff;position:relative}
+.s-dot{position:absolute;bottom:-1px;right:-1px;width:10px;height:10px;border-radius:50%;border:2px solid #030810}
+.s-dot.overdue{background:#ef4444}.s-dot.due-soon{background:#fbbf24}.s-dot.ok{background:#22c55e}.s-dot.new{background:#475569}.s-dot.pinned{background:#fbbf24}
+.s-lbl{display:flex;flex-direction:column;min-width:0}
+.s-name{font-size:11px;font-weight:800;color:#cbd5e1;white-space:nowrap;max-width:90px;overflow:hidden;text-overflow:ellipsis;line-height:1.3}
 .s-timer{font-size:9px;color:#64748b;white-space:nowrap;line-height:1.2}
 
 /* ── Section label ── */
-.sec-lbl{
-  font-size:10px;color:#475569;font-weight:700;letter-spacing:.6px;
-  text-transform:uppercase;padding:9px 14px 5px;
-  display:flex;align-items:center;gap:7px;
-}
-.sec-lbl::after{content:'';flex:1;height:1px;background:rgba(30,58,95,.7)}
+.sec-lbl{font-size:9px;color:#475569;font-weight:700;letter-spacing:.6px;text-transform:uppercase;padding:8px 13px 4px;display:flex;align-items:center;gap:6px}
+.sec-lbl::after{content:'';flex:1;height:1px;background:rgba(30,58,95,.6)}
 
-/* ── Contact Card ── */
+/* ══ COMPACT CARD ══ */
 .card{
-  margin:0 12px 10px;
-  background:linear-gradient(160deg,#0b1526 0%,#080f1d 100%);
-  border:1.5px solid rgba(30,58,95,.8);
-  border-radius:16px;overflow:hidden;
+  margin:0 11px 7px;
+  background:#07111e;
+  border:1.5px solid rgba(30,58,95,.75);
+  border-left-width:4px;
+  border-left-color:#334155;
+  border-radius:13px;overflow:hidden;
   transition:border-color .2s,box-shadow .2s;
 }
-.card.overdue{border-color:rgba(239,68,68,.55);box-shadow:0 0 18px rgba(239,68,68,.1)}
-.card.due-soon{border-color:rgba(251,191,36,.45)}
-.card.pinned{border-color:rgba(251,191,36,.6);box-shadow:0 0 14px rgba(251,191,36,.08)}
+.card.overdue{border-left-color:#ef4444;box-shadow:0 0 14px rgba(239,68,68,.1)}
+.card.due-soon{border-left-color:#fbbf24}
+.card.ok{border-left-color:#22c55e}
+.card.pinned{border-left-color:#fbbf24;box-shadow:0 0 10px rgba(251,191,36,.08)}
 
-/* Card header — compact */
-.card-hdr{
-  display:flex;align-items:center;gap:10px;
-  padding:10px 12px 9px;border-bottom:1px solid rgba(15,30,54,.9);
+/* Compact always-visible row */
+.card-row{
+  display:flex;align-items:center;gap:9px;
+  padding:9px 9px 8px 9px;cursor:pointer;
+  touch-action:manipulation;
+  user-select:none;-webkit-user-select:none;
 }
-.c-avatar{
-  width:40px;height:40px;border-radius:50%;flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;
-  font-size:17px;font-weight:900;color:#fff;
+.c-av{width:38px;height:38px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#fff}
+.c-main{flex:1;min-width:0}
+.c-name{font-size:15px;font-weight:900;color:#e2e8f0;letter-spacing:.1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:4px}
+.pin-dot{font-size:10px}
+.c-sub{font-size:10px;color:#64748b;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Timer block (right of name) */
+.c-timers{display:flex;align-items:center;gap:4px;flex-shrink:0;text-align:center}
+.ct-val{font-size:13px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1}
+.ct-val.red{color:#f87171}.ct-val.amber{color:#fbbf24}.ct-val.green{color:#4ade80}.ct-val.dim{color:#334155}
+.ct-lbl{font-size:7px;color:#475569;text-transform:uppercase;letter-spacing:.3px;font-weight:700;line-height:1.2}
+.ct-sep{color:#334155;font-size:12px;padding:0 2px}
+/* Quick action buttons (far right) */
+.c-qbtns{display:flex;flex-direction:column;gap:4px;flex-shrink:0;margin-left:4px}
+.qbtn{
+  width:36px;height:26px;border:none;border-radius:8px;
+  font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  touch-action:manipulation;transition:opacity .15s,transform .1s;
 }
-.c-info{flex:1;min-width:0}
-.c-name{font-size:14px;font-weight:900;color:#e2e8f0;letter-spacing:.1px;display:flex;align-items:center;gap:5px}
-.c-phone{font-size:11px;color:#64748b;margin-top:1px}
-.c-note{font-size:10px;color:#94a3b8;margin-top:2px;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pin-icon{font-size:12px;opacity:.7}
-.status-badge{
-  font-size:9px;font-weight:900;padding:3px 7px;border-radius:6px;
-  flex-shrink:0;text-transform:uppercase;letter-spacing:.4px;align-self:flex-start;
-}
-.status-badge.overdue{background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3)}
-.status-badge.due-soon{background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.3)}
-.status-badge.ok{background:rgba(34,197,94,.1);color:#4ade80;border:1px solid rgba(34,197,94,.25)}
-.status-badge.new{background:rgba(71,85,105,.18);color:#94a3b8;border:1px solid rgba(71,85,105,.3)}
-.status-badge.pinned-badge{background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.35)}
+.qbtn:active{opacity:.7;transform:scale(.92)}
+.qbtn-call{background:linear-gradient(135deg,#059669,#22c55e);color:#fff;box-shadow:0 2px 7px rgba(34,197,94,.3)}
+.qbtn-wa{background:#0a2118;border:1.5px solid rgba(34,197,94,.3);color:#4ade80}
 
-/* Timer section — compact */
-.card-timers{
-  padding:9px 12px 7px;border-bottom:1px solid rgba(15,30,54,.9);
-}
-.timer-row{display:flex;align-items:center;margin-bottom:8px}
-.timer-block{flex:1;text-align:center}
-.timer-v{
-  font-size:18px;font-weight:900;line-height:1.1;
-  font-variant-numeric:tabular-nums;letter-spacing:-0.5px;
-}
-.timer-v.red{color:#f87171}
-.timer-v.amber{color:#fbbf24}
-.timer-v.green{color:#4ade80}
-.timer-v.dim{color:#334155}
-.timer-l{font-size:8px;color:#475569;margin-top:2px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
-.timer-sep{color:#1e3a5f;font-size:18px;flex-shrink:0;padding:0 4px}
+/* Thin progress line at bottom of row */
+.prog-line-wrap{height:3px;background:#050c18;margin:0}
+.prog-line{height:100%;transition:width 1s,background .4s}
 
-/* Progress */
-.prog-wrap{height:5px;background:rgba(10,21,37,.9);border-radius:3px;overflow:hidden}
-.prog-bar{height:100%;border-radius:3px;transition:width 1s cubic-bezier(.4,0,.2,1),background .4s}
-.prog-info{display:flex;justify-content:space-between;align-items:center;margin-top:5px}
-.interval-tag{font-size:9px;color:#64748b;background:#07111f;border:1px solid #1e3a5f;border-radius:5px;padding:2px 6px;font-weight:700}
-.last-call-tag{font-size:9px;color:#475569}
+/* ── Expandable Detail ── */
+.card-detail{
+  border-top:1px solid rgba(15,30,54,.9);
+  padding:0;
+  display:none;
+}
 
-/* Action buttons — compact */
-.card-actions{display:flex;gap:5px;padding:7px 10px}
-.act{
+/* Timer row inside detail */
+.det-timers{
+  display:flex;align-items:center;padding:10px 12px 8px;gap:0;
+}
+.det-block{flex:1;text-align:center}
+.det-v{font-size:22px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-0.5px}
+.det-v.red{color:#f87171}.det-v.amber{color:#fbbf24}.det-v.green{color:#4ade80}.det-v.dim{color:#334155}
+.det-l{font-size:8px;color:#475569;margin-top:3px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.det-sep{font-size:20px;color:#1e3a5f;padding:0 6px}
+
+.det-prog{height:5px;background:#050c18;margin:0 12px 6px;border-radius:3px;overflow:hidden}
+.det-prog-bar{height:100%;border-radius:3px;transition:width 1s,background .4s}
+.det-prog-info{display:flex;justify-content:space-between;padding:0 12px 10px;align-items:center}
+.det-tag{font-size:9px;color:#64748b;background:#07111e;border:1px solid #1e3a5f;border-radius:5px;padding:2px 7px;font-weight:700}
+.det-calls{font-size:9px;color:#475569}
+
+/* Action row inside detail */
+.det-actions{display:flex;gap:5px;padding:6px 10px 8px;border-top:1px solid rgba(15,30,54,.9)}
+.da{
   flex:1;padding:8px 3px;border:none;border-radius:9px;
   font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;
-  display:flex;align-items:center;justify-content:center;gap:4px;
-  touch-action:manipulation;transition:opacity .15s,transform .12s;
-  white-space:nowrap;
+  display:flex;align-items:center;justify-content:center;gap:3px;
+  touch-action:manipulation;transition:opacity .15s,transform .1s;
 }
-.act:active{opacity:.7;transform:scale(.95)}
-.act-call{background:linear-gradient(135deg,#059669,#22c55e);color:#fff;box-shadow:0 3px 10px rgba(34,197,94,.25)}
-.act-wa{background:#0a2118;border:1.5px solid rgba(34,197,94,.25);color:#4ade80}
-.act-pin{background:#13200e;border:1.5px solid rgba(251,191,36,.25);color:#fbbf24}
-.act-pin.active{background:rgba(251,191,36,.15);border-color:rgba(251,191,36,.6)}
-.act-edit{background:#131e30;border:1.5px solid rgba(30,58,95,.8);color:#94a3b8}
-.act-del{background:#1a0d0d;border:1.5px solid rgba(239,68,68,.2);color:#f87171}
+.da:active{opacity:.7;transform:scale(.95)}
+.da-pin{background:#0f1e0a;border:1.5px solid rgba(251,191,36,.3);color:#fbbf24}
+.da-pin.on{background:rgba(251,191,36,.14);border-color:rgba(251,191,36,.7)}
+.da-msg{background:#0d1a2a;border:1.5px solid rgba(99,179,237,.3);color:#63b3ed}
+.da-edit{background:#10192b;border:1.5px solid rgba(30,58,95,.8);color:#94a3b8}
+.da-del{background:#1a0d0d;border:1.5px solid rgba(239,68,68,.2);color:#f87171}
 
-/* Call log — compact */
-.log-toggle{
-  padding:6px 12px;border-top:1px solid rgba(15,30,54,.9);
-  font-size:10px;color:#475569;cursor:pointer;
-  display:flex;align-items:center;justify-content:space-between;
-  touch-action:manipulation;
-}
-.log-toggle:active{color:#94a3b8}
-.log-list{padding:2px 12px 8px;display:none}
-.log-item{
-  display:flex;align-items:flex-start;gap:7px;
-  padding:5px 0;border-bottom:1px solid rgba(10,20,32,.9);
-}
+/* Call log inside detail */
+.det-log-toggle{padding:6px 12px;border-top:1px solid rgba(15,30,54,.9);font-size:10px;color:#475569;cursor:pointer;display:flex;align-items:center;justify-content:space-between;touch-action:manipulation}
+.det-log-list{padding:2px 12px 8px;display:none}
+.log-item{display:flex;align-items:flex-start;gap:6px;padding:5px 0;border-bottom:1px solid rgba(10,20,32,.9)}
 .log-item:last-child{border-bottom:none}
-.log-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;flex-shrink:0;margin-top:3px}
+.log-dot{width:6px;height:6px;border-radius:50%;background:#22c55e;flex-shrink:0;margin-top:3px}
 .log-when{font-size:10px;color:#94a3b8;flex-shrink:0;white-space:nowrap}
 .log-note{font-size:10px;color:#64748b;font-style:italic;word-break:break-word}
 
 /* ── Modal ── */
-.modal-bg{
-  position:fixed;inset:0;background:rgba(0,0,0,.8);
-  z-index:200;display:flex;align-items:flex-end;justify-content:center;
-  opacity:0;pointer-events:none;transition:opacity .2s;
-}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
 .modal-bg.open{opacity:1;pointer-events:all}
-.modal-box{
-  width:100%;max-width:480px;
-  background:linear-gradient(180deg,#0d1a30 0%,#080f1d 100%);
-  border-radius:22px 22px 0 0;border-top:1px solid rgba(30,58,95,.8);
-  padding:20px 16px 44px;
-  transform:translateY(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);
-  max-height:90dvh;overflow-y:auto;
-}
+.modal-box{width:100%;max-width:480px;background:linear-gradient(180deg,#0c1828 0%,#07101d 100%);border-radius:22px 22px 0 0;border-top:1px solid rgba(30,58,95,.7);padding:20px 16px 44px;transform:translateY(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);max-height:90dvh;overflow-y:auto}
 .modal-bg.open .modal-box{transform:translateY(0)}
-.modal-title{
-  font-size:16px;font-weight:900;color:#f59e0b;
-  margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;
-}
+.modal-title{font-size:16px;font-weight:900;color:#f59e0b;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center}
 .modal-x{font-size:20px;color:#475569;cursor:pointer;padding:4px;touch-action:manipulation}
 
-/* Interval picker */
 .int-btns{display:flex;flex-wrap:wrap;gap:6px}
-.int-btn{
-  padding:6px 10px;border-radius:8px;border:1.5px solid rgba(30,58,95,.8);
-  background:#07111f;color:#64748b;font-size:11px;font-weight:800;
-  cursor:pointer;font-family:inherit;transition:all .15s;touch-action:manipulation;
-}
+.int-btn{padding:6px 10px;border-radius:8px;border:1.5px solid rgba(30,58,95,.8);background:#060d1a;color:#64748b;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;transition:all .15s;touch-action:manipulation}
 .int-btn.on{background:rgba(59,130,246,.14);border-color:#3b82f6;color:#60a5fa}
 
-/* Color picker */
 .clr-btns{display:flex;gap:9px;flex-wrap:wrap}
-.clr-btn{
-  width:34px;height:34px;border-radius:50%;border:3px solid transparent;
-  cursor:pointer;transition:border-color .15s,transform .12s;
-  touch-action:manipulation;
-}
+.clr-btn{width:34px;height:34px;border-radius:50%;border:3px solid transparent;cursor:pointer;transition:border-color .15s,transform .12s;touch-action:manipulation}
 .clr-btn:active{transform:scale(.9)}
 .clr-btn.on{border-color:#fff;transform:scale(1.12)}
 
-.btn-save{
-  width:100%;padding:14px;border:none;border-radius:13px;
-  background:linear-gradient(135deg,#1d4ed8,#3b82f6);
-  color:#fff;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;
-  margin-top:10px;touch-action:manipulation;
-  box-shadow:0 4px 16px rgba(59,130,246,.3);
-}
-.btn-confirm-call{
-  width:100%;padding:14px;border:none;border-radius:13px;
-  background:linear-gradient(135deg,#059669,#22c55e);
-  color:#fff;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;
-  margin-top:10px;touch-action:manipulation;
-  box-shadow:0 4px 14px rgba(34,197,94,.3);
-}
+.btn-save{width:100%;padding:14px;border:none;border-radius:13px;background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;margin-top:10px;touch-action:manipulation;box-shadow:0 4px 16px rgba(59,130,246,.3)}
+.btn-confirm-call{width:100%;padding:14px;border:none;border-radius:13px;background:linear-gradient(135deg,#059669,#22c55e);color:#fff;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;margin-top:10px;touch-action:manipulation;box-shadow:0 4px 14px rgba(34,197,94,.3)}
 
 /* ── Empty ── */
-.empty{text-align:center;padding:52px 20px}
-.empty-ico{font-size:52px;margin-bottom:14px}
+.empty{text-align:center;padding:48px 20px}
+.empty-ico{font-size:48px;margin-bottom:14px}
 .empty-txt{font-size:13px;color:#475569;line-height:1.8}
 
 /* ── Toast ── */
-.toast{
-  position:fixed;bottom:26px;left:50%;transform:translateX(-50%);
-  background:#10b981;color:#fff;padding:10px 20px;border-radius:13px;
-  font-size:13px;font-weight:800;opacity:0;transition:opacity .25s;
-  white-space:nowrap;pointer-events:none;z-index:999;max-width:92vw;text-align:center;
-}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#10b981;color:#fff;padding:10px 20px;border-radius:13px;font-size:13px;font-weight:800;opacity:0;transition:opacity .25s;white-space:nowrap;pointer-events:none;z-index:999;max-width:92vw;text-align:center}
 .toast.show{opacity:1}
 .toast.err{background:#dc2626}
 .toast.warn{background:#d97706}
 
-/* ── Animations ── */
-@keyframes pulse-r{
-  0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.5)}
-  60%{box-shadow:0 0 0 6px rgba(239,68,68,0)}
-}
-@keyframes pulse-a{
-  0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,.4)}
-  60%{box-shadow:0 0 0 5px rgba(251,191,36,0)}
-}
-@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
-.card{animation:fadeIn .22s ease}
+@keyframes pulse-r{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.5)}60%{box-shadow:0 0 0 6px rgba(239,68,68,0)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.card{animation:fadeIn .2s ease}
 </style>
 </head>
 <body>
@@ -330,36 +260,25 @@ body{
     <div class="hdr-row">
       <div>
         <div class="hdr-title">📞 Call Tracker</div>
-        <div class="hdr-sub" id="hdr-sub">Follow-up Accountability System</div>
+        <div class="hdr-sub" id="hdr-sub">Follow-up Accountability</div>
       </div>
       <div class="hdr-btns">
         <button class="btn-add" onclick="openAddModal()" title="नया contact">+</button>
+        <a href="./quick-add.html" class="btn-icon" title="Quick Order Add">📦 काम जोड़ो</a>
         <a href="./" class="btn-back">← App</a>
       </div>
     </div>
 
     <!-- Stats -->
     <div class="stats">
-      <div class="stat">
-        <div class="stat-n blue" id="st-total">0</div>
-        <div class="stat-l">Contacts</div>
-      </div>
-      <div class="stat">
-        <div class="stat-n red" id="st-over">0</div>
-        <div class="stat-l">🔴 Late</div>
-      </div>
-      <div class="stat">
-        <div class="stat-n amber" id="st-due">0</div>
-        <div class="stat-l">⏰ जल्दी</div>
-      </div>
-      <div class="stat">
-        <div class="stat-n green" id="st-today">0</div>
-        <div class="stat-l">✅ आज</div>
-      </div>
+      <div class="stat"><div class="stat-n blue" id="st-total">0</div><div class="stat-l">Contacts</div></div>
+      <div class="stat"><div class="stat-n red"  id="st-over">0</div><div class="stat-l">🔴 Late</div></div>
+      <div class="stat"><div class="stat-n amber" id="st-due">0</div><div class="stat-l">⏰ जल्दी</div></div>
+      <div class="stat"><div class="stat-n green" id="st-today">0</div><div class="stat-l">✅ आज</div></div>
     </div>
   </div>
 
-  <!-- Horizontal Contact Strip -->
+  <!-- Horizontal Strip -->
   <div class="strip" id="strip"></div>
 
   <!-- Contact Cards -->
@@ -375,36 +294,36 @@ body{
     </div>
     <div class="fg">
       <label class="lbl">👤 नाम *</label>
-      <input class="inp" id="f-name" placeholder="Ramesh Gupta, Sharma Ji, 177 MH...">
+      <input class="inp" id="f-name" placeholder="Ramesh Gupta, Sharma Ji...">
     </div>
     <div class="fg">
-      <label class="lbl">📱 Mobile Number * (+91 भी ठीक है)</label>
+      <label class="lbl">📱 Mobile (+91 भी ठीक है)</label>
       <input class="inp" id="f-phone" type="tel" inputmode="numeric" maxlength="15" placeholder="+91 9876543210">
     </div>
     <div class="fg">
-      <label class="lbl">📝 Note (काम किस बारे में?)</label>
-      <input class="inp" id="f-note" placeholder="Sugar supply, GeM order, pending bill...">
+      <label class="lbl">📝 Note</label>
+      <input class="inp" id="f-note" placeholder="Sugar supply, GeM order...">
     </div>
     <div class="fg">
       <label class="lbl">⏰ हर कितने बाद Follow-up?</label>
       <div class="int-btns" id="int-btns">
-        <button class="int-btn" data-v="5">5 min</button>
-        <button class="int-btn" data-v="10">10 min</button>
-        <button class="int-btn" data-v="15">15 min</button>
-        <button class="int-btn" data-v="20">20 min</button>
-        <button class="int-btn on" data-v="30">30 min</button>
-        <button class="int-btn" data-v="45">45 min</button>
-        <button class="int-btn" data-v="60">1 घंटा</button>
-        <button class="int-btn" data-v="90">1.5 घंटा</button>
-        <button class="int-btn" data-v="120">2 घंटे</button>
-        <button class="int-btn" data-v="180">3 घंटे</button>
-        <button class="int-btn" data-v="240">4 घंटे</button>
-        <button class="int-btn" data-v="480">8 घंटे</button>
+        <button class="int-btn" data-v="5">5m</button>
+        <button class="int-btn" data-v="10">10m</button>
+        <button class="int-btn" data-v="15">15m</button>
+        <button class="int-btn" data-v="20">20m</button>
+        <button class="int-btn on" data-v="30">30m</button>
+        <button class="int-btn" data-v="45">45m</button>
+        <button class="int-btn" data-v="60">1h</button>
+        <button class="int-btn" data-v="90">1.5h</button>
+        <button class="int-btn" data-v="120">2h</button>
+        <button class="int-btn" data-v="180">3h</button>
+        <button class="int-btn" data-v="240">4h</button>
+        <button class="int-btn" data-v="480">8h</button>
         <button class="int-btn" data-v="1440">कल</button>
       </div>
     </div>
     <div class="fg">
-      <label class="lbl">🎨 रंग चुनो</label>
+      <label class="lbl">🎨 रंग</label>
       <div class="clr-btns" id="clr-btns"></div>
     </div>
     <button class="btn-save" onclick="saveContact()">💾 Save करो</button>
@@ -418,17 +337,17 @@ body{
       <span>📞 Call Record करो</span>
       <span class="modal-x" onclick="closeModal('m-call')">✕</span>
     </div>
-    <div id="call-who" style="background:#07111f;border:1px solid rgba(30,58,95,.8);border-radius:13px;padding:12px 14px;margin-bottom:14px">
+    <div id="call-who" style="background:#060d1a;border:1px solid rgba(30,58,95,.8);border-radius:13px;padding:12px 14px;margin-bottom:14px">
       <div id="call-name" style="font-size:15px;font-weight:900;color:#e2e8f0"></div>
       <div id="call-phone" style="font-size:12px;color:#64748b;margin-top:3px"></div>
       <div id="call-note-prev" style="font-size:11px;color:#94a3b8;margin-top:3px;font-style:italic"></div>
     </div>
     <div class="fg">
-      <label class="lbl">📝 इस call में क्या बात हुई?</label>
-      <input class="inp" id="f-callnote" placeholder="price confirm, delivery 3 दिन, फिर call करना...">
+      <label class="lbl">📝 क्या बात हुई?</label>
+      <input class="inp" id="f-callnote" placeholder="price confirm, delivery 3 दिन...">
     </div>
     <button class="btn-confirm-call" onclick="confirmCall()">✅ Call हुई — Record &amp; Dial करो</button>
-    <button class="btn-save" style="background:#131e30;box-shadow:none;margin-top:8px" onclick="confirmCallNoRecord()">📝 सिर्फ Record करो (dial नहीं)</button>
+    <button class="btn-save" style="background:#0e1a2c;box-shadow:none;margin-top:7px" onclick="confirmCallNoRecord()">📝 सिर्फ Record (dial नहीं)</button>
   </div>
 </div>
 
@@ -461,6 +380,7 @@ let selColor = COLORS[0];
 let pendingCallId = null;
 let _tick = null;
 let _notifFired = new Set();
+let _expandedIds = new Set(); // which cards are currently open
 
 /* ──────── Auth ──────── */
 onAuthStateChanged(auth, u => {
@@ -485,16 +405,11 @@ function showLogin(){
   document.getElementById('s-app').style.display='none';
   setTimeout(()=>{ const m=document.getElementById('l-mob'); if(m)m.focus(); },120);
 }
-
 function initApp(){
   document.getElementById('s-login').style.display='none';
   document.getElementById('s-app').style.display='block';
-  loadData();
-  buildColorPicker();
-  buildIntervalPicker();
-  render();
-  startTick();
-  askNotifPermission();
+  loadData(); buildColorPicker(); buildIntervalPicker();
+  render(); startTick(); askNotifPermission();
 }
 
 /* ──────── Data ──────── */
@@ -502,22 +417,17 @@ function loadData(){
   try{ contacts=JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]'); }
   catch(e){ contacts=[]; }
 }
-function persist(){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(contacts));
-}
+function persist(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(contacts)); }
 function genId(){ return 'CT'+Date.now().toString(36).toUpperCase()+Math.random().toString(36).slice(2,4).toUpperCase(); }
 
-/* ──────── Phone normalizer — strips +91 / 91 prefix ──────── */
 function normalizePhone(raw){
   let d=(raw||'').replace(/[^0-9]/g,'');
-  // If 12 digits and starts with 91 → strip prefix
   if(d.length===12 && d.startsWith('91')) d=d.slice(2);
-  // If 11 digits and starts with 0 → strip leading 0
   if(d.length===11 && d.startsWith('0')) d=d.slice(1);
   return d;
 }
 
-/* ──────── Status helpers ──────── */
+/* ──────── Status ──────── */
 function status(c){
   if(!c.nextCallAt) return 'new';
   const diff=new Date(c.nextCallAt).getTime()-Date.now();
@@ -525,121 +435,106 @@ function status(c){
   if(diff<=5*60*1000) return 'due-soon';
   return 'ok';
 }
-
 function progress(c){
   if(!c.lastCallAt||!c.intervalMins) return 0;
-  return Math.min((Date.now()-new Date(c.lastCallAt).getTime())/(c.intervalMins*60*1000), 1.5);
+  return Math.min((Date.now()-new Date(c.lastCallAt).getTime())/(c.intervalMins*60*1000),1.5);
 }
-
-function fmtDur(ms){
+function fmtCompact(ms){
   if(ms<0) return '—';
-  const m=Math.floor(ms/60000), h=Math.floor(m/60);
+  const m=Math.floor(ms/60000),h=Math.floor(m/60);
+  if(h>=10) return h+'h';
+  if(h>0) return h+'h'+('0'+m%60).slice(-2);
+  return m+'m';
+}
+function fmtFull(ms){
+  if(ms<0) return '—';
+  const m=Math.floor(ms/60000),h=Math.floor(m/60);
   if(h>0) return h+'h '+('0'+m%60).slice(-2)+'m';
   if(m>0) return m+' min';
   return Math.floor(ms/1000)+' sec';
 }
-
 function todayCalls(){
-  const bod=new Date(); bod.setHours(0,0,0,0);
-  let n=0;
+  const bod=new Date(); bod.setHours(0,0,0,0); let n=0;
   contacts.forEach(c=>(c.callLog||[]).forEach(l=>{ if(new Date(l.at)>=bod) n++; }));
   return n;
 }
+function progColor(p){ return p>=1?'#ef4444':p>=0.75?'#f59e0b':'#22c55e'; }
 
-function progColor(p){
-  if(p>=1) return '#ef4444';
-  if(p>=0.75) return '#f59e0b';
-  return '#22c55e';
-}
-
-/* ──────── Sorting — pinned first, then by urgency ──────── */
+/* ──────── Sort ──────── */
 function sorted(){
-  const urgency={overdue:0,'due-soon':1,new:2,ok:3};
-  return [...contacts]
-    .filter(c=>c.active!==false)
-    .sort((a,b)=>{
-      // Pinned always first
-      if(a.pinned && !b.pinned) return -1;
-      if(!a.pinned && b.pinned) return 1;
-      // Within same pin group: sort by urgency
-      const d=urgency[status(a)]-urgency[status(b)];
-      if(d!==0) return d;
-      const na=a.nextCallAt?new Date(a.nextCallAt).getTime():1e15;
-      const nb=b.nextCallAt?new Date(b.nextCallAt).getTime():1e15;
-      return na-nb;
-    });
+  const urg={overdue:0,'due-soon':1,new:2,ok:3};
+  return [...contacts].filter(c=>c.active!==false).sort((a,b)=>{
+    if(a.pinned&&!b.pinned) return -1;
+    if(!a.pinned&&b.pinned) return 1;
+    const d=urg[status(a)]-urg[status(b)];
+    if(d!==0) return d;
+    const na=a.nextCallAt?new Date(a.nextCallAt).getTime():1e15;
+    const nb=b.nextCallAt?new Date(b.nextCallAt).getTime():1e15;
+    return na-nb;
+  });
 }
 
 /* ──────── Render ──────── */
 function render(){
   const list=sorted();
-  renderStrip(list);
-  renderCards(list);
-  renderStats(list);
-  updateHdrSub();
+  renderStrip(list); renderCards(list); renderStats(list); updateHdrSub();
 }
-
 function renderStats(list){
   document.getElementById('st-total').textContent=list.length;
   document.getElementById('st-over').textContent=list.filter(c=>status(c)==='overdue').length;
   document.getElementById('st-due').textContent=list.filter(c=>status(c)==='due-soon').length;
   document.getElementById('st-today').textContent=todayCalls();
 }
-
 function updateHdrSub(){
   const over=sorted().filter(c=>status(c)==='overdue');
   const el=document.getElementById('hdr-sub');
-  if(over.length) el.innerHTML=`<span style="color:#f87171;font-weight:800">⚠️ ${over.length} call late है!</span>`;
-  else el.textContent='Follow-up Accountability System';
+  if(over.length) el.innerHTML=`<span style="color:#f87171;font-weight:800">⚠️ ${over.length} call late!</span>`;
+  else el.textContent='Follow-up Accountability';
 }
 
-/* Pill-shaped strip chips showing name */
+/* Strip — pill chips with name */
 function renderStrip(list){
   const el=document.getElementById('strip');
-  if(!list.length){
-    el.innerHTML='<div style="font-size:11px;color:#334155;padding:4px 0">+ बटन से contact जोड़ें</div>';
-    return;
-  }
+  if(!list.length){ el.innerHTML='<div style="font-size:11px;color:#334155;padding:4px 0">+ बटन से contact जोड़ें</div>'; return; }
   el.innerHTML=list.map(c=>{
     const s=status(c);
     const dotCls=c.pinned?'pinned':s;
-    const chipCls=c.pinned?'pinned-chip':(s==='overdue'?'overdue':s==='due-soon'?'due-soon':'');
-    const since=c.lastCallAt?fmtDur(Date.now()-new Date(c.lastCallAt).getTime()):'नया';
-    const init=(c.name||'?')[0].toUpperCase();
-    const shortName=c.name||'—';
-    return `<div class="strip-chip ${chipCls}" onclick="goToCard('${c.id}')">
-      <div class="s-avatar" style="background:${c.color||COLORS[0]}">
-        ${init}<div class="s-dot ${dotCls}"></div>
+    const chipCls=c.pinned?'pinned-c':(s==='overdue'?'overdue':s==='due-soon'?'due-soon':'');
+    const since=c.lastCallAt?fmtCompact(Date.now()-new Date(c.lastCallAt).getTime()):'नया';
+    return `<div class="strip-chip ${chipCls}" onclick="openCard('${c.id}')">
+      <div class="s-av" style="background:${c.color||COLORS[0]}">
+        ${(c.name||'?')[0].toUpperCase()}<div class="s-dot ${dotCls}"></div>
       </div>
-      <div class="s-label">
-        <div class="s-name">${escH(shortName)}</div>
+      <div class="s-lbl">
+        <div class="s-name">${escH(c.name)}</div>
         <div class="s-timer">${since}</div>
       </div>
     </div>`;
   }).join('');
 }
 
+/* Compact cards */
 function renderCards(list){
   const el=document.getElementById('card-list');
   if(!list.length){
-    el.innerHTML=`<div class="empty">
-      <div class="empty-ico">📞</div>
-      <div class="empty-txt">अभी कोई follow-up contact नहीं है<br>ऊपर <strong>+</strong> button से जोड़ें<br><br>जिसे बार-बार call करनी हो<br>उसे यहाँ add करें</div>
-    </div>`;
+    el.innerHTML=`<div class="empty"><div class="empty-ico">📞</div><div class="empty-txt">अभी कोई follow-up contact नहीं<br>+ button से जोड़ें</div></div>`;
     return;
   }
-
-  let html='', lastSec='';
+  let html='',lastSec='';
   list.forEach(c=>{
     const s=status(c);
     const sec=c.pinned?'📌 Pinned — हमेशा ऊपर':
               s==='overdue'?'🔴 अभी Call करो':
-              s==='due-soon'?'⏰ जल्दी Call करो':
-              '📋 Follow-up Contacts';
+              s==='due-soon'?'⏰ जल्दी Call करो':'📋 Contacts';
     if(sec!==lastSec){ html+=`<div class="sec-lbl">${sec}</div>`; lastSec=sec; }
     html+=cardHTML(c,s);
   });
   el.innerHTML=html;
+  // Re-apply expanded state
+  _expandedIds.forEach(id=>{
+    const det=document.getElementById('det-'+id);
+    if(det) det.style.display='block';
+  });
 }
 
 function cardHTML(c,s){
@@ -649,74 +544,82 @@ function cardHTML(c,s){
   const sinceMs=c.lastCallAt?now-new Date(c.lastCallAt).getTime():-1;
   const nextMs=c.nextCallAt?new Date(c.nextCallAt).getTime()-now:-1;
 
-  let sinceV='—', sinceC='dim';
-  if(sinceMs>=0){ sinceV=fmtDur(sinceMs); sinceC=s==='overdue'?'red':s==='due-soon'?'amber':'green'; }
+  // Compact timer values
+  let sinceV='新',sinceC='dim';
+  if(sinceMs>=0){ sinceV=fmtCompact(sinceMs); sinceC=s==='overdue'?'red':s==='due-soon'?'amber':'green'; }
+  let nextV='—',nextC='dim';
+  if(nextMs<0&&c.nextCallAt){ nextV='LATE'; nextC='red'; }
+  else if(nextMs>=0){ nextV=fmtCompact(nextMs); nextC=nextMs<5*60*1000?'amber':'green'; }
 
-  let nextV='—', nextC='dim';
-  if(nextMs<0&&c.nextCallAt){ nextV='LATE!'; nextC='red'; }
-  else if(nextMs>=0){ nextV=fmtDur(nextMs); nextC=nextMs<5*60*1000?'amber':'green'; }
+  // Full timer values for expanded
+  let sinceF='—',nextF='—';
+  if(sinceMs>=0) sinceF=fmtFull(sinceMs);
+  if(nextMs<0&&c.nextCallAt) nextF='LATE!';
+  else if(nextMs>=0) nextF=fmtFull(nextMs);
 
-  const todayN=(c.callLog||[]).filter(l=>{
-    const bod=new Date(); bod.setHours(0,0,0,0);
-    return new Date(l.at)>=bod;
-  }).length;
-
+  const todayN=(c.callLog||[]).filter(l=>{ const b=new Date();b.setHours(0,0,0,0);return new Date(l.at)>=b; }).length;
   const recentLog=(c.callLog||[]).slice(-5).reverse().map(l=>`
     <div class="log-item">
       <div class="log-dot"></div>
       <div class="log-when">${new Date(l.at).toLocaleString('hi-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
       ${l.note?`<div class="log-note">${escH(l.note)}</div>`:''}
-    </div>`).join('')||'<div style="font-size:10px;color:#334155;padding:4px 0">अभी कोई call नहीं हुई</div>';
+    </div>`).join('')||'<div style="font-size:10px;color:#334155;padding:4px 0">अभी कोई call नहीं</div>';
 
   const cardCls=c.pinned?'card pinned':`card ${s}`;
-  const badgeCls=c.pinned?'status-badge pinned-badge':'status-badge '+s;
-  const badgeTxt=c.pinned?'📌 Pinned':{overdue:'🔴 LATE','due-soon':'⏰ जल्दी',ok:'✅ OK',new:'🆕 नया'}[s]||s;
-  const pinBtnCls=c.pinned?'act act-pin active':'act act-pin';
-  const pinBtnTxt=c.pinned?'📌':'📍';
+  const pinBtnCls=c.pinned?'da da-pin on':'da da-pin';
 
   return `<div class="${cardCls}" id="c-${c.id}">
-    <div class="card-hdr">
-      <div class="c-avatar" style="background:${c.color||COLORS[0]}">${(c.name||'?')[0].toUpperCase()}</div>
-      <div class="c-info">
-        <div class="c-name">${escH(c.name)}${c.pinned?'<span class="pin-icon">📌</span>':''}</div>
-        <div class="c-phone">📱 ${escH(c.phone||'—')}</div>
-        ${c.note?`<div class="c-note">📝 ${escH(c.note)}</div>`:''}
+    <!-- Compact row -->
+    <div class="card-row" onclick="toggleCard('${c.id}')">
+      <div class="c-av" style="background:${c.color||COLORS[0]}">${(c.name||'?')[0].toUpperCase()}</div>
+      <div class="c-main">
+        <div class="c-name">${escH(c.name)}${c.pinned?'<span class="pin-dot">📌</span>':''}</div>
+        <div class="c-sub">📱 ${escH(c.phone||'—')} · ${c.intervalMins}min${c.note?' · 📝'+escH(c.note.slice(0,18)):''}</div>
       </div>
-      <div class="${badgeCls}">${badgeTxt}</div>
-    </div>
-
-    <div class="card-timers">
-      <div class="timer-row">
-        <div class="timer-block">
-          <div class="timer-v ${sinceC}">${sinceV}</div>
-          <div class="timer-l">पहले Call किया</div>
+      <div class="c-timers">
+        <div style="text-align:center">
+          <div class="ct-val ${sinceC}">${sinceV}</div>
+          <div class="ct-lbl">पहले</div>
         </div>
-        <div class="timer-sep">→</div>
-        <div class="timer-block">
-          <div class="timer-v ${nextC}">${nextV}</div>
-          <div class="timer-l">बाद Call करना है</div>
+        <div class="ct-sep">→</div>
+        <div style="text-align:center">
+          <div class="ct-val ${nextC}">${nextV}</div>
+          <div class="ct-lbl">बाद</div>
         </div>
       </div>
-      <div class="prog-wrap"><div class="prog-bar" style="width:${pct}%;background:${pColor}"></div></div>
-      <div class="prog-info">
-        <span class="interval-tag">⏰ हर ${c.intervalMins} min</span>
-        <span class="last-call-tag">आज ${todayN} call हुई</span>
+      <div class="c-qbtns" onclick="event.stopPropagation()">
+        <button class="qbtn qbtn-call" onclick="recordCall('${c.id}')">📞</button>
+        ${c.phone?`<button class="qbtn qbtn-wa" onclick="openWA('${c.id}')">💬</button>`:''}
       </div>
     </div>
 
-    <div class="card-actions">
-      <button class="act act-call" onclick="recordCall('${c.id}')">📞 Call</button>
-      ${c.phone?`<button class="act act-wa" onclick="openWA('${c.id}')">🟢 WA</button>`:''}
-      <button class="${pinBtnCls}" onclick="togglePin('${c.id}')" title="Pin to top">${pinBtnTxt} Pin</button>
-      <button class="act act-edit" onclick="editContact('${c.id}')">✏️</button>
-      <button class="act act-del" onclick="delContact('${c.id}')">🗑️</button>
-    </div>
+    <!-- Thin progress line -->
+    <div class="prog-line-wrap"><div class="prog-line" style="width:${pct}%;background:${pColor}"></div></div>
 
-    <div class="log-toggle" onclick="toggleLog('${c.id}')">
-      <span>📋 History (${(c.callLog||[]).length})</span>
-      <span id="tgl-${c.id}">▼</span>
+    <!-- Expandable detail -->
+    <div class="card-detail" id="det-${c.id}">
+      <div class="det-timers">
+        <div class="det-block"><div class="det-v ${sinceC}">${sinceF}</div><div class="det-l">पहले Call किया</div></div>
+        <div class="det-sep">→</div>
+        <div class="det-block"><div class="det-v ${nextC}">${nextF}</div><div class="det-l">बाद Call करना है</div></div>
+      </div>
+      <div class="det-prog"><div class="det-prog-bar" style="width:${pct}%;background:${pColor}"></div></div>
+      <div class="det-prog-info">
+        <span class="det-tag">⏰ हर ${c.intervalMins} min</span>
+        <span class="det-calls">आज ${todayN} call हुई</span>
+      </div>
+      <div class="det-actions" onclick="event.stopPropagation()">
+        <button class="${pinBtnCls}" onclick="togglePin('${c.id}')">${c.pinned?'📌 Pinned':'📍 Pin'}</button>
+        ${c.phone?`<button class="da da-msg" onclick="sendSMS('${c.id}')">💬 Msg</button>`:''}
+        <button class="da da-edit" onclick="editContact('${c.id}')">✏️ Edit</button>
+        <button class="da da-del" onclick="delContact('${c.id}')">🗑️</button>
+      </div>
+      <div class="det-log-toggle" onclick="toggleLog('${c.id}')">
+        <span>📋 History (${(c.callLog||[]).length})</span>
+        <span id="tgl-${c.id}">▼</span>
+      </div>
+      <div class="det-log-list" id="log-${c.id}">${recentLog}</div>
     </div>
-    <div class="log-list" id="log-${c.id}">${recentLog}</div>
   </div>`;
 }
 
@@ -725,36 +628,55 @@ function startTick(){
   if(_tick) clearInterval(_tick);
   _tick=setInterval(()=>{ render(); checkAlarms(); }, 15000);
 }
-
 function checkAlarms(){
   const now=Date.now();
   contacts.filter(c=>c.active!==false&&c.nextCallAt).forEach(c=>{
     const ts=new Date(c.nextCallAt).getTime();
-    if(now>=ts && !_notifFired.has(c.id)){
-      _notifFired.add(c.id);
-      fireNotif(c);
-    } else if(now<ts){
-      _notifFired.delete(c.id);
-    }
+    if(now>=ts&&!_notifFired.has(c.id)){
+      _notifFired.add(c.id); fireNotif(c);
+    } else if(now<ts){ _notifFired.delete(c.id); }
   });
 }
-
 function fireNotif(c){
   toast(`📞 ${c.name} को Call करो!`,'warn');
   if(typeof Notification!=='undefined'&&Notification.permission==='granted'){
     try{
       const n=new Notification(`📞 Call करो: ${c.name}`,{
-        body:`${c.name} को call करने का समय!\n📱 ${c.phone||''}`,
-        tag:`vbe-ct-${c.id}`,requireInteraction:true
+        body:`${c.name} को call का समय!\n📱 ${c.phone||''}`,tag:`vbe-ct-${c.id}`,requireInteraction:true
       });
-      n.onclick=()=>{ window.focus(); goToCard(c.id); n.close(); };
+      n.onclick=()=>{ window.focus(); openCard(c.id); n.close(); };
     }catch(e){}
   }
 }
-
 function askNotifPermission(){
   if(typeof Notification!=='undefined'&&Notification.permission==='default') Notification.requestPermission();
 }
+
+/* ──────── Card expand/collapse ──────── */
+window.toggleCard=function(id){
+  const det=document.getElementById('det-'+id);
+  if(!det) return;
+  if(_expandedIds.has(id)){
+    _expandedIds.delete(id);
+    det.style.display='none';
+  } else {
+    _expandedIds.add(id);
+    det.style.display='block';
+    setTimeout(()=>{ const el=document.getElementById('c-'+id); if(el) el.scrollIntoView({behavior:'smooth',block:'nearest'}); },80);
+  }
+};
+
+/* Strip chip → open card */
+window.openCard=function(id){
+  const el=document.getElementById('c-'+id);
+  if(!el){ return; }
+  if(!_expandedIds.has(id)){
+    _expandedIds.add(id);
+    const det=document.getElementById('det-'+id);
+    if(det) det.style.display='block';
+  }
+  setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'center'}),80);
+};
 
 /* ──────── Actions ──────── */
 window.recordCall=function(id){
@@ -767,10 +689,8 @@ window.recordCall=function(id){
   document.getElementById('f-callnote').value='';
   openModal('m-call');
 };
-
 window.confirmCall=function(){ doRecordCall(true); };
 window.confirmCallNoRecord=function(){ doRecordCall(false); };
-
 function doRecordCall(dial){
   const c=contacts.find(x=>x.id===pendingCallId);
   if(!c) return;
@@ -778,13 +698,10 @@ function doRecordCall(dial){
   const now=new Date().toISOString();
   c.lastCallAt=now;
   c.nextCallAt=new Date(Date.now()+c.intervalMins*60*1000).toISOString();
-  c.callLog=c.callLog||[];
-  c.callLog.push({at:now,note});
+  c.callLog=c.callLog||[]; c.callLog.push({at:now,note});
   _notifFired.delete(c.id);
-  persist();
-  closeModal('m-call');
-  render();
-  toast(`✅ ${c.name} की call record — ${c.intervalMins}min बाद reminder`);
+  persist(); closeModal('m-call'); render();
+  toast(`✅ ${c.name} की call — ${c.intervalMins}min reminder`);
   if(dial&&c.phone) setTimeout(()=>{ window.location.href='tel:'+c.phone; },400);
 }
 
@@ -796,18 +713,18 @@ window.openWA=function(id){
   window.open('https://wa.me/'+num,'_blank');
 };
 
+window.sendSMS=function(id){
+  const c=contacts.find(x=>x.id===id);
+  if(!c||!c.phone) return;
+  window.location.href='sms:+91'+c.phone.replace(/[^0-9]/g,'');
+};
+
 window.togglePin=function(id){
   const c=contacts.find(x=>x.id===id);
   if(!c) return;
   c.pinned=!c.pinned;
-  persist();
-  render();
-  toast(c.pinned?`📌 ${c.name} pinned — हमेशा ऊपर रहेगा`:`📍 ${c.name} unpinned`);
-};
-
-window.goToCard=function(id){
-  const el=document.getElementById('c-'+id);
-  if(el) el.scrollIntoView({behavior:'smooth',block:'center'});
+  persist(); render();
+  toast(c.pinned?`📌 ${c.name} pinned`:`📍 ${c.name} unpinned`);
 };
 
 window.toggleLog=function(id){
@@ -826,11 +743,9 @@ window.editContact=function(id){
   document.getElementById('f-name').value=c.name||'';
   document.getElementById('f-phone').value=c.phone||'';
   document.getElementById('f-note').value=c.note||'';
-  selInterval=c.intervalMins||30;
-  selColor=c.color||COLORS[0];
-  updateIntBtns();
-  updateClrBtns();
-  document.getElementById('m-add-title').textContent='✏️ Contact Edit करो';
+  selInterval=c.intervalMins||30; selColor=c.color||COLORS[0];
+  updateIntBtns(); updateClrBtns();
+  document.getElementById('m-add-title').textContent='✏️ Edit करो';
   openModal('m-add');
   setTimeout(()=>document.getElementById('f-name').focus(),300);
 };
@@ -840,9 +755,8 @@ window.delContact=function(id){
   if(!c) return;
   if(!confirm(`"${c.name}" को हटाएं?`)) return;
   contacts=contacts.filter(x=>x.id!==id);
-  persist();
-  render();
-  toast('🗑️ Contact हटाया गया','warn');
+  _expandedIds.delete(id);
+  persist(); render(); toast('🗑️ Contact हटाया','warn');
 };
 
 window.openAddModal=function(){
@@ -850,10 +764,8 @@ window.openAddModal=function(){
   document.getElementById('f-name').value='';
   document.getElementById('f-phone').value='';
   document.getElementById('f-note').value='';
-  selInterval=30;
-  selColor=COLORS[0];
-  updateIntBtns();
-  updateClrBtns();
+  selInterval=30; selColor=COLORS[0];
+  updateIntBtns(); updateClrBtns();
   document.getElementById('m-add-title').textContent='📞 नया Contact जोड़ें';
   openModal('m-add');
   setTimeout(()=>document.getElementById('f-name').focus(),300);
@@ -861,28 +773,18 @@ window.openAddModal=function(){
 
 window.saveContact=function(){
   const name=(document.getElementById('f-name').value||'').trim();
-  const rawPhone=document.getElementById('f-phone').value||'';
-  const phone=normalizePhone(rawPhone);
+  const phone=normalizePhone(document.getElementById('f-phone').value||'');
   const note=(document.getElementById('f-note').value||'').trim();
   if(!name){ toast('⚠️ नाम जरूरी है','err'); return; }
   if(!phone||phone.length<10){ toast('⚠️ सही 10 अंकों का नंबर डालें','err'); return; }
-
   if(editingId){
     const c=contacts.find(x=>x.id===editingId);
     if(c) Object.assign(c,{name,phone,note,intervalMins:selInterval,color:selColor});
   } else {
-    contacts.push({
-      id:genId(), name, phone, note,
-      color:selColor, intervalMins:selInterval,
-      lastCallAt:null, nextCallAt:null,
-      callLog:[], active:true, pinned:false,
-      createdAt:new Date().toISOString()
-    });
+    contacts.push({id:genId(),name,phone,note,color:selColor,intervalMins:selInterval,lastCallAt:null,nextCallAt:null,callLog:[],active:true,pinned:false,createdAt:new Date().toISOString()});
   }
-  persist();
-  closeModal('m-add');
-  render();
-  toast(editingId?`✅ ${name} updated!`:`✅ ${name} जोड़ा गया!`);
+  persist(); closeModal('m-add'); render();
+  toast(editingId?`✅ ${name} updated!`:`✅ ${name} जोड़ा!`);
 };
 
 /* ──────── Pickers ──────── */
@@ -890,40 +792,29 @@ function buildIntervalPicker(){
   document.getElementById('int-btns').addEventListener('click',e=>{
     const b=e.target.closest('.int-btn');
     if(!b) return;
-    selInterval=parseInt(b.dataset.v)||30;
-    updateIntBtns();
+    selInterval=parseInt(b.dataset.v)||30; updateIntBtns();
   });
 }
-function updateIntBtns(){
-  document.querySelectorAll('.int-btn').forEach(b=>b.classList.toggle('on',parseInt(b.dataset.v)===selInterval));
-}
-
+function updateIntBtns(){ document.querySelectorAll('.int-btn').forEach(b=>b.classList.toggle('on',parseInt(b.dataset.v)===selInterval)); }
 function buildColorPicker(){
-  document.getElementById('clr-btns').innerHTML=
-    COLORS.map(c=>`<div class="clr-btn ${c===selColor?'on':''}" style="background:${c}" data-c="${c}" onclick="pickColor('${c}')"></div>`).join('');
+  document.getElementById('clr-btns').innerHTML=COLORS.map(c=>`<div class="clr-btn ${c===selColor?'on':''}" style="background:${c}" data-c="${c}" onclick="pickColor('${c}')"></div>`).join('');
 }
-function updateClrBtns(){
-  document.querySelectorAll('.clr-btn').forEach(b=>b.classList.toggle('on',b.dataset.c===selColor));
-}
+function updateClrBtns(){ document.querySelectorAll('.clr-btn').forEach(b=>b.classList.toggle('on',b.dataset.c===selColor)); }
 window.pickColor=function(c){ selColor=c; updateClrBtns(); };
 
-/* ──────── Modal helpers ──────── */
+/* ──────── Modals ──────── */
 function openModal(id){ document.getElementById(id).classList.add('open'); }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 window.closeModal=closeModal;
-document.querySelectorAll('.modal-bg').forEach(m=>{
-  m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('open'); });
-});
+document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('open'); }));
 
 /* ──────── Toast ──────── */
 function toast(msg,type){
   const t=document.getElementById('toast');
   t.textContent=msg;
   t.className='toast show'+(type==='err'?' err':type==='warn'?' warn':'');
-  clearTimeout(t._t);
-  t._t=setTimeout(()=>t.classList.remove('show'),3000);
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),3000);
 }
-
 function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 </script>
 </body>

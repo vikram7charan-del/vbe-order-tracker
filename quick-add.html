@@ -72,7 +72,22 @@ body{background:#050a14;color:#e2e8f0;font-family:'Noto Sans Devanagari',sans-se
   <!-- Customer (optional) -->
   <div class="section">
     <label class="lbl">👤 Party / Customer (optional)</label>
-    <input class="inp" id="f-cu" placeholder="177 MH, Sharma Ji...">
+    <input class="inp" id="f-cu" placeholder="177 MH, Sharma Ji..." oninput="onPartyInput()">
+  </div>
+
+  <!-- Party Mobile (optional) -->
+  <div class="section">
+    <label class="lbl">📱 Party Mobile (optional)</label>
+    <input class="inp" id="f-ph" placeholder="8107254674" type="tel" inputmode="numeric" maxlength="10" oninput="onPartyInput()">
+  </div>
+
+  <!-- Call Tracker toggle (shown only when name/phone filled) -->
+  <div class="section" id="s-ct" style="display:none;background:#0d1526;border:1.5px solid #1e3a5f;border-radius:11px;padding:12px 13px">
+    <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+      <input type="checkbox" id="f-ct" style="width:18px;height:18px;accent-color:#3b82f6;cursor:pointer">
+      <span style="font-size:13px;color:#94a3b8;font-weight:700">📞 Call Tracker में भी जोड़ें?</span>
+    </label>
+    <div style="font-size:10px;color:#475569;margin-top:5px;margin-left:28px">चेक करने पर यह party कॉल ट्रैकर में अपने आप जुड़ जाएगी</div>
   </div>
 
   <!-- Category chips -->
@@ -125,7 +140,7 @@ import { initializeApp }                         from 'https://www.gstatic.com/f
 import { getAuth, signInWithEmailAndPassword,
          onAuthStateChanged }                    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { initializeFirestore, persistentLocalCache,
-         doc, setDoc }                           from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+         collection, doc, setDoc }               from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 const FB_CFG = {
   apiKey:            'AIzaSyBCe5DKNKcthOl4umprfRm2QBfbVaFORg8',
@@ -180,6 +195,12 @@ window.doLogin = async function(){
   }
 };
 
+window.onPartyInput = function(){
+  const name = (document.getElementById('f-cu').value||'').trim();
+  const ph   = (document.getElementById('f-ph').value||'').trim();
+  document.getElementById('s-ct').style.display = (name||ph) ? 'block' : 'none';
+};
+
 const CAT_COLORS = {followup:'#06b6d4', gem:'#10b981', market:'#f59e0b', kal:'#a78bfa'};
 window.toggleCat = function(c){
   _cat = (_cat===c) ? '' : c;
@@ -208,10 +229,12 @@ window.toggleStaff = function(name, phone, key, color){
 function newId(){ return 'VBE'+Date.now().toString(36).toUpperCase().slice(-4)+Math.random().toString(36).slice(2,4).toUpperCase(); }
 
 window.saveQuick = async function(){
-  const item = (document.getElementById('f-item').value||'').trim();
-  const cu   = (document.getElementById('f-cu').value||'').trim();
-  const dl   = document.getElementById('f-deadline').value;
-  const note = (document.getElementById('f-note').value||'').trim();
+  const item   = (document.getElementById('f-item').value||'').trim();
+  const cu     = (document.getElementById('f-cu').value||'').trim();
+  const phone  = (document.getElementById('f-ph').value||'').replace(/[^0-9]/g,'');
+  const dl     = document.getElementById('f-deadline').value;
+  const note   = (document.getElementById('f-note').value||'').trim();
+  const addCT  = document.getElementById('f-ct').checked;
   if(!item){ toast('⚠️ Item जरूरी है','err'); document.getElementById('f-item').focus(); return; }
   if(!dl){   toast('⚠️ Deadline जरूरी है','err'); return; }
 
@@ -223,7 +246,7 @@ window.saveQuick = async function(){
     await setDoc(doc(db,'vbe_orders',id), {
       id, item, note,
       customer:   cu,
-      phone:      '',
+      phone:      phone||'',
       qty:        '',
       category:   _cat,
       staff:      _staff,
@@ -240,13 +263,38 @@ window.saveQuick = async function(){
       orderNo:    'VBE-'+Date.now().toString(36).slice(-4).toUpperCase(),
       timeline:   [{stage:'received', time:now, note:'Quick Add से जोड़ा गया', photo:null}]
     });
+
+    // Optionally save to Call Tracker
+    if(addCT && (cu || phone)){
+      const ctId = 'CT'+Date.now().toString(36).toUpperCase().slice(-6)+Math.random().toString(36).slice(2,4).toUpperCase();
+      await setDoc(doc(db,'vbe_call_tracker',ctId), {
+        id: ctId,
+        name: cu || 'Party',
+        phone: phone || '',
+        note: item,
+        color: '#3b82f6',
+        emoji: '',
+        intervalMins: 30,
+        alarmTime: '',
+        lastCallAt: null,
+        nextCallAt: null,
+        callLog: [],
+        pinned: false,
+        createdAt: now
+      });
+    }
+
     _addedCount++;
-    document.getElementById('added-count').textContent = `✅ ${_addedCount} काम जोड़े — बढ़िया!`;
+    const addedEl = document.getElementById('added-count');
+    addedEl.textContent = `✅ ${_addedCount} काम जोड़े${addCT&&(cu||phone)?' + Call Tracker में भी':''}`;
     toast(`✅ "${item}" save हुआ!`);
     // Reset form (keep deadline for next entry)
     document.getElementById('f-item').value = '';
     document.getElementById('f-cu').value   = '';
+    document.getElementById('f-ph').value   = '';
     document.getElementById('f-note').value = '';
+    document.getElementById('f-ct').checked = false;
+    document.getElementById('s-ct').style.display = 'none';
     // Reset chips
     _cat = ''; _staff = ''; _staffPhone = '';
     [...document.querySelectorAll('.chip')].forEach(b=>{

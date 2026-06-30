@@ -1586,13 +1586,15 @@ mark.srch-hl{background:#f59e0b44;color:#fbbf24;border-radius:2px;padding:0 1px;
     };
     window.fqDirect=function(){
       if(!_fqContact||!_fqContact.phone) return;
+      var ph=_fqContact.phone;
       closeFupQDial();
-      window.location.href='tel:'+_fqContact.phone;
+      window.location.href='tel:'+ph;
     };
     window.fqCall=function(){
       if(!_fqContact||!_fqContact.phone) return;
+      var ph=_fqContact.phone;
       closeFupQDial();
-      window.location.href='tel:'+_fqContact.phone;
+      window.location.href='tel:'+ph;
     };
     window.fqWA=function(){
       if(!_fqContact||!_fqContact.phone) return;
@@ -11500,6 +11502,7 @@ window._db=window._db||null;
       <button class="kd-vb" id="kd-vb-focus" onclick="kdSetView('focus')" title="एक-एक करके">◈</button>
       <button class="kd-vb" id="kd-vb-timeline" onclick="kdSetView('timeline')" title="Timeline">⏱</button>
     </div>
+    <button onclick="kdShareAll()" title="सब WhatsApp पर भेजें" style="background:#128c7e;border:none;border-radius:10px;width:36px;height:36px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">📤</button>
     <button class="kd-x" onclick="kdClose()" aria-label="बंद करें">✕</button>
   </div>
   <!-- Quick-add bar — हमेशा दिखे, बोर्ड चुनो + काम लिखो -->
@@ -11554,6 +11557,7 @@ window._db=window._db||null;
       <div class="kd-h-ti" id="kd-s-name">—</div>
       <div class="kd-h-sub" id="kd-s-sub">— लंबित</div>
     </div>
+    <button onclick="kdShareCurrentBoard()" title="WhatsApp पर भेजें" style="background:#128c7e;border:none;border-radius:10px;width:36px;height:36px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">📤</button>
     <button class="kd-x" onclick="kdClose()" aria-label="सब बंद">✕</button>
   </div>
   <div class="kd-add" id="kd-s-add" style="background:#0f1626;border-top:none;border-bottom:1px solid #24314d"></div>
@@ -12254,6 +12258,30 @@ window._db=window._db||null;
   function kdFindTask(id){ var found=null; KEYS.forEach(function(k){ if(!found) found=(KD.boards[k]||[]).find(function(x){return x.id===id;}); }); return found; }
   window.kdCall=function(id){ var t=kdFindTask(id); if(!t||!t.phone)return; window.location.href='tel:'+t.phone; };
   window.kdWA=function(id){ var t=kdFindTask(id); if(!t||!t.phone)return; window.open('https://wa.me/'+digits(t.phone),'_blank'); };
+
+  // ════════ WhatsApp share ════════
+  function kdBuildMsg(key){
+    var d=def(key);
+    var tasks=(KD.boards[key]||[]).filter(function(t){return !t.done;});
+    if(!tasks.length) return '';
+    var lines=tasks.map(function(t,i){ return (i+1)+'. '+t.text; }).join('\n');
+    return d.icon+' *'+d.name+'* ('+tasks.length+' लंबित)\n'+lines;
+  }
+  window.kdShareBoard=function(key){
+    if(!key) return;
+    var msg=kdBuildMsg(key);
+    if(!msg){ toast('कोई active काम नहीं'); return; }
+    msg+= '\n\n📅 '+new Date().toLocaleDateString('hi-IN',{day:'numeric',month:'short',year:'numeric'})+' · VBE Barmer';
+    window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+  };
+  window.kdShareCurrentBoard=function(){ window.kdShareBoard(_openBoard); };
+  window.kdShareAll=function(){
+    var parts=KEYS.map(kdBuildMsg).filter(Boolean);
+    if(!parts.length){ toast('कोई active काम नहीं'); return; }
+    var msg='📖 *कार्य डायरी — सारे काम*\n\n'+parts.join('\n\n');
+    msg+='\n\n📅 '+new Date().toLocaleDateString('hi-IN',{day:'numeric',month:'short',year:'numeric'})+' · VBE Barmer';
+    window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+  };
 
   // ════════ open / close ════════
   window.kdOpen=function(){ var ov=document.getElementById('kd-overlay'); if(ov)ov.classList.add('open'); document.body.style.overflow='hidden'; renderGrid(); };

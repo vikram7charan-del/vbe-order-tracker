@@ -636,7 +636,7 @@ function cardHTML(c,s){
   const nextMs=c.nextCallAt?new Date(c.nextCallAt).getTime()-now:-1;
 
   // Compact timer values
-  let sinceV='新',sinceC='dim';
+  let sinceV='—',sinceC='dim';
   if(sinceMs>=0){ sinceV=fmtCompact(sinceMs); sinceC=s==='overdue'?'red':s==='due-soon'?'amber':'green'; }
   let nextV='—',nextC='dim';
   if(nextMs<0&&c.nextCallAt){ nextV='LATE'; nextC='red'; }

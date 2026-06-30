@@ -1459,31 +1459,73 @@ mark.srch-hl{background:#f59e0b44;color:#fbbf24;border-radius:2px;padding:0 1px;
     📴 Offline — Data cached है, internet वापस आने पर sync होगा
   </div>
   <div class="s-header" style="display:flex;align-items:center;justify-content:space-between;gap:6px">
-    <!-- Follow-up contacts strip (reads from vbe_calltracker localStorage) -->
-    <div id="fup-strip" style="flex:1;display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;padding:2px 0 2px" onclick="window.open('./call-tracker.html','_self')">
-      <div id="fup-chips" style="display:flex;gap:6px;align-items:center;min-width:0"></div>
+    <!-- Follow-up contacts strip (Firestore) -->
+    <div id="fup-strip" style="flex:1;display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;padding:2px 0 2px">
+      <div id="fup-chips" style="display:flex;gap:8px;align-items:flex-start;min-width:0"></div>
     </div>
     <a href="./call-tracker.html" title="Call Tracker" style="flex-shrink:0;display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;background:#0d1526;border:1px solid #1e3a5f;color:#94a3b8;font-size:15px;text-decoration:none">📞</a>
     <button id="vbe-compact-toggle" onclick="toggleCompactMode()" title="Compact / Card view">☰</button>
     <button id="vbe-bulk-toggle" onclick="toggleBulkMode()" title="Bulk select">⊡</button>
     <button onclick="openAdd()" style="flex-shrink:0;background:linear-gradient(135deg,#f59e0b,#ef4444);border:none;border-radius:50%;width:34px;height:34px;color:#fff;font-size:22px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(239,68,68,.5);line-height:1">+</button>
   </div>
-  <style>#fup-strip::-webkit-scrollbar{display:none}</style>
+  <style>
+  #fup-strip::-webkit-scrollbar{display:none}
+  #fup-qdial-bg{position:fixed;inset:0;z-index:1500;background:rgba(0,0,0,.6);display:none}
+  #fup-qdial{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1501;background:linear-gradient(160deg,#0d1e34,#07111e);border:1.5px solid rgba(59,130,246,.45);border-radius:18px;padding:18px 16px 14px;min-width:240px;max-width:88vw;box-shadow:0 12px 40px rgba(0,0,0,.8);font-family:'Noto Sans Devanagari',sans-serif}
+  #fup-qdial .qd-head{display:flex;align-items:center;gap:10px;margin-bottom:13px}
+  #fup-qdial .qd-av{width:44px;height:44px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;text-align:center}
+  #fup-qdial .qd-name{font-size:16px;font-weight:900;color:#e2e8f0;margin-bottom:3px}
+  #fup-qdial .qd-phone{font-size:12px;color:#60a5fa;font-weight:700;cursor:pointer;text-decoration:underline dotted}
+  #fup-qdial .qd-close{font-size:20px;color:#475569;cursor:pointer;padding:4px;flex-shrink:0;line-height:1}
+  #fup-qdial .qd-btns{display:flex;gap:7px}
+  #fup-qdial .qd-btn{flex:1;padding:11px 4px;border:none;border-radius:11px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px;touch-action:manipulation}
+  #fup-qdial .qd-call{background:linear-gradient(135deg,#059669,#22c55e);color:#fff;box-shadow:0 2px 10px rgba(34,197,94,.35)}
+  #fup-qdial .qd-wa{background:#0a2118;border:1.5px solid rgba(34,197,94,.3);color:#4ade80}
+  #fup-qdial .qd-sms{background:#0d1a2a;border:1.5px solid rgba(99,179,237,.3);color:#63b3ed}
+  </style>
+
+  <!-- Quick-dial popup for main app strip -->
+  <div id="fup-qdial-bg" onclick="closeFupQDial()"></div>
+  <div id="fup-qdial">
+    <div class="qd-head">
+      <div class="qd-av" id="fq-av"></div>
+      <div style="flex:1;min-width:0">
+        <div class="qd-name" id="fq-name"></div>
+        <div class="qd-phone" id="fq-phone" onclick="fqDirect()"></div>
+      </div>
+      <span class="qd-close" onclick="closeFupQDial()">✕</span>
+    </div>
+    <div class="qd-btns">
+      <button class="qd-btn qd-call" onclick="fqCall()">📞 Call</button>
+      <button class="qd-btn qd-wa" id="fq-wa" onclick="fqWA()">💬 WA</button>
+      <button class="qd-btn qd-sms" id="fq-sms" onclick="fqSMS()">✉️ SMS</button>
+    </div>
+  </div>
+
   <script>
   (function(){
     var _fupData=[];
+    var _fqContact=null;
     function getInits(name){
       if(!name) return '?';
-      var words=name.trim().split(/\s+/);
-      if(words.length>=2) return ([...words[0]].slice(0,2).join(''))+([...words[1]].slice(0,2).join(''));
-      return [...name.trim()].slice(0,4).join('');
+      return [...name.trim().split(/\s+/)[0]].slice(0,3).join('');
+    }
+    function getAvContent(c){
+      return c.emoji || getInits(c.name);
+    }
+    function getAvFs(c){
+      return c.emoji ? '20px' : '10px';
+    }
+    function getShortName(name){
+      var w=name.trim().split(/\s+/);
+      return [...w[0]].slice(0,6).join('');
     }
     function renderFupStrip(){
       var chips=document.getElementById('fup-chips');
       if(!chips) return;
       var active=_fupData;
       if(!active.length){
-        chips.innerHTML='<span style="font-size:10px;color:#334155;white-space:nowrap">📞 Call Tracker खाली है</span>';
+        chips.innerHTML='<span style="font-size:10px;color:#334155;white-space:nowrap">📞 Call Tracker</span>';
         return;
       }
       var now=Date.now();
@@ -1493,25 +1535,78 @@ mark.srch-hl{background:#f59e0b44;color:#fbbf24;border-radius:2px;padding:0 1px;
         var ob=!b.nextCallAt?2:now>=new Date(b.nextCallAt).getTime()?0:now>=new Date(b.nextCallAt).getTime()-5*60*1000?1:3;
         return oa-ob;
       });
-      chips.innerHTML=sorted.map(function(c){
+      chips.innerHTML=sorted.map(function(c,i){
         var nxt=c.nextCallAt?new Date(c.nextCallAt).getTime():null;
         var isOver=nxt&&now>=nxt;
         var isDue=nxt&&!isOver&&now>=nxt-5*60*1000;
         var dotC=isOver?'#ef4444':isDue?'#fbbf24':c.lastCallAt?'#22c55e':'#475569';
-        var ring=isOver?'2px solid #ef4444':isDue?'2px solid #fbbf24':'2px solid #334155';
-        var sinceMs=c.lastCallAt?now-new Date(c.lastCallAt).getTime():-1;
-        var since=sinceMs<0?'नया':sinceMs<3600000?Math.floor(sinceMs/60000)+'m':Math.floor(sinceMs/3600000)+'h';
-        var init=getInits(c.name);
-        return '<div style="display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;flex-shrink:0" onclick="event.stopPropagation();window.open(\'./call-tracker.html\',\'_self\')">'
-          +'<div style="width:34px;height:34px;border-radius:50%;background:'+(c.color||'#3b82f6')+';border:'+ring+';display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff;position:relative;letter-spacing:-.3px;text-align:center">'
-          +init
-          +'<div style="position:absolute;top:-1px;right:-1px;width:10px;height:10px;border-radius:50%;background:'+dotC+';border:2px solid #050a14"></div>'
+        var ring=isOver?'2px solid rgba(239,68,68,.8)':isDue?'2px solid rgba(251,191,36,.8)':'2px solid rgba(51,65,85,.5)';
+        var av=getAvContent(c);
+        var avFs=getAvFs(c);
+        var shortName=getShortName(c.name);
+        return '<div style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;flex-shrink:0;min-width:38px" onclick="event.stopPropagation();openFupQDial('+i+')">'
+          +'<div style="width:36px;height:36px;border-radius:10px;background:'+(c.color||'#3b82f6')+';border:'+ring+';display:flex;align-items:center;justify-content:center;font-size:'+avFs+';font-weight:900;color:#fff;position:relative;letter-spacing:-.3px;text-align:center;border-radius:10px">'
+          +av
+          +'<div style="position:absolute;top:-2px;right:-2px;width:9px;height:9px;border-radius:50%;background:'+dotC+';border:2px solid #050a14"></div>'
           +'</div>'
-          +'<div style="font-size:9px;color:#64748b;white-space:nowrap;max-width:36px;overflow:hidden;text-overflow:ellipsis;text-align:center">'+since+'</div>'
+          +'<div style="font-size:8px;font-weight:800;color:#94a3b8;white-space:nowrap;max-width:40px;overflow:hidden;text-overflow:ellipsis;text-align:center;line-height:1.2">'+shortName+'</div>'
           +'</div>';
       }).join('');
     }
-    // Listen to Firestore via window._onSnapshot (exposed after fbReady)
+    window.openFupQDial=function(idx){
+      var c=_fupData.slice().sort(function(a,b){
+        var now=Date.now();
+        if(a.pinned&&!b.pinned) return -1; if(!a.pinned&&b.pinned) return 1;
+        var oa=!a.nextCallAt?2:now>=new Date(a.nextCallAt).getTime()?0:3;
+        var ob=!b.nextCallAt?2:now>=new Date(b.nextCallAt).getTime()?0:3;
+        return oa-ob;
+      })[idx];
+      if(!c) return;
+      _fqContact=c;
+      var avEl=document.getElementById('fq-av');
+      avEl.style.background=c.color||'#3b82f6';
+      avEl.style.fontSize=getAvFs(c);
+      avEl.textContent=getAvContent(c);
+      document.getElementById('fq-name').textContent=c.name;
+      var phEl=document.getElementById('fq-phone');
+      phEl.textContent=c.phone?'📱 '+c.phone:'—';
+      phEl.style.pointerEvents=c.phone?'auto':'none';
+      document.getElementById('fq-wa').style.display=c.phone?'flex':'none';
+      document.getElementById('fq-sms').style.display=c.phone?'flex':'none';
+      document.getElementById('fup-qdial-bg').style.display='block';
+      var p=document.getElementById('fup-qdial');
+      p.style.display='block';
+      p.style.animation='none';
+      requestAnimationFrame(function(){ p.style.animation='fupPopIn .18s cubic-bezier(.4,0,.2,1)'; });
+    };
+    window.closeFupQDial=function(){
+      document.getElementById('fup-qdial-bg').style.display='none';
+      document.getElementById('fup-qdial').style.display='none';
+      _fqContact=null;
+    };
+    window.fqDirect=function(){
+      if(!_fqContact||!_fqContact.phone) return;
+      closeFupQDial();
+      window.location.href='tel:'+_fqContact.phone;
+    };
+    window.fqCall=function(){
+      if(!_fqContact||!_fqContact.phone) return;
+      closeFupQDial();
+      window.location.href='tel:'+_fqContact.phone;
+    };
+    window.fqWA=function(){
+      if(!_fqContact||!_fqContact.phone) return;
+      var ph=_fqContact.phone.replace(/[^0-9]/g,'');
+      var num=ph.length===10?'91'+ph:ph;
+      closeFupQDial();
+      window.open('https://wa.me/'+num,'_blank');
+    };
+    window.fqSMS=function(){
+      if(!_fqContact||!_fqContact.phone) return;
+      var ph=_fqContact.phone.replace(/[^0-9]/g,'');
+      closeFupQDial();
+      window.location.href='sms:+91'+ph;
+    };
     function startFupSync(){
       var coll=window._collection(window._db,'vbe_call_tracker');
       window._onSnapshot(coll,function(snap){
@@ -1524,10 +1619,13 @@ mark.srch-hl{background:#f59e0b44;color:#fbbf24;border-radius:2px;padding:0 1px;
     } else {
       window.addEventListener('fbReady',startFupSync,{once:true});
     }
-    setInterval(renderFupStrip, 30000); // refresh timers every 30s
+    setInterval(renderFupStrip, 30000);
     window._renderFupStrip=renderFupStrip;
   })();
   </script>
+  <style>
+  @keyframes fupPopIn{from{opacity:0;transform:translate(-50%,-50%) scale(.88)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+  </style>
   <!-- Badge spans — JS इन्हें update करता है, ये hidden हैं -->
   <div style="display:none" aria-hidden="true">
     <button id="archive-btn"></button>

@@ -74,7 +74,7 @@ body{
 .stat-l{font-size:8px;color:#475569;margin-top:1px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
 
 /* ── Horizontal Strip — pill chips ── */
-.strip{display:flex;gap:7px;overflow-x:auto;padding:5px 13px 8px;scrollbar-width:none;-ms-overflow-style:none}
+.strip{display:flex;gap:8px;overflow-x:auto;padding:5px 13px 9px;scrollbar-width:none;-ms-overflow-style:none}
 .strip::-webkit-scrollbar{display:none}
 .strip-chip{
   display:flex;align-items:center;gap:7px;cursor:pointer;flex-shrink:0;
@@ -86,12 +86,45 @@ body{
 .strip-chip.overdue{border-color:rgba(239,68,68,.75);background:rgba(239,68,68,.07);animation:pulse-r 1.3s ease-in-out infinite}
 .strip-chip.due-soon{border-color:rgba(251,191,36,.6);background:rgba(251,191,36,.05)}
 .strip-chip.pinned-c{border-color:rgba(251,191,36,.7)}
-.s-av{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#fff;position:relative}
+.s-av{width:34px;height:34px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff;position:relative;letter-spacing:-.3px;text-align:center;line-height:1}
 .s-dot{position:absolute;bottom:-1px;right:-1px;width:10px;height:10px;border-radius:50%;border:2px solid #030810}
 .s-dot.overdue{background:#ef4444}.s-dot.due-soon{background:#fbbf24}.s-dot.ok{background:#22c55e}.s-dot.new{background:#475569}.s-dot.pinned{background:#fbbf24}
 .s-lbl{display:flex;flex-direction:column;min-width:0}
-.s-name{font-size:11px;font-weight:800;color:#cbd5e1;white-space:nowrap;max-width:90px;overflow:hidden;text-overflow:ellipsis;line-height:1.3}
+.s-name{font-size:11px;font-weight:800;color:#cbd5e1;white-space:nowrap;max-width:80px;overflow:hidden;text-overflow:ellipsis;line-height:1.3}
 .s-timer{font-size:9px;color:#64748b;white-space:nowrap;line-height:1.2}
+
+/* ── Quick Dial Popup ── */
+.qdial-bg{position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.55);display:none}
+.qdial-popup{
+  display:none;
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+  z-index:151;
+  background:linear-gradient(160deg,#0d1e34,#07111e);
+  border:1.5px solid rgba(59,130,246,.45);
+  border-radius:18px;padding:18px 16px 14px;
+  min-width:240px;max-width:88vw;
+  box-shadow:0 12px 40px rgba(0,0,0,.75),0 0 0 1px rgba(59,130,246,.08);
+  animation:popIn .18s cubic-bezier(.4,0,.2,1);
+}
+@keyframes popIn{from{opacity:0;transform:translate(-50%,-50%) scale(.88)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+.qd-head{display:flex;align-items:center;gap:10px;margin-bottom:13px}
+.qd-av{width:42px;height:42px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#fff;letter-spacing:-.3px;text-align:center}
+.qd-info{flex:1;min-width:0}
+.qd-name{font-size:16px;font-weight:900;color:#e2e8f0;line-height:1.2;margin-bottom:3px}
+.qd-phone{font-size:12px;color:#60a5fa;font-weight:700;cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px}
+.qd-phone:active{opacity:.7}
+.qd-close{font-size:20px;color:#475569;cursor:pointer;padding:4px;touch-action:manipulation;flex-shrink:0;line-height:1}
+.qd-btns{display:flex;gap:7px}
+.qd-btn{
+  flex:1;padding:11px 4px;border:none;border-radius:11px;
+  font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;
+  display:flex;align-items:center;justify-content:center;gap:4px;
+  touch-action:manipulation;transition:opacity .15s,transform .1s;
+}
+.qd-btn:active{opacity:.7;transform:scale(.94)}
+.qd-call{background:linear-gradient(135deg,#059669,#22c55e);color:#fff;box-shadow:0 2px 10px rgba(34,197,94,.35)}
+.qd-wa{background:#0a2118;border:1.5px solid rgba(34,197,94,.3);color:#4ade80}
+.qd-sms{background:#0d1a2a;border:1.5px solid rgba(99,179,237,.3);color:#63b3ed}
 
 /* ── Section label ── */
 .sec-lbl{font-size:9px;color:#475569;font-weight:700;letter-spacing:.6px;text-transform:uppercase;padding:8px 13px 4px;display:flex;align-items:center;gap:6px}
@@ -154,22 +187,22 @@ body{
 
 /* Timer row inside detail */
 .det-timers{
-  display:flex;align-items:center;padding:10px 12px 8px;gap:0;
+  display:flex;align-items:center;padding:8px 12px 5px;gap:0;
 }
 .det-block{flex:1;text-align:center}
-.det-v{font-size:22px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-0.5px}
+.det-v{font-size:17px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.3px}
 .det-v.red{color:#f87171}.det-v.amber{color:#fbbf24}.det-v.green{color:#4ade80}.det-v.dim{color:#334155}
-.det-l{font-size:8px;color:#475569;margin-top:3px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
-.det-sep{font-size:20px;color:#1e3a5f;padding:0 6px}
+.det-l{font-size:7px;color:#475569;margin-top:2px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.det-sep{font-size:16px;color:#1e3a5f;padding:0 4px}
 
-.det-prog{height:5px;background:#050c18;margin:0 12px 6px;border-radius:3px;overflow:hidden}
+.det-prog{height:4px;background:#050c18;margin:0 12px 4px;border-radius:3px;overflow:hidden}
 .det-prog-bar{height:100%;border-radius:3px;transition:width 1s,background .4s}
-.det-prog-info{display:flex;justify-content:space-between;padding:0 12px 10px;align-items:center}
-.det-tag{font-size:9px;color:#64748b;background:#07111e;border:1px solid #1e3a5f;border-radius:5px;padding:2px 7px;font-weight:700}
+.det-prog-info{display:flex;justify-content:space-between;padding:0 12px 7px;align-items:center}
+.det-tag{font-size:9px;color:#64748b;background:#07111e;border:1px solid #1e3a5f;border-radius:5px;padding:2px 6px;font-weight:700}
 .det-calls{font-size:9px;color:#475569}
 
 /* Action row inside detail */
-.det-actions{display:flex;gap:5px;padding:6px 10px 8px;border-top:1px solid rgba(15,30,54,.9)}
+.det-actions{display:flex;gap:5px;padding:5px 10px 7px;border-top:1px solid rgba(15,30,54,.9)}
 .da{
   flex:1;padding:8px 3px;border:none;border-radius:9px;
   font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;
@@ -351,6 +384,24 @@ body{
   </div>
 </div>
 
+<!-- ══ QUICK DIAL POPUP ══ -->
+<div class="qdial-bg" id="qdial-bg" onclick="closeQuickDial()"></div>
+<div class="qdial-popup" id="qdial-popup">
+  <div class="qd-head">
+    <div class="qd-av" id="qd-av"></div>
+    <div class="qd-info">
+      <div class="qd-name" id="qd-name"></div>
+      <div class="qd-phone" id="qd-phone" onclick="qdialDirect()"></div>
+    </div>
+    <span class="qd-close" onclick="closeQuickDial()">✕</span>
+  </div>
+  <div class="qd-btns">
+    <button class="qd-btn qd-call" onclick="qdialCall()">📞 Call</button>
+    <button class="qd-btn qd-wa" id="qd-wa-btn" onclick="qdialWA()">💬 WA</button>
+    <button class="qd-btn qd-sms" id="qd-sms-btn" onclick="qdialSMS()">✉️ SMS</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script type="module">
@@ -492,7 +543,7 @@ function updateHdrSub(){
   else el.textContent='Follow-up Accountability';
 }
 
-/* Strip — pill chips with name */
+/* Strip — pill chips with initials */
 function renderStrip(list){
   const el=document.getElementById('strip');
   if(!list.length){ el.innerHTML='<div style="font-size:11px;color:#334155;padding:4px 0">+ बटन से contact जोड़ें</div>'; return; }
@@ -501,9 +552,9 @@ function renderStrip(list){
     const dotCls=c.pinned?'pinned':s;
     const chipCls=c.pinned?'pinned-c':(s==='overdue'?'overdue':s==='due-soon'?'due-soon':'');
     const since=c.lastCallAt?fmtCompact(Date.now()-new Date(c.lastCallAt).getTime()):'नया';
-    return `<div class="strip-chip ${chipCls}" onclick="openCard('${c.id}')">
+    return `<div class="strip-chip ${chipCls}" onclick="openQuickDial('${c.id}')">
       <div class="s-av" style="background:${c.color||COLORS[0]}">
-        ${(c.name||'?')[0].toUpperCase()}<div class="s-dot ${dotCls}"></div>
+        ${escH(getInitials(c.name))}<div class="s-dot ${dotCls}"></div>
       </div>
       <div class="s-lbl">
         <div class="s-name">${escH(c.name)}</div>
@@ -676,6 +727,76 @@ window.openCard=function(id){
     if(det) det.style.display='block';
   }
   setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'center'}),80);
+};
+
+/* ──────── Name initials (2-4 chars) ──────── */
+function getInitials(name){
+  if(!name) return '?';
+  const words=name.trim().split(/\s+/);
+  if(words.length>=2){
+    // Two-word: up to 2 chars from each word
+    return [...words[0]].slice(0,2).join('')+[...words[1]].slice(0,2).join('');
+  }
+  // Single word: first 4 chars
+  return [...name.trim()].slice(0,4).join('');
+}
+
+/* ──────── Quick Dial Popup ──────── */
+let _qdialId=null;
+
+window.openQuickDial=function(id){
+  const c=contacts.find(x=>x.id===id);
+  if(!c) return;
+  _qdialId=id;
+  const hasPhone=!!(c.phone);
+  document.getElementById('qd-av').style.background=c.color||COLORS[0];
+  document.getElementById('qd-av').textContent=getInitials(c.name);
+  document.getElementById('qd-name').textContent=c.name;
+  const ph=document.getElementById('qd-phone');
+  ph.textContent=hasPhone?('📱 '+c.phone):'—';
+  ph.style.pointerEvents=hasPhone?'auto':'none';
+  document.getElementById('qd-wa-btn').style.display=hasPhone?'flex':'none';
+  document.getElementById('qd-sms-btn').style.display=hasPhone?'flex':'none';
+  document.getElementById('qdial-bg').style.display='block';
+  const popup=document.getElementById('qdial-popup');
+  popup.style.display='block';
+  popup.style.animation='none';
+  requestAnimationFrame(()=>{ popup.style.animation='popIn .18s cubic-bezier(.4,0,.2,1)'; });
+};
+
+window.closeQuickDial=function(){
+  document.getElementById('qdial-bg').style.display='none';
+  document.getElementById('qdial-popup').style.display='none';
+  _qdialId=null;
+};
+
+/* Tap phone number — direct dial without recording */
+window.qdialDirect=function(){
+  const c=contacts.find(x=>x.id===_qdialId);
+  if(!c||!c.phone) return;
+  closeQuickDial();
+  window.location.href='tel:'+c.phone;
+};
+
+/* 📞 Call button — opens note modal then dials */
+window.qdialCall=function(){
+  const id=_qdialId;
+  closeQuickDial();
+  recordCall(id);
+};
+
+/* 💬 WA */
+window.qdialWA=function(){
+  const id=_qdialId;
+  closeQuickDial();
+  openWA(id);
+};
+
+/* ✉️ SMS */
+window.qdialSMS=function(){
+  const id=_qdialId;
+  closeQuickDial();
+  sendSMS(id);
 };
 
 /* ──────── Actions ──────── */

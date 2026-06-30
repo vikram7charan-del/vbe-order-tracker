@@ -713,11 +713,11 @@ select option{background:#0d1526}
 @keyframes due-soon-pulse{0%,100%{box-shadow:0 12px 30px rgba(0,0,0,.5),0 0 0 0 rgba(251,146,60,.0)}50%{box-shadow:0 12px 30px rgba(0,0,0,.5),0 0 0 6px rgba(251,146,60,.25)}}
 
 .mb-strip{
-  background:linear-gradient(90deg,rgba(212,160,23,0.22),rgba(212,160,23,0.04) 75%);
-  border-bottom:1px solid rgba(212,160,23,0.32);
-  padding:5px 12px;
+  background:linear-gradient(90deg,rgba(212,160,23,0.18),rgba(212,160,23,0.03) 75%);
+  border-bottom:1px solid rgba(212,160,23,0.28);
+  padding:3px 10px;
   display:flex;align-items:center;justify-content:space-between;
-  font-size:9.5px;font-weight:800;letter-spacing:1px;
+  font-size:9px;font-weight:800;letter-spacing:.8px;
 }
 .mb-strip.ok{background:linear-gradient(90deg,rgba(16,185,129,0.15),rgba(6,182,212,0.05));border-color:rgba(16,185,129,0.25)}
 .mb-strip.warn{background:linear-gradient(90deg,rgba(245,158,11,0.18),rgba(217,119,6,0.05));border-color:rgba(245,158,11,0.3)}
@@ -731,30 +731,30 @@ select option{background:#0d1526}
 .mb-strip.warn .mb-strip-right{color:#f59e0b}
 .mb-strip.over .mb-strip-right{color:#ef4444}
 
-/* ── Stage Pipeline ── */
-.mb-pipeline{display:flex;align-items:center;padding:0 14px 0 19px;height:22px;gap:0;background:rgba(0,0,0,.18)}
-.mb-pipe-dot{width:7px;height:7px;border-radius:50%;border:1.5px solid #1e3a5f;background:#050a14;flex-shrink:0;transition:all .25s}
-.mb-pipe-dot.done{background:#10b981;border-color:#10b981;box-shadow:0 0 4px #10b98166}
-.mb-pipe-dot.current{width:9px;height:9px;background:#6366f1;border-color:#a5b4fc;box-shadow:0 0 7px #6366f1cc}
-.mb-pipe-dot.delivered{width:9px;height:9px;background:#f59e0b;border-color:#fbbf24;box-shadow:0 0 7px #f59e0bcc}
-.mb-pipe-line{flex:1;height:2px;background:#1e293b}
+/* ── Stage Pipeline — compact ── */
+.mb-pipeline{display:flex;align-items:center;padding:0 12px 0 16px;height:14px;gap:0;background:rgba(0,0,0,.15)}
+.mb-pipe-dot{width:5px;height:5px;border-radius:50%;border:1.5px solid #1e3a5f;background:#050a14;flex-shrink:0;transition:all .2s}
+.mb-pipe-dot.done{background:#10b981;border-color:#10b981;box-shadow:0 0 3px #10b98166}
+.mb-pipe-dot.current{width:7px;height:7px;background:#6366f1;border-color:#a5b4fc;box-shadow:0 0 5px #6366f1cc}
+.mb-pipe-dot.delivered{width:7px;height:7px;background:#f59e0b;border-color:#fbbf24;box-shadow:0 0 5px #f59e0bcc}
+.mb-pipe-line{flex:1;height:1.5px;background:#1e293b}
 .mb-pipe-line.done{background:#10b981}
 /* ── Search Highlight ── */
 mark.srch-hl{background:#f59e0b44;color:#fbbf24;border-radius:2px;padding:0 1px;font-style:normal}
 
 .mb-body{
-  padding:9px 11px 8px;cursor:pointer;
-  display:flex;gap:9px;align-items:stretch;
+  padding:7px 9px 6px;cursor:pointer;
+  display:flex;gap:7px;align-items:stretch;
   overflow:hidden;
 }
 .mb-task-block{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden;word-wrap:break-word;overflow-wrap:break-word}
-.mb-task-head{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.mb-task-head{display:flex;align-items:center;gap:6px;margin-bottom:3px}
 .mb-emoji{
-  width:38px;height:38px;border-radius:11px;
+  width:30px;height:30px;border-radius:9px;
   display:flex;align-items:center;justify-content:center;
-  font-size:19px;flex-shrink:0;
-  border:1.5px solid rgba(212,160,23,0.40);
-  box-shadow:0 4px 10px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.18);
+  font-size:15px;flex-shrink:0;
+  border:1.5px solid rgba(212,160,23,0.35);
+  box-shadow:0 3px 7px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.15);
 }
 .mb-emoji.fridge{background:linear-gradient(135deg,#0ea5e9,#3b82f6)}
 .mb-emoji.fan{background:linear-gradient(135deg,#10b981,#06b6d4)}
@@ -768,31 +768,31 @@ mark.srch-hl{background:#f59e0b44;color:#fbbf24;border-radius:2px;padding:0 1px;
 .mb-emoji.payment{background:linear-gradient(135deg,#10b981,#15803d)}
 .mb-emoji.default{background:linear-gradient(135deg,#d4a017,#8b6914)}
 
-.mb-staff-line{font-size:11px;color:#9FB4CA;font-weight:700;letter-spacing:.2px}
+.mb-staff-line{font-size:10px;color:#9FB4CA;font-weight:700;letter-spacing:.2px}
 .mb-staff-line b{color:#F0C75E}
 .mb-title{
-  font-size:17px;font-weight:800;color:#F6F9FC;line-height:1.32;
-  letter-spacing:-0.1px;margin-top:1px;
+  font-size:14px;font-weight:800;color:#F6F9FC;line-height:1.3;
+  letter-spacing:-0.1px;margin-top:0;
   word-break:break-word;
   text-shadow:0 1px 2px rgba(0,0,0,.35);
 }
 
-/* Vertical action rail - समय दर्पण themed */
+/* Vertical action rail — compact */
 .mb-rail{
-  display:flex;flex-direction:column;gap:6px;
+  display:flex;flex-direction:column;gap:4px;
   flex-shrink:0;justify-content:center;
 }
 .mb-rail-btn{
-  width:37px;height:34px;border-radius:10px;
+  width:32px;height:28px;border-radius:8px;
   display:flex;align-items:center;justify-content:center;
-  border:1px solid rgba(255,255,255,.10);cursor:pointer;font-size:15px;position:relative;
+  border:1px solid rgba(255,255,255,.10);cursor:pointer;font-size:13px;position:relative;
   font-family:inherit;
-  box-shadow:0 3px 8px rgba(0,0,0,.40), inset 0 1px 0 rgba(255,255,255,.15);
+  box-shadow:0 2px 6px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.12);
 }
 .mb-rail-time{
   background:linear-gradient(135deg,#d4a017,#8b6914);
   color:#fff;
-  box-shadow:0 4px 12px rgba(212,160,23,0.45);
+  box-shadow:0 3px 9px rgba(212,160,23,0.4);
   position:relative;
 }
 .mb-rail-time::before{ content:none; display:none; }
@@ -800,14 +800,14 @@ mark.srch-hl{background:#f59e0b44;color:#fbbf24;border-radius:2px;padding:0 1px;
 .mb-rail-gcal{
   background:linear-gradient(135deg,#1a73e8,#4285f4);
   color:#fff;
-  box-shadow:0 4px 12px rgba(26,115,232,0.5);
+  box-shadow:0 3px 9px rgba(26,115,232,0.4);
   position:relative;
-  font-size:18px;
+  font-size:14px;
 }
 .mb-rail-gcal::before{ content:none; display:none; }
 .mb-rail-gcal:active{
   transform:scale(0.95);
-  box-shadow:0 2px 6px rgba(26,115,232,0.7);
+  box-shadow:0 2px 5px rgba(26,115,232,0.6);
 }
 .mb-rail-now{background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff}
 .mb-rail-wa{background:#16a34a;color:#fff}
@@ -849,26 +849,26 @@ mark.srch-hl{background:#f59e0b44;color:#fbbf24;border-radius:2px;padding:0 1px;
 
 /* Status line */
 .mb-status{
-  display:flex;align-items:center;gap:9px;
-  padding:6px 12px;
-  background:rgba(6,18,32,0.75);
-  border-top:1px dashed rgba(212,160,23,.28);
-  font-size:11px;
+  display:flex;align-items:center;gap:7px;
+  padding:4px 10px;
+  background:rgba(6,18,32,0.70);
+  border-top:1px solid rgba(212,160,23,.18);
+  font-size:10px;
 }
 .mb-status-stage{
   color:#93c5fd;font-weight:700;
-  display:flex;align-items:center;gap:4px;
-  white-space:nowrap;
+  display:flex;align-items:center;gap:3px;
+  white-space:nowrap;font-size:9.5px;
 }
-.mb-status-bar{flex:1;height:4px;background:#1e293b;border-radius:2px;position:relative;overflow:hidden}
+.mb-status-bar{flex:1;height:3px;background:#1e293b;border-radius:2px;position:relative;overflow:hidden}
 .mb-status-bar-fill{
   position:absolute;left:0;top:0;height:100%;
   border-radius:2px;transition:width .5s;
 }
 .mb-status-pct{
-  color:#fff;font-weight:800;font-family:monospace;font-size:12px;
+  color:#fff;font-weight:800;font-family:monospace;font-size:10px;
 }
-.mb-status-tap{color:#64748b;font-size:10px}
+.mb-status-tap{color:#64748b;font-size:9px}
 
 /* ═══════════════════════════════
    EXPANDED PANEL
@@ -5380,26 +5380,24 @@ function renderList(){
       ${cat ? `<div style="display:inline-flex;align-items:center;gap:3px;background:${cat.color}18;border:1px solid ${cat.color}44;color:${cat.color};border-radius:5px;padding:1px 6px;font-size:9px;font-weight:700;margin-top:4px;max-width:fit-content"><span style="font-size:10px">${cat.emoji}</span>${esc(cat.label)}</div>` : ''}
       ${o.note?`<div style="font-size:11px;color:#94a3b8;margin-top:4px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">📝 ${esc(o.note)}</div>`:''}
       ${o.stage!=='delivered' ? `
-      <!-- ⚡ Quick action row — Staff assign + Diary category + Deliver -->
-      <div class="mb-quick" onclick="event.stopPropagation()" style="flex-direction:column;gap:4px">
-        <!-- Row 1: Staff quick-assign buttons -->
-        <div style="display:flex;gap:4px;width:100%">
-          <button onclick="event.stopPropagation();quickAssignStaff('${o.id}','Vikram Charan','9509553600')" style="flex:1;background:${o.staff==='Vikram Charan'?'linear-gradient(135deg,#1e3a8a,#3b82f6)':'#1e293b'};border:1.5px solid ${o.staff==='Vikram Charan'?'#3b82f6':'#334155'};color:${o.staff==='Vikram Charan'?'#fff':'#64748b'};border-radius:7px;padding:5px 2px;font-size:10px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation">👤 विक्रम</button>
-          <button onclick="event.stopPropagation();quickAssignStaff('${o.id}','Manoj Charan','8696283600')" style="flex:1;background:${o.staff==='Manoj Charan'?'linear-gradient(135deg,#7c2d12,#f97316)':'#1e293b'};border:1.5px solid ${o.staff==='Manoj Charan'?'#f97316':'#334155'};color:${o.staff==='Manoj Charan'?'#fff':'#64748b'};border-radius:7px;padding:5px 2px;font-size:10px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation">👤 मनोज</button>
-          <button onclick="event.stopPropagation();quickAssignStaff('${o.id}','Kailash Singh','8107093001')" style="flex:1;background:${o.staff==='Kailash Singh'?'linear-gradient(135deg,#713f12,#eab308)':'#1e293b'};border:1.5px solid ${o.staff==='Kailash Singh'?'#eab308':'#334155'};color:${o.staff==='Kailash Singh'?'#fff':'#64748b'};border-radius:7px;padding:5px 2px;font-size:10px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation">👤 कैलाश</button>
-          <button onclick="event.stopPropagation();quickAssignStaff('${o.id}','Swaroop Sa','9166753417')" style="flex:1;background:${o.staff==='Swaroop Sa'?'linear-gradient(135deg,#052e16,#22c55e)':'#1e293b'};border:1.5px solid ${o.staff==='Swaroop Sa'?'#22c55e':'#334155'};color:${o.staff==='Swaroop Sa'?'#fff':'#64748b'};border-radius:7px;padding:5px 2px;font-size:10px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation">👤 स्वरूप</button>
+      <!-- ⚡ Quick actions — compact 2-row chip design -->
+      <div onclick="event.stopPropagation()" style="display:flex;flex-direction:column;gap:3px;margin-top:5px">
+        <!-- Row 1: Staff (4 chips) + Category (4 chips) as one scrollable line -->
+        <div style="display:flex;gap:3px;width:100%;overflow:hidden">
+          <button onclick="event.stopPropagation();quickAssignStaff('${o.id}','Vikram Charan','9509553600')" style="flex:1;background:${o.staff==='Vikram Charan'?'linear-gradient(135deg,#1e3a8a,#3b82f6)':'rgba(30,41,59,.8)'};border:1px solid ${o.staff==='Vikram Charan'?'#3b82f6':'#334155'};color:${o.staff==='Vikram Charan'?'#fff':'#64748b'};border-radius:5px;padding:3px 1px;font-size:9px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation;line-height:1.2">विक्रम</button>
+          <button onclick="event.stopPropagation();quickAssignStaff('${o.id}','Manoj Charan','8696283600')" style="flex:1;background:${o.staff==='Manoj Charan'?'linear-gradient(135deg,#7c2d12,#f97316)':'rgba(30,41,59,.8)'};border:1px solid ${o.staff==='Manoj Charan'?'#f97316':'#334155'};color:${o.staff==='Manoj Charan'?'#fff':'#64748b'};border-radius:5px;padding:3px 1px;font-size:9px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation;line-height:1.2">मनोज</button>
+          <button onclick="event.stopPropagation();quickAssignStaff('${o.id}','Kailash Singh','8107093001')" style="flex:1;background:${o.staff==='Kailash Singh'?'linear-gradient(135deg,#713f12,#eab308)':'rgba(30,41,59,.8)'};border:1px solid ${o.staff==='Kailash Singh'?'#eab308':'#334155'};color:${o.staff==='Kailash Singh'?'#fff':'#64748b'};border-radius:5px;padding:3px 1px;font-size:9px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation;line-height:1.2">कैलाश</button>
+          <button onclick="event.stopPropagation();quickAssignStaff('${o.id}','Swaroop Sa','9166753417')" style="flex:1;background:${o.staff==='Swaroop Sa'?'linear-gradient(135deg,#052e16,#22c55e)':'rgba(30,41,59,.8)'};border:1px solid ${o.staff==='Swaroop Sa'?'#22c55e':'#334155'};color:${o.staff==='Swaroop Sa'?'#fff':'#64748b'};border-radius:5px;padding:3px 1px;font-size:9px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation;line-height:1.2">स्वरूप</button>
+          <div style="width:1px;background:#334155;flex-shrink:0;margin:2px 1px;border-radius:1px"></div>
+          <button onclick="event.stopPropagation();quickSetCategory('${o.id}','followup')" style="flex:1;background:${o.category==='followup'?'linear-gradient(135deg,#0e4f5c,#06b6d4)':'rgba(30,41,59,.8)'};border:1px solid ${o.category==='followup'?'#06b6d4':'#334155'};color:${o.category==='followup'?'#fff':'#64748b'};border-radius:5px;padding:3px 1px;font-size:8.5px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation;line-height:1.2">🔄फॉलो</button>
+          <button onclick="event.stopPropagation();quickSetCategory('${o.id}','gem')" style="flex:1;background:${o.category==='gem'?'linear-gradient(135deg,#052e16,#10b981)':'rgba(30,41,59,.8)'};border:1px solid ${o.category==='gem'?'#10b981':'#334155'};color:${o.category==='gem'?'#fff':'#64748b'};border-radius:5px;padding:3px 1px;font-size:8.5px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation;line-height:1.2">💻GeM</button>
+          <button onclick="event.stopPropagation();quickSetCategory('${o.id}','market')" style="flex:1;background:${o.category==='market'?'linear-gradient(135deg,#78350f,#f59e0b)':'rgba(30,41,59,.8)'};border:1px solid ${o.category==='market'?'#f59e0b':'#334155'};color:${o.category==='market'?'#fff':'#64748b'};border-radius:5px;padding:3px 1px;font-size:8.5px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation;line-height:1.2">🛒Mkt</button>
+          <button onclick="event.stopPropagation();quickSetCategory('${o.id}','kal')" style="flex:1;background:${o.category==='kal'?'linear-gradient(135deg,#1e1b4b,#a78bfa)':'rgba(30,41,59,.8)'};border:1px solid ${o.category==='kal'?'#a78bfa':'#334155'};color:${o.category==='kal'?'#fff':'#64748b'};border-radius:5px;padding:3px 1px;font-size:8.5px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation;line-height:1.2">📅कल</button>
         </div>
-        <!-- Row 2: Diary category buttons — जिस डायरी में है वह highlight होगा -->
-        <div style="display:flex;gap:4px;width:100%">
-          <button onclick="event.stopPropagation();quickSetCategory('${o.id}','followup')" style="flex:1;background:${o.category==='followup'?'linear-gradient(135deg,#0e4f5c,#06b6d4)':'#1e293b'};border:1.5px solid ${o.category==='followup'?'#06b6d4':'#334155'};color:${o.category==='followup'?'#fff':'#64748b'};border-radius:7px;padding:5px 2px;font-size:9px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation">🔄 फॉलो अप</button>
-          <button onclick="event.stopPropagation();quickSetCategory('${o.id}','gem')" style="flex:1;background:${o.category==='gem'?'linear-gradient(135deg,#052e16,#10b981)':'#1e293b'};border:1.5px solid ${o.category==='gem'?'#10b981':'#334155'};color:${o.category==='gem'?'#fff':'#64748b'};border-radius:7px;padding:5px 2px;font-size:9px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation">💻 GeM</button>
-          <button onclick="event.stopPropagation();quickSetCategory('${o.id}','market')" style="flex:1;background:${o.category==='market'?'linear-gradient(135deg,#78350f,#f59e0b)':'#1e293b'};border:1.5px solid ${o.category==='market'?'#f59e0b':'#334155'};color:${o.category==='market'?'#fff':'#64748b'};border-radius:7px;padding:5px 2px;font-size:9px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation">🛒 Market</button>
-          <button onclick="event.stopPropagation();quickSetCategory('${o.id}','kal')" style="flex:1;background:${o.category==='kal'?'linear-gradient(135deg,#1e1b4b,#a78bfa)':'#1e293b'};border:1.5px solid ${o.category==='kal'?'#a78bfa':'#334155'};color:${o.category==='kal'?'#fff':'#64748b'};border-radius:7px;padding:5px 2px;font-size:9px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation">📅 कल</button>
-        </div>
-        <!-- Row 3: Call + Deliver -->
-        <div style="display:flex;gap:4px;width:100%">
-          ${(o.staffPhone || o.phone) ? `<button onclick="event.stopPropagation();openCallReminder('${o.id}')" style="flex:1;background:linear-gradient(135deg,#831843,#ec4899);border:none;color:#fff;border-radius:7px;padding:6px 8px;font-size:10px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation">📞 Call</button>` : ''}
-          <button onclick="event.stopPropagation();mbSetStage('${o.id}','delivered')" style="flex:2;background:linear-gradient(135deg,#052e16,#10b981);border:1.5px solid rgba(16,185,129,.5);color:#6ee7b7;border-radius:7px;padding:6px 8px;font-size:10px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation">🎉 Deliver</button>
+        <!-- Row 2: Call + Deliver -->
+        <div style="display:flex;gap:3px;width:100%">
+          ${(o.staffPhone || o.phone) ? `<button onclick="event.stopPropagation();openCallReminder('${o.id}')" style="flex:1;background:linear-gradient(135deg,#831843,#ec4899);border:none;color:#fff;border-radius:6px;padding:5px 4px;font-size:9.5px;font-weight:900;cursor:pointer;font-family:inherit;touch-action:manipulation;letter-spacing:.2px">📞 Call</button>` : ''}
+          <button onclick="event.stopPropagation();mbSetStage('${o.id}','delivered')" style="flex:2;background:linear-gradient(135deg,#052e16,#059669);border:1px solid rgba(5,150,105,.5);color:#6ee7b7;border-radius:6px;padding:5px 4px;font-size:9.5px;font-weight:900;cursor:pointer;font-family:inherit;touch-action:manipulation;letter-spacing:.2px">🎉 Deliver</button>
         </div>
       </div>` : ''}
       <!-- 💬 LAST COMMENT PREVIEW — accountability ke liye card mein hi दिखे, time + author + text -->
@@ -5437,9 +5435,9 @@ function renderList(){
         ? `<button class="mb-rail-btn" style="background:linear-gradient(135deg,#92400e,#f59e0b);color:#fff" onclick="event.stopPropagation();toggleNow('${o.id}',false)" title="Active में जाओ">🔥</button>`
         : `<button class="mb-rail-btn mb-rail-now" onclick="event.stopPropagation();toggleNow('${o.id}',true)" title="अभी करना है">⚡</button>`
       }
-      <button class="mb-rail-btn mb-rail-wa" onclick="event.stopPropagation();openWaEditor('${o.id}')" title="Party को WhatsApp · नाम/नंबर यहाँ से बदलें" style="height:auto;min-height:34px;padding:3px 2px;flex-direction:column;gap:1px;display:flex;align-items:center;justify-content:center">
-        <span style="font-size:14px;line-height:1">📱</span>
-        <span style="font-size:7px;font-weight:800;line-height:1.2;max-width:35px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:${o.phone?'#bbf7d0':'#fca5a5'}">${o.phone ? (o.customer||'').split(' ')[0].slice(0,8) : 'No #'}</span>
+      <button class="mb-rail-btn mb-rail-wa" onclick="event.stopPropagation();openWaEditor('${o.id}')" title="Party को WhatsApp · नाम/नंबर यहाँ से बदलें" style="height:auto;min-height:28px;padding:2px 1px;flex-direction:column;gap:0;display:flex;align-items:center;justify-content:center">
+        <span style="font-size:12px;line-height:1">📱</span>
+        <span style="font-size:6px;font-weight:800;line-height:1.2;max-width:30px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:${o.phone?'#bbf7d0':'#fca5a5'}">${o.phone ? (o.customer||'').split(' ')[0].slice(0,6) : 'No #'}</span>
       </button>
     </div>
   </div>

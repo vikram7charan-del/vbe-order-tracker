@@ -407,6 +407,7 @@ body{
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 const FB_CFG = {
   apiKey:'AIzaSyBCe5DKNKcthOl4umprfRm2QBfbVaFORg8',
@@ -420,8 +421,9 @@ const APPROVED_UID = 'tjkS5tg2vMflpndGHSQRjFYgRv03';
 
 const app  = initializeApp(FB_CFG, 'call-tracker');
 const auth = getAuth(app);
+const db   = getFirestore(app);
+const CT_COL = collection(db, 'vbe_call_tracker');
 
-const STORAGE_KEY = 'vbe_calltracker';
 const COLORS = ['#3b82f6','#f97316','#eab308','#22c55e','#ec4899','#8b5cf6','#06b6d4','#f43f5e'];
 
 let contacts = [];
@@ -459,16 +461,28 @@ function showLogin(){
 function initApp(){
   document.getElementById('s-login').style.display='none';
   document.getElementById('s-app').style.display='block';
-  loadData(); buildColorPicker(); buildIntervalPicker();
-  render(); startTick(); askNotifPermission();
+  buildColorPicker(); buildIntervalPicker();
+  startFirestoreSync(); startTick(); askNotifPermission();
 }
 
-/* ──────── Data ──────── */
-function loadData(){
-  try{ contacts=JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]'); }
-  catch(e){ contacts=[]; }
+/* ──────── Firestore sync ──────── */
+let _fsUnsub=null;
+function startFirestoreSync(){
+  if(_fsUnsub) _fsUnsub();
+  _fsUnsub=onSnapshot(CT_COL, snap=>{
+    contacts=snap.docs.map(d=>d.data());
+    render();
+  }, ()=>toast('⚠️ Sync error — net check करें','err'));
 }
-function persist(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(contacts)); }
+async function fbSave(c){
+  try{ await setDoc(doc(db,'vbe_call_tracker',c.id), c); }
+  catch(e){ toast('⚠️ Save error','err'); }
+}
+async function fbDelete(id){
+  try{ await deleteDoc(doc(db,'vbe_call_tracker',id)); }
+  catch(e){ toast('⚠️ Delete error','err'); }
+}
+
 function genId(){ return 'CT'+Date.now().toString(36).toUpperCase()+Math.random().toString(36).slice(2,4).toUpperCase(); }
 
 function normalizePhone(raw){
@@ -821,8 +835,9 @@ function doRecordCall(dial){
   c.nextCallAt=new Date(Date.now()+c.intervalMins*60*1000).toISOString();
   c.callLog=c.callLog||[]; c.callLog.push({at:now,note});
   _notifFired.delete(c.id);
-  persist(); closeModal('m-call'); render();
+  closeModal('m-call'); render();
   toast(`✅ ${c.name} की call — ${c.intervalMins}min reminder`);
+  fbSave(c);
   if(dial&&c.phone) setTimeout(()=>{ window.location.href='tel:'+c.phone; },400);
 }
 
@@ -844,7 +859,7 @@ window.togglePin=function(id){
   const c=contacts.find(x=>x.id===id);
   if(!c) return;
   c.pinned=!c.pinned;
-  persist(); render();
+  render(); fbSave(c);
   toast(c.pinned?`📌 ${c.name} pinned`:`📍 ${c.name} unpinned`);
 };
 
@@ -877,7 +892,7 @@ window.delContact=function(id){
   if(!confirm(`"${c.name}" को हटाएं?`)) return;
   contacts=contacts.filter(x=>x.id!==id);
   _expandedIds.delete(id);
-  persist(); render(); toast('🗑️ Contact हटाया','warn');
+  render(); fbDelete(id); toast('🗑️ Contact हटाया','warn');
 };
 
 window.openAddModal=function(){
@@ -898,14 +913,17 @@ window.saveContact=function(){
   const note=(document.getElementById('f-note').value||'').trim();
   if(!name){ toast('⚠️ नाम जरूरी है','err'); return; }
   if(!phone||phone.length<10){ toast('⚠️ सही 10 अंकों का नंबर डालें','err'); return; }
+  let saved;
   if(editingId){
     const c=contacts.find(x=>x.id===editingId);
-    if(c) Object.assign(c,{name,phone,note,intervalMins:selInterval,color:selColor});
+    if(c){ Object.assign(c,{name,phone,note,intervalMins:selInterval,color:selColor}); saved=c; }
   } else {
-    contacts.push({id:genId(),name,phone,note,color:selColor,intervalMins:selInterval,lastCallAt:null,nextCallAt:null,callLog:[],active:true,pinned:false,createdAt:new Date().toISOString()});
+    saved={id:genId(),name,phone,note,color:selColor,intervalMins:selInterval,lastCallAt:null,nextCallAt:null,callLog:[],pinned:false,createdAt:new Date().toISOString()};
+    contacts.push(saved);
   }
-  persist(); closeModal('m-add'); render();
+  closeModal('m-add'); render();
   toast(editingId?`✅ ${name} updated!`:`✅ ${name} जोड़ा!`);
+  if(saved) fbSave(saved);
 };
 
 /* ──────── Pickers ──────── */

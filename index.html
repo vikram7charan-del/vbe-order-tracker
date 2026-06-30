@@ -1458,12 +1458,58 @@ mark.srch-hl{background:#f59e0b44;color:#fbbf24;border-radius:2px;padding:0 1px;
   <div id="vbe-offline-bar" style="display:none;background:#7f1d1d;color:#fca5a5;font-size:10px;font-weight:700;text-align:center;padding:4px 12px;letter-spacing:.5px">
     📴 Offline — Data cached है, internet वापस आने पर sync होगा
   </div>
-  <div class="s-header" style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-    <div class="s-sub" style="flex:1">OPERATIONS · BARMER REGION · SUPPLY CHAIN · <span style="color:rgba(245,158,11,.5);font-size:9px">⚡ सारे फीचर नीचे-बाईं तरफ</span></div>
+  <div class="s-header" style="display:flex;align-items:center;justify-content:space-between;gap:6px">
+    <!-- Follow-up contacts strip (reads from vbe_calltracker localStorage) -->
+    <div id="fup-strip" style="flex:1;display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;padding:2px 0 2px" onclick="window.open('./call-tracker.html','_self')">
+      <div id="fup-chips" style="display:flex;gap:6px;align-items:center;min-width:0"></div>
+    </div>
+    <a href="./call-tracker.html" title="Call Tracker" style="flex-shrink:0;display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;background:#0d1526;border:1px solid #1e3a5f;color:#94a3b8;font-size:15px;text-decoration:none">📞</a>
     <button id="vbe-compact-toggle" onclick="toggleCompactMode()" title="Compact / Card view">☰</button>
     <button id="vbe-bulk-toggle" onclick="toggleBulkMode()" title="Bulk select">⊡</button>
     <button onclick="openAdd()" style="flex-shrink:0;background:linear-gradient(135deg,#f59e0b,#ef4444);border:none;border-radius:50%;width:34px;height:34px;color:#fff;font-size:22px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(239,68,68,.5);line-height:1">+</button>
   </div>
+  <style>#fup-strip::-webkit-scrollbar{display:none}</style>
+  <script>
+  (function(){
+    function renderFupStrip(){
+      var chips=document.getElementById('fup-chips');
+      if(!chips) return;
+      var data; try{ data=JSON.parse(localStorage.getItem('vbe_calltracker')||'[]'); } catch(e){ data=[]; }
+      var active=data.filter(function(c){ return c.active!==false; });
+      if(!active.length){
+        chips.innerHTML='<span style="font-size:10px;color:#334155;white-space:nowrap">📞 Call Tracker खाली है</span>';
+        return;
+      }
+      var now=Date.now();
+      // Sort: overdue first, then due-soon, then ok
+      active.sort(function(a,b){
+        var oa=!a.nextCallAt?2:now>=new Date(a.nextCallAt).getTime()?0:now>=new Date(a.nextCallAt).getTime()-5*60*1000?1:3;
+        var ob=!b.nextCallAt?2:now>=new Date(b.nextCallAt).getTime()?0:now>=new Date(b.nextCallAt).getTime()-5*60*1000?1:3;
+        return oa-ob;
+      });
+      chips.innerHTML=active.map(function(c){
+        var nxt=c.nextCallAt?new Date(c.nextCallAt).getTime():null;
+        var isOver=nxt&&now>=nxt;
+        var isDue=nxt&&!isOver&&now>=nxt-5*60*1000;
+        var dotC=isOver?'#ef4444':isDue?'#fbbf24':c.lastCallAt?'#22c55e':'#475569';
+        var ring=isOver?'2px solid #ef4444':isDue?'2px solid #fbbf24':'2px solid #334155';
+        var sinceMs=c.lastCallAt?now-new Date(c.lastCallAt).getTime():-1;
+        var since=sinceMs<0?'नया':sinceMs<3600000?Math.floor(sinceMs/60000)+'m':Math.floor(sinceMs/3600000)+'h';
+        var init=(c.name||'?')[0].toUpperCase();
+        return '<div style="display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;flex-shrink:0" onclick="event.stopPropagation();window.open(\'./call-tracker.html\',\'_self\')">'
+          +'<div style="width:32px;height:32px;border-radius:50%;background:'+(c.color||'#3b82f6')+';border:'+ring+';display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#fff;position:relative'+(isOver?';animation:none':'')+'">'
+          +init
+          +'<div style="position:absolute;top:-1px;right:-1px;width:10px;height:10px;border-radius:50%;background:'+dotC+';border:2px solid #050a14"></div>'
+          +'</div>'
+          +'<div style="font-size:9px;color:#64748b;white-space:nowrap;max-width:34px;overflow:hidden;text-overflow:ellipsis">'+since+'</div>'
+          +'</div>';
+      }).join('');
+    }
+    renderFupStrip();
+    setInterval(renderFupStrip, 30000);
+    window._renderFupStrip=renderFupStrip;
+  })();
+  </script>
   <!-- Badge spans — JS इन्हें update करता है, ये hidden हैं -->
   <div style="display:none" aria-hidden="true">
     <button id="archive-btn"></button>

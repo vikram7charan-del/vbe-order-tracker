@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#050a14">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VBE Calls">
+<meta name="robots" content="noindex,nofollow">
+<title>VBE – Call Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{height:100%}
+body{
+  background:#050a14;color:#e2e8f0;
+  font-family:'Noto Sans Devanagari',sans-serif;
+  min-height:100dvh;max-width:480px;margin:0 auto;
+  padding-bottom:90px;
+}
+
+/* ── Login ── */
+.login-wrap{padding:44px 20px 0}
+.login-logo{text-align:center;margin-bottom:28px}
+.login-logo .ico{font-size:48px;margin-bottom:8px}
+.login-logo .title{font-size:20px;font-weight:900;color:#f59e0b;letter-spacing:.3px}
+.login-logo .sub{font-size:11px;color:#475569;margin-top:4px}
+.lbl{font-size:11px;color:#64748b;font-weight:700;letter-spacing:.5px;margin-bottom:6px;display:block;text-transform:uppercase}
+.inp{background:#0d1526;border:1.5px solid #1e3a5f;color:#e2e8f0;border-radius:10px;padding:12px 13px;font-size:15px;font-family:inherit;width:100%;outline:none;transition:border-color .15s}
+.inp:focus{border-color:#3b82f6}
+.fg{margin-bottom:14px}
+.btn-login{width:100%;padding:15px;border:none;border-radius:12px;background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;touch-action:manipulation}
+.login-err{color:#f87171;font-size:12px;text-align:center;margin-top:10px;min-height:18px}
+
+/* ── App Header (sticky) ── */
+.app-hdr{
+  background:linear-gradient(180deg,#0b1426 0%,#050a14 100%);
+  border-bottom:1px solid #1e3a5f;
+  padding:12px 14px 0;
+  position:sticky;top:0;z-index:100;
+}
+.hdr-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.hdr-title{font-size:16px;font-weight:900;color:#f59e0b;letter-spacing:.2px}
+.hdr-sub{font-size:10px;color:#475569;margin-top:2px}
+.hdr-btns{display:flex;gap:8px;align-items:center}
+.btn-add{
+  width:36px;height:36px;border-radius:50%;
+  background:linear-gradient(135deg,#f59e0b,#ef4444);
+  border:none;color:#fff;font-size:22px;font-weight:900;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 14px rgba(239,68,68,.4);touch-action:manipulation;
+}
+.btn-back{font-size:11px;color:#94a3b8;text-decoration:none;background:#0d1526;border:1px solid #1e3a5f;border-radius:8px;padding:6px 11px;font-weight:700}
+
+/* ── Stats row ── */
+.stats{display:flex;gap:7px;margin-bottom:10px}
+.stat{flex:1;background:#0d1526;border:1px solid #1e3a5f;border-radius:10px;padding:8px 4px;text-align:center}
+.stat-n{font-size:22px;font-weight:900;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat-n.red{color:#f87171}
+.stat-n.amber{color:#fbbf24}
+.stat-n.green{color:#4ade80}
+.stat-n.blue{color:#60a5fa}
+.stat-l{font-size:9px;color:#475569;margin-top:2px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+
+/* ── Horizontal Contact Strip ── */
+.strip{
+  display:flex;gap:10px;overflow-x:auto;
+  padding:8px 14px 12px;
+  scrollbar-width:none;-ms-overflow-style:none;
+}
+.strip::-webkit-scrollbar{display:none}
+.strip-chip{
+  display:flex;flex-direction:column;align-items:center;
+  gap:4px;cursor:pointer;flex-shrink:0;width:60px;
+}
+.s-avatar{
+  width:46px;height:46px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:900;color:#fff;
+  border:2.5px solid transparent;position:relative;
+}
+.s-avatar.overdue{border-color:#ef4444;animation:pulse-r 1.2s ease-in-out infinite}
+.s-avatar.due-soon{border-color:#fbbf24;animation:pulse-a 1.5s ease-in-out infinite}
+.s-avatar.ok{border-color:#22c55e}
+.s-avatar.new{border-color:#334155}
+.s-dot{
+  position:absolute;top:0px;right:0px;
+  width:13px;height:13px;border-radius:50%;
+  border:2.5px solid #050a14;
+}
+.s-dot.overdue{background:#ef4444}
+.s-dot.due-soon{background:#fbbf24}
+.s-dot.ok{background:#22c55e}
+.s-dot.new{background:#475569}
+.s-name{font-size:10px;font-weight:700;color:#94a3b8;text-align:center;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.s-timer{font-size:9px;color:#64748b;text-align:center;white-space:nowrap}
+
+/* ── Section label ── */
+.sec-lbl{
+  font-size:10px;color:#475569;font-weight:700;letter-spacing:.5px;
+  text-transform:uppercase;padding:10px 14px 5px;
+  display:flex;align-items:center;gap:6px;
+}
+.sec-lbl::after{content:'';flex:1;height:1px;background:#1e3a5f}
+
+/* ── Contact Card ── */
+.card{
+  margin:0 12px 12px;
+  background:#0d1526;border:1.5px solid #1e3a5f;
+  border-radius:16px;overflow:hidden;
+  transition:border-color .2s,box-shadow .2s;
+}
+.card.overdue{border-color:rgba(239,68,68,.5);box-shadow:0 0 16px rgba(239,68,68,.12)}
+.card.due-soon{border-color:rgba(251,191,36,.4);box-shadow:0 0 12px rgba(251,191,36,.08)}
+
+/* Card header */
+.card-hdr{
+  display:flex;align-items:center;gap:12px;
+  padding:14px 14px 12px;border-bottom:1px solid #0f1e36;
+}
+.c-avatar{
+  width:48px;height:48px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;font-weight:900;color:#fff;
+}
+.c-info{flex:1;min-width:0}
+.c-name{font-size:15px;font-weight:900;color:#e2e8f0;letter-spacing:.2px}
+.c-phone{font-size:12px;color:#64748b;margin-top:2px}
+.c-note{font-size:11px;color:#94a3b8;margin-top:3px;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.status-badge{
+  font-size:9px;font-weight:900;padding:4px 8px;border-radius:7px;
+  flex-shrink:0;text-transform:uppercase;letter-spacing:.4px;align-self:flex-start;
+}
+.status-badge.overdue{background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3)}
+.status-badge.due-soon{background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.3)}
+.status-badge.ok{background:rgba(34,197,94,.1);color:#4ade80;border:1px solid rgba(34,197,94,.25)}
+.status-badge.new{background:rgba(71,85,105,.2);color:#94a3b8;border:1px solid rgba(71,85,105,.3)}
+
+/* Timer section */
+.card-timers{
+  padding:12px 14px 8px;border-bottom:1px solid #0f1e36;
+}
+.timer-row{display:flex;align-items:center;gap:0;margin-bottom:10px}
+.timer-block{flex:1;text-align:center}
+.timer-v{
+  font-size:20px;font-weight:900;line-height:1.1;
+  font-variant-numeric:tabular-nums;letter-spacing:-0.5px;
+}
+.timer-v.red{color:#f87171}
+.timer-v.amber{color:#fbbf24}
+.timer-v.green{color:#4ade80}
+.timer-v.dim{color:#334155}
+.timer-l{font-size:9px;color:#475569;margin-top:3px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.timer-sep{color:#1e3a5f;font-size:24px;flex-shrink:0;padding:0 6px}
+
+/* Progress */
+.prog-wrap{height:7px;background:#0a1525;border-radius:4px;overflow:hidden}
+.prog-bar{height:100%;border-radius:4px;transition:width .8s cubic-bezier(.4,0,.2,1),background .4s}
+.prog-info{display:flex;justify-content:space-between;align-items:center;margin-top:6px}
+.interval-tag{
+  font-size:10px;color:#64748b;background:#0a1220;
+  border:1px solid #1e3a5f;border-radius:6px;padding:2px 8px;font-weight:700;
+}
+.last-call-tag{font-size:10px;color:#475569}
+
+/* Action buttons */
+.card-actions{display:flex;gap:6px;padding:10px 12px}
+.act{
+  flex:1;padding:10px 4px;border:none;border-radius:11px;
+  font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  touch-action:manipulation;transition:opacity .15s,transform .1s;
+  white-space:nowrap;
+}
+.act:active{opacity:.7;transform:scale(.96)}
+.act-call{background:linear-gradient(135deg,#059669,#22c55e);color:#fff;box-shadow:0 3px 10px rgba(34,197,94,.3)}
+.act-wa{background:#0f2a1e;border:1.5px solid rgba(34,197,94,.3);color:#4ade80}
+.act-edit{background:#1a2540;border:1.5px solid #1e3a5f;color:#94a3b8}
+.act-del{background:#1e0f0f;border:1.5px solid rgba(239,68,68,.25);color:#f87171}
+
+/* Call log */
+.log-toggle{
+  padding:8px 14px;border-top:1px solid #0f1e36;
+  font-size:11px;color:#475569;cursor:pointer;
+  display:flex;align-items:center;justify-content:space-between;
+  touch-action:manipulation;
+}
+.log-toggle:active{color:#94a3b8}
+.log-list{padding:2px 14px 10px;display:none}
+.log-item{
+  display:flex;align-items:flex-start;gap:8px;
+  padding:8px 0;border-bottom:1px solid #0a1420;
+}
+.log-item:last-child{border-bottom:none}
+.log-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;flex-shrink:0;margin-top:3px}
+.log-when{font-size:11px;color:#94a3b8;flex-shrink:0}
+.log-note{font-size:11px;color:#64748b;font-style:italic;word-break:break-word}
+
+/* ── Modal ── */
+.modal-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,.75);
+  z-index:200;display:flex;align-items:flex-end;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.modal-bg.open{opacity:1;pointer-events:all}
+.modal-box{
+  width:100%;max-width:480px;background:#0d1526;
+  border-radius:22px 22px 0 0;border-top:1px solid #1e3a5f;
+  padding:20px 16px 44px;
+  transform:translateY(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);
+  max-height:90dvh;overflow-y:auto;
+}
+.modal-bg.open .modal-box{transform:translateY(0)}
+.modal-title{
+  font-size:16px;font-weight:900;color:#f59e0b;
+  margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;
+}
+.modal-x{font-size:20px;color:#475569;cursor:pointer;padding:4px;touch-action:manipulation}
+
+/* Interval picker */
+.int-btns{display:flex;flex-wrap:wrap;gap:6px}
+.int-btn{
+  padding:7px 11px;border-radius:9px;border:1.5px solid #1e3a5f;
+  background:#0a1220;color:#64748b;font-size:11px;font-weight:800;
+  cursor:pointer;font-family:inherit;transition:all .15s;touch-action:manipulation;
+}
+.int-btn.on{background:rgba(59,130,246,.15);border-color:#3b82f6;color:#60a5fa}
+
+/* Color picker */
+.clr-btns{display:flex;gap:9px;flex-wrap:wrap}
+.clr-btn{
+  width:34px;height:34px;border-radius:50%;border:3px solid transparent;
+  cursor:pointer;transition:border-color .15s,transform .1s;
+  touch-action:manipulation;
+}
+.clr-btn:active{transform:scale(.9)}
+.clr-btn.on{border-color:#fff;transform:scale(1.1)}
+
+.btn-save{
+  width:100%;padding:14px;border:none;border-radius:13px;
+  background:linear-gradient(135deg,#1d4ed8,#3b82f6);
+  color:#fff;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;
+  margin-top:10px;touch-action:manipulation;
+}
+.btn-confirm-call{
+  width:100%;padding:14px;border:none;border-radius:13px;
+  background:linear-gradient(135deg,#059669,#22c55e);
+  color:#fff;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;
+  margin-top:10px;touch-action:manipulation;box-shadow:0 4px 14px rgba(34,197,94,.3);
+}
+
+/* ── Empty ── */
+.empty{text-align:center;padding:52px 20px}
+.empty-ico{font-size:52px;margin-bottom:14px}
+.empty-txt{font-size:13px;color:#475569;line-height:1.7}
+
+/* ── Toast ── */
+.toast{
+  position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
+  background:#10b981;color:#fff;padding:11px 22px;border-radius:13px;
+  font-size:13px;font-weight:800;opacity:0;transition:opacity .25s;
+  white-space:nowrap;pointer-events:none;z-index:999;max-width:90vw;
+  text-align:center;
+}
+.toast.show{opacity:1}
+.toast.err{background:#dc2626}
+.toast.warn{background:#d97706}
+
+/* ── Animations ── */
+@keyframes pulse-r{
+  0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.5)}
+  60%{box-shadow:0 0 0 7px rgba(239,68,68,0)}
+}
+@keyframes pulse-a{
+  0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,.4)}
+  60%{box-shadow:0 0 0 6px rgba(251,191,36,0)}
+}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.card{animation:fadeIn .25s ease}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="s-login" style="display:none">
+  <div class="login-wrap">
+    <div class="login-logo">
+      <div class="ico">📞</div>
+      <div class="title">VBE Call Tracker</div>
+      <div class="sub">Follow-up · Accountability · Barmer</div>
+    </div>
+    <div class="fg">
+      <label class="lbl">📱 Mobile Number</label>
+      <input class="inp" id="l-mob" type="tel" placeholder="9509553600" maxlength="10" inputmode="numeric">
+    </div>
+    <div class="fg">
+      <label class="lbl">🔑 PIN</label>
+      <input class="inp" id="l-pin" type="password" placeholder="••••••" maxlength="12"
+             onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn-login" onclick="doLogin()">🔓 Login</button>
+    <div id="l-err" class="login-err"></div>
+  </div>
+</div>
+
+<!-- ══ MAIN APP ══ -->
+<div id="s-app" style="display:none">
+
+  <!-- Sticky Header -->
+  <div class="app-hdr">
+    <div class="hdr-row">
+      <div>
+        <div class="hdr-title">📞 Call Tracker</div>
+        <div class="hdr-sub" id="hdr-sub">Follow-up Accountability System</div>
+      </div>
+      <div class="hdr-btns">
+        <button class="btn-add" onclick="openAddModal()" title="नया contact">+</button>
+        <a href="./" class="btn-back">← App</a>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-n blue" id="st-total">0</div>
+        <div class="stat-l">Contacts</div>
+      </div>
+      <div class="stat">
+        <div class="stat-n red" id="st-over">0</div>
+        <div class="stat-l">🔴 Late</div>
+      </div>
+      <div class="stat">
+        <div class="stat-n amber" id="st-due">0</div>
+        <div class="stat-l">⏰ जल्दी</div>
+      </div>
+      <div class="stat">
+        <div class="stat-n green" id="st-today">0</div>
+        <div class="stat-l">✅ आज</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Horizontal Contact Strip -->
+  <div class="strip" id="strip"></div>
+
+  <!-- Contact Cards -->
+  <div id="card-list"></div>
+</div>
+
+<!-- ══ ADD / EDIT MODAL ══ -->
+<div class="modal-bg" id="m-add">
+  <div class="modal-box">
+    <div class="modal-title">
+      <span id="m-add-title">📞 नया Contact जोड़ें</span>
+      <span class="modal-x" onclick="closeModal('m-add')">✕</span>
+    </div>
+    <div class="fg">
+      <label class="lbl">👤 नाम *</label>
+      <input class="inp" id="f-name" placeholder="Ramesh Gupta, Sharma Ji, 177 MH...">
+    </div>
+    <div class="fg">
+      <label class="lbl">📱 Mobile Number *</label>
+      <input class="inp" id="f-phone" type="tel" inputmode="numeric" maxlength="10" placeholder="9876543210">
+    </div>
+    <div class="fg">
+      <label class="lbl">📝 Note (काम किस बारे में?)</label>
+      <input class="inp" id="f-note" placeholder="Sugar supply, GeM order, pending bill...">
+    </div>
+    <div class="fg">
+      <label class="lbl">⏰ हर कितने मिनट बाद Follow-up?</label>
+      <div class="int-btns" id="int-btns">
+        <button class="int-btn" data-v="5">5 min</button>
+        <button class="int-btn" data-v="10">10 min</button>
+        <button class="int-btn" data-v="15">15 min</button>
+        <button class="int-btn" data-v="20">20 min</button>
+        <button class="int-btn on" data-v="30">30 min</button>
+        <button class="int-btn" data-v="45">45 min</button>
+        <button class="int-btn" data-v="60">1 घंटा</button>
+        <button class="int-btn" data-v="90">1.5 घंटा</button>
+        <button class="int-btn" data-v="120">2 घंटे</button>
+        <button class="int-btn" data-v="180">3 घंटे</button>
+        <button class="int-btn" data-v="240">4 घंटे</button>
+        <button class="int-btn" data-v="480">8 घंटे</button>
+        <button class="int-btn" data-v="1440">कल (1 दिन)</button>
+      </div>
+    </div>
+    <div class="fg">
+      <label class="lbl">🎨 रंग चुनो</label>
+      <div class="clr-btns" id="clr-btns"></div>
+    </div>
+    <button class="btn-save" onclick="saveContact()">💾 Save करो</button>
+  </div>
+</div>
+
+<!-- ══ CALL NOTE MODAL ══ -->
+<div class="modal-bg" id="m-call">
+  <div class="modal-box">
+    <div class="modal-title">
+      <span>📞 Call Record करो</span>
+      <span class="modal-x" onclick="closeModal('m-call')">✕</span>
+    </div>
+    <div id="call-who" style="background:#0a1525;border:1px solid #1e3a5f;border-radius:12px;padding:12px 14px;margin-bottom:14px">
+      <div id="call-name" style="font-size:15px;font-weight:900;color:#e2e8f0"></div>
+      <div id="call-phone" style="font-size:12px;color:#64748b;margin-top:3px"></div>
+      <div id="call-note-prev" style="font-size:11px;color:#94a3b8;margin-top:3px;font-style:italic"></div>
+    </div>
+    <div class="fg">
+      <label class="lbl">📝 इस call में क्या बात हुई?</label>
+      <input class="inp" id="f-callnote" placeholder="price confirm, delivery 3 दिन, फिर call करना...">
+    </div>
+    <button class="btn-confirm-call" onclick="confirmCall()">✅ Call हुई — Record &amp; Dial करो</button>
+    <button class="btn-save" style="background:#1a2a40;margin-top:8px" onclick="confirmCallNoRecord()">📝 सिर्फ Record करो (dial नहीं)</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+
+const FB_CFG = {
+  apiKey:'AIzaSyBCe5DKNKcthOl4umprfRm2QBfbVaFORg8',
+  authDomain:'vbe-order-tracker-60324.firebaseapp.com',
+  projectId:'vbe-order-tracker-60324',
+  storageBucket:'vbe-order-tracker-60324.firebasestorage.app',
+  messagingSenderId:'894023456122',
+  appId:'1:894023456122:web:6ee548f0913c887c67f2c3'
+};
+const APPROVED_UID = 'tjkS5tg2vMflpndGHSQRjFYgRv03';
+
+const app  = initializeApp(FB_CFG, 'call-tracker');
+const auth = getAuth(app);
+
+/* ──────── Constants ──────── */
+const STORAGE_KEY = 'vbe_calltracker';
+const COLORS = ['#3b82f6','#f97316','#eab308','#22c55e','#ec4899','#8b5cf6','#06b6d4','#f43f5e'];
+const INTERVALS = [5,10,15,20,30,45,60,90,120,180,240,480,1440];
+
+/* ──────── State ──────── */
+let contacts = [];
+let editingId = null;
+let selInterval = 30;
+let selColor = COLORS[0];
+let pendingCallId = null;
+let _tick = null;
+let _notifFired = new Set();
+
+/* ──────── Auth ──────── */
+onAuthStateChanged(auth, u => {
+  if(u && u.uid === APPROVED_UID) initApp();
+  else showLogin();
+});
+
+window.doLogin = async function(){
+  const mob = (document.getElementById('l-mob').value||'').trim();
+  const pin = (document.getElementById('l-pin').value||'').trim();
+  const err = document.getElementById('l-err');
+  if(!mob||!pin){ err.textContent='Mobile और PIN दोनों जरूरी'; return; }
+  err.textContent='⏳ Login...';
+  try{
+    await signInWithEmailAndPassword(auth, mob+'@vbe-tracker.local', pin);
+    err.textContent='';
+  } catch(e){
+    err.textContent='❌ गलत Mobile/PIN';
+  }
+};
+
+function showLogin(){
+  document.getElementById('s-login').style.display='block';
+  document.getElementById('s-app').style.display='none';
+  setTimeout(()=>{ const m=document.getElementById('l-mob'); if(m)m.focus(); },120);
+}
+
+function initApp(){
+  document.getElementById('s-login').style.display='none';
+  document.getElementById('s-app').style.display='block';
+  loadData();
+  buildColorPicker();
+  buildIntervalPicker();
+  render();
+  startTick();
+  askNotifPermission();
+}
+
+/* ──────── Data ──────── */
+function loadData(){
+  try{ contacts=JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]'); }
+  catch(e){ contacts=[]; }
+}
+function persist(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(contacts));
+}
+function genId(){ return 'CT'+Date.now().toString(36).toUpperCase()+Math.random().toString(36).slice(2,4).toUpperCase(); }
+
+/* ──────── Status helpers ──────── */
+function status(c){
+  if(!c.nextCallAt) return 'new';
+  const diff = new Date(c.nextCallAt).getTime() - Date.now();
+  if(diff <= 0) return 'overdue';
+  if(diff <= 5*60*1000) return 'due-soon';
+  return 'ok';
+}
+
+function progress(c){
+  if(!c.lastCallAt || !c.intervalMins) return 0;
+  const elapsed = Date.now() - new Date(c.lastCallAt).getTime();
+  return Math.min(elapsed / (c.intervalMins*60*1000), 1.5);
+}
+
+function fmtDur(ms){
+  if(ms<0) return '—';
+  const m=Math.floor(ms/60000), h=Math.floor(m/60);
+  if(h>0) return h+'h '+('0'+m%60).slice(-2)+'m';
+  if(m>0) return m+' min';
+  return Math.floor(ms/1000)+' sec';
+}
+
+function todayCalls(){
+  const bod=new Date(); bod.setHours(0,0,0,0);
+  let n=0;
+  contacts.forEach(c=>(c.callLog||[]).forEach(l=>{ if(new Date(l.at)>=bod) n++; }));
+  return n;
+}
+
+function progColor(p){
+  if(p>=1) return '#ef4444';
+  if(p>=0.75) return '#f59e0b';
+  return '#22c55e';
+}
+
+function statusLabel(s){
+  return {overdue:'🔴 LATE','due-soon':'⏰ जल्दी',ok:'✅ OK',new:'🆕 नया'}[s]||s;
+}
+
+/* ──────── Render ──────── */
+function sorted(){
+  const order={overdue:0,'due-soon':1,new:2,ok:3};
+  return [...contacts]
+    .filter(c=>c.active!==false)
+    .sort((a,b)=>{
+      const d=order[status(a)]-order[status(b)];
+      if(d!==0) return d;
+      const na=a.nextCallAt?new Date(a.nextCallAt).getTime():1e15;
+      const nb=b.nextCallAt?new Date(b.nextCallAt).getTime():1e15;
+      return na-nb;
+    });
+}
+
+function render(){
+  const list=sorted();
+  renderStrip(list);
+  renderCards(list);
+  renderStats(list);
+  updateHdrSub();
+}
+
+function renderStats(list){
+  document.getElementById('st-total').textContent=list.length;
+  document.getElementById('st-over').textContent=list.filter(c=>status(c)==='overdue').length;
+  document.getElementById('st-due').textContent=list.filter(c=>status(c)==='due-soon').length;
+  document.getElementById('st-today').textContent=todayCalls();
+}
+
+function updateHdrSub(){
+  const over=sorted().filter(c=>status(c)==='overdue');
+  const el=document.getElementById('hdr-sub');
+  if(over.length) el.innerHTML=`<span style="color:#f87171;font-weight:800">⚠️ ${over.length} call late है!</span>`;
+  else el.textContent='Follow-up Accountability System';
+}
+
+function renderStrip(list){
+  const el=document.getElementById('strip');
+  if(!list.length){
+    el.innerHTML='<div style="font-size:11px;color:#334155;padding:8px 0 4px">+ बटन से follow-up contact जोड़ें</div>';
+    return;
+  }
+  el.innerHTML=list.map(c=>{
+    const s=status(c);
+    const since=c.lastCallAt?fmtDur(Date.now()-new Date(c.lastCallAt).getTime()):'नया';
+    const init=(c.name||'?')[0].toUpperCase();
+    return `<div class="strip-chip" onclick="scrollTo('${c.id}')">
+      <div class="s-avatar ${s}" style="background:${c.color||COLORS[0]}">
+        ${init}<div class="s-dot ${s}"></div>
+      </div>
+      <div class="s-name">${escH(c.name)}</div>
+      <div class="s-timer">${since}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderCards(list){
+  const el=document.getElementById('card-list');
+  if(!list.length){
+    el.innerHTML=`<div class="empty">
+      <div class="empty-ico">📞</div>
+      <div class="empty-txt">अभी कोई follow-up contact नहीं है<br>ऊपर <strong>+</strong> button से जोड़ें<br><br>जिसे बार-बार call करनी हो उसे यहाँ add करें</div>
+    </div>`;
+    return;
+  }
+
+  let html='';
+  let lastSec='';
+  list.forEach(c=>{
+    const s=status(c);
+    const sec=s==='overdue'?'🔴 अभी Call करो — Late हो रहा है':
+               s==='due-soon'?'⏰ जल्दी Call करो':
+               '📋 Follow-up Contacts';
+    if(sec!==lastSec){ html+=`<div class="sec-lbl">${sec}</div>`; lastSec=sec; }
+    html+=cardHTML(c,s);
+  });
+  el.innerHTML=html;
+}
+
+function cardHTML(c,s){
+  const now=Date.now();
+  const pct=Math.min(progress(c)*100,100);
+  const pColor=progColor(progress(c));
+  const sinceMs=c.lastCallAt?now-new Date(c.lastCallAt).getTime():-1;
+  const nextMs=c.nextCallAt?new Date(c.nextCallAt).getTime()-now:-1;
+
+  let sinceV='—', sinceC='dim';
+  if(sinceMs>=0){ sinceV=fmtDur(sinceMs); sinceC=s==='overdue'?'red':s==='due-soon'?'amber':'green'; }
+
+  let nextV='—', nextC='dim';
+  if(nextMs<0 && c.nextCallAt){ nextV='LATE!'; nextC='red'; }
+  else if(nextMs>=0){ nextV=fmtDur(nextMs); nextC=nextMs<5*60*1000?'amber':'green'; }
+
+  const todayN=(c.callLog||[]).filter(l=>{
+    const bod=new Date(); bod.setHours(0,0,0,0);
+    return new Date(l.at)>=bod;
+  }).length;
+
+  const recentLog=(c.callLog||[]).slice(-5).reverse().map(l=>`
+    <div class="log-item">
+      <div class="log-dot"></div>
+      <div class="log-when">${new Date(l.at).toLocaleString('hi-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
+      ${l.note?`<div class="log-note">${escH(l.note)}</div>`:''}
+    </div>`).join('') || '<div style="font-size:11px;color:#334155;padding:6px 0">अभी कोई call नहीं हुई</div>';
+
+  return `<div class="card ${s}" id="c-${c.id}">
+    <div class="card-hdr">
+      <div class="c-avatar" style="background:${c.color||COLORS[0]}">${(c.name||'?')[0].toUpperCase()}</div>
+      <div class="c-info">
+        <div class="c-name">${escH(c.name)}</div>
+        <div class="c-phone">📱 ${escH(c.phone||'—')}</div>
+        ${c.note?`<div class="c-note">📝 ${escH(c.note)}</div>`:''}
+      </div>
+      <div class="status-badge ${s}">${statusLabel(s)}</div>
+    </div>
+
+    <div class="card-timers">
+      <div class="timer-row">
+        <div class="timer-block">
+          <div class="timer-v ${sinceC}">${sinceV}</div>
+          <div class="timer-l">पहले Call किया</div>
+        </div>
+        <div class="timer-sep">→</div>
+        <div class="timer-block">
+          <div class="timer-v ${nextC}">${nextV}</div>
+          <div class="timer-l">बाद Call करना है</div>
+        </div>
+      </div>
+      <div class="prog-wrap">
+        <div class="prog-bar" style="width:${pct}%;background:${pColor}"></div>
+      </div>
+      <div class="prog-info">
+        <span class="interval-tag">⏰ हर ${c.intervalMins} min</span>
+        <span class="last-call-tag">आज ${todayN} call${todayN!==1?'s':''} हुई</span>
+      </div>
+    </div>
+
+    <div class="card-actions">
+      <button class="act act-call" onclick="recordCall('${c.id}')">📞 Call</button>
+      ${c.phone?`<button class="act act-wa" onclick="openWA('${c.id}')">🟢 WA</button>`:''}
+      <button class="act act-edit" onclick="editContact('${c.id}')">✏️</button>
+      <button class="act act-del" onclick="delContact('${c.id}')">🗑️</button>
+    </div>
+
+    <div class="log-toggle" onclick="toggleLog('${c.id}')">
+      <span>📋 Call History (${(c.callLog||[]).length} total)</span>
+      <span id="tgl-${c.id}">▼</span>
+    </div>
+    <div class="log-list" id="log-${c.id}">${recentLog}</div>
+  </div>`;
+}
+
+/* ──────── Tick ──────── */
+function startTick(){
+  if(_tick) clearInterval(_tick);
+  _tick=setInterval(()=>{ render(); checkAlarms(); }, 15000);
+}
+
+function checkAlarms(){
+  const now=Date.now();
+  contacts.filter(c=>c.active!==false&&c.nextCallAt).forEach(c=>{
+    const nextTs=new Date(c.nextCallAt).getTime();
+    if(now>=nextTs && !_notifFired.has(c.id)){
+      _notifFired.add(c.id);
+      fireNotif(c);
+    } else if(now<nextTs){
+      _notifFired.delete(c.id);
+    }
+  });
+}
+
+function fireNotif(c){
+  toast(`📞 ${c.name} को Call करो!`, 'warn');
+  if(typeof Notification!=='undefined' && Notification.permission==='granted'){
+    try{
+      const n=new Notification(`📞 Call करो: ${c.name}`,{
+        body:`${c.name} को call करने का समय हो गया!\n📱 ${c.phone||''}`,
+        tag:`vbe-ct-${c.id}`,
+        requireInteraction:true,
+        vibrate:[300,100,300]
+      });
+      n.onclick=()=>{ window.focus(); window.scrollTo(''+c.id); n.close(); };
+    }catch(e){}
+  }
+}
+
+function askNotifPermission(){
+  if(typeof Notification!=='undefined'&&Notification.permission==='default'){
+    Notification.requestPermission();
+  }
+}
+
+/* ──────── Actions ──────── */
+window.recordCall=function(id){
+  const c=contacts.find(x=>x.id===id);
+  if(!c) return;
+  pendingCallId=id;
+  document.getElementById('call-name').textContent=c.name;
+  document.getElementById('call-phone').textContent='📱 '+(c.phone||'—');
+  document.getElementById('call-note-prev').textContent=c.note||'';
+  document.getElementById('f-callnote').value='';
+  openModal('m-call');
+};
+
+window.confirmCall=function(){
+  doRecordCall(true);
+};
+window.confirmCallNoRecord=function(){
+  doRecordCall(false);
+};
+
+function doRecordCall(dial){
+  const c=contacts.find(x=>x.id===pendingCallId);
+  if(!c) return;
+  const note=(document.getElementById('f-callnote').value||'').trim();
+  const now=new Date().toISOString();
+  c.lastCallAt=now;
+  c.nextCallAt=new Date(Date.now()+c.intervalMins*60*1000).toISOString();
+  c.callLog=c.callLog||[];
+  c.callLog.push({at:now, note});
+  _notifFired.delete(c.id);
+  persist();
+  closeModal('m-call');
+  render();
+  toast(`✅ ${c.name} की call record हुई — ${c.intervalMins} min बाद reminder`);
+  if(dial && c.phone) setTimeout(()=>{ window.location.href='tel:'+c.phone; },400);
+}
+
+window.openWA=function(id){
+  const c=contacts.find(x=>x.id===id);
+  if(!c||!c.phone) return;
+  const ph=(c.phone||'').replace(/[^0-9]/g,'');
+  window.open('https://wa.me/91'+ph,'_blank');
+};
+
+window.scrollTo=function(id){
+  const el=document.getElementById('c-'+id);
+  if(el) el.scrollIntoView({behavior:'smooth',block:'center'});
+};
+
+window.toggleLog=function(id){
+  const el=document.getElementById('log-'+id);
+  const tg=document.getElementById('tgl-'+id);
+  if(!el) return;
+  const open=el.style.display==='block';
+  el.style.display=open?'none':'block';
+  if(tg) tg.textContent=open?'▼':'▲';
+};
+
+window.editContact=function(id){
+  const c=contacts.find(x=>x.id===id);
+  if(!c) return;
+  editingId=id;
+  document.getElementById('f-name').value=c.name||'';
+  document.getElementById('f-phone').value=c.phone||'';
+  document.getElementById('f-note').value=c.note||'';
+  selInterval=c.intervalMins||30;
+  selColor=c.color||COLORS[0];
+  updateIntBtns();
+  updateClrBtns();
+  document.getElementById('m-add-title').textContent='✏️ Contact Edit करो';
+  openModal('m-add');
+  setTimeout(()=>document.getElementById('f-name').focus(),300);
+};
+
+window.delContact=function(id){
+  const c=contacts.find(x=>x.id===id);
+  if(!c) return;
+  if(!confirm(`"${c.name}" को हटाएं?`)) return;
+  contacts=contacts.filter(x=>x.id!==id);
+  persist();
+  render();
+  toast('🗑️ Contact हटाया गया','warn');
+};
+
+window.openAddModal=function(){
+  editingId=null;
+  document.getElementById('f-name').value='';
+  document.getElementById('f-phone').value='';
+  document.getElementById('f-note').value='';
+  selInterval=30;
+  selColor=COLORS[0];
+  updateIntBtns();
+  updateClrBtns();
+  document.getElementById('m-add-title').textContent='📞 नया Contact जोड़ें';
+  openModal('m-add');
+  setTimeout(()=>document.getElementById('f-name').focus(),300);
+};
+
+window.saveContact=function(){
+  const name=(document.getElementById('f-name').value||'').trim();
+  const phone=(document.getElementById('f-phone').value||'').trim().replace(/[^0-9]/g,'');
+  const note=(document.getElementById('f-note').value||'').trim();
+  if(!name){ toast('⚠️ नाम जरूरी है','err'); return; }
+  if(!phone){ toast('⚠️ Mobile number जरूरी है','err'); return; }
+  if(phone.length<10){ toast('⚠️ 10 अंकों का नंबर डालें','err'); return; }
+
+  if(editingId){
+    const c=contacts.find(x=>x.id===editingId);
+    if(c){ Object.assign(c,{name,phone,note,intervalMins:selInterval,color:selColor}); }
+  } else {
+    contacts.push({
+      id:genId(), name, phone, note,
+      color:selColor, intervalMins:selInterval,
+      lastCallAt:null, nextCallAt:null,
+      callLog:[], active:true,
+      createdAt:new Date().toISOString()
+    });
+  }
+  persist();
+  closeModal('m-add');
+  render();
+  toast(editingId?`✅ ${name} updated!`:`✅ ${name} जोड़ा गया!`);
+};
+
+/* ──────── Pickers ──────── */
+function buildIntervalPicker(){
+  document.getElementById('int-btns').addEventListener('click',e=>{
+    const b=e.target.closest('.int-btn');
+    if(!b) return;
+    selInterval=parseInt(b.dataset.v)||30;
+    updateIntBtns();
+  });
+}
+function updateIntBtns(){
+  document.querySelectorAll('.int-btn').forEach(b=>{
+    b.classList.toggle('on',parseInt(b.dataset.v)===selInterval);
+  });
+}
+
+function buildColorPicker(){
+  document.getElementById('clr-btns').innerHTML=
+    COLORS.map(c=>`<div class="clr-btn ${c===selColor?'on':''}" style="background:${c}" data-c="${c}" onclick="pickColor('${c}')"></div>`).join('');
+}
+function updateClrBtns(){
+  document.querySelectorAll('.clr-btn').forEach(b=>b.classList.toggle('on',b.dataset.c===selColor));
+}
+window.pickColor=function(c){ selColor=c; updateClrBtns(); };
+
+/* ──────── Modal helpers ──────── */
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+window.closeModal=closeModal;
+document.querySelectorAll('.modal-bg').forEach(m=>{
+  m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('open'); });
+});
+
+/* ──────── Toast ──────── */
+function toast(msg,type){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast show'+(type==='err'?' err':type==='warn'?' warn':'');
+  clearTimeout(t._t);
+  t._t=setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+</body>
+</html>

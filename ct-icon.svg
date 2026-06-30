@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0d1f3c"/>
+      <stop offset="100%" stop-color="#050a14"/>
+    </linearGradient>
+    <linearGradient id="greenGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#22c55e"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+    <linearGradient id="accentBar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#22c55e" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#22c55e"/>
+      <stop offset="100%" stop-color="#059669" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="100" fill="url(#bg)"/>
+  <rect x="16" y="16" width="480" height="480" rx="88" fill="#0d1526"/>
+  <rect x="24" y="24" width="464" height="464" rx="80" fill="none" stroke="#1e3a5f" stroke-width="3"/>
+
+  <!-- Top accent line -->
+  <rect x="64" y="118" width="384" height="3" rx="1.5" fill="url(#accentBar)"/>
+
+  <!-- Phone handset icon (centered, top area) -->
+  <g transform="translate(256,175) scale(0.72)" filter="url(#glow)">
+    <path d="M-70,-70 C-70,-90 -55,-105 -35,-105 L-5,-105 C15,-105 30,-90 30,-70 L30,-40 C30,-20 15,-5 -5,-5 L-15,-5 C-25,-5 -30,0 -25,10 L5,70 C10,80 5,90 -5,95 L-35,105 C-45,110 -55,105 -60,95 L-90,35 C-95,20 -85,5 -70,0 L-60,0 C-50,0 -45,-5 -45,-15 L-45,-50 C-45,-60 -50,-65 -60,-65 L-70,-65 Z"
+          fill="url(#greenGrad)" opacity="0.95"/>
+  </g>
+
+  <!-- CALL text -->
+  <text x="256" y="300" text-anchor="middle"
+        font-family="Arial Black,Arial,sans-serif"
+        font-weight="900" font-size="112"
+        fill="url(#greenGrad)" letter-spacing="6">CALL</text>
+
+  <!-- TRACKER subtitle -->
+  <text x="256" y="348" text-anchor="middle"
+        font-family="Arial,sans-serif"
+        font-weight="700" font-size="34"
+        fill="#3b82f6" letter-spacing="10">TRACKER</text>
+
+  <!-- Bottom accent -->
+  <rect x="80" y="374" width="352" height="3" rx="1.5" fill="url(#accentBar)" opacity=".6"/>
+
+  <!-- VBE · BARMER -->
+  <text x="256" y="414" text-anchor="middle"
+        font-family="Arial,sans-serif"
+        font-size="24" fill="#4a6fa5" letter-spacing="10">VBE · BARMER</text>
+</svg>

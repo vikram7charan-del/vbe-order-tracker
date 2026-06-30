@@ -1,0 +1,36 @@
+{
+  "name": "VBE Call Tracker",
+  "short_name": "Call Tracker",
+  "description": "VBE Follow-up & Call Accountability — Barmer",
+  "start_url": "./call-tracker.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#050a14",
+  "theme_color": "#0d1526",
+  "orientation": "portrait-primary",
+  "lang": "hi",
+  "categories": ["business", "productivity"],
+  "shortcuts": [
+    {
+      "name": "नया Contact जोड़ें",
+      "short_name": "New Contact",
+      "description": "Call Tracker में नया contact add करें",
+      "url": "./call-tracker.html?action=new",
+      "icons": [{ "src": "ct-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    }
+  ],
+  "icons": [
+    {
+      "src": "ct-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "ct-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

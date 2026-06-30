@@ -731,14 +731,8 @@ select option{background:#0d1526}
 .mb-strip.warn .mb-strip-right{color:#f59e0b}
 .mb-strip.over .mb-strip-right{color:#ef4444}
 
-/* ── Stage Pipeline — compact ── */
-.mb-pipeline{display:flex;align-items:center;padding:0 12px 0 16px;height:14px;gap:0;background:rgba(0,0,0,.15)}
-.mb-pipe-dot{width:5px;height:5px;border-radius:50%;border:1.5px solid #1e3a5f;background:#050a14;flex-shrink:0;transition:all .2s}
-.mb-pipe-dot.done{background:#10b981;border-color:#10b981;box-shadow:0 0 3px #10b98166}
-.mb-pipe-dot.current{width:7px;height:7px;background:#6366f1;border-color:#a5b4fc;box-shadow:0 0 5px #6366f1cc}
-.mb-pipe-dot.delivered{width:7px;height:7px;background:#f59e0b;border-color:#fbbf24;box-shadow:0 0 5px #f59e0bcc}
-.mb-pipe-line{flex:1;height:1.5px;background:#1e293b}
-.mb-pipe-line.done{background:#10b981}
+/* ── Stage Pipeline — hidden (stage shown in bottom bar) ── */
+.mb-pipeline{display:none}
 /* ── Search Highlight ── */
 mark.srch-hl{background:#f59e0b44;color:#fbbf24;border-radius:2px;padding:0 1px;font-style:normal}
 
@@ -5380,24 +5374,26 @@ function renderList(){
       ${cat ? `<div style="display:inline-flex;align-items:center;gap:3px;background:${cat.color}18;border:1px solid ${cat.color}44;color:${cat.color};border-radius:5px;padding:1px 6px;font-size:9px;font-weight:700;margin-top:4px;max-width:fit-content"><span style="font-size:10px">${cat.emoji}</span>${esc(cat.label)}</div>` : ''}
       ${o.note?`<div style="font-size:11px;color:#94a3b8;margin-top:4px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">📝 ${esc(o.note)}</div>`:''}
       ${o.stage!=='delivered' ? `
-      <!-- ⚡ Quick actions — compact 2-row chip design -->
-      <div onclick="event.stopPropagation()" style="display:flex;flex-direction:column;gap:3px;margin-top:5px">
-        <!-- Row 1: Staff (4 chips) + Category (4 chips) as one scrollable line -->
-        <div style="display:flex;gap:3px;width:100%;overflow:hidden">
-          <button onclick="event.stopPropagation();quickAssignStaff('${o.id}','Vikram Charan','9509553600')" style="flex:1;background:${o.staff==='Vikram Charan'?'linear-gradient(135deg,#1e3a8a,#3b82f6)':'rgba(30,41,59,.8)'};border:1px solid ${o.staff==='Vikram Charan'?'#3b82f6':'#334155'};color:${o.staff==='Vikram Charan'?'#fff':'#64748b'};border-radius:5px;padding:3px 1px;font-size:9px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation;line-height:1.2">विक्रम</button>
-          <button onclick="event.stopPropagation();quickAssignStaff('${o.id}','Manoj Charan','8696283600')" style="flex:1;background:${o.staff==='Manoj Charan'?'linear-gradient(135deg,#7c2d12,#f97316)':'rgba(30,41,59,.8)'};border:1px solid ${o.staff==='Manoj Charan'?'#f97316':'#334155'};color:${o.staff==='Manoj Charan'?'#fff':'#64748b'};border-radius:5px;padding:3px 1px;font-size:9px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation;line-height:1.2">मनोज</button>
-          <button onclick="event.stopPropagation();quickAssignStaff('${o.id}','Kailash Singh','8107093001')" style="flex:1;background:${o.staff==='Kailash Singh'?'linear-gradient(135deg,#713f12,#eab308)':'rgba(30,41,59,.8)'};border:1px solid ${o.staff==='Kailash Singh'?'#eab308':'#334155'};color:${o.staff==='Kailash Singh'?'#fff':'#64748b'};border-radius:5px;padding:3px 1px;font-size:9px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation;line-height:1.2">कैलाश</button>
-          <button onclick="event.stopPropagation();quickAssignStaff('${o.id}','Swaroop Sa','9166753417')" style="flex:1;background:${o.staff==='Swaroop Sa'?'linear-gradient(135deg,#052e16,#22c55e)':'rgba(30,41,59,.8)'};border:1px solid ${o.staff==='Swaroop Sa'?'#22c55e':'#334155'};color:${o.staff==='Swaroop Sa'?'#fff':'#64748b'};border-radius:5px;padding:3px 1px;font-size:9px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation;line-height:1.2">स्वरूप</button>
-          <div style="width:1px;background:#334155;flex-shrink:0;margin:2px 1px;border-radius:1px"></div>
-          <button onclick="event.stopPropagation();quickSetCategory('${o.id}','followup')" style="flex:1;background:${o.category==='followup'?'linear-gradient(135deg,#0e4f5c,#06b6d4)':'rgba(30,41,59,.8)'};border:1px solid ${o.category==='followup'?'#06b6d4':'#334155'};color:${o.category==='followup'?'#fff':'#64748b'};border-radius:5px;padding:3px 1px;font-size:8.5px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation;line-height:1.2">🔄फॉलो</button>
-          <button onclick="event.stopPropagation();quickSetCategory('${o.id}','gem')" style="flex:1;background:${o.category==='gem'?'linear-gradient(135deg,#052e16,#10b981)':'rgba(30,41,59,.8)'};border:1px solid ${o.category==='gem'?'#10b981':'#334155'};color:${o.category==='gem'?'#fff':'#64748b'};border-radius:5px;padding:3px 1px;font-size:8.5px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation;line-height:1.2">💻GeM</button>
-          <button onclick="event.stopPropagation();quickSetCategory('${o.id}','market')" style="flex:1;background:${o.category==='market'?'linear-gradient(135deg,#78350f,#f59e0b)':'rgba(30,41,59,.8)'};border:1px solid ${o.category==='market'?'#f59e0b':'#334155'};color:${o.category==='market'?'#fff':'#64748b'};border-radius:5px;padding:3px 1px;font-size:8.5px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation;line-height:1.2">🛒Mkt</button>
-          <button onclick="event.stopPropagation();quickSetCategory('${o.id}','kal')" style="flex:1;background:${o.category==='kal'?'linear-gradient(135deg,#1e1b4b,#a78bfa)':'rgba(30,41,59,.8)'};border:1px solid ${o.category==='kal'?'#a78bfa':'#334155'};color:${o.category==='kal'?'#fff':'#64748b'};border-radius:5px;padding:3px 1px;font-size:8.5px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation;line-height:1.2">📅कल</button>
-        </div>
-        <!-- Row 2: Call + Deliver -->
+      <!-- ⚡ Quick actions — 3 compact readable rows -->
+      <div onclick="event.stopPropagation()" style="display:flex;flex-direction:column;gap:4px;margin-top:5px">
+        <!-- Row 1: Staff assign -->
         <div style="display:flex;gap:3px;width:100%">
-          ${(o.staffPhone || o.phone) ? `<button onclick="event.stopPropagation();openCallReminder('${o.id}')" style="flex:1;background:linear-gradient(135deg,#831843,#ec4899);border:none;color:#fff;border-radius:6px;padding:5px 4px;font-size:9.5px;font-weight:900;cursor:pointer;font-family:inherit;touch-action:manipulation;letter-spacing:.2px">📞 Call</button>` : ''}
-          <button onclick="event.stopPropagation();mbSetStage('${o.id}','delivered')" style="flex:2;background:linear-gradient(135deg,#052e16,#059669);border:1px solid rgba(5,150,105,.5);color:#6ee7b7;border-radius:6px;padding:5px 4px;font-size:9.5px;font-weight:900;cursor:pointer;font-family:inherit;touch-action:manipulation;letter-spacing:.2px">🎉 Deliver</button>
+          <button onclick="event.stopPropagation();quickAssignStaff('${o.id}','Vikram Charan','9509553600')" style="flex:1;background:${o.staff==='Vikram Charan'?'linear-gradient(135deg,#1e3a8a,#3b82f6)':'#162033'};border:1px solid ${o.staff==='Vikram Charan'?'#3b82f6':'#253654'};color:${o.staff==='Vikram Charan'?'#fff':'#7a9cc0'};border-radius:7px;padding:5px 2px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation">विक्रम</button>
+          <button onclick="event.stopPropagation();quickAssignStaff('${o.id}','Manoj Charan','8696283600')" style="flex:1;background:${o.staff==='Manoj Charan'?'linear-gradient(135deg,#7c2d12,#f97316)':'#162033'};border:1px solid ${o.staff==='Manoj Charan'?'#f97316':'#253654'};color:${o.staff==='Manoj Charan'?'#fff':'#7a9cc0'};border-radius:7px;padding:5px 2px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation">मनोज</button>
+          <button onclick="event.stopPropagation();quickAssignStaff('${o.id}','Kailash Singh','8107093001')" style="flex:1;background:${o.staff==='Kailash Singh'?'linear-gradient(135deg,#713f12,#eab308)':'#162033'};border:1px solid ${o.staff==='Kailash Singh'?'#eab308':'#253654'};color:${o.staff==='Kailash Singh'?'#fff':'#7a9cc0'};border-radius:7px;padding:5px 2px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation">कैलाश</button>
+          <button onclick="event.stopPropagation();quickAssignStaff('${o.id}','Swaroop Sa','9166753417')" style="flex:1;background:${o.staff==='Swaroop Sa'?'linear-gradient(135deg,#052e16,#22c55e)':'#162033'};border:1px solid ${o.staff==='Swaroop Sa'?'#22c55e':'#253654'};color:${o.staff==='Swaroop Sa'?'#fff':'#7a9cc0'};border-radius:7px;padding:5px 2px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation">स्वरूप</button>
+        </div>
+        <!-- Row 2: Category -->
+        <div style="display:flex;gap:3px;width:100%">
+          <button onclick="event.stopPropagation();quickSetCategory('${o.id}','followup')" style="flex:1;background:${o.category==='followup'?'linear-gradient(135deg,#0e4f5c,#06b6d4)':'#162033'};border:1px solid ${o.category==='followup'?'#06b6d4':'#253654'};color:${o.category==='followup'?'#fff':'#7a9cc0'};border-radius:7px;padding:5px 2px;font-size:10.5px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation">फॉलो अप</button>
+          <button onclick="event.stopPropagation();quickSetCategory('${o.id}','gem')" style="flex:1;background:${o.category==='gem'?'linear-gradient(135deg,#052e16,#10b981)':'#162033'};border:1px solid ${o.category==='gem'?'#10b981':'#253654'};color:${o.category==='gem'?'#fff':'#7a9cc0'};border-radius:7px;padding:5px 2px;font-size:10.5px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation">💻 GeM</button>
+          <button onclick="event.stopPropagation();quickSetCategory('${o.id}','market')" style="flex:1;background:${o.category==='market'?'linear-gradient(135deg,#78350f,#f59e0b)':'#162033'};border:1px solid ${o.category==='market'?'#f59e0b':'#253654'};color:${o.category==='market'?'#fff':'#7a9cc0'};border-radius:7px;padding:5px 2px;font-size:10.5px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation">🛒 Market</button>
+          <button onclick="event.stopPropagation();quickSetCategory('${o.id}','kal')" style="flex:1;background:${o.category==='kal'?'linear-gradient(135deg,#1e1b4b,#a78bfa)':'#162033'};border:1px solid ${o.category==='kal'?'#a78bfa':'#253654'};color:${o.category==='kal'?'#fff':'#7a9cc0'};border-radius:7px;padding:5px 2px;font-size:10.5px;font-weight:800;cursor:pointer;font-family:inherit;touch-action:manipulation">📅 कल</button>
+        </div>
+        <!-- Row 3: Call + Deliver -->
+        <div style="display:flex;gap:3px;width:100%">
+          ${(o.staffPhone || o.phone) ? `<button onclick="event.stopPropagation();openCallReminder('${o.id}')" style="flex:1;background:linear-gradient(135deg,#831843,#ec4899);border:none;color:#fff;border-radius:7px;padding:6px 4px;font-size:11px;font-weight:900;cursor:pointer;font-family:inherit;touch-action:manipulation">📞 Call</button>` : ''}
+          <button onclick="event.stopPropagation();mbSetStage('${o.id}','delivered')" style="flex:2;background:linear-gradient(135deg,#052e16,#059669);border:1px solid rgba(5,150,105,.5);color:#6ee7b7;border-radius:7px;padding:6px 4px;font-size:11px;font-weight:900;cursor:pointer;font-family:inherit;touch-action:manipulation">🎉 Deliver</button>
         </div>
       </div>` : ''}
       <!-- 💬 LAST COMMENT PREVIEW — accountability ke liye card mein hi दिखे, time + author + text -->

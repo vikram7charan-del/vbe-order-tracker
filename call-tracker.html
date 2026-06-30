@@ -242,6 +242,18 @@ body{
 .clr-btn:active{transform:scale(.9)}
 .clr-btn.on{border-color:#fff;transform:scale(1.12)}
 
+/* Emoji picker */
+.emoji-grid{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.emoji-btn{width:38px;height:38px;border-radius:9px;background:#060d1a;border:2px solid transparent;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation;transition:border-color .15s,background .15s}
+.emoji-btn.on{border-color:#f59e0b;background:rgba(245,158,11,.14)}
+.btn-clear-emoji{font-size:10px;font-weight:800;color:#475569;background:transparent;border:1px solid #1e3a5f;border-radius:7px;padding:4px 9px;cursor:pointer;font-family:inherit;margin-top:6px;touch-action:manipulation}
+
+/* Alarm row in card detail */
+.det-alarm{display:flex;align-items:center;gap:7px;padding:5px 12px 7px;border-top:1px solid rgba(15,30,54,.9)}
+.det-alarm-lbl{font-size:10px;color:#64748b}
+.det-alarm-val{font-size:11px;font-weight:800;color:#f59e0b}
+.da-cal{background:#0a1220;border:1.5px solid rgba(59,130,246,.35);color:#60a5fa}
+
 .btn-save{width:100%;padding:14px;border:none;border-radius:13px;background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;margin-top:10px;touch-action:manipulation;box-shadow:0 4px 16px rgba(59,130,246,.3)}
 .btn-confirm-call{width:100%;padding:14px;border:none;border-radius:13px;background:linear-gradient(135deg,#059669,#22c55e);color:#fff;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;margin-top:10px;touch-action:manipulation;box-shadow:0 4px 14px rgba(34,197,94,.3)}
 
@@ -356,8 +368,17 @@ body{
       </div>
     </div>
     <div class="fg">
-      <label class="lbl">🎨 रंग</label>
+      <label class="lbl">😊 Avatar Emoji (optional — रंग से override होगा)</label>
+      <div class="emoji-grid" id="emoji-btns"></div>
+      <button class="btn-clear-emoji" onclick="clearEmoji()">🔄 Emoji हटाओ (initials use करो)</button>
+    </div>
+    <div class="fg">
+      <label class="lbl">🎨 रंग (background color)</label>
       <div class="clr-btns" id="clr-btns"></div>
+    </div>
+    <div class="fg">
+      <label class="lbl">⏰ Daily Alarm (हर रोज़ इस time पर याद दिलाएगा)</label>
+      <input type="time" class="inp" id="f-alarm" style="color-scheme:dark;padding:10px 14px">
     </div>
     <button class="btn-save" onclick="saveContact()">💾 Save करो</button>
   </div>
@@ -425,11 +446,13 @@ const db   = getFirestore(app);
 const CT_COL = collection(db, 'vbe_call_tracker');
 
 const COLORS = ['#3b82f6','#f97316','#eab308','#22c55e','#ec4899','#8b5cf6','#06b6d4','#f43f5e'];
+const EMOJIS = ['🔥','⚡','💎','🎯','🏆','🚀','💼','📦','🤝','👑','💰','🌟','✨','🦁','🐯','🦊','🦅','🌈','🎭','🔮','💪','🎖️','📊','🎪','🛡️'];
 
 let contacts = [];
 let editingId = null;
 let selInterval = 30;
 let selColor = COLORS[0];
+let selEmoji = '';
 let pendingCallId = null;
 let _tick = null;
 let _notifFired = new Set();
@@ -461,7 +484,7 @@ function showLogin(){
 function initApp(){
   document.getElementById('s-login').style.display='none';
   document.getElementById('s-app').style.display='block';
-  buildColorPicker(); buildIntervalPicker();
+  buildColorPicker(); buildEmojiPicker(); buildIntervalPicker();
   startFirestoreSync(); startTick(); askNotifPermission();
 }
 
@@ -557,7 +580,7 @@ function updateHdrSub(){
   else el.textContent='Follow-up Accountability';
 }
 
-/* Strip — pill chips with initials */
+/* Strip — pill chips */
 function renderStrip(list){
   const el=document.getElementById('strip');
   if(!list.length){ el.innerHTML='<div style="font-size:11px;color:#334155;padding:4px 0">+ बटन से contact जोड़ें</div>'; return; }
@@ -565,14 +588,17 @@ function renderStrip(list){
     const s=status(c);
     const dotCls=c.pinned?'pinned':s;
     const chipCls=c.pinned?'pinned-c':(s==='overdue'?'overdue':s==='due-soon'?'due-soon':'');
-    const since=c.lastCallAt?fmtCompact(Date.now()-new Date(c.lastCallAt).getTime()):'नया';
+    const sinceMs=c.lastCallAt?Date.now()-new Date(c.lastCallAt).getTime():-1;
+    const timer=sinceMs>=0?fmtCompact(sinceMs)+'':'—';
+    const av=avatarContent(c);
+    const avFs=avatarFontSize(c);
     return `<div class="strip-chip ${chipCls}" onclick="openQuickDial('${c.id}')">
-      <div class="s-av" style="background:${c.color||COLORS[0]}">
-        ${escH(getInitials(c.name))}<div class="s-dot ${dotCls}"></div>
+      <div class="s-av" style="background:${c.color||COLORS[0]};font-size:${avFs}">
+        ${escH(av)}<div class="s-dot ${dotCls}"></div>
       </div>
       <div class="s-lbl">
         <div class="s-name">${escH(c.name)}</div>
-        <div class="s-timer">${since}</div>
+        <div class="s-timer">${timer}</div>
       </div>
     </div>`;
   }).join('');
@@ -632,11 +658,14 @@ function cardHTML(c,s){
 
   const cardCls=c.pinned?'card pinned':`card ${s}`;
   const pinBtnCls=c.pinned?'da da-pin on':'da da-pin';
+  const av=avatarContent(c);
+  const avFs=avatarFontSize(c);
+  const alarmRow=c.alarmTime?`<div class="det-alarm"><span class="det-alarm-lbl">⏰ Daily Alarm:</span><span class="det-alarm-val">${escH(c.alarmTime)}</span></div>`:'';
 
   return `<div class="${cardCls}" id="c-${c.id}">
     <!-- Compact row -->
     <div class="card-row" onclick="toggleCard('${c.id}')">
-      <div class="c-av" style="background:${c.color||COLORS[0]}">${(c.name||'?')[0].toUpperCase()}</div>
+      <div class="c-av" style="background:${c.color||COLORS[0]};font-size:${avFs}">${escH(av)}</div>
       <div class="c-main">
         <div class="c-name">${escH(c.name)}${c.pinned?'<span class="pin-dot">📌</span>':''}</div>
         <div class="c-sub">📱 ${escH(c.phone||'—')} · ${c.intervalMins}min${c.note?' · 📝'+escH(c.note.slice(0,18)):''}</div>
@@ -673,10 +702,12 @@ function cardHTML(c,s){
         <span class="det-tag">⏰ हर ${c.intervalMins} min</span>
         <span class="det-calls">आज ${todayN} call हुई</span>
       </div>
+      ${alarmRow}
       <div class="det-actions" onclick="event.stopPropagation()">
-        <button class="${pinBtnCls}" onclick="togglePin('${c.id}')">${c.pinned?'📌 Pinned':'📍 Pin'}</button>
-        ${c.phone?`<button class="da da-msg" onclick="sendSMS('${c.id}')">💬 Msg</button>`:''}
-        <button class="da da-edit" onclick="editContact('${c.id}')">✏️ Edit</button>
+        <button class="${pinBtnCls}" onclick="togglePin('${c.id}')">${c.pinned?'📌':'📍'} Pin</button>
+        ${c.phone?`<button class="da da-msg" onclick="sendSMS('${c.id}')">💬 SMS</button>`:''}
+        <button class="da da-cal" onclick="addToGCal('${c.id}')">📅 Cal</button>
+        <button class="da da-edit" onclick="editContact('${c.id}')">✏️</button>
         <button class="da da-del" onclick="delContact('${c.id}')">🗑️</button>
       </div>
       <div class="det-log-toggle" onclick="toggleLog('${c.id}')">
@@ -695,12 +726,33 @@ function startTick(){
 }
 function checkAlarms(){
   const now=Date.now();
-  contacts.filter(c=>c.active!==false&&c.nextCallAt).forEach(c=>{
+  const nowD=new Date();
+  contacts.filter(c=>c.nextCallAt).forEach(c=>{
     const ts=new Date(c.nextCallAt).getTime();
-    if(now>=ts&&!_notifFired.has(c.id)){
-      _notifFired.add(c.id); fireNotif(c);
-    } else if(now<ts){ _notifFired.delete(c.id); }
+    if(now>=ts&&!_notifFired.has(c.id+'_next')){
+      _notifFired.add(c.id+'_next'); fireNotif(c);
+    } else if(now<ts){ _notifFired.delete(c.id+'_next'); }
+    // Daily alarm check (fires within ±30s of set time)
+    if(c.alarmTime){
+      const [h,m]=c.alarmTime.split(':').map(Number);
+      const alarmKey=c.id+'_alarm_'+nowD.toDateString();
+      if(nowD.getHours()===h&&nowD.getMinutes()===m&&!_notifFired.has(alarmKey)){
+        _notifFired.add(alarmKey);
+        fireAlarmNotif(c);
+      }
+    }
   });
+}
+function fireAlarmNotif(c){
+  toast(`⏰ ${c.name} — daily reminder!`,'warn');
+  if(typeof Notification!=='undefined'&&Notification.permission==='granted'){
+    try{
+      const n=new Notification(`⏰ Daily Reminder: ${c.name}`,{
+        body:`${c.name} को call करने का समय! 📱 ${c.phone||''}`,tag:`vbe-alarm-${c.id}`,requireInteraction:true
+      });
+      n.onclick=()=>{ window.focus(); openCard(c.id); n.close(); };
+    }catch(e){}
+  }
 }
 function fireNotif(c){
   toast(`📞 ${c.name} को Call करो!`,'warn');
@@ -743,16 +795,18 @@ window.openCard=function(id){
   setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'center'}),80);
 };
 
-/* ──────── Name initials (2-4 chars) ──────── */
+/* ──────── Name initials — first word only, 3 chars ──────── */
 function getInitials(name){
   if(!name) return '?';
-  const words=name.trim().split(/\s+/);
-  if(words.length>=2){
-    // Two-word: up to 2 chars from each word
-    return [...words[0]].slice(0,2).join('')+[...words[1]].slice(0,2).join('');
-  }
-  // Single word: first 4 chars
-  return [...name.trim()].slice(0,4).join('');
+  const firstWord=name.trim().split(/\s+/)[0];
+  return [...firstWord].slice(0,3).join('');
+}
+function avatarContent(c){
+  return c.emoji || getInitials(c.name);
+}
+function avatarFontSize(c){
+  // emoji → 18px, initials → 10px
+  return c.emoji ? '18px' : '10px';
 }
 
 /* ──────── Quick Dial Popup ──────── */
@@ -764,7 +818,8 @@ window.openQuickDial=function(id){
   _qdialId=id;
   const hasPhone=!!(c.phone);
   document.getElementById('qd-av').style.background=c.color||COLORS[0];
-  document.getElementById('qd-av').textContent=getInitials(c.name);
+  document.getElementById('qd-av').style.fontSize=avatarFontSize(c);
+  document.getElementById('qd-av').textContent=avatarContent(c);
   document.getElementById('qd-name').textContent=c.name;
   const ph=document.getElementById('qd-phone');
   ph.textContent=hasPhone?('📱 '+c.phone):'—';
@@ -879,8 +934,9 @@ window.editContact=function(id){
   document.getElementById('f-name').value=c.name||'';
   document.getElementById('f-phone').value=c.phone||'';
   document.getElementById('f-note').value=c.note||'';
-  selInterval=c.intervalMins||30; selColor=c.color||COLORS[0];
-  updateIntBtns(); updateClrBtns();
+  document.getElementById('f-alarm').value=c.alarmTime||'';
+  selInterval=c.intervalMins||30; selColor=c.color||COLORS[0]; selEmoji=c.emoji||'';
+  updateIntBtns(); updateClrBtns(); updateEmojiBtns();
   document.getElementById('m-add-title').textContent='✏️ Edit करो';
   openModal('m-add');
   setTimeout(()=>document.getElementById('f-name').focus(),300);
@@ -900,8 +956,9 @@ window.openAddModal=function(){
   document.getElementById('f-name').value='';
   document.getElementById('f-phone').value='';
   document.getElementById('f-note').value='';
-  selInterval=30; selColor=COLORS[0];
-  updateIntBtns(); updateClrBtns();
+  document.getElementById('f-alarm').value='';
+  selInterval=30; selColor=COLORS[0]; selEmoji='';
+  updateIntBtns(); updateClrBtns(); updateEmojiBtns();
   document.getElementById('m-add-title').textContent='📞 नया Contact जोड़ें';
   openModal('m-add');
   setTimeout(()=>document.getElementById('f-name').focus(),300);
@@ -913,12 +970,13 @@ window.saveContact=function(){
   const note=(document.getElementById('f-note').value||'').trim();
   if(!name){ toast('⚠️ नाम जरूरी है','err'); return; }
   if(!phone||phone.length<10){ toast('⚠️ सही 10 अंकों का नंबर डालें','err'); return; }
+  const alarmTime=(document.getElementById('f-alarm').value||'').trim();
   let saved;
   if(editingId){
     const c=contacts.find(x=>x.id===editingId);
-    if(c){ Object.assign(c,{name,phone,note,intervalMins:selInterval,color:selColor}); saved=c; }
+    if(c){ Object.assign(c,{name,phone,note,intervalMins:selInterval,color:selColor,emoji:selEmoji,alarmTime}); saved=c; }
   } else {
-    saved={id:genId(),name,phone,note,color:selColor,intervalMins:selInterval,lastCallAt:null,nextCallAt:null,callLog:[],pinned:false,createdAt:new Date().toISOString()};
+    saved={id:genId(),name,phone,note,color:selColor,emoji:selEmoji,intervalMins:selInterval,alarmTime,lastCallAt:null,nextCallAt:null,callLog:[],pinned:false,createdAt:new Date().toISOString()};
     contacts.push(saved);
   }
   closeModal('m-add'); render();
@@ -940,6 +998,73 @@ function buildColorPicker(){
 }
 function updateClrBtns(){ document.querySelectorAll('.clr-btn').forEach(b=>b.classList.toggle('on',b.dataset.c===selColor)); }
 window.pickColor=function(c){ selColor=c; updateClrBtns(); };
+
+function buildEmojiPicker(){
+  document.getElementById('emoji-btns').innerHTML=EMOJIS.map(e=>`<button class="emoji-btn${e===selEmoji?' on':''}" onclick="pickEmoji('${e}')">${e}</button>`).join('');
+}
+function updateEmojiBtns(){ document.querySelectorAll('.emoji-btn').forEach(b=>b.classList.toggle('on',b.textContent===selEmoji)); }
+window.pickEmoji=function(e){ selEmoji=(selEmoji===e?'':e); updateEmojiBtns(); };
+window.clearEmoji=function(){ selEmoji=''; updateEmojiBtns(); toast('Initials use होंगे'); };
+
+/* ──────── Google Calendar ──────── */
+function buildGCalUrl(c){
+  const now=new Date();
+  let start;
+  if(c.alarmTime){
+    const [h,m]=c.alarmTime.split(':').map(Number);
+    start=new Date(now.getFullYear(),now.getMonth(),now.getDate(),h,m,0);
+    if(start<=now) start.setDate(start.getDate()+1);
+  } else {
+    start=new Date(Date.now()+60*60*1000);
+  }
+  const end=new Date(start.getTime()+30*60*1000);
+  const fmt=d=>d.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');
+  const title=encodeURIComponent(`📞 ${c.name} को Call करो`);
+  const details=encodeURIComponent(`📱 ${c.phone||'—'}\n📝 ${c.note||''}\n⏰ हर ${c.intervalMins} min follow-up`);
+  return `https://calendar.google.com/calendar/r/eventedit?text=${title}&details=${details}&dates=${fmt(start)}/${fmt(end)}`;
+}
+window.addToGCal=function(id){
+  const c=contacts.find(x=>x.id===id);
+  if(!c) return;
+  const isMobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  if(isMobile){
+    try{
+      const ics=[
+        'BEGIN:VCALENDAR','VERSION:2.0',
+        'BEGIN:VEVENT',
+        `SUMMARY:📞 ${c.name} को Call करो`,
+        `DESCRIPTION:📱 ${c.phone||''}\\n📝 ${c.note||''}`,
+        `DTSTART:${buildGCalStart(c)}`,
+        `DTEND:${buildGCalEnd(c)}`,
+        'END:VEVENT','END:VCALENDAR'
+      ].join('\r\n');
+      const blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url; a.download=`call-${c.name.replace(/\s/g,'-')}.ics`;
+      document.body.appendChild(a); a.click();
+      document.body.removeChild(a);
+      setTimeout(()=>URL.revokeObjectURL(url),5000);
+    } catch(e){ window.open(buildGCalUrl(c),'_blank'); }
+  } else {
+    window.open(buildGCalUrl(c),'_blank');
+  }
+  toast(`📅 ${c.name} — Calendar में जोड़ा`);
+};
+function buildGCalStart(c){
+  const now=new Date();
+  let start;
+  if(c.alarmTime){
+    const [h,m]=c.alarmTime.split(':').map(Number);
+    start=new Date(now.getFullYear(),now.getMonth(),now.getDate(),h,m,0);
+    if(start<=now) start.setDate(start.getDate()+1);
+  } else { start=new Date(Date.now()+60*60*1000); }
+  return start.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');
+}
+function buildGCalEnd(c){
+  const s=new Date(buildGCalStart(c).replace(/(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z/,'$1-$2-$3T$4:$5:$6Z'));
+  return new Date(s.getTime()+30*60*1000).toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');
+}
 
 /* ──────── Modals ──────── */
 function openModal(id){ document.getElementById(id).classList.add('open'); }

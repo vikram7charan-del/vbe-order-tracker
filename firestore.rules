@@ -127,6 +127,10 @@ service cloud.firestore {
       allow read, write, delete: if isSupplier();
     }
 
+    match /vbe_call_tracker/{id} {
+      allow read, write, delete: if isSupplier();
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

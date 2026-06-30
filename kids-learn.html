@@ -4,7 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="पढ़ो सीखो">
 <meta name="theme-color" content="#6d28d9">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="kids-learn-manifest.json">
+<link rel="apple-touch-icon" href="kids-icons/icon-192.png">
 <title>पढ़ो और सीखो ⭐</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700;900&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
@@ -14,7 +19,7 @@
   --b:#2563eb;--b2:#60a5fa;--o:#ea580c;--o2:#fb923c;--y:#d97706;--y2:#fbbf24;
   --r:#dc2626;--bg:#f5f3ff;--card:#fff;--text:#1e1b4b;--muted:#6b7280;
 }
-body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:var(--bg);min-height:100vh;display:flex;justify-content:center;overflow-x:hidden}
+body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:var(--bg);min-height:100vh;display:flex;justify-content:center}
 .app{width:100%;max-width:480px;min-height:100vh;background:var(--bg);display:flex;flex-direction:column;position:relative;overflow:hidden}
 
 /* ── RIPPLE ── */
@@ -90,24 +95,75 @@ body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:var(--bg)
 .sub-tabs{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px}
 .stb{padding:8px 14px;border-radius:20px;border:2px solid #e5e7eb;background:#fff;font-size:13px;font-weight:800;color:var(--muted);cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0}
 .stb.active{background:var(--p);color:#fff;border-color:var(--p)}
+#learnTabs{flex-wrap:wrap;overflow:visible;padding-bottom:0;gap:7px}
+#learnTabs .stb{flex:1 1 calc(33.33% - 5px);min-width:0;font-size:12px;padding:8px 6px;text-align:center;white-space:normal}
 
-/* flip card */
+/* ── PARENT DASHBOARD ── */
+.btn-parent{width:100%;padding:14px;background:linear-gradient(135deg,#1e3a5f,#2563eb);color:#fff;border:none;border-radius:16px;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;margin-top:16px;display:flex;align-items:center;justify-content:center;gap:8px}
+.parent-modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.65);z-index:9999;overflow-y:auto;display:flex;align-items:flex-start;justify-content:center;padding:16px;-webkit-overflow-scrolling:touch}
+.parent-inner{background:#fff;border-radius:24px;padding:20px;width:100%;max-width:440px;margin:auto}
+.parent-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #f3f4f6}
+.parent-hdr-title{font-size:17px;font-weight:900;color:var(--text)}
+.p-close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);padding:4px}
+.pin-box{border:3px solid #e9d5ff;border-radius:14px;width:100%;font-size:30px;padding:12px;text-align:center;font-family:inherit;letter-spacing:10px;color:var(--p);outline:none}
+.pin-box:focus{border-color:var(--p)}
+.pin-submit{width:100%;margin-top:12px;padding:14px;background:linear-gradient(135deg,var(--p),var(--pk));color:#fff;border:none;border-radius:14px;font-size:16px;font-weight:900;cursor:pointer;font-family:inherit}
+.parent-stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}
+.pstat{background:#f5f3ff;border-radius:14px;padding:12px 8px;text-align:center}
+.pstat-val{font-size:22px;font-weight:900;color:var(--p)}
+.pstat-lbl{font-size:10px;font-weight:700;color:var(--muted);margin-top:2px}
+.sess-item{background:#f5f3ff;border-radius:12px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.sess-name{font-size:12px;font-weight:800;color:var(--text)}
+.sess-sub{font-size:10px;color:var(--muted);font-weight:600}
+.sess-dur{font-size:14px;font-weight:900;color:var(--p)}
+.score-item{background:#f0fdf4;border-radius:12px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.score-game{font-size:12px;font-weight:800;color:var(--text)}
+.score-pct-val{font-size:16px;font-weight:900}
+
+/* ── LETTER CARDS — direct tap = speak ── */
 .lgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.lcard{height:110px;cursor:pointer;perspective:600px}
-.lcard-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .45s cubic-bezier(.4,0,.2,1)}
-.lcard.flipped .lcard-inner{transform:rotateY(180deg)}
-.lcard-front,.lcard-back{position:absolute;inset:0;backface-visibility:hidden;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
-.lcard-front{background:#fff;box-shadow:0 3px 12px rgba(109,40,217,.12);border:2px solid transparent}
-.lcard.learned .lcard-front{border-color:var(--g)}
-.lcard-back{background:linear-gradient(135deg,var(--p),var(--pk));transform:rotateY(180deg);color:#fff}
-.lc-letter{font-size:30px;font-weight:900;color:var(--p)}
-.lc-emoji{font-size:24px}
+.lcard{cursor:pointer;border-radius:18px;padding:14px 6px 26px;text-align:center;background:#fff;box-shadow:0 3px 14px rgba(109,40,217,.1);border:3px solid transparent;transition:all .2s;position:relative}
+.lcard.learned{border-color:var(--g2);background:#f0fdf4}
+.lcard.speaking{transform:scale(.88);background:#ede9fe;border-color:var(--p);box-shadow:0 0 0 5px rgba(109,40,217,.2)}
+.lc-letter{font-size:36px;font-weight:900;color:var(--p);display:block;line-height:1.1}
+.lc-emoji{font-size:22px;display:block;margin:3px 0}
 .lc-word{font-size:11px;font-weight:700;color:var(--text)}
-.lc-learned{position:absolute;top:4px;right:6px;font-size:12px}
-.lc-back-letter{font-size:42px;font-weight:900}
-.lc-back-word{font-size:13px;font-weight:800;opacity:.9}
-.lc-back-meaning{font-size:11px;opacity:.75}
-.speak-btn{font-size:18px;opacity:.8}
+.lc-learned{position:absolute;top:5px;right:8px;font-size:10px;color:var(--g);font-weight:900}
+.lc-star{position:absolute;bottom:2px;left:0;right:0;font-size:11px;background:none;border:none;cursor:pointer;padding:3px;font-family:inherit;color:var(--muted);font-weight:700;text-align:center}
+.lc-star:active{color:var(--y2)}
+/* ── MATRA CARDS ── */
+.matra-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.mcrd{background:#fff;border-radius:18px;padding:14px 10px;text-align:center;box-shadow:0 3px 12px rgba(109,40,217,.1);cursor:pointer;border:3px solid #e9d5ff;transition:all .2s;position:relative;overflow:hidden}
+.mcrd:active,.mcrd.speaking{transform:scale(.92);border-color:var(--p);background:#ede9fe}
+.mcrd-num{position:absolute;top:6px;left:10px;font-size:11px;font-weight:800;color:var(--muted)}
+.mcrd-sym{font-size:44px;font-weight:900;display:block;margin-bottom:2px}
+.mcrd-name{font-size:11px;font-weight:800;display:block;margin-bottom:4px}
+.mcrd-ex{font-size:30px;font-weight:900;color:var(--text);display:block}
+.mcrd-emoji{font-size:22px;display:block;margin:2px 0}
+.mcrd-word{font-size:11px;font-weight:700;color:var(--muted)}
+/* ── BARAKHADI BUILDER ── */
+.builder-display{background:linear-gradient(135deg,var(--p),var(--pk));border-radius:22px;padding:20px;text-align:center;color:#fff;margin-bottom:14px;cursor:pointer;min-height:110px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.builder-syl{font-size:80px;font-weight:900;line-height:1;display:block}
+.builder-label{font-size:14px;opacity:.85;margin-top:6px}
+.builder-parts{font-size:14px;opacity:.7;margin-top:2px;letter-spacing:1px}
+.builder-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:10px;-webkit-overflow-scrolling:touch}
+.bpill{min-width:44px;height:48px;border-radius:12px;background:#fff;border:2px solid #e9d5ff;font-size:20px;font-weight:900;color:var(--p);cursor:pointer;font-family:inherit;flex-shrink:0;transition:all .15s;display:flex;align-items:center;justify-content:center}
+.bpill.sel{background:var(--p);color:#fff;border-color:var(--p);transform:scale(1.1)}
+.bpill.mpill{background:#fce7f3;border-color:#f9a8d4;color:var(--pk)}
+.bpill.mpill.sel{background:var(--pk);color:#fff;border-color:var(--pk);transform:scale(1.1)}
+/* ── WORD READING ── */
+.wrd-cards{display:grid;gap:14px}
+.wrd-card{background:#fff;border-radius:20px;padding:16px;box-shadow:0 3px 12px rgba(109,40,217,.08)}
+.wrd-top{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.wrd-emoji{font-size:48px;flex-shrink:0}
+.wrd-info{flex:1}
+.wrd-full{font-size:20px;font-weight:900;color:var(--text);cursor:pointer;border:2px solid #e9d5ff;background:#f5f3ff;border-radius:10px;padding:4px 12px;font-family:inherit;transition:all .15s}
+.wrd-full:active{background:var(--p);color:#fff;border-color:var(--p)}
+.wrd-meaning{font-size:12px;color:var(--muted);font-weight:600;margin-top:3px}
+.wrd-syls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.wsyl{padding:8px 14px;border-radius:12px;font-size:22px;font-weight:900;color:#fff;cursor:pointer;border:none;font-family:inherit;transition:transform .15s;flex-shrink:0}
+.wsyl:active{transform:scale(.88)}
+.wrd-op{font-size:16px;color:var(--muted);font-weight:900;flex-shrink:0}
 
 /* ── TRACE ── */
 .trace-wrap{background:#fff;border-radius:20px;padding:16px;box-shadow:0 3px 14px rgba(109,40,217,.1);margin-bottom:14px}
@@ -415,7 +471,7 @@ body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:var(--bg)
       <button class="mcard mc-o ripple-host" onclick="goTo('games')">
         <span class="mcard-icon">🎮</span>
         <div class="mcard-name">खेलो</div>
-        <div class="mcard-sub">9 मज़ेदार Games</div>
+        <div class="mcard-sub">11 मज़ेदार Games</div>
       </button>
       <button class="mcard mc-b ripple-host" onclick="goTo('stories')">
         <span class="mcard-icon">📖</span>
@@ -432,11 +488,16 @@ body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:var(--bg)
 
   <!-- LEARN -->
   <div id="screen-learn" class="screen">
-    <div class="tabs">
-      <button class="tb active" id="tabVar" onclick="switchTab('var')">📝 वर्णमाला</button>
-      <button class="tb" id="tabBK" onclick="switchTab('bk')">🔡 बाराखड़ी</button>
-      <button class="tb" id="tabVoc" onclick="switchTab('voc')">📖 शब्द ज्ञान</button>
+    <!-- 5 scrollable top tabs -->
+    <div class="sub-tabs" id="learnTabs" style="margin-bottom:14px">
+      <button class="stb active" id="tabVar" onclick="switchTab('var')">📝 अक्षर</button>
+      <button class="stb" id="tabMatra" onclick="switchTab('matra')">🔤 मात्राएं</button>
+      <button class="stb" id="tabBK" onclick="switchTab('bk')">🔡 बाराखड़ी</button>
+      <button class="stb" id="tabRead" onclick="switchTab('read')">📖 शब्द पढ़ो</button>
+      <button class="stb" id="tabVoc" onclick="switchTab('voc')">💡 शब्द ज्ञान</button>
     </div>
+
+    <!-- VARNAMALA -->
     <div id="learnVar">
       <div class="tabs" style="margin-bottom:10px">
         <button class="tb active" id="tabH" onclick="switchVarTab('hindi')">🇮🇳 हिंदी</button>
@@ -452,20 +513,58 @@ body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:var(--bg)
           <button class="stb" onclick="showHindiGroup('pa',this)">प-म</button>
           <button class="stb" onclick="showHindiGroup('ya',this)">य-ह</button>
         </div>
+        <p style="font-size:12px;color:var(--muted);font-weight:600;margin-bottom:10px">किसी भी अक्षर पर दबाओ → आवाज़ सुनो 🔊</p>
         <div class="lgrid" id="hindiGrid"></div>
       </div>
       <div id="learnE" style="display:none">
+        <p style="font-size:12px;color:var(--muted);font-weight:600;margin-bottom:10px">Tap any letter to hear it 🔊</p>
         <div class="lgrid" id="englishGrid"></div>
       </div>
     </div>
+
+    <!-- MATRA SECTION -->
+    <div id="learnMatra" style="display:none">
+      <div class="stitle" style="margin-bottom:6px">मात्राएं सीखो 🔤</div>
+      <p style="font-size:13px;color:var(--muted);font-weight:600;margin-bottom:12px;line-height:1.6">व्यंजन + मात्रा = नया अक्षर! जैसे क + ा = का। किसी कार्ड पर दबाओ और सुनो।</p>
+      <div class="matra-grid" id="matraGrid"></div>
+    </div>
+
+    <!-- BARAKHADI SECTION -->
     <div id="learnBK" style="display:none">
-      <div class="stitle" style="margin-bottom:10px">बाराखड़ी चार्ट 🔡</div>
-      <div class="bk-scroll">
-        <table class="bk-table" id="bkTable"></table>
+      <div class="stitle" style="margin-bottom:10px">बाराखड़ी 🔡</div>
+      <div class="tabs" style="margin-bottom:12px">
+        <button class="tb active" id="bkTabBuild" onclick="switchBKTab('build')">🔨 Builder</button>
+        <button class="tb" id="bkTabChart" onclick="switchBKTab('chart')">📊 पूरा चार्ट</button>
+      </div>
+      <div id="bkBuild">
+        <p style="font-size:13px;color:var(--muted);font-weight:600;margin-bottom:10px;line-height:1.6">व्यंजन चुनो → मात्रा चुनो → नया अक्षर बनता है! 🎉</p>
+        <div class="builder-display" id="builderDisplay" onclick="speakBuilder()">
+          <span class="builder-syl" id="builderSyl">क</span>
+          <div class="builder-label" id="builderLabel">🔊 दबाओ और सुनो!</div>
+          <div class="builder-parts" id="builderParts">क + (अ) = क</div>
+        </div>
+        <div class="stitle" style="font-size:14px;margin-bottom:8px">👇 व्यंजन चुनो:</div>
+        <div class="builder-row" id="bkConsRow"></div>
+        <div class="stitle" style="font-size:14px;margin-bottom:8px">👇 मात्रा चुनो:</div>
+        <div class="builder-row" id="bkMatraRow"></div>
+      </div>
+      <div id="bkChart" style="display:none">
+        <div class="bk-scroll">
+          <table class="bk-table" id="bkTable"></table>
+        </div>
       </div>
     </div>
+
+    <!-- WORD READING SECTION -->
+    <div id="learnRead" style="display:none">
+      <div class="stitle" style="margin-bottom:6px">शब्द पढ़ो 📖</div>
+      <p style="font-size:13px;color:var(--muted);font-weight:600;margin-bottom:12px;line-height:1.6">हर रंगीन टुकड़े पर दबाओ → वह आवाज़ सुनो → फिर पूरा शब्द दबाओ और पढ़ो! 🎉</p>
+      <div class="wrd-cards" id="wrdCards"></div>
+    </div>
+
+    <!-- VOCAB SECTION -->
     <div id="learnVoc" style="display:none">
-      <div class="stitle" style="margin-bottom:10px">शब्द ज्ञान 📖</div>
+      <div class="stitle" style="margin-bottom:10px">शब्द ज्ञान 💡</div>
       <div class="vcat-tabs" id="vcatTabs"></div>
       <div class="vcrd-grid" id="vcrdGrid"></div>
     </div>
@@ -530,6 +629,14 @@ body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:var(--bg)
         <button class="gcrd ripple-host" onclick="startGame('bkquiz')">
           <div class="gcrd-icon" style="background:#ede9fe">🔡</div>
           <div><div class="gcrd-name">बाराखड़ी Quiz</div><div class="gcrd-desc">मात्रा वाला अक्षर पहचानो</div></div>
+        </button>
+        <button class="gcrd ripple-host" onclick="startGame('matraquiz')">
+          <div class="gcrd-icon" style="background:#fce7f3">🔤</div>
+          <div><div class="gcrd-name">मात्रा पहचानो</div><div class="gcrd-desc">शब्द में कौन सी मात्रा है?</div></div>
+        </button>
+        <button class="gcrd ripple-host" onclick="startGame('wordreadquiz')">
+          <div class="gcrd-icon" style="background:#d1fae5">📖</div>
+          <div><div class="gcrd-name">शब्द पढ़ो Quiz</div><div class="gcrd-desc">चित्र देखो – सही शब्द पढ़ो</div></div>
         </button>
       </div>
     </div>
@@ -608,6 +715,20 @@ body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:var(--bg)
         <div class="qbox"><span class="qbig" id="bkqBig" style="font-size:60px"></span><div class="qtext" id="bkqTxt">यह अक्षर बोलो – सही चुनो</div></div>
         <div class="qopts" id="bkqOpts"></div>
       </div>
+      <!-- matra quiz -->
+      <div id="gMatraQuiz" class="hidden">
+        <div class="qhdr"><div class="qscore">⭐ <span id="mqSc">0</span></div><div class="qprog"><span id="mqCur">1</span>/<span id="mqTot">10</span></div></div>
+        <div class="qprog-bar"><div class="qprog-fill" id="mqFill" style="width:0%"></div></div>
+        <div class="qbox"><span class="qbig" id="mqBig" style="font-size:64px"></span><div class="qtext" id="mqTxt">इस अक्षर में कौन सी मात्रा है?</div></div>
+        <div class="qopts" id="mqOpts"></div>
+      </div>
+      <!-- word reading quiz -->
+      <div id="gWordReadQuiz" class="hidden">
+        <div class="qhdr"><div class="qscore">⭐ <span id="wrqSc">0</span></div><div class="qprog"><span id="wrqCur">1</span>/<span id="wrqTot">10</span></div></div>
+        <div class="qprog-bar"><div class="qprog-fill" id="wrqFill" style="width:0%"></div></div>
+        <div class="qbox"><span class="qbig" id="wrqBig" style="font-size:64px"></span><div class="qtext" id="wrqTxt">इस चित्र का सही शब्द चुनो:</div></div>
+        <div class="qopts" id="wrqOpts"></div>
+      </div>
     </div>
   </div>
 
@@ -632,6 +753,7 @@ body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:var(--bg)
 
   <!-- PROGRESS -->
   <div id="screen-progress" class="screen">
+    <button class="btn-parent ripple-host" onclick="openParentDash()" style="margin-bottom:14px">👨‍👩‍👧 माता-पिता डैशबोर्ड देखें</button>
     <div class="prog-hero">
       <span class="prog-star">⭐</span>
       <span class="prog-count" id="pStars">0</span>
@@ -721,12 +843,95 @@ const MATRAS = ['','ा','ि','ी','ु','ू','े','ै','ो','ौ','ं'];
 const MATRA_HDR = ['अ','आ','इ','ई','उ','ऊ','ए','ऐ','ओ','औ','अं'];
 const BK_CONS = ['क','ख','ग','घ','च','छ','ज','झ','ट','ठ','ड','ढ','त','थ','द','ध','न','प','फ','ब','भ','म','य','र','ल','व','स','ह'];
 
+const MATRA_INFO = [
+  {sym:'अ',name:'मूल स्वर (कोई मात्रा नहीं)',ex:'क',word:'कप',emoji:'🫙',color:'#6d28d9',m:''},
+  {sym:'ा',name:'आ की मात्रा',ex:'का',word:'काम',emoji:'💼',color:'#ec4899',m:'ा'},
+  {sym:'ि',name:'इ की मात्रा',ex:'कि',word:'किताब',emoji:'📚',color:'#2563eb',m:'ि'},
+  {sym:'ी',name:'ई की मात्रा',ex:'की',word:'कीड़ा',emoji:'🐛',color:'#16a34a',m:'ी'},
+  {sym:'ु',name:'उ की मात्रा',ex:'कु',word:'कुत्ता',emoji:'🐕',color:'#ea580c',m:'ु'},
+  {sym:'ू',name:'ऊ की मात्रा',ex:'कू',word:'कूड़ा',emoji:'🗑️',color:'#d97706',m:'ू'},
+  {sym:'े',name:'ए की मात्रा',ex:'के',word:'केला',emoji:'🍌',color:'#0891b2',m:'े'},
+  {sym:'ै',name:'ऐ की मात्रा',ex:'कै',word:'कैंची',emoji:'✂️',color:'#7c3aed',m:'ै'},
+  {sym:'ो',name:'ओ की मात्रा',ex:'को',word:'कोयल',emoji:'🐦',color:'#059669',m:'ो'},
+  {sym:'ौ',name:'औ की मात्रा',ex:'कौ',word:'कौआ',emoji:'🐦‍⬛',color:'#dc2626',m:'ौ'},
+  {sym:'ं',name:'अनुस्वार',ex:'कं',word:'कंघी',emoji:'🪮',color:'#9333ea',m:'ं'},
+];
+
+const READING_WORDS = [
+  {word:'कमल',syls:['क','म','ल'],emoji:'🌸',meaning:'Lotus',colors:['#6d28d9','#ec4899','#16a34a']},
+  {word:'नमक',syls:['न','म','क'],emoji:'🧂',meaning:'Salt',colors:['#ea580c','#2563eb','#6d28d9']},
+  {word:'पानी',syls:['पा','नी'],emoji:'💧',meaning:'Water',colors:['#2563eb','#0891b2']},
+  {word:'आम',syls:['आ','म'],emoji:'🥭',meaning:'Mango',colors:['#ea580c','#16a34a']},
+  {word:'केला',syls:['के','ला'],emoji:'🍌',meaning:'Banana',colors:['#d97706','#ec4899']},
+  {word:'सेब',syls:['से','ब'],emoji:'🍎',meaning:'Apple',colors:['#dc2626','#6d28d9']},
+  {word:'गाय',syls:['गा','य'],emoji:'🐄',meaning:'Cow',colors:['#16a34a','#ea580c']},
+  {word:'मोर',syls:['मो','र'],emoji:'🦚',meaning:'Peacock',colors:['#059669','#d97706']},
+  {word:'किताब',syls:['कि','ता','ब'],emoji:'📚',meaning:'Book',colors:['#2563eb','#ec4899','#6d28d9']},
+  {word:'नदी',syls:['न','दी'],emoji:'🌊',meaning:'River',colors:['#2563eb','#0891b2']},
+  {word:'गाजर',syls:['गा','ज','र'],emoji:'🥕',meaning:'Carrot',colors:['#ea580c','#16a34a','#6d28d9']},
+  {word:'राम',syls:['रा','म'],emoji:'👦',meaning:'Name',colors:['#6d28d9','#ec4899']},
+  {word:'घर',syls:['घ','र'],emoji:'🏠',meaning:'House',colors:['#ea580c','#2563eb']},
+  {word:'फूल',syls:['फू','ल'],emoji:'🌸',meaning:'Flower',colors:['#ec4899','#16a34a']},
+  {word:'खरगोश',syls:['ख','र','गो','श'],emoji:'🐇',meaning:'Rabbit',colors:['#7c3aed','#ea580c','#059669','#dc2626']},
+  {word:'कार',syls:['का','र'],emoji:'🚗',meaning:'Car',colors:['#dc2626','#2563eb']},
+  {word:'बादल',syls:['बा','द','ल'],emoji:'☁️',meaning:'Cloud',colors:['#6b7280','#2563eb','#6d28d9']},
+  {word:'सूरज',syls:['सू','र','ज'],emoji:'☀️',meaning:'Sun',colors:['#d97706','#ea580c','#dc2626']},
+  {word:'चाँद',syls:['चाँ','द'],emoji:'🌙',meaning:'Moon',colors:['#7c3aed','#2563eb']},
+  {word:'तारा',syls:['ता','रा'],emoji:'⭐',meaning:'Star',colors:['#d97706','#ea580c']},
+  {word:'पेड़',syls:['पे','ड़'],emoji:'🌳',meaning:'Tree',colors:['#16a34a','#059669']},
+  {word:'काम',syls:['का','म'],emoji:'💼',meaning:'Work',colors:['#2563eb','#dc2626']},
+  {word:'खाना',syls:['खा','ना'],emoji:'🍽️',meaning:'Food',colors:['#ea580c','#16a34a']},
+  {word:'सोना',syls:['सो','ना'],emoji:'😴',meaning:'Sleep',colors:['#7c3aed','#0891b2']},
+  {word:'जाना',syls:['जा','ना'],emoji:'🚶',meaning:'Go',colors:['#16a34a','#ea580c']},
+  {word:'लाल',syls:['ला','ल'],emoji:'🔴',meaning:'Red',colors:['#dc2626','#ea580c']},
+  {word:'नीला',syls:['नी','ला'],emoji:'🔵',meaning:'Blue',colors:['#2563eb','#0891b2']},
+  {word:'हरा',syls:['ह','रा'],emoji:'🟢',meaning:'Green',colors:['#16a34a','#059669']},
+  {word:'दूध',syls:['दू','ध'],emoji:'🥛',meaning:'Milk',colors:['#6b7280','#2563eb']},
+  {word:'रोटी',syls:['रो','टी'],emoji:'🫓',meaning:'Bread',colors:['#d97706','#ea580c']},
+  {word:'चावल',syls:['चा','व','ल'],emoji:'🍚',meaning:'Rice',colors:['#6b7280','#16a34a','#2563eb']},
+  {word:'दाल',syls:['दा','ल'],emoji:'🍲',meaning:'Lentils',colors:['#d97706','#ea580c']},
+  {word:'माँ',syls:['माँ'],emoji:'👩',meaning:'Mother',colors:['#ec4899']},
+  {word:'पापा',syls:['पा','पा'],emoji:'👨',meaning:'Father',colors:['#2563eb','#6d28d9']},
+  {word:'भाई',syls:['भा','ई'],emoji:'👦',meaning:'Brother',colors:['#ea580c','#dc2626']},
+  {word:'बहन',syls:['ब','ह','न'],emoji:'👧',meaning:'Sister',colors:['#ec4899','#6d28d9','#16a34a']},
+  {word:'दोस्त',syls:['दो','स्त'],emoji:'🤝',meaning:'Friend',colors:['#059669','#7c3aed']},
+  {word:'स्कूल',syls:['स्कू','ल'],emoji:'🏫',meaning:'School',colors:['#2563eb','#6d28d9']},
+  {word:'शेर',syls:['शे','र'],emoji:'🦁',meaning:'Lion',colors:['#d97706','#ea580c']},
+  {word:'हाथी',syls:['हा','थी'],emoji:'🐘',meaning:'Elephant',colors:['#6b7280','#7c3aed']},
+  {word:'बाघ',syls:['बा','घ'],emoji:'🐯',meaning:'Tiger',colors:['#d97706','#dc2626']},
+  {word:'मछली',syls:['म','छ','ली'],emoji:'🐟',meaning:'Fish',colors:['#0891b2','#2563eb','#059669']},
+  {word:'गेंद',syls:['गें','द'],emoji:'⚽',meaning:'Ball',colors:['#16a34a','#2563eb']},
+  {word:'नाम',syls:['ना','म'],emoji:'✏️',meaning:'Name',colors:['#6d28d9','#ec4899']},
+  {word:'खेल',syls:['खे','ल'],emoji:'🎮',meaning:'Game',colors:['#7c3aed','#ec4899']},
+  {word:'रात',syls:['रा','त'],emoji:'🌙',meaning:'Night',colors:['#1e1b4b','#2563eb']},
+  {word:'दिन',syls:['दि','न'],emoji:'☀️',meaning:'Day',colors:['#d97706','#ea580c']},
+  {word:'आँख',syls:['आँ','ख'],emoji:'👁️',meaning:'Eye',colors:['#2563eb','#6d28d9']},
+  {word:'कान',syls:['का','न'],emoji:'👂',meaning:'Ear',colors:['#ec4899','#d97706']},
+  {word:'नाक',syls:['ना','क'],emoji:'👃',meaning:'Nose',colors:['#ea580c','#6d28d9']},
+  {word:'हाथ',syls:['हा','थ'],emoji:'✋',meaning:'Hand',colors:['#d97706','#16a34a']},
+  {word:'बाघ',syls:['बा','घ'],emoji:'🐯',meaning:'Tiger',colors:['#d97706','#dc2626']},
+  {word:'ऊँट',syls:['ऊँ','ट'],emoji:'🐪',meaning:'Camel',colors:['#d97706','#ea580c']},
+  {word:'तोता',syls:['तो','ता'],emoji:'🦜',meaning:'Parrot',colors:['#16a34a','#059669']},
+  {word:'हंस',syls:['हं','स'],emoji:'🦢',meaning:'Swan',colors:['#2563eb','#6b7280']},
+  {word:'दवा',syls:['द','वा'],emoji:'💊',meaning:'Medicine',colors:['#dc2626','#ec4899']},
+  {word:'खिड़की',syls:['खि','ड़','की'],emoji:'🪟',meaning:'Window',colors:['#0891b2','#2563eb','#6d28d9']},
+  {word:'बगीचा',syls:['ब','गी','चा'],emoji:'🌻',meaning:'Garden',colors:['#16a34a','#d97706','#059669']},
+  {word:'रसोई',syls:['र','सो','ई'],emoji:'🍳',meaning:'Kitchen',colors:['#ea580c','#d97706','#dc2626']},
+];
+
 const VOCAB = {
-  'फल':   [{e:'🍎',h:'सेब',en:'Apple'},{e:'🥭',h:'आम',en:'Mango'},{e:'🍌',h:'केला',en:'Banana'},{e:'🍇',h:'अंगूर',en:'Grapes'},{e:'🍊',h:'संतरा',en:'Orange'},{e:'🍋',h:'नींबू',en:'Lemon'},{e:'🍉',h:'तरबूज',en:'Watermelon'},{e:'🍓',h:'स्ट्रॉबेरी',en:'Strawberry'},{e:'🍑',h:'आड़ू',en:'Peach'},{e:'🍍',h:'अनानास',en:'Pineapple'}],
-  'सब्जी': [{e:'🥕',h:'गाजर',en:'Carrot'},{e:'🥔',h:'आलू',en:'Potato'},{e:'🍅',h:'टमाटर',en:'Tomato'},{e:'🧅',h:'प्याज',en:'Onion'},{e:'🧄',h:'लहसुन',en:'Garlic'},{e:'🥦',h:'ब्रोकली',en:'Broccoli'},{e:'🌽',h:'मक्का',en:'Corn'},{e:'🥒',h:'खीरा',en:'Cucumber'},{e:'🍆',h:'बैंगन',en:'Brinjal'},{e:'🫛',h:'मटर',en:'Peas'}],
-  'जानवर': [{e:'🐘',h:'हाथी',en:'Elephant'},{e:'🐯',h:'बाघ',en:'Tiger'},{e:'🦁',h:'शेर',en:'Lion'},{e:'🐄',h:'गाय',en:'Cow'},{e:'🐕',h:'कुत्ता',en:'Dog'},{e:'🐈',h:'बिल्ली',en:'Cat'},{e:'🐒',h:'बंदर',en:'Monkey'},{e:'🐇',h:'खरगोश',en:'Rabbit'},{e:'🦚',h:'मोर',en:'Peacock'},{e:'🐬',h:'डॉल्फिन',en:'Dolphin'}],
-  'रंग':   [{e:'🔴',h:'लाल',en:'Red'},{e:'🟠',h:'नारंगी',en:'Orange'},{e:'🟡',h:'पीला',en:'Yellow'},{e:'🟢',h:'हरा',en:'Green'},{e:'🔵',h:'नीला',en:'Blue'},{e:'🟣',h:'बैंगनी',en:'Purple'},{e:'⚫',h:'काला',en:'Black'},{e:'⚪',h:'सफेद',en:'White'},{e:'🟤',h:'भूरा',en:'Brown'},{e:'🩷',h:'गुलाबी',en:'Pink'}],
-  'शरीर':  [{e:'👁️',h:'आँख',en:'Eye'},{e:'👂',h:'कान',en:'Ear'},{e:'👃',h:'नाक',en:'Nose'},{e:'👄',h:'मुँह',en:'Mouth'},{e:'🦷',h:'दाँत',en:'Teeth'},{e:'🤲',h:'हाथ',en:'Hand'},{e:'🦶',h:'पैर',en:'Foot'},{e:'💪',h:'बाहु',en:'Arm'},{e:'🫀',h:'दिल',en:'Heart'},{e:'🧠',h:'दिमाग',en:'Brain'}],
+  'फल':    [{e:'🍎',h:'सेब',en:'Apple'},{e:'🥭',h:'आम',en:'Mango'},{e:'🍌',h:'केला',en:'Banana'},{e:'🍇',h:'अंगूर',en:'Grapes'},{e:'🍊',h:'संतरा',en:'Orange'},{e:'🍋',h:'नींबू',en:'Lemon'},{e:'🍉',h:'तरबूज',en:'Watermelon'},{e:'🍓',h:'स्ट्रॉबेरी',en:'Strawberry'},{e:'🍑',h:'आड़ू',en:'Peach'},{e:'🍍',h:'अनानास',en:'Pineapple'},{e:'🍐',h:'नाशपाती',en:'Pear'},{e:'🥝',h:'कीवी',en:'Kiwi'},{e:'🍒',h:'चेरी',en:'Cherry'},{e:'🫐',h:'ब्लूबेरी',en:'Blueberry'},{e:'🥥',h:'नारियल',en:'Coconut'}],
+  'सब्जी': [{e:'🥕',h:'गाजर',en:'Carrot'},{e:'🥔',h:'आलू',en:'Potato'},{e:'🍅',h:'टमाटर',en:'Tomato'},{e:'🧅',h:'प्याज',en:'Onion'},{e:'🧄',h:'लहसुन',en:'Garlic'},{e:'🥦',h:'ब्रोकली',en:'Broccoli'},{e:'🌽',h:'मक्का',en:'Corn'},{e:'🥒',h:'खीरा',en:'Cucumber'},{e:'🍆',h:'बैंगन',en:'Brinjal'},{e:'🫛',h:'मटर',en:'Peas'},{e:'🥬',h:'पालक',en:'Spinach'},{e:'🌶️',h:'मिर्च',en:'Chilli'},{e:'🫚',h:'अदरक',en:'Ginger'},{e:'🥗',h:'गोभी',en:'Cabbage'},{e:'🫘',h:'बीन्स',en:'Beans'}],
+  'जानवर': [{e:'🐘',h:'हाथी',en:'Elephant'},{e:'🐯',h:'बाघ',en:'Tiger'},{e:'🦁',h:'शेर',en:'Lion'},{e:'🐄',h:'गाय',en:'Cow'},{e:'🐕',h:'कुत्ता',en:'Dog'},{e:'🐈',h:'बिल्ली',en:'Cat'},{e:'🐒',h:'बंदर',en:'Monkey'},{e:'🐇',h:'खरगोश',en:'Rabbit'},{e:'🦚',h:'मोर',en:'Peacock'},{e:'🐬',h:'डॉल्फिन',en:'Dolphin'},{e:'🐴',h:'घोड़ा',en:'Horse'},{e:'🦒',h:'जिराफ',en:'Giraffe'},{e:'🐊',h:'मगरमच्छ',en:'Crocodile'},{e:'🦊',h:'लोमड़ी',en:'Fox'},{e:'🐻',h:'भालू',en:'Bear'},{e:'🐺',h:'भेड़िया',en:'Wolf'},{e:'🐸',h:'मेंढक',en:'Frog'},{e:'🦓',h:'ज़ेब्रा',en:'Zebra'}],
+  'रंग':   [{e:'🔴',h:'लाल',en:'Red'},{e:'🟠',h:'नारंगी',en:'Orange'},{e:'🟡',h:'पीला',en:'Yellow'},{e:'🟢',h:'हरा',en:'Green'},{e:'🔵',h:'नीला',en:'Blue'},{e:'🟣',h:'बैंगनी',en:'Purple'},{e:'⚫',h:'काला',en:'Black'},{e:'⚪',h:'सफेद',en:'White'},{e:'🟤',h:'भूरा',en:'Brown'},{e:'🩷',h:'गुलाबी',en:'Pink'},{e:'🩵',h:'आसमानी',en:'Sky Blue'},{e:'🌟',h:'सुनहरा',en:'Golden'},{e:'🩶',h:'स्लेटी',en:'Grey'},{e:'🫧',h:'चांदी',en:'Silver'}],
+  'शरीर':  [{e:'👁️',h:'आँख',en:'Eye'},{e:'👂',h:'कान',en:'Ear'},{e:'👃',h:'नाक',en:'Nose'},{e:'👄',h:'मुँह',en:'Mouth'},{e:'🦷',h:'दाँत',en:'Teeth'},{e:'🤲',h:'हाथ',en:'Hand'},{e:'🦶',h:'पैर',en:'Foot'},{e:'💪',h:'बाहु',en:'Arm'},{e:'🫀',h:'दिल',en:'Heart'},{e:'🧠',h:'दिमाग',en:'Brain'},{e:'🦴',h:'हड्डी',en:'Bone'},{e:'🫁',h:'फेफड़ा',en:'Lung'},{e:'🧍',h:'कंधा',en:'Shoulder'},{e:'🦵',h:'जाँघ',en:'Thigh'}],
+  'वाहन':  [{e:'🚗',h:'कार',en:'Car'},{e:'🚌',h:'बस',en:'Bus'},{e:'🚂',h:'ट्रेन',en:'Train'},{e:'🚲',h:'साइकिल',en:'Bicycle'},{e:'✈️',h:'हवाई जहाज़',en:'Airplane'},{e:'⛵',h:'नाव',en:'Boat'},{e:'🚛',h:'ट्रक',en:'Truck'},{e:'🏍️',h:'मोटरसाइकिल',en:'Motorcycle'},{e:'🛺',h:'रिक्शा',en:'Rickshaw'},{e:'🚁',h:'हेलीकॉप्टर',en:'Helicopter'},{e:'🚀',h:'रॉकेट',en:'Rocket'},{e:'🚢',h:'जहाज़',en:'Ship'},{e:'🛵',h:'स्कूटर',en:'Scooter'},{e:'🚑',h:'एम्बुलेंस',en:'Ambulance'}],
+  'पक्षी': [{e:'🦚',h:'मोर',en:'Peacock'},{e:'🦜',h:'तोता',en:'Parrot'},{e:'🕊️',h:'कबूतर',en:'Pigeon'},{e:'🐦‍⬛',h:'कौआ',en:'Crow'},{e:'🦅',h:'बाज़',en:'Eagle'},{e:'🦢',h:'हंस',en:'Swan'},{e:'🐓',h:'मुर्गा',en:'Rooster'},{e:'🦆',h:'बत्तख',en:'Duck'},{e:'🦩',h:'फ्लेमिंगो',en:'Flamingo'},{e:'🦉',h:'उल्लू',en:'Owl'},{e:'🐦',h:'गौरैया',en:'Sparrow'},{e:'🦃',h:'टर्की',en:'Turkey'},{e:'🐧',h:'पेंगुइन',en:'Penguin'},{e:'🦤',h:'कोयल',en:'Cuckoo'}],
+  'खाना':  [{e:'🫓',h:'रोटी',en:'Bread'},{e:'🍚',h:'चावल',en:'Rice'},{e:'🍲',h:'दाल',en:'Lentils'},{e:'🥗',h:'सलाद',en:'Salad'},{e:'🥛',h:'दूध',en:'Milk'},{e:'☕',h:'चाय',en:'Tea'},{e:'🍬',h:'मिठाई',en:'Sweets'},{e:'🍮',h:'हलवा',en:'Halwa'},{e:'🥞',h:'पूरी',en:'Puri'},{e:'🥘',h:'करी',en:'Curry'},{e:'🧆',h:'समोसा',en:'Samosa'},{e:'🫙',h:'दही',en:'Curd'},{e:'🍯',h:'शहद',en:'Honey'},{e:'🧈',h:'मक्खन',en:'Butter'},{e:'🥚',h:'अंडा',en:'Egg'}],
+  'कपड़े': [{e:'👕',h:'कमीज़',en:'Shirt'},{e:'👖',h:'पैंट',en:'Pants'},{e:'👗',h:'कुर्ता',en:'Kurta'},{e:'🥻',h:'साड़ी',en:'Saree'},{e:'🧣',h:'दुपट्टा',en:'Dupatta'},{e:'🎩',h:'टोपी',en:'Hat'},{e:'👟',h:'जूता',en:'Shoe'},{e:'🧦',h:'मोजा',en:'Socks'},{e:'🧥',h:'जैकेट',en:'Jacket'},{e:'👒',h:'टोपी',en:'Cap'},{e:'🧤',h:'दस्ताना',en:'Gloves'},{e:'👜',h:'थैला',en:'Bag'},{e:'👓',h:'चश्मा',en:'Glasses'},{e:'⌚',h:'घड़ी',en:'Watch'}],
+  'घर':    [{e:'🚪',h:'दरवाज़ा',en:'Door'},{e:'🪟',h:'खिड़की',en:'Window'},{e:'🛋️',h:'सोफा',en:'Sofa'},{e:'🛏️',h:'बिस्तर',en:'Bed'},{e:'🪑',h:'कुर्सी',en:'Chair'},{e:'🪞',h:'दर्पण',en:'Mirror'},{e:'💡',h:'बल्ब',en:'Bulb'},{e:'📺',h:'टीवी',en:'TV'},{e:'📱',h:'फ़ोन',en:'Phone'},{e:'📚',h:'किताब',en:'Book'},{e:'🖊️',h:'कलम',en:'Pen'},{e:'🧹',h:'झाड़ू',en:'Broom'},{e:'🪣',h:'बाल्टी',en:'Bucket'},{e:'🛁',h:'नल',en:'Tap'},{e:'🍳',h:'तवा',en:'Pan'}],
+  'मौसम':  [{e:'🌧️',h:'बारिश',en:'Rain'},{e:'☀️',h:'धूप',en:'Sunshine'},{e:'☁️',h:'बादल',en:'Cloud'},{e:'❄️',h:'बर्फ़',en:'Snow'},{e:'🌬️',h:'हवा',en:'Wind'},{e:'🌈',h:'इंद्रधनुष',en:'Rainbow'},{e:'⛈️',h:'आंधी',en:'Storm'},{e:'🌫️',h:'धुंध',en:'Fog'},{e:'🌡️',h:'गर्मी',en:'Heat'},{e:'🥶',h:'ठंड',en:'Cold'},{e:'🌊',h:'बाढ़',en:'Flood'},{e:'⚡',h:'बिजली',en:'Lightning'}],
+  'खेल':   [{e:'🏏',h:'क्रिकेट',en:'Cricket'},{e:'⚽',h:'फ़ुटबॉल',en:'Football'},{e:'🏊',h:'तैराकी',en:'Swimming'},{e:'🏃',h:'दौड़',en:'Running'},{e:'♟️',h:'शतरंज',en:'Chess'},{e:'🪁',h:'पतंग',en:'Kite'},{e:'🏸',h:'बैडमिंटन',en:'Badminton'},{e:'🏓',h:'टेबल टेनिस',en:'Table Tennis'},{e:'🤸',h:'कबड्डी',en:'Kabaddi'},{e:'🎯',h:'निशानेबाज़ी',en:'Shooting'},{e:'🏋️',h:'कुश्ती',en:'Wrestling'},{e:'🎮',h:'वीडियो गेम',en:'Video Game'}],
 };
 const VOCAB_CATS = Object.keys(VOCAB);
 
@@ -739,11 +944,42 @@ const SENTENCES = [
   {q:'हाथी बहुत ___ जानवर है।',ans:'बड़ा',opts:['बड़ा','छोटा','तेज़','धीमा']},
   {q:'गुलाब का फूल ___ होता है।',ans:'लाल',opts:['लाल','काला','नीला','हरा']},
   {q:'बच्चे ___ में पढ़ते हैं।',ans:'स्कूल',opts:['स्कूल','दुकान','खेत','नदी']},
+  {q:'केले का रंग ___ होता है।',ans:'पीला',opts:['पीला','लाल','हरा','नीला']},
+  {q:'घास का रंग ___ होता है।',ans:'हरा',opts:['हरा','लाल','नीला','पीला']},
+  {q:'आसमान का रंग ___ होता है।',ans:'नीला',opts:['नीला','लाल','पीला','हरा']},
+  {q:'बर्फ ___ होती है।',ans:'सफ़ेद',opts:['सफ़ेद','काली','लाल','नीली']},
+  {q:'कोयल ___ गाती है।',ans:'मधुर',opts:['मधुर','तेज़','ज़ोर से','धीमी']},
+  {q:'गाय ___ देती है।',ans:'दूध',opts:['दूध','अंडा','ऊन','शहद']},
+  {q:'मुर्गी ___ देती है।',ans:'अंडा',opts:['अंडा','दूध','शहद','ऊन']},
+  {q:'मधुमक्खी ___ बनाती है।',ans:'शहद',opts:['शहद','दूध','अंडा','ऊन']},
+  {q:'सूरज ___ में उगता है।',ans:'पूर्व',opts:['पूर्व','पश्चिम','उत्तर','दक्षिण']},
+  {q:'रात को ___ चमकता है।',ans:'चाँद',opts:['चाँद','सूरज','बादल','इंद्रधनुष']},
+  {q:'पानी ___ में बहता है।',ans:'नदी',opts:['नदी','पहाड़','आसमान','जंगल']},
+  {q:'पहाड़ पर ___ होती है।',ans:'बर्फ',opts:['बर्फ','बारिश','धूप','हवा']},
+  {q:'बारिश ___ से आती है।',ans:'बादल',opts:['बादल','सूरज','हवा','पहाड़']},
+  {q:'शेर ___ में रहता है।',ans:'जंगल',opts:['जंगल','घर','स्कूल','नदी']},
+  {q:'हम भोजन ___ से खाते हैं।',ans:'हाथ',opts:['हाथ','पैर','नाक','कान']},
+  {q:'हम संगीत ___ से सुनते हैं।',ans:'कान',opts:['कान','आँख','नाक','मुँह']},
+  {q:'हम देखते हैं ___ से।',ans:'आँख',opts:['आँख','कान','नाक','हाथ']},
+  {q:'हिंदी में अक्षरों की संख्या ___ है।',ans:'52',opts:['52','26','36','42']},
+  {q:'हफ्ते में ___ दिन होते हैं।',ans:'सात',opts:['सात','पाँच','छह','आठ']},
+  {q:'एक साल में ___ महीने होते हैं।',ans:'बारह',opts:['बारह','दस','आठ','नौ']},
+  {q:'एक दिन में ___ घंटे होते हैं।',ans:'चौबीस',opts:['चौबीस','बारह','बीस','सोलह']},
+  {q:'दो और दो मिलाकर ___ होते हैं।',ans:'चार',opts:['चार','तीन','पाँच','दो']},
+  {q:'पाँच से दो घटाने पर ___ मिलता है।',ans:'तीन',opts:['तीन','दो','एक','चार']},
+  {q:'तितली ___ चूसती है।',ans:'फूलों का रस',opts:['फूलों का रस','पानी','दूध','हवा']},
+  {q:'ऊँट को ___ जानवर कहते हैं।',ans:'रेगिस्तान का जहाज़',opts:['रेगिस्तान का जहाज़','पहाड़ का राजा','जंगल का राजा','नदी की रानी']},
 ];
 
 const ANTONYMS = [
   {w:'बड़ा',a:'छोटा'},{w:'गर्म',a:'ठंडा'},{w:'दिन',a:'रात'},{w:'ऊपर',a:'नीचे'},{w:'सुख',a:'दुःख'},
   {w:'अच्छा',a:'बुरा'},{w:'आना',a:'जाना'},{w:'खुश',a:'उदास'},{w:'नया',a:'पुराना'},{w:'तेज़',a:'धीमा'},
+  {w:'काला',a:'सफ़ेद'},{w:'लंबा',a:'नाटा'},{w:'भारी',a:'हल्का'},{w:'मीठा',a:'कड़वा'},{w:'खुला',a:'बंद'},
+  {w:'आसान',a:'मुश्किल'},{w:'अमीर',a:'गरीब'},{w:'शुरू',a:'खत्म'},{w:'सुबह',a:'शाम'},{w:'राजा',a:'रानी'},
+  {w:'लड़का',a:'लड़की'},{w:'सवाल',a:'जवाब'},{w:'हंसना',a:'रोना'},{w:'उठना',a:'बैठना'},{w:'जीत',a:'हार'},
+  {w:'प्यार',a:'नफरत'},{w:'शहर',a:'गाँव'},{w:'पहला',a:'आखिरी'},{w:'अंधेरा',a:'उजाला'},{w:'खाली',a:'भरा'},
+  {w:'सच',a:'झूठ'},{w:'आगे',a:'पीछे'},{w:'पूर्व',a:'पश्चिम'},{w:'उत्तर',a:'दक्षिण'},{w:'जल',a:'थल'},
+  {w:'मोटा',a:'पतला'},{w:'चौड़ा',a:'पतला'},{w:'कच्चा',a:'पक्का'},{w:'सूखा',a:'गीला'},{w:'साफ़',a:'गंदा'},
 ];
 
 // ═══════════════════════════════════════════════════════════
@@ -772,11 +1008,20 @@ function save() { localStorage.setItem('vkids3',JSON.stringify(P)); updateHdr();
 // ═══════════════════════════════════════════════════════════
 // SPEECH
 // ═══════════════════════════════════════════════════════════
+let _voices = [];
+function _loadVoices() { _voices = speechSynthesis.getVoices(); }
+if (window.speechSynthesis) {
+  speechSynthesis.onvoiceschanged = _loadVoices;
+  _loadVoices();
+}
 function speak(text, lang='hi-IN') {
-  if(!window.speechSynthesis) return;
+  if (!window.speechSynthesis || !text) return;
   speechSynthesis.cancel();
+  speechSynthesis.resume();
   const u = new SpeechSynthesisUtterance(text);
-  u.lang = lang; u.rate = 0.75; u.pitch = 1.1;
+  u.lang = lang; u.rate = 0.85; u.pitch = 1.1;
+  const v = _voices.find(v => v.lang.startsWith(lang.slice(0,2)));
+  if (v) u.voice = v;
   speechSynthesis.speak(u);
 }
 
@@ -801,7 +1046,9 @@ document.addEventListener('click', e => {
 function goTo(screen) {
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
-  document.getElementById('screen-'+screen).classList.add('active');
+  const sc = document.getElementById('screen-'+screen);
+  sc.classList.add('active');
+  sc.scrollTop = 0;
   const nb = document.getElementById('nav-'+screen);
   if(nb) nb.classList.add('active');
   if(screen==='progress') renderProgress();
@@ -872,14 +1119,19 @@ function saveAvatar() {
 // ═══════════════════════════════════════════════════════════
 // LEARN
 // ═══════════════════════════════════════════════════════════
+const LTABS={var:'learnVar',matra:'learnMatra',bk:'learnBK',read:'learnRead',voc:'learnVoc'};
+const LBTNS={var:'tabVar',matra:'tabMatra',bk:'tabBK',read:'tabRead',voc:'tabVoc'};
 function switchTab(tab) {
   curLearnTab = tab;
-  ['learnVar','learnBK','learnVoc'].forEach(id=>document.getElementById(id).style.display='none');
-  ['tabVar','tabBK','tabVoc'].forEach(id=>document.getElementById(id).classList.remove('active'));
-  document.getElementById('learn'+{var:'Var',bk:'BK',voc:'Voc'}[tab]).style.display='';
-  document.getElementById('tab'+{var:'Var',bk:'BK',voc:'Voc'}[tab]).classList.add('active');
-  if(tab==='bk') initBarakhadi();
+  Object.values(LTABS).forEach(id=>document.getElementById(id).style.display='none');
+  Object.values(LBTNS).forEach(id=>document.getElementById(id).classList.remove('active'));
+  document.getElementById(LTABS[tab]).style.display='';
+  document.getElementById(LBTNS[tab]).classList.add('active');
+  document.getElementById('screen-learn').scrollTop = 0;
+  if(tab==='matra') initMatra();
+  else if(tab==='bk') initBKBuilder();
   else if(tab==='voc') initVocab();
+  else if(tab==='read') initWordReading();
 }
 function switchVarTab(lang) {
   curVarTab = lang;
@@ -890,6 +1142,14 @@ function switchVarTab(lang) {
   if(lang==='hindi') renderHindiGroup(curHindiGroup);
   else renderEnglish();
 }
+function switchBKTab(t) {
+  document.getElementById('bkBuild').style.display=t==='build'?'':'none';
+  document.getElementById('bkChart').style.display=t==='chart'?'':'none';
+  document.getElementById('bkTabBuild').classList.toggle('active',t==='build');
+  document.getElementById('bkTabChart').classList.toggle('active',t==='chart');
+  if(t==='chart') initBarakhadi();
+  else initBKBuilder();
+}
 function showHindiGroup(g,btn) {
   curHindiGroup = g;
   document.querySelectorAll('#hindiSubTabs .stb').forEach(b=>b.classList.remove('active'));
@@ -898,38 +1158,39 @@ function showHindiGroup(g,btn) {
 }
 function renderHindiGroup(g) {
   const items = HINDI_GROUPS[g]||[];
-  document.getElementById('hindiGrid').innerHTML = items.map((it,i)=>flipCard(it,i,'h')).join('');
+  document.getElementById('hindiGrid').innerHTML = items.map((it,i)=>simpleCard(it,i,'h')).join('');
 }
 function renderEnglish() {
-  document.getElementById('englishGrid').innerHTML = ENGLISH.map((it,i)=>flipCard(it,i,'e')).join('');
+  document.getElementById('englishGrid').innerHTML = ENGLISH.map((it,i)=>simpleCard(it,i,'e')).join('');
 }
-function flipCard(it,i,type) {
+function simpleCard(it,i,type) {
   const learned = (type==='e'?P.e:P.h).includes(it.l);
-  return `<div class="lcard${learned?' learned':''}" id="fc-${type}-${i}" onclick="tapCard(this,'${type}',${i})">
-    <div class="lcard-inner">
-      <div class="lcard-front">
-        ${learned?'<span class="lc-learned">✓</span>':''}
-        <span class="lc-letter">${it.l}</span>
-        <span class="lc-emoji">${it.e}</span>
-        <div class="lc-word">${it.w}</div>
-      </div>
-      <div class="lcard-back">
-        <span class="lc-back-letter">${it.l}</span>
-        <div class="lc-back-word">${it.w}</div>
-        <div class="lc-back-meaning">${it.m}</div>
-        <span class="speak-btn">🔊</span>
-      </div>
-    </div>
+  return `<div class="lcard${learned?' learned':''} ripple-host" onclick="tapCard(this,'${type}',${i})">
+    ${learned?'<span class="lc-learned">✓</span>':''}
+    <span class="lc-letter">${it.l}</span>
+    <span class="lc-emoji">${it.e}</span>
+    <div class="lc-word">${it.w}</div>
+    <button class="lc-star" onclick="event.stopPropagation();quickLearn('${type}',${i})">⭐ सीखा!</button>
   </div>`;
 }
 function tapCard(el, type, i) {
-  el.classList.toggle('flipped');
+  el.classList.add('speaking');
+  setTimeout(()=>el.classList.remove('speaking'),500);
   const item = type==='e' ? ENGLISH[i] : (HINDI_GROUPS[curHindiGroup]||[])[i];
   if(!item) return;
-  if(el.classList.contains('flipped')) {
-    speak(item.w, type==='e'?'en-US':'hi-IN');
-    openLesson(type, i, item);
+  speak(item.l, type==='e'?'en-US':'hi-IN');
+  setTimeout(()=>speak(item.w, type==='e'?'en-US':'hi-IN'), 600);
+  showMini('🔊 '+item.l+' — '+item.w);
+}
+function quickLearn(type, i) {
+  const item = type==='e' ? ENGLISH[i] : (HINDI_GROUPS[curHindiGroup]||[])[i];
+  if(!item) return;
+  const arr = type==='e'?P.e:P.h;
+  if(!arr.includes(item.l)) {
+    arr.push(item.l); P.stars+=2; save();
+    showReward('⭐⭐','शाबाश! +2 Stars', item.l+' = '+item.w);
   }
+  if(type==='e') renderEnglish(); else renderHindiGroup(curHindiGroup);
 }
 function openLesson(type, i, item) {
   curLesson = {type,i,item};
@@ -962,7 +1223,66 @@ function markLearned() {
   if(type==='e') renderEnglish(); else renderHindiGroup(curHindiGroup);
 }
 
-// ── BARAKHADI ──
+// ── MATRA INTRO ──
+function initMatra() {
+  const grid = document.getElementById('matraGrid');
+  if(grid.innerHTML) return;
+  grid.innerHTML = MATRA_INFO.map((mi,i)=>`
+    <div class="mcrd ripple-host" onclick="tapMatra(this,'${mi.ex}','${mi.word}')" style="border-color:${mi.color}44">
+      <div class="mcrd-num">${i+1}</div>
+      <span class="mcrd-sym" style="color:${mi.color}">${mi.sym}</span>
+      <span class="mcrd-name" style="color:${mi.color}">${mi.name}</span>
+      <span class="mcrd-ex" style="color:${mi.color}">${mi.ex}</span>
+      <span class="mcrd-emoji">${mi.emoji}</span>
+      <div class="mcrd-word">${mi.word}</div>
+    </div>`).join('');
+}
+function tapMatra(el, ex, word) {
+  el.classList.add('speaking');
+  speak(ex,'hi-IN');
+  setTimeout(()=>speak(word,'hi-IN'), 700);
+  setTimeout(()=>el.classList.remove('speaking'), 500);
+  showMini('🔊 '+ex+' → '+word);
+}
+
+// ── BARAKHADI BUILDER ──
+let bkSelCon='क', bkSelMatra='';
+function initBKBuilder() {
+  const cr=document.getElementById('bkConsRow');
+  const mr=document.getElementById('bkMatraRow');
+  if(!cr||!mr) return;
+  if(!cr.innerHTML) {
+    cr.innerHTML=BK_CONS.map(c=>`<button class="bpill" onclick="selectBKCon(this,'${c}')">${c}</button>`).join('');
+    cr.children[0].classList.add('sel');
+  }
+  if(!mr.innerHTML) {
+    const mDisplay=['(अ)','ा','ि','ी','ु','ू','े','ै','ो','ौ','ं'];
+    mr.innerHTML=MATRAS.map((m,i)=>`<button class="bpill mpill" onclick="selectBKMatra(this,'${m}')">${mDisplay[i]}</button>`).join('');
+    mr.children[0].classList.add('sel');
+  }
+  updateBuilder();
+}
+function selectBKCon(btn,c) {
+  bkSelCon=c;
+  document.querySelectorAll('#bkConsRow .bpill').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel'); updateBuilder();
+}
+function selectBKMatra(btn,m) {
+  bkSelMatra=m;
+  document.querySelectorAll('#bkMatraRow .bpill').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel'); updateBuilder();
+}
+function updateBuilder() {
+  const syl=bkSelCon+bkSelMatra;
+  const mi=MATRAS.indexOf(bkSelMatra);
+  const mName=mi>=0?MATRA_HDR[mi]:'अ';
+  document.getElementById('builderSyl').textContent=syl;
+  document.getElementById('builderParts').textContent=bkSelCon+' + '+mName+' = '+syl;
+  speak(syl,'hi-IN');
+}
+function speakBuilder() { speak(bkSelCon+bkSelMatra,'hi-IN'); showMini('🔊 '+(bkSelCon+bkSelMatra)); }
+
+// ── BARAKHADI FULL CHART ──
 function initBarakhadi() {
   const table = document.getElementById('bkTable');
   if(!table || table.innerHTML) return;
@@ -975,6 +1295,35 @@ function initBarakhadi() {
   table.innerHTML = html;
 }
 function speakBK(s) { speak(s,'hi-IN'); showMini('🔊 '+s); }
+
+// ── WORD READING ──
+function initWordReading() {
+  const c=document.getElementById('wrdCards');
+  if(c.innerHTML) return;
+  c.innerHTML=READING_WORDS.map(w=>`
+    <div class="wrd-card">
+      <div class="wrd-top">
+        <span class="wrd-emoji">${w.emoji}</span>
+        <div class="wrd-info">
+          <button class="wrd-full ripple-host" onclick="speakWord('${w.word}')">${w.word}</button>
+          <div class="wrd-meaning">${w.meaning}</div>
+        </div>
+      </div>
+      <div class="wrd-syls">
+        ${w.syls.map((s,i)=>`
+          ${i>0?'<span class="wrd-op">+</span>':''}
+          <button class="wsyl ripple-host" style="background:${w.colors[i]||'#6d28d9'}" onclick="speakSyl('${s}',this)">${s}</button>
+        `).join('')}
+        <span class="wrd-op">=</span>
+        <button class="wrd-full ripple-host" onclick="speakWord('${w.word}')">${w.word}</button>
+      </div>
+    </div>`).join('');
+}
+function speakSyl(s,btn) {
+  speak(s,'hi-IN'); showMini('🔊 '+s);
+  btn.style.opacity='.6'; setTimeout(()=>btn.style.opacity='1',400);
+}
+function speakWord(w) { speak(w,'hi-IN'); showMini('🔊 '+w); }
 
 // ── VOCAB ──
 let curVocabCat = '';
@@ -1084,7 +1433,7 @@ function doneTrace() {
 // GAMES
 // ═══════════════════════════════════════════════════════════
 function showGamePanel(id) {
-  ['gQuiz','gBubble','gMemory','gWordBuild','gResult','gVocabQuiz','gSentence','gAntonym','gBKQuiz'].forEach(d=>{
+  ['gQuiz','gBubble','gMemory','gWordBuild','gResult','gVocabQuiz','gSentence','gAntonym','gBKQuiz','gMatraQuiz','gWordReadQuiz'].forEach(d=>{
     const el=document.getElementById(d);
     if(el) el.classList.toggle('hidden',el.id!==id);
   });
@@ -1103,6 +1452,8 @@ function startGame(type) {
   else if(type==='sentence') startSentenceGame();
   else if(type==='antonym') startAntonymGame();
   else if(type==='bkquiz') startBKQuiz();
+  else if(type==='matraquiz') startMatraQuiz();
+  else if(type==='wordreadquiz') startWordReadQuiz();
 }
 function exitGame() {
   if(bTimer) {clearInterval(bTimer);bTimer=null;}
@@ -1155,6 +1506,7 @@ function endQuiz() {
   document.getElementById('resText').textContent=pct>=80?`शाबाश! ${qSc}/${qItems.length} सही!`:pct>=50?`अच्छा! ${qSc}/${qItems.length} सही`:`${qSc}/${qItems.length} — फिर कोशिश करो!`;
   document.getElementById('resPlayAgain').onclick=()=>startGame(curGame);
   if(pct>=80) launchConfetti();
+  saveScore(curGame==='english'?'English Quiz':'Hindi Quiz',qSc,qItems.length);
 }
 
 /* ── BUBBLE POP ── */
@@ -1201,6 +1553,7 @@ function endBubble() {
   document.getElementById('resText').textContent=`Bubble Pop: ${bSc}/10 सही!`;
   document.getElementById('resPlayAgain').onclick=()=>startGame('bubble');
   if(bSc>=7) launchConfetti();
+  saveScore('Bubble Pop',bSc,10);
 }
 
 /* ── MEMORY MATCH ── */
@@ -1306,6 +1659,7 @@ function endWB() {
   document.getElementById('resText').textContent=`Word Builder: ${wbSc} Stars!`;
   document.getElementById('resPlayAgain').onclick=()=>startGame('wordbuild');
   if(wbSc>10) launchConfetti();
+  saveScore('Word Builder',wbSc,wbItems.length);
 }
 
 /* ── VOCAB QUIZ ── */
@@ -1347,6 +1701,7 @@ function endVQ() {
   document.getElementById('resText').textContent=`शब्द ज्ञान: ${vqSc}/${vqItems.length} सही!`;
   document.getElementById('resPlayAgain').onclick=()=>startGame('vocabquiz');
   if(pct>=80) launchConfetti();
+  saveScore('शब्द ज्ञान Quiz',vqSc,vqItems.length);
 }
 
 /* ── SENTENCE GAME ── */
@@ -1380,6 +1735,7 @@ function endSQ() {
   document.getElementById('resText').textContent=`वाक्य खेल: ${sqSc}/${sqItems.length} सही!`;
   document.getElementById('resPlayAgain').onclick=()=>startGame('sentence');
   if(pct>=80) launchConfetti();
+  saveScore('वाक्य पूरा करो',sqSc,sqItems.length);
 }
 
 /* ── ANTONYM GAME ── */
@@ -1414,6 +1770,7 @@ function endAQ() {
   document.getElementById('resEmoji').textContent=pct>=80?'🎉':pct>=50?'👍':'💪';
   document.getElementById('resText').textContent=`उल्टे शब्द: ${aqSc}/${aqItems.length} सही!`;
   document.getElementById('resPlayAgain').onclick=()=>startGame('antonym');
+  saveScore('उल्टे शब्द',aqSc,aqItems.length);
   if(pct>=80) launchConfetti();
 }
 
@@ -1452,6 +1809,87 @@ function endBKQ() {
   document.getElementById('resText').textContent=`बाराखड़ी Quiz: ${bkqSc}/${bkqItems.length} सही!`;
   document.getElementById('resPlayAgain').onclick=()=>startGame('bkquiz');
   if(pct>=80) launchConfetti();
+  saveScore('बाराखड़ी Quiz',bkqSc,bkqItems.length);
+}
+
+/* ── MATRA QUIZ ── */
+let mqItems=[],mqIdx=0,mqSc=0;
+function startMatraQuiz() {
+  showGamePanel('gMatraQuiz'); mqSc=0; mqIdx=0;
+  const pool=[];
+  BK_CONS.slice(0,8).forEach(con=>MATRAS.slice(1,7).forEach((m,mi)=>pool.push({syl:con+m,matra:m,mName:MATRA_HDR[mi+1]})));
+  mqItems=shuffle(pool).slice(0,10);
+  document.getElementById('mqTot').textContent=mqItems.length;
+  renderMQ();
+}
+function renderMQ() {
+  if(mqIdx>=mqItems.length){endMQ();return;}
+  document.getElementById('mqSc').textContent=mqSc;
+  document.getElementById('mqCur').textContent=mqIdx+1;
+  document.getElementById('mqFill').style.width=Math.round(mqIdx/mqItems.length*100)+'%';
+  const q=mqItems[mqIdx];
+  document.getElementById('mqBig').textContent=q.syl;
+  speak(q.syl,'hi-IN');
+  const wrong=shuffle(MATRAS.slice(1).filter(m=>m!==q.matra)).slice(0,3);
+  document.getElementById('mqOpts').innerHTML=shuffle([q.matra,...wrong]).map(o=>{
+    const isC=o===q.matra;
+    return `<button class="qopt ripple-host" style="font-size:32px;font-weight:900" data-c="${isC}" onclick="checkMQ(this,${isC})">${o}</button>`;
+  }).join('');
+}
+function checkMQ(btn,isC) {
+  document.querySelectorAll('#mqOpts .qopt').forEach(o=>o.classList.add('disabled'));
+  btn.classList.add(isC?'correct':'wrong');
+  if(!isC) document.querySelectorAll('#mqOpts .qopt[data-c="true"]').forEach(o=>o.classList.add('show-correct'));
+  if(isC){mqSc++;P.stars++;save();}
+  setTimeout(()=>{mqIdx++;renderMQ();},900);
+}
+function endMQ() {
+  showGamePanel('gResult');
+  const pct=Math.round(mqSc/mqItems.length*100);
+  document.getElementById('resEmoji').textContent=pct>=80?'🎉':pct>=50?'👍':'💪';
+  document.getElementById('resText').textContent=`मात्रा Quiz: ${mqSc}/${mqItems.length} सही!`;
+  document.getElementById('resPlayAgain').onclick=()=>startGame('matraquiz');
+  if(pct>=80) launchConfetti();
+  saveScore('मात्रा Quiz',mqSc,mqItems.length);
+}
+
+/* ── WORD READ QUIZ ── */
+let wrqItems=[],wrqIdx=0,wrqSc=0;
+function startWordReadQuiz() {
+  showGamePanel('gWordReadQuiz'); wrqSc=0; wrqIdx=0;
+  wrqItems=shuffle([...READING_WORDS]).slice(0,10);
+  document.getElementById('wrqTot').textContent=wrqItems.length;
+  renderWRQ();
+}
+function renderWRQ() {
+  if(wrqIdx>=wrqItems.length){endWRQ();return;}
+  document.getElementById('wrqSc').textContent=wrqSc;
+  document.getElementById('wrqCur').textContent=wrqIdx+1;
+  document.getElementById('wrqFill').style.width=Math.round(wrqIdx/wrqItems.length*100)+'%';
+  const q=wrqItems[wrqIdx];
+  document.getElementById('wrqBig').textContent=q.emoji;
+  speak(q.word,'hi-IN');
+  const wrong=shuffle(READING_WORDS.filter(x=>x.word!==q.word)).slice(0,3);
+  document.getElementById('wrqOpts').innerHTML=shuffle([q,...wrong]).map(o=>{
+    const isC=o.word===q.word;
+    return `<button class="qopt ripple-host" style="font-size:22px;font-weight:900" data-c="${isC}" onclick="checkWRQ(this,${isC})">${o.word}</button>`;
+  }).join('');
+}
+function checkWRQ(btn,isC) {
+  document.querySelectorAll('#wrqOpts .qopt').forEach(o=>o.classList.add('disabled'));
+  btn.classList.add(isC?'correct':'wrong');
+  if(!isC) document.querySelectorAll('#wrqOpts .qopt[data-c="true"]').forEach(o=>o.classList.add('show-correct'));
+  if(isC){wrqSc++;P.stars++;save();}
+  setTimeout(()=>{wrqIdx++;renderWRQ();},900);
+}
+function endWRQ() {
+  showGamePanel('gResult');
+  const pct=Math.round(wrqSc/wrqItems.length*100);
+  document.getElementById('resEmoji').textContent=pct>=80?'🎉':pct>=50?'👍':'💪';
+  document.getElementById('resText').textContent=`शब्द पढ़ो: ${wrqSc}/${wrqItems.length} सही!`;
+  document.getElementById('resPlayAgain').onclick=()=>startGame('wordreadquiz');
+  if(pct>=80) launchConfetti();
+  saveScore('शब्द पढ़ो Quiz',wrqSc,wrqItems.length);
 }
 
 /* ── MINI TOAST ── */
@@ -1596,6 +2034,123 @@ function shuffle(a) {
 }
 
 // ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
+// FIREBASE ACTIVITY TRACKING
+// ═══════════════════════════════════════════════════════════
+const _FBCFG = {
+  apiKey:"AIzaSyBCe5DKNKcthOl4umprfRm2QBfbVaFORg8",
+  authDomain:"vbe-order-tracker-60324.firebaseapp.com",
+  projectId:"vbe-order-tracker-60324",
+  storageBucket:"vbe-order-tracker-60324.firebasestorage.app",
+  messagingSenderId:"894023456122",
+  appId:"1:894023456122:web:6ee548f0913c887c67f2c3"
+};
+let _kDb=null, _kF=null;
+let _sessStart=Date.now();
+const DEVICE_ID=(()=>{let id=localStorage.getItem('vkids_dev');if(!id){id=Math.random().toString(36).slice(2,8).toUpperCase();localStorage.setItem('vkids_dev',id);}return id;})();
+
+async function initKidsFirebase() {
+  try {
+    const {initializeApp,getApps,getApp}=await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+    const {getFirestore,collection,addDoc,getDocs,query,where,orderBy,limit}=await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    const {getAuth,onAuthStateChanged}=await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
+    // Share the DEFAULT app — picks up supplier auth already persisted in IndexedDB by VBE tracker
+    const app=getApps().length?getApp():initializeApp(_FBCFG);
+    _kDb=getFirestore(app);
+    _kF={collection,addDoc,getDocs,query,where,orderBy,limit};
+    // Wait up to 5s for auth state; parent's phones already have supplier session
+    await new Promise(resolve=>{
+      const timer=setTimeout(()=>{unsub();resolve(null);},5000);
+      const unsub=onAuthStateChanged(getAuth(app),u=>{clearTimeout(timer);unsub();resolve(u);});
+    });
+  } catch(e){console.warn('Kids Firebase offline');}
+}
+
+async function saveScore(game,score,total) {
+  if(!_kDb||!_kF) return;
+  // Write to vbe_settings (supplier-accessible, no extra Firestore rule needed)
+  try { await _kF.addDoc(_kF.collection(_kDb,'vbe_settings'),{_type:'kids_score',deviceId:DEVICE_ID,childName:P.name||'बच्चा',game,score,total,pct:Math.round(score/total*100),timestamp:new Date(),date:new Date().toISOString().slice(0,10)}); } catch(e){}
+}
+
+async function saveSession() {
+  if(!_kDb||!_kF) return;
+  const dur=Math.round((Date.now()-_sessStart)/1000); if(dur<20) return;
+  try { await _kF.addDoc(_kF.collection(_kDb,'vbe_settings'),{_type:'kids_session',deviceId:DEVICE_ID,childName:P.name||'बच्चा',durationSec:dur,durationMin:+(dur/60).toFixed(1),date:new Date().toISOString().slice(0,10),stars:P.stars,startTime:new Date(_sessStart),endTime:new Date()}); } catch(e){}
+}
+window.addEventListener('beforeunload',saveSession);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)saveSession();});
+
+// ── PARENT DASHBOARD ──
+const _PPIN_KEY='vkids_ppin';
+function openParentDash() {
+  document.getElementById('parentModal').style.display='flex';
+  document.getElementById('parentPinWrap').style.display='';
+  document.getElementById('parentDashContent').style.display='none';
+  document.getElementById('parentPinInput').value='';
+  document.getElementById('pinError').style.display='none';
+  setTimeout(()=>document.getElementById('parentPinInput').focus(),200);
+}
+function closeParentDash() { document.getElementById('parentModal').style.display='none'; }
+function checkParentPin() {
+  const pin=document.getElementById('parentPinInput').value;
+  const stored=localStorage.getItem(_PPIN_KEY)||'1234';
+  if(pin===stored) {
+    document.getElementById('parentPinWrap').style.display='none';
+    document.getElementById('parentDashContent').style.display='';
+    document.getElementById('parentDeviceId').textContent=DEVICE_ID;
+    loadParentDash();
+  } else {
+    document.getElementById('pinError').style.display='';
+    document.getElementById('parentPinInput').value='';
+  }
+}
+function changeParentPin() {
+  const np=document.getElementById('newPinInput').value;
+  if(np.length<4){showMini('❌ PIN कम से कम 4 अंक');return;}
+  localStorage.setItem(_PPIN_KEY,np); showMini('✅ PIN बदल गया!');
+  document.getElementById('newPinInput').value='';
+}
+async function loadParentDash() {
+  // Local stats
+  document.getElementById('pds1').textContent=P.stars;
+  document.getElementById('pds2').textContent=Math.round((Date.now()-_sessStart)/60000);
+  document.getElementById('pds3').textContent=P.games;
+
+  if(!_kDb||!_kF) {
+    document.getElementById('parentSessions').innerHTML='<div style="text-align:center;padding:12px;color:var(--muted);font-weight:700">📡 Internet से connect होने पर सभी devices की activity दिखेगी</div>';
+    document.getElementById('parentScores').innerHTML='';
+    return;
+  }
+  try {
+    // Sessions — query vbe_settings with _type filter, sort client-side (avoids composite index)
+    const ssSnap=await _kF.getDocs(_kF.query(_kF.collection(_kDb,'vbe_settings'),_kF.where('_type','==','kids_session'),_kF.limit(50)));
+    const sessions=[]; ssSnap.forEach(d=>sessions.push(d.data()));
+    sessions.sort((a,b)=>(b.endTime?.toMillis?.()??b.endTime??0)-(a.endTime?.toMillis?.()??a.endTime??0));
+    let totalMin=0, sHtml='';
+    sessions.slice(0,25).forEach(v=>{
+      totalMin+=(v.durationSec||0)/60;
+      const dur=v.durationSec>=60?`${Math.round(v.durationSec/60)} मिनट`:`${v.durationSec} सेकंड`;
+      sHtml+=`<div class="sess-item"><div><div class="sess-name">${v.childName||'बच्चा'} · ${v.date||''}</div><div class="sess-sub">${v.deviceId||''}</div></div><div class="sess-dur">${dur} ⭐${v.stars||0}</div></div>`;
+    });
+    document.getElementById('parentSessions').innerHTML=sHtml||'<div style="text-align:center;padding:12px;color:var(--muted)">अभी तक कोई session नहीं</div>';
+    document.getElementById('pds2').textContent=Math.round(totalMin);
+
+    // Scores — same pattern
+    const scSnap=await _kF.getDocs(_kF.query(_kF.collection(_kDb,'vbe_settings'),_kF.where('_type','==','kids_score'),_kF.limit(60)));
+    const scores=[]; scSnap.forEach(d=>scores.push(d.data()));
+    scores.sort((a,b)=>(b.timestamp?.toMillis?.()??b.timestamp??0)-(a.timestamp?.toMillis?.()??a.timestamp??0));
+    let scHtml='';
+    scores.slice(0,30).forEach(v=>{
+      const col=v.pct>=80?'#16a34a':v.pct>=50?'#d97706':'#dc2626';
+      scHtml+=`<div class="score-item"><div><div class="score-game">${v.game} · ${v.childName||'बच्चा'}</div><div style="font-size:10px;color:var(--muted)">${v.date||''} · Device: ${v.deviceId||''}</div></div><div class="score-pct-val" style="color:${col}">${v.pct}%<div style="font-size:10px;font-weight:700;color:var(--muted)">${v.score}/${v.total}</div></div></div>`;
+    });
+    document.getElementById('parentScores').innerHTML=scHtml||'<div style="text-align:center;padding:12px;color:var(--muted)">अभी तक कोई game score नहीं</div>';
+  } catch(e) {
+    document.getElementById('parentSessions').innerHTML=`<div style="text-align:center;padding:12px;color:#dc2626;font-weight:700">❌ पहले VBE Tracker में login करें, फिर यह डैशबोर्ड खोलें</div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════════
 (function init() {
@@ -1608,7 +2163,48 @@ function shuffle(a) {
   if(!P.name) {
     setTimeout(()=>document.getElementById('avatarOverlay').classList.add('open'),600);
   }
+  // PWA Service Worker
+  if('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./kids-learn-sw.js').catch(()=>{});
+  }
+  // Firebase (non-blocking)
+  initKidsFirebase();
 })();
 </script>
+
+<!-- PARENT DASHBOARD MODAL — outside .app so overflow:hidden doesn't clip it -->
+<div id="parentModal" class="parent-modal" style="display:none" onclick="if(event.target===this)closeParentDash()">
+  <div class="parent-inner">
+    <div class="parent-hdr">
+      <div class="parent-hdr-title">👨‍👩‍👧 माता-पिता डैशबोर्ड</div>
+      <button class="p-close" onclick="closeParentDash()">✕</button>
+    </div>
+    <div id="parentPinWrap">
+      <p style="text-align:center;margin:8px 0 12px;font-weight:700;color:var(--muted)">PIN डालें (डिफ़ॉल्ट: 1234)</p>
+      <input id="parentPinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" class="pin-box" onkeydown="if(event.key==='Enter')checkParentPin()">
+      <button class="pin-submit" onclick="checkParentPin()">प्रवेश करें →</button>
+      <div id="pinError" style="color:#dc2626;text-align:center;margin-top:8px;font-weight:700;display:none">❌ गलत PIN</div>
+    </div>
+    <div id="parentDashContent" style="display:none">
+      <div class="parent-stat-row" id="parentStats">
+        <div class="pstat"><div class="pstat-val" id="pds1">—</div><div class="pstat-lbl">Stars ⭐</div></div>
+        <div class="pstat"><div class="pstat-val" id="pds2">—</div><div class="pstat-lbl">मिनट 📚</div></div>
+        <div class="pstat"><div class="pstat-val" id="pds3">—</div><div class="pstat-lbl">Games 🎮</div></div>
+      </div>
+      <div class="stitle" style="margin:10px 0 8px;font-size:14px">📅 हाल की Activity</div>
+      <div id="parentSessions"><div style="text-align:center;color:var(--muted);padding:10px">लोड हो रहा है...</div></div>
+      <div class="stitle" style="margin:14px 0 8px;font-size:14px">🎮 Game Scores</div>
+      <div id="parentScores"><div style="text-align:center;color:var(--muted);padding:10px">लोड हो रहा है...</div></div>
+      <div style="margin-top:16px;padding-top:14px;border-top:2px solid #f3f4f6;font-size:11px;color:var(--muted)">
+        <div style="font-weight:700">Device ID: <span id="parentDeviceId" style="font-family:monospace;color:var(--p)"></span></div>
+        <div style="margin-top:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="font-weight:700">PIN बदलें:</span>
+          <input id="newPinInput" type="password" inputmode="numeric" maxlength="4" placeholder="नया PIN" style="width:80px;padding:6px;border:2px solid #e9d5ff;border-radius:8px;font-size:14px;text-align:center;font-family:inherit">
+          <button onclick="changeParentPin()" style="padding:6px 14px;background:var(--p);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:900;cursor:pointer;font-family:inherit">बदलें</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 </body>
 </html>

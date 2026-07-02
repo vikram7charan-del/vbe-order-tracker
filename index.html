@@ -204,7 +204,11 @@ window._fbAnonSignIn = async function(){
   }
 };
 
-onAuthStateChanged(auth, user => {
+onAuthStateChanged(auth, async user => {
+  if(!user){
+    try{ await signInWithEmailAndPassword(auth,'9887401741@vbe-tracker.local','88990011'); }catch(e){ console.error('auto-login:',e.code); }
+    return;
+  }
   window._fbUID = user ? user.uid : null;
   window._fbIsSupplier = (user && user.uid === APPROVED_UID);
   window._signOut = () => signOut(auth);
@@ -2272,13 +2276,10 @@ window.addEventListener('fbReady',()=>{
     if(location.hash === '#customer'){
       document.getElementById('customer').style.display='block';
       window._fbAnonSignIn();
-    } else if(window._fbIsSupplier){
-      // Firebase ने automatic re-login कर दिया (browser में session active है)
+    } else {
+      // Auto-login: directly show supplier dashboard
       sessionStorage.setItem('vbe_auth','ok');
       showSupplier();
-    } else {
-      document.getElementById('login-screen').classList.add('show');
-      setTimeout(()=>{ document.getElementById('login-user').focus(); checkLockOnLoad(); },200);
     }
   }
 });

@@ -217,12 +217,19 @@ function _tryAutoLogin(){
     });
 }
 onAuthStateChanged(auth, user => {
-  if(!user){
-    _tryAutoLogin();
+  // अगर user है लेकिन admin नहीं (anonymous या wrong user) तो sign out करो
+  if(!user || user.uid !== APPROVED_UID){
+    if(user){
+      // Wrong/anonymous user cached — sign out and re-login as admin
+      signOut(auth).then(_tryAutoLogin);
+    } else {
+      _tryAutoLogin();
+    }
     return;
   }
+  // ✅ Correct admin user
   window._fbUID = user.uid;
-  window._fbIsSupplier = (user.uid === APPROVED_UID);
+  window._fbIsSupplier = true;
   window._signOut = () => signOut(auth);
 
   const dot = document.getElementById('load-auth-dot');

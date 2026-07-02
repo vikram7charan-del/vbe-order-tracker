@@ -273,6 +273,15 @@ body{
 @keyframes pulse-r{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.5)}60%{box-shadow:0 0 0 6px rgba(239,68,68,0)}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 .card{animation:fadeIn .2s ease}
+
+/* ── Filter bar ── */
+.filter-bar{display:flex;gap:6px;overflow-x:auto;padding:2px 13px 8px;scrollbar-width:none;-ms-overflow-style:none}
+.filter-bar::-webkit-scrollbar{display:none}
+.f-chip{display:inline-flex;align-items:center;gap:4px;cursor:pointer;flex-shrink:0;background:#060d1a;border:1.5px solid #1e3a5f;border-radius:18px;padding:5px 12px;font-size:10.5px;font-weight:800;color:#64748b;transition:all .15s;touch-action:manipulation;white-space:nowrap}
+.f-chip:active{opacity:.72;transform:scale(.97)}
+.f-chip.on{background:rgba(59,130,246,.12);border-color:#3b82f6;color:#60a5fa}
+/* Tag button in modal */
+.tag-btn{padding:7px 12px;border-radius:9px;border:1.5px solid rgba(30,58,95,.8);background:#060d1a;color:#64748b;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;transition:all .15s;touch-action:manipulation}
 </style>
 </head>
 <body>
@@ -323,6 +332,12 @@ body{
       <div class="stat"><div class="stat-n amber" id="st-due">0</div><div class="stat-l">⏰ जल्दी</div></div>
       <div class="stat"><div class="stat-n green" id="st-today">0</div><div class="stat-l">✅ आज</div></div>
     </div>
+    <!-- Filter bar -->
+    <div class="filter-bar" id="filter-bar">
+      <div class="f-chip on" data-f="" onclick="setFilter('')">🔍 सब</div>
+      <div class="f-chip" data-f="money" onclick="setFilter('money')">💰 पैसों का मामला</div>
+      <div class="f-chip" data-f="jalipa" onclick="setFilter('jalipa')">🏪 जालीपा फॉलोअप</div>
+    </div>
   </div>
 
   <!-- Horizontal Strip -->
@@ -344,12 +359,24 @@ body{
       <input class="inp" id="f-name" placeholder="Ramesh Gupta, Sharma Ji...">
     </div>
     <div class="fg">
-      <label class="lbl">📱 Mobile (+91 भी ठीक है)</label>
+      <label class="lbl">📱 Calling Mobile (+91 भी ठीक है)</label>
       <input class="inp" id="f-phone" type="tel" inputmode="numeric" maxlength="15" placeholder="+91 9876543210">
+    </div>
+    <div class="fg">
+      <label class="lbl">💬 WhatsApp नंबर <span style="color:#334155;font-weight:600;font-size:9px">(अलग हो तो ही भरें — 90% के लिए खाली छोड़ें)</span></label>
+      <input class="inp" id="f-waph" type="tel" inputmode="numeric" maxlength="15" placeholder="खाली = calling नंबर पर ही WhatsApp">
     </div>
     <div class="fg">
       <label class="lbl">📝 Note</label>
       <input class="inp" id="f-note" placeholder="Sugar supply, GeM order...">
+    </div>
+    <div class="fg">
+      <label class="lbl">🏷️ Category / Filter</label>
+      <div style="display:flex;gap:7px;flex-wrap:wrap" id="tag-btns">
+        <button class="tag-btn on" data-t="" onclick="pickTag('')">— कोई नहीं</button>
+        <button class="tag-btn" data-t="money" onclick="pickTag('money')">💰 पैसों का मामला</button>
+        <button class="tag-btn" data-t="jalipa" onclick="pickTag('jalipa')">🏪 जालीपा फॉलोअप</button>
+      </div>
     </div>
     <div class="fg">
       <label class="lbl">⏰ हर कितने बाद Follow-up?</label>
@@ -415,6 +442,7 @@ body{
     <div class="qd-info">
       <div class="qd-name" id="qd-name"></div>
       <div class="qd-phone" id="qd-phone" onclick="qdialDirect()"></div>
+      <div id="qd-waphone" style="display:none;font-size:11px;color:#4ade80;margin-top:3px;font-weight:700"></div>
     </div>
     <span class="qd-close" onclick="closeQuickDial()">✕</span>
   </div>
@@ -450,15 +478,22 @@ const CT_COL = collection(db, 'vbe_call_tracker');
 const COLORS = ['#3b82f6','#f97316','#eab308','#22c55e','#ec4899','#8b5cf6','#06b6d4','#f43f5e'];
 const EMOJIS = ['🔥','⚡','💎','🎯','🏆','🚀','💼','📦','🤝','👑','💰','🌟','✨','🦁','🐯','🦊','🦅','🌈','🎭','🔮','💪','🎖️','📊','🎪','🛡️'];
 
+const TAGS = {
+  money:  { label: '💰 पैसों का मामला', color: '#f59e0b' },
+  jalipa: { label: '🏪 जालीपा फॉलोअप',  color: '#22c55e' },
+};
+
 let contacts = [];
 let editingId = null;
 let selInterval = 30;
 let selColor = COLORS[0];
 let selEmoji = '';
+let selTag = '';
 let pendingCallId = null;
 let _tick = null;
 let _notifFired = new Set();
-let _expandedIds = new Set(); // which cards are currently open
+let _expandedIds = new Set();
+let _activeFilter = '';
 
 /* ──────── Auth ──────── */
 onAuthStateChanged(auth, u => {
@@ -486,7 +521,7 @@ function showLogin(){
 function initApp(){
   document.getElementById('s-login').style.display='none';
   document.getElementById('s-app').style.display='block';
-  buildColorPicker(); buildEmojiPicker(); buildIntervalPicker();
+  buildColorPicker(); buildEmojiPicker(); buildIntervalPicker(); updateTagBtns();
   startFirestoreSync(); startTick(); askNotifPermission();
 }
 
@@ -553,7 +588,11 @@ function progColor(p){ return p>=1?'#ef4444':p>=0.75?'#f59e0b':'#22c55e'; }
 /* ──────── Sort ──────── */
 function sorted(){
   const urg={overdue:0,'due-soon':1,new:2,ok:3};
-  return [...contacts].filter(c=>c.active!==false).sort((a,b)=>{
+  return [...contacts].filter(c=>{
+    if(c.active===false) return false;
+    if(_activeFilter && (c.tag||'')!==_activeFilter) return false;
+    return true;
+  }).sort((a,b)=>{
     if(a.pinned&&!b.pinned) return -1;
     if(!a.pinned&&b.pinned) return 1;
     const d=urg[status(a)]-urg[status(b)];
@@ -663,6 +702,11 @@ function cardHTML(c,s){
   const av=avatarContent(c);
   const avFs=avatarFontSize(c);
   const alarmRow=c.alarmTime?`<div class="det-alarm"><span class="det-alarm-lbl">⏰ Daily Alarm:</span><span class="det-alarm-val">${escH(c.alarmTime)}</span></div>`:'';
+  const tagInfo=c.tag&&TAGS[c.tag];
+  const tagBadge=tagInfo?`<span style="background:${tagInfo.color}22;color:${tagInfo.color};border:1px solid ${tagInfo.color}44;border-radius:5px;padding:1px 5px;font-size:8.5px;font-weight:800;margin-right:4px">${tagInfo.label}</span>`:'';
+  const hasWA=!!(c.waPhone||c.phone);
+  const waNum=c.waPhone||c.phone||'';
+  const waDiff=c.waPhone&&c.waPhone!==c.phone;
 
   return `<div class="${cardCls}" id="c-${c.id}">
     <!-- Compact row -->
@@ -670,7 +714,7 @@ function cardHTML(c,s){
       <div class="c-av" style="background:${c.color||COLORS[0]};font-size:${avFs}">${escH(av)}</div>
       <div class="c-main">
         <div class="c-name">${escH(c.name)}${c.pinned?'<span class="pin-dot">📌</span>':''}</div>
-        <div class="c-sub">📱 ${escH(c.phone||'—')} · ${c.intervalMins}min${c.note?' · 📝'+escH(c.note.slice(0,18)):''}</div>
+        <div class="c-sub">${tagBadge}📱 ${escH(c.phone||'—')} · ${c.intervalMins}min${c.note?' · 📝'+escH(c.note.slice(0,18)):''}</div>
       </div>
       <div class="c-timers">
         <div style="text-align:center">
@@ -685,7 +729,7 @@ function cardHTML(c,s){
       </div>
       <div class="c-qbtns" onclick="event.stopPropagation()">
         <button class="qbtn qbtn-call" onclick="recordCall('${c.id}')">📞</button>
-        ${c.phone?`<button class="qbtn qbtn-wa" onclick="openWA('${c.id}')">💬</button>`:''}
+        ${hasWA?`<button class="qbtn qbtn-wa" onclick="openWA('${c.id}')">💬</button>`:''}
       </div>
     </div>
 
@@ -704,10 +748,12 @@ function cardHTML(c,s){
         <span class="det-tag">⏰ हर ${c.intervalMins} min</span>
         <span class="det-calls">आज ${todayN} call हुई</span>
       </div>
+      ${waDiff?`<div style="padding:4px 12px 5px;font-size:10px;color:#4ade80;font-weight:700">💬 WA: ${escH(c.waPhone)}</div>`:''}
+      ${tagInfo?`<div style="padding:2px 12px 5px"><span style="background:${tagInfo.color}22;color:${tagInfo.color};border:1px solid ${tagInfo.color}44;border-radius:5px;padding:2px 7px;font-size:9px;font-weight:800">${tagInfo.label}</span></div>`:''}
       ${alarmRow}
       <div class="det-actions" onclick="event.stopPropagation()">
         <button class="${pinBtnCls}" onclick="togglePin('${c.id}')">${c.pinned?'📌':'📍'} Pin</button>
-        ${c.phone?`<button class="da da-msg" onclick="sendSMS('${c.id}')">💬 SMS</button>`:''}
+        ${c.phone?`<button class="da da-msg" onclick="sendSMS('${c.id}')">✉️ SMS</button>`:''}
         <button class="da da-cal" onclick="addToGCal('${c.id}')">📅 Cal</button>
         <button class="da da-edit" onclick="editContact('${c.id}')">✏️</button>
         <button class="da da-del" onclick="delContact('${c.id}')">🗑️</button>
@@ -826,8 +872,12 @@ window.openQuickDial=function(id){
   const ph=document.getElementById('qd-phone');
   ph.textContent=hasPhone?('📱 '+c.phone):'—';
   ph.style.pointerEvents=hasPhone?'auto':'none';
-  document.getElementById('qd-wa-btn').style.display=hasPhone?'flex':'none';
+  const hasWANum=!!(c.waPhone||c.phone);
+  document.getElementById('qd-wa-btn').style.display=hasWANum?'flex':'none';
   document.getElementById('qd-sms-btn').style.display=hasPhone?'flex':'none';
+  const waDiffEl=document.getElementById('qd-waphone');
+  if(c.waPhone&&c.waPhone!==c.phone){ waDiffEl.textContent='💬 WA: '+c.waPhone; waDiffEl.style.display='block'; }
+  else { waDiffEl.style.display='none'; }
   document.getElementById('qdial-bg').style.display='block';
   const popup=document.getElementById('qdial-popup');
   popup.style.display='block';
@@ -900,8 +950,10 @@ function doRecordCall(dial){
 
 window.openWA=function(id){
   const c=contacts.find(x=>x.id===id);
-  if(!c||!c.phone) return;
-  const ph=c.phone.replace(/[^0-9]/g,'');
+  if(!c) return;
+  const rawPh=c.waPhone||c.phone;
+  if(!rawPh) return;
+  const ph=rawPh.replace(/[^0-9]/g,'');
   const num=ph.length===10?'91'+ph:ph;
   window.open('https://wa.me/'+num,'_blank');
 };
@@ -935,10 +987,11 @@ window.editContact=function(id){
   editingId=id;
   document.getElementById('f-name').value=c.name||'';
   document.getElementById('f-phone').value=c.phone||'';
+  document.getElementById('f-waph').value=c.waPhone||'';
   document.getElementById('f-note').value=c.note||'';
   document.getElementById('f-alarm').value=c.alarmTime||'';
-  selInterval=c.intervalMins||30; selColor=c.color||COLORS[0]; selEmoji=c.emoji||'';
-  updateIntBtns(); updateClrBtns(); updateEmojiBtns();
+  selInterval=c.intervalMins||30; selColor=c.color||COLORS[0]; selEmoji=c.emoji||''; selTag=c.tag||'';
+  updateIntBtns(); updateClrBtns(); updateEmojiBtns(); updateTagBtns();
   document.getElementById('m-add-title').textContent='✏️ Edit करो';
   openModal('m-add');
   setTimeout(()=>document.getElementById('f-name').focus(),300);
@@ -957,10 +1010,11 @@ window.openAddModal=function(){
   editingId=null;
   document.getElementById('f-name').value='';
   document.getElementById('f-phone').value='';
+  document.getElementById('f-waph').value='';
   document.getElementById('f-note').value='';
   document.getElementById('f-alarm').value='';
-  selInterval=30; selColor=COLORS[0]; selEmoji='';
-  updateIntBtns(); updateClrBtns(); updateEmojiBtns();
+  selInterval=30; selColor=COLORS[0]; selEmoji=''; selTag='';
+  updateIntBtns(); updateClrBtns(); updateEmojiBtns(); updateTagBtns();
   document.getElementById('m-add-title').textContent='📞 नया Contact जोड़ें';
   openModal('m-add');
   setTimeout(()=>document.getElementById('f-name').focus(),300);
@@ -969,6 +1023,8 @@ window.openAddModal=function(){
 window.saveContact=function(){
   const name=(document.getElementById('f-name').value||'').trim();
   const phone=normalizePhone(document.getElementById('f-phone').value||'');
+  const waPhoneRaw=normalizePhone(document.getElementById('f-waph').value||'');
+  const waPhone=(waPhoneRaw&&waPhoneRaw.length>=10)?waPhoneRaw:'';
   const note=(document.getElementById('f-note').value||'').trim();
   if(!name){ toast('⚠️ नाम जरूरी है','err'); return; }
   if(!phone||phone.length<10){ toast('⚠️ सही 10 अंकों का नंबर डालें','err'); return; }
@@ -976,9 +1032,9 @@ window.saveContact=function(){
   let saved;
   if(editingId){
     const c=contacts.find(x=>x.id===editingId);
-    if(c){ Object.assign(c,{name,phone,note,intervalMins:selInterval,color:selColor,emoji:selEmoji,alarmTime}); saved=c; }
+    if(c){ Object.assign(c,{name,phone,waPhone,note,tag:selTag,intervalMins:selInterval,color:selColor,emoji:selEmoji,alarmTime}); saved=c; }
   } else {
-    saved={id:genId(),name,phone,note,color:selColor,emoji:selEmoji,intervalMins:selInterval,alarmTime,lastCallAt:null,nextCallAt:null,callLog:[],pinned:false,createdAt:new Date().toISOString()};
+    saved={id:genId(),name,phone,waPhone,note,tag:selTag,color:selColor,emoji:selEmoji,intervalMins:selInterval,alarmTime,lastCallAt:null,nextCallAt:null,callLog:[],pinned:false,createdAt:new Date().toISOString()};
     contacts.push(saved);
   }
   closeModal('m-add'); render();
@@ -1007,6 +1063,34 @@ function buildEmojiPicker(){
 function updateEmojiBtns(){ document.querySelectorAll('.emoji-btn').forEach(b=>b.classList.toggle('on',b.textContent===selEmoji)); }
 window.pickEmoji=function(e){ selEmoji=(selEmoji===e?'':e); updateEmojiBtns(); };
 window.clearEmoji=function(){ selEmoji=''; updateEmojiBtns(); toast('Initials use होंगे'); };
+
+/* ── Tag / Category picker ── */
+function updateTagBtns(){
+  document.querySelectorAll('.tag-btn').forEach(b=>{
+    const t=b.dataset.t;
+    const isOn=(t===selTag)||(t===''&&!selTag);
+    b.classList.toggle('on',isOn);
+    const info=t&&TAGS[t];
+    if(isOn&&info){ b.style.background=info.color+'22'; b.style.borderColor=info.color; b.style.color=info.color; }
+    else if(isOn){ b.style.background='rgba(59,130,246,.12)'; b.style.borderColor='#3b82f6'; b.style.color='#60a5fa'; }
+    else { b.style.background=''; b.style.borderColor=''; b.style.color=''; }
+  });
+}
+window.pickTag=function(t){ selTag=t; updateTagBtns(); };
+
+/* ── Filter bar ── */
+window.setFilter=function(f){
+  _activeFilter=f;
+  document.querySelectorAll('#filter-bar .f-chip').forEach(ch=>{
+    const isOn=(ch.dataset.f===f)||(ch.dataset.f===''&&!f);
+    ch.classList.toggle('on',isOn);
+    const info=f&&TAGS[f];
+    if(isOn&&info){ ch.style.background=info.color+'18'; ch.style.borderColor=info.color; ch.style.color=info.color; }
+    else if(isOn){ ch.style.background='rgba(59,130,246,.12)'; ch.style.borderColor='#3b82f6'; ch.style.color='#60a5fa'; }
+    else { ch.style.background=''; ch.style.borderColor=''; ch.style.color=''; }
+  });
+  render();
+};
 
 /* ──────── Google Calendar ──────── */
 function buildGCalUrl(c){

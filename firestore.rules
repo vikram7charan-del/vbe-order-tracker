@@ -2,12 +2,10 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── Admin check — vbe_admins collection से verify होता है ──
-    // SETUP: vbe-admin-setup.html चलाकर पहले vbe_admins documents बनाओ
-    // फिर यह rules deploy करो: firebase deploy --only firestore:rules
+    // ── Admin check — UID directly hardcoded (reliable, no DB lookup) ──
     function isAdmin() {
       return request.auth != null
-        && exists(/databases/$(database)/documents/vbe_admins/$(request.auth.uid));
+        && request.auth.uid == 'tjkS5tg2vMflpndGHSQRjFYgRv03';
     }
 
     // vbe_admins — सिर्फ admins read कर सकते हैं, client-side write बंद

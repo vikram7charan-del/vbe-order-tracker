@@ -945,7 +945,7 @@ if (!isConfigured) {
 let app, db, auth;
 try {
   app = initializeApp(firebaseConfig);
-  const VBE_AC_KEY = '6Le-OEEtAAAAAA2NtdNcdZx435flhQF_gY4Z_hYY';
+  const VBE_AC_KEY = '';
   if(VBE_AC_KEY) initializeAppCheck(app, { provider: new ReCaptchaV3Provider(VBE_AC_KEY), isTokenAutoRefreshEnabled: true });
   db = initializeFirestore(app,{localCache:persistentLocalCache({tabManager:persistentSingleTabManager()})});
   auth = getAuth(app);

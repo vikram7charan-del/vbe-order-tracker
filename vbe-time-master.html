@@ -1386,7 +1386,7 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 // VBE App Check — Firebase Console → App Check → Register → reCAPTCHA v3 key भरो
-const VBE_AC_KEY = '6Le-OEEtAAAAAA2NtdNcdZx435flhQF_gY4Z_hYY'; // ← यहाँ site key डालो, खाली = disabled
+const VBE_AC_KEY = ''; // ← यहाँ site key डालो, खाली = disabled
 if(VBE_AC_KEY) initializeAppCheck(app, { provider: new ReCaptchaV3Provider(VBE_AC_KEY), isTokenAutoRefreshEnabled: true });
 const auth = getAuth(app);
 const db = initializeFirestore(app,{localCache:persistentLocalCache({tabManager:persistentSingleTabManager()})});

@@ -2287,8 +2287,6 @@ window.addEventListener('fbReady',()=>{
 //  🔒 SECURE LOGIN — Firebase Email/Password
 //  PIN कहीं भी code में नहीं है — Firebase server पर hashed है
 // ══════════════════════════════════════════
-const MAX_ATTEMPTS  = 3;
-const LOCKOUT_MS    = 5 * 60 * 1000; // 5 मिनट
 
 // ══ 🛡️ XSS ESCAPE — user input को safe बनाने के लिए ══
 // जहाँ भी customer name, item, note वगैरह innerHTML में डालें वहाँ esc() use करें
@@ -2328,15 +2326,6 @@ window.mbPipelineHtml = function(stage) {
   }).join('') + '</div>';
 };
 
-// ══ LOGIN LOCKOUT — sessionStorage (device-only, security purpose, no sensitive data) ══
-function getLockout(){ return parseInt(sessionStorage.getItem('vbe_lockout_until')||'0'); }
-function getAttempts(){ return parseInt(sessionStorage.getItem('vbe_attempts')||'0'); }
-function setAttempts(n){ sessionStorage.setItem('vbe_attempts', n); }
-function setLockout(ts){ sessionStorage.setItem('vbe_lockout_until', ts); }
-function resetAttempts(){
-  sessionStorage.removeItem('vbe_attempts');
-  sessionStorage.removeItem('vbe_lockout_until');
-}
 
 function showErr(msg){
   const el = document.getElementById('login-err');
@@ -2347,44 +2336,9 @@ function hideErr(){
   document.getElementById('login-err').style.display='none';
 }
 
-// Lockout timer countdown
-let _lockTimer = null;
-function startLockCountdown(){
-  if(_lockTimer) clearInterval(_lockTimer);
-  _lockTimer = setInterval(()=>{
-    const rem = getLockout() - Date.now();
-    if(rem <= 0){
-      clearInterval(_lockTimer);
-      resetAttempts();
-      hideErr();
-      document.getElementById('login-user').disabled = false;
-      document.getElementById('login-pass').disabled = false;
-      document.querySelector('.login-btn-main').disabled = false;
-      showErr('✅ Lock हट गया — अब फिर try करें');
-      setTimeout(hideErr, 2000);
-    } else {
-      const mins = Math.floor(rem/60000);
-      const secs = Math.floor((rem%60000)/1000);
-      showErr(`🔒 ${MAX_ATTEMPTS} बार गलत — ${mins}:${secs<10?'0'+secs:secs} बाद try करें`);
-    }
-  }, 1000);
-}
-
-function checkLockOnLoad(){
-  const rem = getLockout() - Date.now();
-  if(rem > 0){
-    document.getElementById('login-user').disabled = true;
-    document.getElementById('login-pass').disabled = true;
-    document.querySelector('.login-btn-main').disabled = true;
-    startLockCountdown();
-  }
-}
+function checkLockOnLoad(){}
 
 async function doLogin(){
-  // Check lockout first
-  const rem = getLockout() - Date.now();
-  if(rem > 0){ startLockCountdown(); return; }
-
   const u = document.getElementById('login-user').value.trim();
   const p = document.getElementById('login-pass').value.trim();
 
@@ -2394,48 +2348,30 @@ async function doLogin(){
     return;
   }
 
-  // UI को disable करो जब तक auth complete न हो
   const btn = document.querySelector('.login-btn-main');
   const oldText = btn.textContent;
   btn.textContent = '⏳ जांच हो रही है...';
   btn.disabled = true;
 
-  // Firebase से असली authentication
   const result = await window._fbSignIn(u, p);
 
   btn.textContent = oldText;
   btn.disabled = false;
 
   if(result.ok){
-    resetAttempts();
     sessionStorage.setItem('vbe_auth','ok');
     document.getElementById('login-screen').classList.remove('show');
     document.getElementById('login-pass').value='';
     hideErr();
     showSupplier();
   } else {
-    let attempts = getAttempts() + 1;
-    setAttempts(attempts);
     document.getElementById('login-pass').value='';
-
-    if(attempts >= MAX_ATTEMPTS){
-      // Lock करो
-      setLockout(Date.now() + LOCKOUT_MS);
-      setAttempts(0);
-      document.getElementById('login-user').disabled = true;
-      document.getElementById('login-pass').disabled = true;
-      btn.disabled = true;
-      startLockCountdown();
+    if(result.code === 'auth/network-request-failed'){
+      showErr('🔴 Internet नहीं है — connect करके फिर try करें');
     } else {
-      const left = MAX_ATTEMPTS - attempts;
-      // Internet न हो तो अलग message
-      if(result.code === 'auth/network-request-failed'){
-        showErr('🔴 Internet नहीं है — connect करके फिर try करें');
-      } else {
-        showErr(`❌ गलत — ${left} मौका${left===1?'':'एँ'} बचा${left===1?'':'े'} हैं`);
-      }
-      setTimeout(hideErr, 3000);
+      showErr('❌ गलत Mobile या PIN — फिर try करें');
     }
+    setTimeout(hideErr, 3000);
   }
 }
 

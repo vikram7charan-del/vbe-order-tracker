@@ -23,7 +23,7 @@ import { getAuth,onAuthStateChanged }
 const cfg={apiKey:"AIzaSyBCe5DKNKcthOl4umprfRm2QBfbVaFORg8",authDomain:"vbe-order-tracker-60324.firebaseapp.com",projectId:"vbe-order-tracker-60324",storageBucket:"vbe-order-tracker-60324.firebasestorage.app",messagingSenderId:"894023456122",appId:"1:894023456122:web:6ee548f0913c887c67f2c3"};
 const app=initializeApp(cfg);
 // VBE App Check — Firebase Console → App Check → Register → reCAPTCHA v3 key भरो
-const VBE_AC_KEY = ''; // ← यहाँ site key डालो, खाली = disabled
+const VBE_AC_KEY = '6Le-OEEtAAAAAA2NtdNcdZx435flhQF_gY4Z_hYY'; // ← यहाँ site key डालो, खाली = disabled
 if(VBE_AC_KEY) initializeAppCheck(app, { provider: new ReCaptchaV3Provider(VBE_AC_KEY), isTokenAutoRefreshEnabled: true });
 const db=initializeFirestore(app,{localCache:persistentLocalCache({tabManager:persistentSingleTabManager()})});
 const auth=getAuth(app);

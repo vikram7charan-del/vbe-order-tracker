@@ -1367,6 +1367,7 @@ button{cursor:pointer}
 <!-- ═════════════ FIREBASE + APP LOGIC ═════════════ -->
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { initializeAppCheck, ReCaptchaV3Provider } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js';
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { initializeFirestore, persistentLocalCache, persistentSingleTabManager,
@@ -1384,6 +1385,9 @@ const firebaseConfig = {
   appId:"1:894023456122:web:6ee548f0913c887c67f2c3"
 };
 const app = initializeApp(firebaseConfig);
+// VBE App Check — Firebase Console → App Check → Register → reCAPTCHA v3 key भरो
+const VBE_AC_KEY = ''; // ← यहाँ site key डालो, खाली = disabled
+if(VBE_AC_KEY) initializeAppCheck(app, { provider: new ReCaptchaV3Provider(VBE_AC_KEY), isTokenAutoRefreshEnabled: true });
 const auth = getAuth(app);
 const db = initializeFirestore(app,{localCache:persistentLocalCache({tabManager:persistentSingleTabManager()})});
 

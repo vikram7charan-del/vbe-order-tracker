@@ -457,6 +457,7 @@ body{
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { initializeAppCheck, ReCaptchaV3Provider } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js';
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
@@ -471,6 +472,9 @@ const FB_CFG = {
 const APPROVED_UID = 'tjkS5tg2vMflpndGHSQRjFYgRv03';
 
 const app  = initializeApp(FB_CFG, 'call-tracker');
+// VBE App Check — Firebase Console → App Check → Register → reCAPTCHA v3 key भरो
+const VBE_AC_KEY = ''; // ← यहाँ site key डालो, खाली = disabled
+if(VBE_AC_KEY) initializeAppCheck(app, { provider: new ReCaptchaV3Provider(VBE_AC_KEY), isTokenAutoRefreshEnabled: true });
 const auth = getAuth(app);
 const db   = getFirestore(app);
 const CT_COL = collection(db, 'vbe_call_tracker');

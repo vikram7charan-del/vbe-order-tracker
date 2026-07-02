@@ -204,11 +204,21 @@ window._fbAnonSignIn = async function(){
   }
 };
 
+let _autoLoginAttempt = 0;
+function _tryAutoLogin(){
+  _autoLoginAttempt++;
+  const txt = document.getElementById('load-auth-txt');
+  if(txt && _autoLoginAttempt > 1) txt.textContent = '🔄 Connecting... (attempt ' + _autoLoginAttempt + ')';
+  signInWithEmailAndPassword(auth,'9887401741@vbe-tracker.local','88990011')
+    .catch(e=>{
+      console.error('auto-login attempt', _autoLoginAttempt, ':', e.code, e.message);
+      if(txt) txt.textContent = '⚠️ ' + (e.code||e.message) + ' — Retrying...';
+      if(_autoLoginAttempt < 5) setTimeout(_tryAutoLogin, 4000);
+    });
+}
 onAuthStateChanged(auth, user => {
   if(!user){
-    // Fire-and-forget auto-login — does NOT block fbReady
-    signInWithEmailAndPassword(auth,'9887401741@vbe-tracker.local','88990011')
-      .catch(e=>console.error('auto-login:',e.code));
+    _tryAutoLogin();
     return;
   }
   window._fbUID = user.uid;
@@ -2227,18 +2237,20 @@ function staffColor(name){
 // ══════════════════════════════════════════
 //  INIT — wait for Firebase
 // ══════════════════════════════════════════
-// Firebase timeout — 10 सेकंड में नहीं आया तो error दिखाओ
+// Firebase timeout — 30 सेकंड में नहीं आया तो error दिखाओ
 const _fbTimeout = setTimeout(()=>{
   const loadEl = document.getElementById('loading');
   if(loadEl && loadEl.style.display !== 'none'){
+    const errCode = (document.getElementById('load-auth-txt')||{}).textContent || '';
     loadEl.innerHTML = `<div style="text-align:center;padding:20px">
       <div style="font-size:36px;margin-bottom:12px">⚠️</div>
       <div style="font-size:14px;color:#f59e0b;margin-bottom:8px">Firebase connect नहीं हो पाया</div>
+      <div style="font-size:10px;color:#64748b;margin-bottom:6px;font-family:monospace">${errCode}</div>
       <div style="font-size:11px;color:#334155;margin-bottom:16px">Internet check करो या page reload करो</div>
       <button onclick="location.reload()" style="padding:10px 20px;border-radius:8px;border:none;background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;font-size:13px;font-weight:800;cursor:pointer">🔄 Reload करो</button>
     </div>`;
   }
-}, 10000);
+}, 30000);
 window.addEventListener('fbReady',()=>{
   clearTimeout(_fbTimeout);
   _db=window._db; _collection=window._collection; _doc=window._doc;

@@ -204,22 +204,21 @@ window._fbAnonSignIn = async function(){
   }
 };
 
-onAuthStateChanged(auth, async user => {
+onAuthStateChanged(auth, user => {
   if(!user){
-    try{ await signInWithEmailAndPassword(auth,'9887401741@vbe-tracker.local','88990011'); }catch(e){ console.error('auto-login:',e.code); }
+    // Fire-and-forget auto-login — does NOT block fbReady
+    signInWithEmailAndPassword(auth,'9887401741@vbe-tracker.local','88990011')
+      .catch(e=>console.error('auto-login:',e.code));
     return;
   }
-  window._fbUID = user ? user.uid : null;
-  window._fbIsSupplier = (user && user.uid === APPROVED_UID);
+  window._fbUID = user.uid;
+  window._fbIsSupplier = (user.uid === APPROVED_UID);
   window._signOut = () => signOut(auth);
 
-  // Loading dot
   const dot = document.getElementById('load-auth-dot');
   const txt = document.getElementById('load-auth-txt');
-  if(user){
-    if(dot){ dot.style.background = '#10b981'; }
-    if(txt){ txt.textContent = '✅ Secure Auth Connected'; }
-  }
+  if(dot) dot.style.background = '#10b981';
+  if(txt) txt.textContent = '✅ Secure Auth Connected';
 
   // App boot — सिर्फ़ पहली बार
   if(!window._fbReady){

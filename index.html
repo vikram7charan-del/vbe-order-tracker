@@ -2475,6 +2475,9 @@ function listenOrders(){
         }
       });
     }
+  }, err => {
+    console.error('listenOrders error:', err.code, err.message);
+    notif('🔴 Orders load नहीं हुए — ' + err.code, 'danger');
   });
 }
 

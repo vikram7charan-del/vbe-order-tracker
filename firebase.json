@@ -15,7 +15,11 @@
       "CLAUDE.md",
       "README.md",
       "*.md",
-      "node_modules"
+      "**/node_modules/**",
+      ".firebase/**",
+      ".git/**",
+      "**/.git/**",
+      "vbe-admin-setup.html"
     ]
   },
   "storage": {

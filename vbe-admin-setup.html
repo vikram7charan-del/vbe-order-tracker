@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>VBE — Admin Setup (एक बार चलाएं)</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#030810;color:#e2e8f0;font-family:monospace;padding:24px 16px;max-width:520px;margin:0 auto}
+h1{font-size:18px;color:#f59e0b;margin-bottom:6px}
+.sub{font-size:11px;color:#475569;margin-bottom:24px}
+.step{background:#07111e;border:1px solid #1e3a5f;border-radius:12px;padding:16px;margin-bottom:14px}
+.step-n{font-size:10px;color:#3b82f6;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+.step-t{font-size:13px;color:#e2e8f0;font-weight:700;margin-bottom:8px}
+.step-d{font-size:11px;color:#64748b;line-height:1.7;margin-bottom:10px}
+.uid-row{background:#030810;border:1px solid #1e3a5f;border-radius:7px;padding:8px 10px;font-size:10px;color:#94a3b8;margin-bottom:5px;display:flex;align-items:center;justify-content:space-between;gap:8px;word-break:break-all}
+.uid-badge{font-size:9px;background:#1e3a5f;border-radius:4px;padding:2px 6px;flex-shrink:0}
+.uid-status{font-size:11px;flex-shrink:0;font-weight:800}
+.btn{width:100%;padding:13px;border:none;border-radius:11px;font-size:14px;font-weight:900;cursor:pointer;font-family:monospace;touch-action:manipulation;margin-top:4px}
+.btn-run{background:linear-gradient(135deg,#b45309,#f59e0b);color:#000}
+.btn-run:disabled{background:#1e3a5f;color:#475569;cursor:not-allowed}
+.btn-deploy{background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff}
+.log{background:#010810;border:1px solid #1e3a5f;border-radius:9px;padding:12px;font-size:11px;color:#94a3b8;line-height:1.8;max-height:200px;overflow-y:auto;margin-top:10px;display:none}
+.log.show{display:block}
+.log .ok{color:#4ade80}.log .err{color:#f87171}.log .info{color:#60a5fa}.log .warn{color:#fbbf24}
+.warn-box{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.35);border-radius:10px;padding:12px;font-size:12px;color:#f87171;line-height:1.7;margin-bottom:16px}
+.ok-box{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.35);border-radius:10px;padding:12px;font-size:12px;color:#4ade80;line-height:1.7;margin-bottom:16px;display:none}
+code{background:#0d1526;border-radius:4px;padding:1px 5px;font-size:10px;color:#fbbf24}
+</style>
+</head>
+<body>
+
+<h1>🔐 VBE Admin Setup</h1>
+<p class="sub">Firestore में vbe_admins collection बनाएगा — यह page सिर्फ एक बार चलाएं</p>
+
+<div class="warn-box">
+  ⚠️ <strong>पहले यह करो, फिर नए Firestore rules deploy करो।</strong><br>
+  अगर rules पहले deploy हो गए और यह page नहीं चला, तो app से lock out हो जाओगे।<br>
+  Order: <strong>1. यह Setup चलाओ → 2. Rules Deploy करो</strong>
+</div>
+
+<div class="ok-box" id="success-box">
+  ✅ <strong>Setup Complete!</strong> अब Firestore rules deploy करो:<br>
+  Terminal में: <code>firebase deploy --only firestore:rules</code>
+</div>
+
+<!-- Step 1: Login -->
+<div class="step">
+  <div class="step-n">Step 1</div>
+  <div class="step-t">Login करो</div>
+  <div class="step-d">अपना Mobile Number और PIN डालो</div>
+  <input id="s-mob" style="width:100%;background:#030810;border:1.5px solid #1e3a5f;color:#e2e8f0;border-radius:9px;padding:10px 12px;font-size:14px;font-family:monospace;margin-bottom:8px;outline:none" type="tel" placeholder="Mobile Number (9509553600)" maxlength="10" inputmode="numeric">
+  <input id="s-pin" style="width:100%;background:#030810;border:1.5px solid #1e3a5f;color:#e2e8f0;border-radius:9px;padding:10px 12px;font-size:14px;font-family:monospace;margin-bottom:8px;outline:none" type="password" placeholder="PIN">
+  <button class="btn btn-run" onclick="doLogin()" id="btn-login">🔓 Login करो</button>
+  <div id="login-status" style="font-size:11px;margin-top:8px;min-height:16px"></div>
+</div>
+
+<!-- Step 2: Create vbe_admins -->
+<div class="step">
+  <div class="step-n">Step 2</div>
+  <div class="step-t">vbe_admins Collection बनाओ</div>
+  <div class="step-d">नीचे दिए सभी UIDs के लिए Firestore में admin documents बनेंगे:</div>
+
+  <div class="uid-row"><span>FqJeXbb3YJfSER09jtXLosCSpVy2</span><span class="uid-badge">Account 1</span><span class="uid-status" id="st-0">—</span></div>
+  <div class="uid-row"><span>tjkS5tg2vMflpndGHSQRjFYgRv03</span><span class="uid-badge">Account 2</span><span class="uid-status" id="st-1">—</span></div>
+  <div class="uid-row"><span>0CXFV9vDMSW7LBi0mLS9bW480mh1</span><span class="uid-badge">Account 3</span><span class="uid-status" id="st-2">—</span></div>
+  <div class="uid-row"><span>CrWrobyeWHY1ZLrLwKcncW0U9K03</span><span class="uid-badge">Account 4</span><span class="uid-status" id="st-3">—</span></div>
+  <div class="uid-row"><span>gdn0jahlzGOuWKaOyxsTht07mus2</span><span class="uid-badge">Account 5</span><span class="uid-status" id="st-4">—</span></div>
+  <div class="uid-row"><span>pFslWWEvLiRjr7YFq51TqwfOpFp2</span><span class="uid-badge">Account 6</span><span class="uid-status" id="st-5">—</span></div>
+  <div class="uid-row"><span>xY7dwh799LZrRIY7dK2CHVc5H262</span><span class="uid-badge">Account 7</span><span class="uid-status" id="st-6">—</span></div>
+
+  <button class="btn btn-run" onclick="createAdminDocs()" id="btn-create" disabled>🔐 Admin Documents बनाओ</button>
+  <div class="log" id="log"></div>
+</div>
+
+<!-- Step 3: Deploy instructions -->
+<div class="step">
+  <div class="step-n">Step 3 — Terminal में चलाओ</div>
+  <div class="step-t">Firestore Rules Deploy करो</div>
+  <div class="step-d">
+    Step 2 successfully complete होने के बाद terminal में यह command चलाओ:<br><br>
+    <code style="display:block;padding:10px;font-size:12px;background:#030810;border-radius:7px;border:1px solid #1e3a5f;color:#4ade80">firebase deploy --only firestore:rules</code><br>
+    इससे hardcoded UIDs हट जाएंगे और vbe_admins collection से check होगा।
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const FB_CFG = {
+  apiKey:'AIzaSyBCe5DKNKcthOl4umprfRm2QBfbVaFORg8',
+  authDomain:'vbe-order-tracker-60324.firebaseapp.com',
+  projectId:'vbe-order-tracker-60324',
+  storageBucket:'vbe-order-tracker-60324.firebasestorage.app',
+  messagingSenderId:'894023456122',
+  appId:'1:894023456122:web:6ee548f0913c887c67f2c3'
+};
+const APPROVED_UID = 'tjkS5tg2vMflpndGHSQRjFYgRv03';
+
+// All UIDs to migrate to vbe_admins
+const ADMIN_UIDS = [
+  'FqJeXbb3YJfSER09jtXLosCSpVy2',
+  'tjkS5tg2vMflpndGHSQRjFYgRv03',
+  '0CXFV9vDMSW7LBi0mLS9bW480mh1',
+  'CrWrobyeWHY1ZLrLwKcncW0U9K03',
+  'gdn0jahlzGOuWKaOyxsTht07mus2',
+  'pFslWWEvLiRjr7YFq51TqwfOpFp2',
+  'xY7dwh799LZrRIY7dK2CHVc5H262'
+];
+
+const app  = initializeApp(FB_CFG, 'admin-setup');
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+function log(msg, type='info'){
+  const el = document.getElementById('log');
+  el.classList.add('show');
+  el.innerHTML += `<div class="${type}">${msg}</div>`;
+  el.scrollTop = el.scrollHeight;
+}
+function setStatus(i, icon){ document.getElementById('st-'+i).textContent = icon; }
+function loginStatus(msg, color='#94a3b8'){
+  const el = document.getElementById('login-status');
+  el.textContent = msg;
+  el.style.color = color;
+}
+
+window.doLogin = async function(){
+  const mob = (document.getElementById('s-mob').value||'').trim();
+  const pin = (document.getElementById('s-pin').value||'').trim();
+  if(!mob||!pin){ loginStatus('Mobile और PIN दोनों जरूरी', '#f87171'); return; }
+  document.getElementById('btn-login').disabled = true;
+  loginStatus('⏳ Logging in...', '#60a5fa');
+  try {
+    await signInWithEmailAndPassword(auth, mob+'@vbe-tracker.local', pin);
+  } catch(e) {
+    loginStatus('❌ गलत Mobile/PIN', '#f87171');
+    document.getElementById('btn-login').disabled = false;
+  }
+};
+
+onAuthStateChanged(auth, u => {
+  if(u && u.uid === APPROVED_UID){
+    loginStatus('✅ Logged in: '+u.uid.slice(0,8)+'...', '#4ade80');
+    document.getElementById('btn-login').disabled = true;
+    document.getElementById('btn-create').disabled = false;
+  }
+});
+
+window.createAdminDocs = async function(){
+  const btn = document.getElementById('btn-create');
+  btn.disabled = true;
+  btn.textContent = '⏳ Creating...';
+  log('🚀 vbe_admins documents बना रहे हैं...', 'info');
+
+  let ok = 0, fail = 0;
+  for(let i=0; i<ADMIN_UIDS.length; i++){
+    const uid = ADMIN_UIDS[i];
+    try {
+      await setDoc(doc(db, 'vbe_admins', uid), {
+        uid,
+        role: 'admin',
+        createdAt: serverTimestamp(),
+        createdBy: 'vbe-admin-setup'
+      });
+      setStatus(i, '✅');
+      log(`✅ Created: ${uid.slice(0,16)}...`, 'ok');
+      ok++;
+    } catch(e) {
+      setStatus(i, '❌');
+      log(`❌ Failed: ${uid.slice(0,16)}... — ${e.message}`, 'err');
+      fail++;
+    }
+  }
+
+  if(fail === 0){
+    log(`\n🎉 सब ${ok} documents बने! अब Step 3 follow करो।`, 'ok');
+    btn.textContent = '✅ Done — Step 3 करो';
+    document.getElementById('success-box').style.display = 'block';
+    document.getElementById('warn-box').style.display = 'none';
+  } else {
+    log(`\n⚠️ ${ok} success, ${fail} failed — फिर कोशिश करो`, 'warn');
+    btn.disabled = false;
+    btn.textContent = '🔄 फिर कोशिश करो';
+  }
+};
+</script>
+</body>
+</html>

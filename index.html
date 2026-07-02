@@ -19,6 +19,7 @@
 <script type="module">
 import { initializeApp }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { initializeAppCheck, ReCaptchaV3Provider } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js';
 import { initializeFirestore, persistentLocalCache, persistentSingleTabManager,
          collection, doc, setDoc, addDoc, serverTimestamp,
          getDoc, getDocs, deleteDoc, updateDoc, onSnapshot,
@@ -42,6 +43,9 @@ const firebaseConfig = {
 };
 
 const app  = initializeApp(firebaseConfig);
+// VBE App Check — Firebase Console → App Check → Register → reCAPTCHA v3 key भरो
+const VBE_AC_KEY = ''; // ← यहाँ site key डालो, खाली = disabled
+if(VBE_AC_KEY) initializeAppCheck(app, { provider: new ReCaptchaV3Provider(VBE_AC_KEY), isTokenAutoRefreshEnabled: true });
 // Offline persistence — internet बंद होने पर भी app काम करेगा
 const db = initializeFirestore(app, {
   localCache: persistentLocalCache({ tabManager: persistentSingleTabManager() })

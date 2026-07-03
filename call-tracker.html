@@ -502,9 +502,11 @@ onAuthStateChanged(auth, u => {
 
 window.doLogin = async function(){
   const mob=(document.getElementById('l-mob').value||'').trim();
-  const pin=(document.getElementById('l-pin').value||'').trim();
+  let pin=(document.getElementById('l-pin').value||'').trim();
   const err=document.getElementById('l-err');
   if(!mob||!pin){ err.textContent='Mobile और PIN दोनों जरूरी'; return; }
+  // छोटा PIN — Firebase के असली password पर map होता है (Firebase में min 6 chars चाहिए)
+  if(pin==='4445') pin='88990011';
   err.textContent='⏳ Login...';
   try{
     await signInWithEmailAndPassword(auth, mob+'@vbe-tracker.local', pin);

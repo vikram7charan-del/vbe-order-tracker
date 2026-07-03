@@ -159,7 +159,20 @@ body{
 .c-name{font-size:16px;font-weight:900;color:#e2e8f0;letter-spacing:.1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:4px}
 .pin-dot{font-size:10px}
 /* विषय — किस बारे में बात करनी है (नाम के नीचे, readable font) */
-.c-topic{font-size:12.5px;font-weight:700;color:#fbbf24;margin-top:2px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
+.c-topics{margin-top:2px}
+.c-topic{font-size:12.5px;font-weight:700;color:#fbbf24;line-height:1.45;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.c-topic .tnum{color:#f59e0b;opacity:.75;margin-right:2px}
+/* Modal — multi-topic editor rows */
+.topic-row{display:flex;align-items:center;gap:5px;margin-bottom:6px}
+.topic-num{font-size:11px;font-weight:900;color:#f59e0b;width:14px;text-align:center;flex-shrink:0}
+.topic-row .inp{flex:1;padding:9px 10px;font-size:13px;min-width:0}
+.tr-btn{width:30px;height:34px;border-radius:8px;border:1px solid #1e3a5f;background:#0d1526;color:#94a3b8;font-size:11px;cursor:pointer;flex-shrink:0;touch-action:manipulation;font-family:inherit}
+.tr-btn:active{opacity:.6}
+.tr-btn:disabled{opacity:.22}
+.tr-del{color:#f87171;border-color:rgba(239,68,68,.3)}
+.btn-add-topic{margin-top:2px;padding:9px 12px;border-radius:9px;border:1.5px dashed rgba(59,130,246,.5);background:rgba(59,130,246,.07);color:#60a5fa;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;width:100%;touch-action:manipulation}
+.btn-add-topic:active{opacity:.7}
+.da-add{background:#0a1220;border:1.5px solid rgba(251,191,36,.4);color:#fbbf24}
 .c-sub{font-size:10px;color:#64748b;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* Timer block (right of name) — छोटा किया गया */
 .c-timers{display:flex;align-items:center;gap:3px;flex-shrink:0;text-align:center;opacity:.85}
@@ -366,8 +379,9 @@ body{
       <input class="inp" id="f-phone" type="tel" inputmode="numeric" maxlength="15" placeholder="+91 9876543210">
     </div>
     <div class="fg">
-      <label class="lbl">🗣️ किस विषय में बात करनी है?</label>
-      <input class="inp" id="f-note" placeholder="payment बाकी, order follow-up, rate पूछना...">
+      <label class="lbl">🗣️ किस विषय में बात करनी है? <span style="color:#334155;font-weight:600;font-size:9px">(एक से ज़्यादा काम — ▲▼ से order बदलें)</span></label>
+      <div id="topic-rows"></div>
+      <button class="btn-add-topic" type="button" onclick="addTopicRow()">➕ और काम जोड़ें</button>
     </div>
     <div class="fg">
       <label class="lbl">💬 WhatsApp नंबर <span style="color:#334155;font-weight:600;font-size:9px">(अलग हो तो ही भरें — 90% के लिए खाली छोड़ें)</span></label>
@@ -715,7 +729,7 @@ function cardHTML(c,s){
       <div class="c-av" style="background:${c.color||COLORS[0]};font-size:${avFs}">${escH(av)}</div>
       <div class="c-main">
         <div class="c-name">${escH(c.name)}${c.pinned?'<span class="pin-dot">📌</span>':''}</div>
-        ${c.note?`<div class="c-topic">🗣️ ${escH(c.note)}</div>`:''}
+        ${topicListHTML(c)}
         <div class="c-sub">${tagBadge}📱 ${escH(c.phone||'—')} · ${c.intervalMins}min</div>
       </div>
       <div class="c-timers">
@@ -755,6 +769,7 @@ function cardHTML(c,s){
       ${tagInfo?`<div style="padding:2px 12px 5px"><span style="background:${tagInfo.color}22;color:${tagInfo.color};border:1px solid ${tagInfo.color}44;border-radius:5px;padding:2px 7px;font-size:9px;font-weight:800">${tagInfo.label}</span></div>`:''}
       ${alarmRow}
       <div class="det-actions" onclick="event.stopPropagation()">
+        <button class="da da-add" onclick="addTaskTo('${c.id}')">➕ काम</button>
         <button class="${pinBtnCls}" onclick="togglePin('${c.id}')">${c.pinned?'📌':'📍'} Pin</button>
         ${c.phone?`<button class="da da-msg" onclick="sendSMS('${c.id}')">✉️ SMS</button>`:''}
         <button class="da da-cal" onclick="addToGCal('${c.id}')">📅 Cal</button>
@@ -860,6 +875,61 @@ function avatarFontSize(c){
   return c.emoji ? '18px' : '10px';
 }
 
+/* ──────── Topics — एक व्यक्ति के कई काम ──────── */
+function topicsOf(c){
+  if(Array.isArray(c.topics)&&c.topics.length) return c.topics;
+  return c.note?[c.note]:[];
+}
+function topicListHTML(c){
+  const tps=topicsOf(c);
+  if(!tps.length) return '';
+  return `<div class="c-topics">${tps.map((t,i)=>
+    `<div class="c-topic">${tps.length>1?`<span class="tnum">${i+1}.</span>`:'🗣️ '}${escH(t)}</div>`
+  ).join('')}</div>`;
+}
+
+/* Topic editor (modal में) — add / delete / ▲▼ reorder */
+let selTopics=[''];
+function escAttr(s){ return escH(s).replace(/"/g,'&quot;'); }
+function readTopicInputs(){
+  selTopics=[...document.querySelectorAll('.topic-inp')].map(i=>i.value);
+  if(!selTopics.length) selTopics=[''];
+}
+function renderTopicRows(){
+  document.getElementById('topic-rows').innerHTML=selTopics.map((t,i)=>`
+    <div class="topic-row">
+      <span class="topic-num">${i+1}</span>
+      <input class="inp topic-inp" value="${escAttr(t)}" placeholder="काम ${i+1} — जैसे: payment बाकी...">
+      <button class="tr-btn" type="button" onclick="moveTopic(${i},-1)" ${i===0?'disabled':''}>▲</button>
+      <button class="tr-btn" type="button" onclick="moveTopic(${i},1)" ${i===selTopics.length-1?'disabled':''}>▼</button>
+      <button class="tr-btn tr-del" type="button" onclick="delTopicRow(${i})">✕</button>
+    </div>`).join('');
+}
+window.moveTopic=function(i,d){
+  readTopicInputs();
+  const j=i+d;
+  if(j<0||j>=selTopics.length) return;
+  [selTopics[i],selTopics[j]]=[selTopics[j],selTopics[i]];
+  renderTopicRows();
+};
+window.delTopicRow=function(i){
+  readTopicInputs();
+  selTopics.splice(i,1);
+  if(!selTopics.length) selTopics=[''];
+  renderTopicRows();
+};
+window.addTopicRow=function(){
+  readTopicInputs();
+  selTopics.push('');
+  renderTopicRows();
+  setTimeout(()=>{ const els=document.querySelectorAll('.topic-inp'); if(els.length) els[els.length-1].focus(); },60);
+};
+/* Card से सीधे नया काम जोड़ो — edit modal खुलेगा, नई खाली line के साथ */
+window.addTaskTo=function(id){
+  editContact(id);
+  setTimeout(()=>window.addTopicRow(),380);
+};
+
 /* ──────── Quick Dial Popup ──────── */
 let _qdialId=null;
 
@@ -943,8 +1013,10 @@ function openPostCall(id){
   if(!c) return;
   _pcId=id;
   document.getElementById('pc-name').textContent='📞 '+c.name;
-  document.getElementById('pc-topic').textContent=c.note?('🗣️ '+c.note):'';
-  document.getElementById('pc-topic').style.display=c.note?'block':'none';
+  const tps=topicsOf(c);
+  document.getElementById('pc-topic').innerHTML=tps.map((t,i)=>
+    `<div>${tps.length>1?(i+1)+'. ':'🗣️ '}${escH(t)}</div>`).join('');
+  document.getElementById('pc-topic').style.display=tps.length?'block':'none';
   // पिछली बात — आखिरी note वाली call entry (अभी वाली empty entry छोड़कर)
   const prev=(c.callLog||[]).slice(0,-1).filter(l=>l.note).pop();
   document.getElementById('pc-last').textContent=prev
@@ -1026,7 +1098,8 @@ window.editContact=function(id){
   document.getElementById('f-name').value=c.name||'';
   document.getElementById('f-phone').value=c.phone||'';
   document.getElementById('f-waph').value=c.waPhone||'';
-  document.getElementById('f-note').value=c.note||'';
+  selTopics=topicsOf(c).length?[...topicsOf(c)]:[''];
+  renderTopicRows();
   document.getElementById('f-alarm').value=c.alarmTime||'';
   selInterval=c.intervalMins||30; selColor=c.color||COLORS[0]; selEmoji=c.emoji||''; selTag=c.tag||'';
   updateIntBtns(); updateClrBtns(); updateEmojiBtns(); updateTagBtns();
@@ -1049,7 +1122,8 @@ window.openAddModal=function(){
   document.getElementById('f-name').value='';
   document.getElementById('f-phone').value='';
   document.getElementById('f-waph').value='';
-  document.getElementById('f-note').value='';
+  selTopics=[''];
+  renderTopicRows();
   document.getElementById('f-alarm').value='';
   selInterval=30; selColor=COLORS[0]; selEmoji=''; selTag='';
   updateIntBtns(); updateClrBtns(); updateEmojiBtns(); updateTagBtns();
@@ -1063,16 +1137,18 @@ window.saveContact=function(){
   const phone=normalizePhone(document.getElementById('f-phone').value||'');
   const waPhoneRaw=normalizePhone(document.getElementById('f-waph').value||'');
   const waPhone=(waPhoneRaw&&waPhoneRaw.length>=10)?waPhoneRaw:'';
-  const note=(document.getElementById('f-note').value||'').trim();
+  readTopicInputs();
+  const topics=selTopics.map(s=>s.trim()).filter(Boolean);
+  const note=topics.join(' · '); // पुराने pages के लिए backward-compat
   if(!name){ toast('⚠️ नाम जरूरी है','err'); return; }
   if(!phone||phone.length<10){ toast('⚠️ सही 10 अंकों का नंबर डालें','err'); return; }
   const alarmTime=(document.getElementById('f-alarm').value||'').trim();
   let saved;
   if(editingId){
     const c=contacts.find(x=>x.id===editingId);
-    if(c){ Object.assign(c,{name,phone,waPhone,note,tag:selTag,intervalMins:selInterval,color:selColor,emoji:selEmoji,alarmTime}); saved=c; }
+    if(c){ Object.assign(c,{name,phone,waPhone,note,topics,tag:selTag,intervalMins:selInterval,color:selColor,emoji:selEmoji,alarmTime}); saved=c; }
   } else {
-    saved={id:genId(),name,phone,waPhone,note,tag:selTag,color:selColor,emoji:selEmoji,intervalMins:selInterval,alarmTime,lastCallAt:null,nextCallAt:null,callLog:[],pinned:false,createdAt:new Date().toISOString()};
+    saved={id:genId(),name,phone,waPhone,note,topics,tag:selTag,color:selColor,emoji:selEmoji,intervalMins:selInterval,alarmTime,lastCallAt:null,nextCallAt:null,callLog:[],pinned:false,createdAt:new Date().toISOString()};
     contacts.push(saved);
   }
   closeModal('m-add'); render();

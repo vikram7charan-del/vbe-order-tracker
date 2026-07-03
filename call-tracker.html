@@ -234,14 +234,15 @@ body{
 .da-edit{background:#10192b;border:1.5px solid rgba(30,58,95,.8);color:#94a3b8}
 .da-del{background:#1a0d0d;border:1.5px solid rgba(239,68,68,.2);color:#f87171}
 
-/* Call log inside detail */
-.det-log-toggle{padding:6px 12px;border-top:1px solid rgba(15,30,54,.9);font-size:10px;color:#475569;cursor:pointer;display:flex;align-items:center;justify-content:space-between;touch-action:manipulation}
-.det-log-list{padding:2px 12px 8px;display:none}
-.log-item{display:flex;align-items:flex-start;gap:6px;padding:5px 0;border-bottom:1px solid rgba(10,20,32,.9)}
+/* Call log inside detail — पिछली बातचीत (बड़ा font, सीधे दिखती है) */
+.det-log-toggle{padding:7px 12px 4px;border-top:1px solid rgba(15,30,54,.9);font-size:11px;font-weight:800;color:#94a3b8;cursor:pointer;display:flex;align-items:center;justify-content:space-between;touch-action:manipulation}
+.det-log-list{padding:2px 12px 10px;display:block}
+.log-item{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid rgba(15,30,54,.8)}
 .log-item:last-child{border-bottom:none}
-.log-dot{width:6px;height:6px;border-radius:50%;background:#22c55e;flex-shrink:0;margin-top:3px}
-.log-when{font-size:10px;color:#94a3b8;flex-shrink:0;white-space:nowrap}
-.log-note{font-size:10px;color:#64748b;font-style:italic;word-break:break-word}
+.log-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;flex-shrink:0;margin-top:6px}
+.log-when{font-size:10.5px;color:#64748b;margin-top:2px}
+.log-note{font-size:13.5px;color:#e2e8f0;font-weight:700;font-style:normal;word-break:break-word;line-height:1.45}
+.log-note.dim{font-size:11px;color:#475569;font-weight:600}
 
 /* ── Modal ── */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
@@ -353,6 +354,12 @@ body{
       <div class="f-chip on" data-f="" onclick="setFilter('')">🔍 सब</div>
       <div class="f-chip" data-f="money" onclick="setFilter('money')">💰 पैसों का मामला</div>
       <div class="f-chip" data-f="jalipa" onclick="setFilter('jalipa')">🏪 जालीपा फॉलोअप</div>
+    </div>
+    <!-- Search bar -->
+    <div style="padding:0 0 9px;position:relative">
+      <input class="inp" id="search-inp" style="padding:9px 34px 9px 12px;font-size:13px;border-radius:10px"
+             placeholder="🔍 नाम या नंबर खोजें..." oninput="onSearchInput(this.value)">
+      <span id="search-clear" onclick="clearSearch()" style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-60%);font-size:15px;color:#64748b;cursor:pointer;padding:4px">✕</span>
     </div>
   </div>
 
@@ -600,12 +607,35 @@ function todayCalls(){
 }
 function progColor(p){ return p>=1?'#ef4444':p>=0.75?'#f59e0b':'#22c55e'; }
 
+/* ──────── Search ──────── */
+let _search='';
+window.onSearchInput=function(v){
+  _search=(v||'').trim().toLowerCase();
+  const x=document.getElementById('search-clear');
+  if(x) x.style.display=_search?'block':'none';
+  render();
+};
+window.clearSearch=function(){
+  const inp=document.getElementById('search-inp');
+  if(inp) inp.value='';
+  window.onSearchInput('');
+};
+function matchesSearch(c){
+  if(!_search) return true;
+  const digits=_search.replace(/[^0-9]/g,'');
+  if((c.name||'').toLowerCase().includes(_search)) return true;
+  if(digits.length>=3 && ((c.phone||'').includes(digits)||(c.waPhone||'').includes(digits))) return true;
+  if(topicsOf(c).some(t=>t.toLowerCase().includes(_search))) return true;
+  return false;
+}
+
 /* ──────── Sort ──────── */
 function sorted(){
   const urg={overdue:0,'due-soon':1,new:2,ok:3};
   return [...contacts].filter(c=>{
     if(c.active===false) return false;
     if(_activeFilter && (c.tag||'')!==_activeFilter) return false;
+    if(!matchesSearch(c)) return false;
     return true;
   }).sort((a,b)=>{
     if(a.pinned&&!b.pinned) return -1;
@@ -705,12 +735,14 @@ function cardHTML(c,s){
   else if(nextMs>=0) nextF=fmtFull(nextMs);
 
   const todayN=(c.callLog||[]).filter(l=>{ const b=new Date();b.setHours(0,0,0,0);return new Date(l.at)>=b; }).length;
-  const recentLog=(c.callLog||[]).slice(-5).reverse().map(l=>`
+  const recentLog=(c.callLog||[]).slice(-8).reverse().map(l=>`
     <div class="log-item">
       <div class="log-dot"></div>
-      <div class="log-when">${new Date(l.at).toLocaleString('hi-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
-      ${l.note?`<div class="log-note">${escH(l.note)}</div>`:''}
-    </div>`).join('')||'<div style="font-size:10px;color:#334155;padding:4px 0">अभी कोई call नहीं</div>';
+      <div style="flex:1;min-width:0">
+        ${l.note?`<div class="log-note">${escH(l.note)}</div>`:`<div class="log-note dim">📞 call हुई — note नहीं लिखा</div>`}
+        <div class="log-when">🕘 ${new Date(l.at).toLocaleString('hi-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
+      </div>
+    </div>`).join('')||'<div style="font-size:11px;color:#334155;padding:4px 0">अभी कोई बातचीत record नहीं</div>';
 
   const cardCls=c.pinned?'card pinned':`card ${s}`;
   const pinBtnCls=c.pinned?'da da-pin on':'da da-pin';
@@ -777,8 +809,8 @@ function cardHTML(c,s){
         <button class="da da-del" onclick="delContact('${c.id}')">🗑️</button>
       </div>
       <div class="det-log-toggle" onclick="toggleLog('${c.id}')">
-        <span>📋 History (${(c.callLog||[]).length})</span>
-        <span id="tgl-${c.id}">▼</span>
+        <span>🗒️ पिछली बातचीत (${(c.callLog||[]).length})</span>
+        <span id="tgl-${c.id}">▲</span>
       </div>
       <div class="det-log-list" id="log-${c.id}">${recentLog}</div>
     </div>
@@ -1086,7 +1118,7 @@ window.toggleLog=function(id){
   const el=document.getElementById('log-'+id);
   const tg=document.getElementById('tgl-'+id);
   if(!el) return;
-  const open=el.style.display==='block';
+  const open=el.style.display!=='none'; // default खुली रहती है
   el.style.display=open?'none':'block';
   if(tg) tg.textContent=open?'▼':'▲';
 };
@@ -1142,6 +1174,9 @@ window.saveContact=function(){
   const note=topics.join(' · '); // पुराने pages के लिए backward-compat
   if(!name){ toast('⚠️ नाम जरूरी है','err'); return; }
   if(!phone||phone.length<10){ toast('⚠️ सही 10 अंकों का नंबर डालें','err'); return; }
+  // Duplicate check — यह नंबर पहले से किसी और में तो नहीं?
+  const dup=contacts.find(x=>x.id!==editingId && (x.phone===phone||(x.waPhone&&x.waPhone===phone)));
+  if(dup){ toast(`⚠️ यह नंबर पहले से "${dup.name}" में है — दोबारा नहीं जुड़ेगा`,'err'); return; }
   const alarmTime=(document.getElementById('f-alarm').value||'').trim();
   let saved;
   if(editingId){

@@ -149,32 +149,35 @@ body{
 
 /* Compact always-visible row */
 .card-row{
-  display:flex;align-items:center;gap:9px;
-  padding:9px 9px 8px 9px;cursor:pointer;
+  display:flex;align-items:center;gap:10px;
+  padding:12px 10px 10px 11px;cursor:pointer;
   touch-action:manipulation;
   user-select:none;-webkit-user-select:none;
 }
-.c-av{width:38px;height:38px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#fff}
+.c-av{width:42px;height:42px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#fff}
 .c-main{flex:1;min-width:0}
-.c-name{font-size:15px;font-weight:900;color:#e2e8f0;letter-spacing:.1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:4px}
+.c-name{font-size:16px;font-weight:900;color:#e2e8f0;letter-spacing:.1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:4px}
 .pin-dot{font-size:10px}
-.c-sub{font-size:10px;color:#64748b;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-/* Timer block (right of name) */
-.c-timers{display:flex;align-items:center;gap:4px;flex-shrink:0;text-align:center}
-.ct-val{font-size:13px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1}
+/* विषय — किस बारे में बात करनी है (नाम के नीचे, readable font) */
+.c-topic{font-size:12.5px;font-weight:700;color:#fbbf24;margin-top:2px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
+.c-sub{font-size:10px;color:#64748b;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Timer block (right of name) — छोटा किया गया */
+.c-timers{display:flex;align-items:center;gap:3px;flex-shrink:0;text-align:center;opacity:.85}
+.ct-val{font-size:10px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
 .ct-val.red{color:#f87171}.ct-val.amber{color:#fbbf24}.ct-val.green{color:#4ade80}.ct-val.dim{color:#334155}
-.ct-lbl{font-size:7px;color:#475569;text-transform:uppercase;letter-spacing:.3px;font-weight:700;line-height:1.2}
-.ct-sep{color:#334155;font-size:12px;padding:0 2px}
+.ct-lbl{font-size:6px;color:#475569;text-transform:uppercase;letter-spacing:.3px;font-weight:700;line-height:1.2}
+.ct-sep{color:#334155;font-size:9px;padding:0 1px}
 /* Quick action buttons (far right) */
 .c-qbtns{display:flex;flex-direction:column;gap:4px;flex-shrink:0;margin-left:4px}
 .qbtn{
-  width:36px;height:26px;border:none;border-radius:8px;
+  width:38px;height:26px;border:none;border-radius:8px;
   font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;
   touch-action:manipulation;transition:opacity .15s,transform .1s;
 }
 .qbtn:active{opacity:.7;transform:scale(.92)}
 .qbtn-call{background:linear-gradient(135deg,#059669,#22c55e);color:#fff;box-shadow:0 2px 7px rgba(34,197,94,.3)}
 .qbtn-wa{background:#0a2118;border:1.5px solid rgba(34,197,94,.3);color:#4ade80}
+.qbtn-15{background:#1a1205;border:1.5px solid rgba(251,191,36,.45);color:#fbbf24;font-size:9.5px;font-weight:900;letter-spacing:.2px}
 
 /* Thin progress line at bottom of row */
 .prog-line-wrap{height:3px;background:#050c18;margin:0}
@@ -363,12 +366,12 @@ body{
       <input class="inp" id="f-phone" type="tel" inputmode="numeric" maxlength="15" placeholder="+91 9876543210">
     </div>
     <div class="fg">
-      <label class="lbl">💬 WhatsApp नंबर <span style="color:#334155;font-weight:600;font-size:9px">(अलग हो तो ही भरें — 90% के लिए खाली छोड़ें)</span></label>
-      <input class="inp" id="f-waph" type="tel" inputmode="numeric" maxlength="15" placeholder="खाली = calling नंबर पर ही WhatsApp">
+      <label class="lbl">🗣️ किस विषय में बात करनी है?</label>
+      <input class="inp" id="f-note" placeholder="payment बाकी, order follow-up, rate पूछना...">
     </div>
     <div class="fg">
-      <label class="lbl">📝 Note</label>
-      <input class="inp" id="f-note" placeholder="Sugar supply, GeM order...">
+      <label class="lbl">💬 WhatsApp नंबर <span style="color:#334155;font-weight:600;font-size:9px">(अलग हो तो ही भरें — 90% के लिए खाली छोड़ें)</span></label>
+      <input class="inp" id="f-waph" type="tel" inputmode="numeric" maxlength="15" placeholder="खाली = calling नंबर पर ही WhatsApp">
     </div>
     <div class="fg">
       <label class="lbl">🏷️ Category / Filter</label>
@@ -413,25 +416,18 @@ body{
   </div>
 </div>
 
-<!-- ══ CALL NOTE MODAL ══ -->
-<div class="modal-bg" id="m-call">
-  <div class="modal-box">
-    <div class="modal-title">
-      <span>📞 Call Record करो</span>
-      <span class="modal-x" onclick="closeModal('m-call')">✕</span>
-    </div>
-    <div id="call-who" style="background:#060d1a;border:1px solid rgba(30,58,95,.8);border-radius:13px;padding:12px 14px;margin-bottom:14px">
-      <div id="call-name" style="font-size:15px;font-weight:900;color:#e2e8f0"></div>
-      <div id="call-phone" style="font-size:12px;color:#64748b;margin-top:3px"></div>
-      <div id="call-note-prev" style="font-size:11px;color:#94a3b8;margin-top:3px;font-style:italic"></div>
-    </div>
-    <div class="fg">
-      <label class="lbl">📝 क्या बात हुई?</label>
-      <input class="inp" id="f-callnote" placeholder="price confirm, delivery 3 दिन...">
-    </div>
-    <button class="btn-confirm-call" onclick="confirmCall()">✅ Call हुई — Record &amp; Dial करो</button>
-    <button class="btn-save" style="background:#0e1a2c;box-shadow:none;margin-top:7px" onclick="confirmCallNoRecord()">📝 सिर्फ Record (dial नहीं)</button>
+<!-- ══ POST-CALL CRM POPUP — call के बाद "क्या बात हुई" note करने के लिए ══ -->
+<div class="qdial-bg" id="pc-bg" onclick="closePostCall()"></div>
+<div class="qdial-popup" id="pc-popup" style="width:88vw;max-width:330px;padding:15px 14px 12px">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+    <div id="pc-name" style="font-size:15px;font-weight:900;color:#e2e8f0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+    <span class="qd-close" onclick="closePostCall()">✕</span>
   </div>
+  <div id="pc-topic" style="font-size:11.5px;color:#fbbf24;font-weight:700;margin-bottom:6px"></div>
+  <div id="pc-last" style="font-size:11px;color:#94a3b8;font-style:italic;background:#060d1a;border:1px solid rgba(30,58,95,.7);border-radius:9px;padding:7px 10px;margin-bottom:9px;max-height:64px;overflow-y:auto"></div>
+  <input class="inp" id="pc-note" placeholder="क्या बात हुई? यहाँ note करें..."
+         onkeydown="if(event.key==='Enter')savePostCallNote()">
+  <button class="btn-confirm-call" style="margin-top:8px;padding:11px" onclick="savePostCallNote()">💾 Note Save करो</button>
 </div>
 
 <!-- ══ QUICK DIAL POPUP ══ -->
@@ -493,7 +489,6 @@ let selInterval = 30;
 let selColor = COLORS[0];
 let selEmoji = '';
 let selTag = '';
-let pendingCallId = null;
 let _tick = null;
 let _notifFired = new Set();
 let _expandedIds = new Set();
@@ -718,7 +713,8 @@ function cardHTML(c,s){
       <div class="c-av" style="background:${c.color||COLORS[0]};font-size:${avFs}">${escH(av)}</div>
       <div class="c-main">
         <div class="c-name">${escH(c.name)}${c.pinned?'<span class="pin-dot">📌</span>':''}</div>
-        <div class="c-sub">${tagBadge}📱 ${escH(c.phone||'—')} · ${c.intervalMins}min${c.note?' · 📝'+escH(c.note.slice(0,18)):''}</div>
+        ${c.note?`<div class="c-topic">🗣️ ${escH(c.note)}</div>`:''}
+        <div class="c-sub">${tagBadge}📱 ${escH(c.phone||'—')} · ${c.intervalMins}min</div>
       </div>
       <div class="c-timers">
         <div style="text-align:center">
@@ -734,6 +730,7 @@ function cardHTML(c,s){
       <div class="c-qbtns" onclick="event.stopPropagation()">
         <button class="qbtn qbtn-call" onclick="recordCall('${c.id}')">📞</button>
         ${hasWA?`<button class="qbtn qbtn-wa" onclick="openWA('${c.id}')">💬</button>`:''}
+        <button class="qbtn qbtn-15" onclick="snooze15('${c.id}')">⏱15m</button>
       </div>
     </div>
 
@@ -925,32 +922,67 @@ window.qdialSMS=function(){
 };
 
 /* ──────── Actions ──────── */
+/* 📞 Call — तुरंत dial + CRM popup खुला रहेगा note करने के लिए */
+let _pcId=null;
 window.recordCall=function(id){
   const c=contacts.find(x=>x.id===id);
   if(!c) return;
-  pendingCallId=id;
-  document.getElementById('call-name').textContent=c.name;
-  document.getElementById('call-phone').textContent='📱 '+(c.phone||'—');
-  document.getElementById('call-note-prev').textContent=c.note||'';
-  document.getElementById('f-callnote').value='';
-  openModal('m-call');
-};
-window.confirmCall=function(){ doRecordCall(true); };
-window.confirmCallNoRecord=function(){ doRecordCall(false); };
-function doRecordCall(dial){
-  const c=contacts.find(x=>x.id===pendingCallId);
-  if(!c) return;
-  const note=(document.getElementById('f-callnote').value||'').trim();
   const now=new Date().toISOString();
   c.lastCallAt=now;
   c.nextCallAt=new Date(Date.now()+c.intervalMins*60*1000).toISOString();
-  c.callLog=c.callLog||[]; c.callLog.push({at:now,note});
-  _notifFired.delete(c.id);
-  closeModal('m-call'); render();
-  toast(`✅ ${c.name} की call — ${c.intervalMins}min reminder`);
-  fbSave(c);
-  if(dial&&c.phone) setTimeout(()=>{ window.location.href='tel:'+c.phone; },400);
+  c.callLog=c.callLog||[]; c.callLog.push({at:now,note:''});
+  _notifFired.delete(c.id+'_next');
+  render(); fbSave(c);
+  openPostCall(id);
+  if(c.phone) setTimeout(()=>{ window.location.href='tel:'+c.phone; },400);
+};
+function openPostCall(id){
+  const c=contacts.find(x=>x.id===id);
+  if(!c) return;
+  _pcId=id;
+  document.getElementById('pc-name').textContent='📞 '+c.name;
+  document.getElementById('pc-topic').textContent=c.note?('🗣️ '+c.note):'';
+  document.getElementById('pc-topic').style.display=c.note?'block':'none';
+  // पिछली बात — आखिरी note वाली call entry (अभी वाली empty entry छोड़कर)
+  const prev=(c.callLog||[]).slice(0,-1).filter(l=>l.note).pop();
+  document.getElementById('pc-last').textContent=prev
+    ? '🕘 पिछली बार ('+new Date(prev.at).toLocaleString('hi-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})+'): '+prev.note
+    : '🕘 पिछली बात का कोई note नहीं';
+  document.getElementById('pc-note').value='';
+  document.getElementById('pc-bg').style.display='block';
+  const p=document.getElementById('pc-popup');
+  p.style.display='block';
+  p.style.animation='none';
+  requestAnimationFrame(()=>{ p.style.animation='popIn .18s cubic-bezier(.4,0,.2,1)'; });
 }
+window.closePostCall=function(){
+  document.getElementById('pc-bg').style.display='none';
+  document.getElementById('pc-popup').style.display='none';
+  _pcId=null;
+};
+window.savePostCallNote=function(){
+  const c=contacts.find(x=>x.id===_pcId);
+  if(c){
+    const note=(document.getElementById('pc-note').value||'').trim();
+    if(note){
+      c.callLog=c.callLog||[];
+      if(c.callLog.length) c.callLog[c.callLog.length-1].note=note;
+      else c.callLog.push({at:new Date().toISOString(),note});
+      render(); fbSave(c);
+      toast('✅ बात note हो गई');
+    }
+  }
+  closePostCall();
+};
+/* ⏱ 15 मिनट बाद call करने का reminder */
+window.snooze15=function(id){
+  const c=contacts.find(x=>x.id===id);
+  if(!c) return;
+  c.nextCallAt=new Date(Date.now()+15*60*1000).toISOString();
+  _notifFired.delete(c.id+'_next');
+  render(); fbSave(c);
+  toast(`⏱️ ${c.name} — 15 मिनट बाद call reminder set`);
+};
 
 window.openWA=function(id){
   const c=contacts.find(x=>x.id===id);

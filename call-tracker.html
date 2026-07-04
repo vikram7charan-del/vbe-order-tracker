@@ -105,7 +105,7 @@ body{
   box-shadow:0 12px 40px rgba(0,0,0,.75),0 0 0 1px rgba(59,130,246,.08);
   animation:popIn .18s cubic-bezier(.4,0,.2,1);
 }
-@keyframes popIn{from{opacity:0;transform:translate(-50%,-50%) scale(.88)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+@keyframes popIn{from{opacity:0;transform:translate(-50%,-50%) scale(.82) rotateX(-14deg)}to{opacity:1;transform:translate(-50%,-50%) scale(1) rotateX(0)}}
 .qd-head{display:flex;align-items:center;gap:10px;margin-bottom:13px}
 .qd-av{width:42px;height:42px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#fff;letter-spacing:-.3px;text-align:center}
 .qd-info{flex:1;min-width:0}
@@ -322,15 +322,18 @@ body{
 .tag-btn{padding:7px 12px;border-radius:9px;border:1.5px solid rgba(30,58,95,.8);background:#060d1a;color:#64748b;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;transition:all .15s;touch-action:manipulation}
 
 /* ══ SMART VIEW — compact grid, ज़्यादा नाम एक साथ ══ */
-.sv-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:8px 11px 20px}
+.sv-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:8px 11px 20px;perspective:900px}
 .sv-item{
   display:flex;align-items:center;gap:7px;
   background:#07111e;border:1.5px solid rgba(30,58,95,.75);
   border-left-width:4px;border-left-color:#334155;
   border-radius:11px;padding:8px 7px;cursor:pointer;
-  touch-action:manipulation;min-height:52px;
+  touch-action:pan-y;min-height:52px;
   transition:transform .1s,opacity .15s;
+  animation:in3d .28s ease both;
+  will-change:transform;
 }
+@keyframes in3d{from{opacity:0;transform:rotateX(10deg) translateY(12px) scale(.96)}to{opacity:1;transform:none}}
 .sv-item:active{transform:scale(.96);opacity:.8}
 .sv-item.overdue{border-left-color:#ef4444}
 .sv-item.due-soon{border-left-color:#fbbf24}
@@ -354,6 +357,19 @@ body.th-purple{background:#0a0514}
 body.th-purple .card,body.th-purple .sv-item,body.th-purple .stat,body.th-purple .strip-chip,body.th-purple .f-chip,body.th-purple .inp{background:#150c28;border-color:rgba(139,92,246,.35)}
 body.th-purple .app-hdr,body.th-purple .filter-bar{background:linear-gradient(180deg,#170b2e 0%,#0a0514 100%)}
 body.th-purple .hdr-title{color:#c4b5fd}
+body.th-emerald{background:#021208}
+body.th-emerald .card,body.th-emerald .sv-item,body.th-emerald .stat,body.th-emerald .strip-chip,body.th-emerald .f-chip,body.th-emerald .inp{background:#07271a;border-color:rgba(16,185,129,.35)}
+body.th-emerald .app-hdr,body.th-emerald .filter-bar{background:linear-gradient(180deg,#04301d 0%,#021208 100%)}
+body.th-emerald .hdr-title{color:#34d399}
+/* ⚪ Round theme — सब कुछ गोल-गोल, मुलायम curves */
+body.th-round .sv-item{border-radius:30px;padding:8px 10px}
+body.th-round .sv-av{width:34px;height:34px}
+body.th-round .card{border-radius:26px}
+body.th-round .qdial-popup,body.th-round .modal-box{border-radius:30px}
+body.th-round .inp{border-radius:18px}
+body.th-round .stat{border-radius:18px}
+body.th-round .qbtn,body.th-round .da,body.th-round .qd-btn{border-radius:16px}
+body.th-round .btn-save,body.th-round .btn-confirm-call{border-radius:20px}
 </style>
 </head>
 <body>
@@ -730,6 +746,7 @@ function matchesSearch(c){
 /* ──────── Sort ──────── */
 function sorted(){
   const urg={overdue:0,'due-soon':1,new:2,ok:3};
+  const hm=getHidden(), hNow=Date.now();
   return [...contacts].filter(c=>{
     if(_activeFilter==='_arch'){
       if(c.active!==false) return false; // सिर्फ़ बंद वाले
@@ -737,6 +754,8 @@ function sorted(){
       if(c.active===false) return false;
       if(_activeFilter && (c.tag||'')!==_activeFilter) return false;
     }
+    // Swipe से hide किए हुए — search में फिर भी दिखते हैं ताकि कुछ छूटे नहीं
+    if(!_search && hm[c.id]>hNow) return false;
     if(!matchesSearch(c)) return false;
     return true;
   }).sort((a,b)=>{
@@ -751,9 +770,13 @@ function sorted(){
 }
 
 /* ──────── Render ──────── */
+let _lastHN=-1;
 function render(){
   const list=sorted();
   renderStrip(list); renderCards(list); renderStats(list); updateHdrSub();
+  // Hidden count बदला (10 min बाद वापस आए) तो filter bar refresh
+  const hn=hiddenIds().length;
+  if(hn!==_lastHN){ _lastHN=hn; renderFilterBar(); }
   // Smart popup खुला हो तो fresh data से refresh करो
   if(_spId){
     const p=document.getElementById('sp-popup');
@@ -797,6 +820,64 @@ function renderStrip(list){
   }).join('');
 }
 
+/* ══ SWIPE-TO-HIDE — right swipe पर 3D में उड़ जाता है, 10 min बाद खुद वापस ══ */
+const HIDE_MS=10*60*1000;
+function getHidden(){ try{ return JSON.parse(localStorage.getItem('vbe_ct_hidden')||'{}'); }catch(e){ return {}; } }
+function hiddenIds(){ const m=getHidden(); const now=Date.now(); return Object.keys(m).filter(k=>m[k]>now); }
+function hideContact(id,el){
+  if(el){
+    el.style.transition='transform .5s cubic-bezier(.35,0,.9,.6),opacity .5s';
+    el.style.transform='translateX(120vw) rotateZ(24deg) rotateY(40deg) scale(.7)';
+    el.style.opacity='0';
+  }
+  const m=getHidden(); m[id]=Date.now()+HIDE_MS;
+  localStorage.setItem('vbe_ct_hidden',JSON.stringify(m));
+  const c=contacts.find(x=>x.id===id);
+  toast(`🙈 ${c?c.name:''} — 10 min बाद खुद वापस आएगा`);
+  setTimeout(()=>{ render(); renderFilterBar(); },520);
+}
+window.unhideAll=function(){
+  localStorage.removeItem('vbe_ct_hidden');
+  render(); renderFilterBar();
+  toast('👀 सब वापस आ गए');
+};
+
+/* Touch swipe handlers */
+let _sw={el:null,id:null,x0:0,y0:0,dx:0,moved:false,horiz:null};
+let _swBlock=false;
+window.svTS=function(e,id){
+  const t=e.touches[0];
+  _sw={el:e.currentTarget,id,x0:t.clientX,y0:t.clientY,dx:0,moved:false,horiz:null};
+  _sw.el.style.transition='none';
+};
+window.svTM=function(e){
+  if(!_sw.el) return;
+  const t=e.touches[0];
+  const dx=t.clientX-_sw.x0, dy=t.clientY-_sw.y0;
+  if(_sw.horiz===null){
+    if(Math.abs(dx)<8&&Math.abs(dy)<8) return;
+    _sw.horiz=Math.abs(dx)>Math.abs(dy)*1.2;
+  }
+  if(!_sw.horiz) return;
+  _sw.dx=Math.max(0,dx);
+  if(dx>4){
+    _sw.moved=true;
+    if(e.cancelable) e.preventDefault();
+    _sw.el.style.transform=`translateX(${_sw.dx}px) rotateZ(${_sw.dx/22}deg) rotateY(${Math.min(_sw.dx/8,30)}deg)`;
+    _sw.el.style.opacity=String(Math.max(.35,1-_sw.dx/280));
+  }
+};
+window.svTE=function(){
+  const s=_sw; _sw={el:null};
+  if(!s.el) return;
+  if(s.moved){ _swBlock=true; setTimeout(()=>{_swBlock=false;},350); }
+  if(s.dx>90){ hideContact(s.id,s.el); }
+  else {
+    s.el.style.transition='transform .25s,opacity .25s';
+    s.el.style.transform=''; s.el.style.opacity='';
+  }
+};
+
 /* ══ VIEW MODE — Card / Smart ══ */
 let _view=localStorage.getItem('vbe_ct_view')||'card';
 window.toggleView=function(){
@@ -827,7 +908,8 @@ function renderSmart(list){
       else { t=fmtCompact(nextMs); tc=nextMs<5*60*1000?'amber':'green'; }
     }
     const actN=normTopics(c).filter(x=>!x.done).length;
-    return `<div class="sv-item ${cls}" onclick="openSmartPop('${c.id}')">
+    return `<div class="sv-item ${cls}" onclick="openSmartPop('${c.id}')"
+      ontouchstart="svTS(event,'${c.id}')" ontouchmove="svTM(event)" ontouchend="svTE(event)">
       <div class="sv-av" style="background:${c.color||COLORS[0]};font-size:${c.emoji?'16px':'9px'}">${escH(avatarContent(c))}<span class="s-dot ${c.pinned?'pinned':s}"></span></div>
       <div class="sv-mid">
         <div class="sv-name">${c.pinned?'📌 ':''}${escH(c.name)}</div>
@@ -911,7 +993,8 @@ function cardHTML(c,s){
   const waNum=c.waPhone||c.phone||'';
   const waDiff=c.waPhone&&c.waPhone!==c.phone;
 
-  return `<div class="${cardCls}" id="c-${c.id}">
+  return `<div class="${cardCls}" id="c-${c.id}"
+    ontouchstart="svTS(event,'${c.id}')" ontouchmove="svTM(event)" ontouchend="svTE(event)">
     <!-- Compact row -->
     <div class="card-row" onclick="toggleCard('${c.id}')">
       <div class="c-left">
@@ -1048,6 +1131,7 @@ async function setupPush(){
 
 /* ──────── Card expand/collapse ──────── */
 window.toggleCard=function(id){
+  if(_swBlock) return; // swipe के तुरंत बाद click ignore
   const det=document.getElementById('det-'+id);
   if(!det) return;
   if(_expandedIds.has(id)){
@@ -1218,6 +1302,7 @@ window.addTaskTo=function(id){
 /* ══ SMART POPUP — बीच screen में, नाम + काम + सारे actions ══ */
 let _spId=null;
 window.openSmartPop=function(id){
+  if(_swBlock) return; // swipe के तुरंत बाद click ignore
   _spId=id;
   renderSmartPop();
   document.getElementById('sp-bg').style.display='block';
@@ -1277,14 +1362,18 @@ window.spEdit=function(){ const id=_spId; closeSmartPop(); editContact(id); };
 
 /* ══ THEMES — 🎨 button से बदलती हैं ══ */
 const THEMES=[
-  {cls:'',        name:'🌊 Navy (default)'},
-  {cls:'th-black',name:'⬛ AMOLED Black'},
-  {cls:'th-purple',name:'💜 Royal Purple'},
+  {cls:'',                 name:'🌊 Navy (default)'},
+  {cls:'th-black',         name:'⬛ AMOLED Black'},
+  {cls:'th-purple',        name:'💜 Royal Purple'},
+  {cls:'th-emerald',       name:'🟢 Emerald Green'},
+  {cls:'th-round',         name:'⚪ Round Curves'},
+  {cls:'th-black th-round', name:'⬛⚪ Black + Round'},
+  {cls:'th-purple th-round',name:'💜⚪ Purple + Round'},
 ];
 let _theme=localStorage.getItem('vbe_ct_theme')||'';
 function applyTheme(){
-  document.body.classList.remove('th-black','th-purple');
-  if(_theme) document.body.classList.add(_theme);
+  document.body.classList.remove('th-black','th-purple','th-emerald','th-round');
+  if(_theme) _theme.split(' ').forEach(c=>document.body.classList.add(c));
 }
 window.cycleTheme=function(){
   const i=THEMES.findIndex(t=>t.cls===_theme);
@@ -1601,10 +1690,12 @@ window.pickTag=function(t){ selTag=t; updateTagBtns(); };
 function renderFilterBar(){
   const el=document.getElementById('filter-bar');
   if(!el) return;
+  const hn=hiddenIds().length;
   el.innerHTML=`<div class="f-chip" data-f="" onclick="setFilter('')">🔍 सब</div>`
     + Object.entries(TAGS).map(([k,t])=>
       `<div class="f-chip" data-f="${k}" onclick="setFilter('${k}')">${escH(t.label)}</div>`).join('')
     + `<div class="f-chip" data-f="_arch" onclick="setFilter('_arch')">📦 बंद</div>`
+    + (hn?`<div class="f-chip" style="border-color:rgba(251,191,36,.65);color:#fbbf24" onclick="unhideAll()">🙈 ${hn} वापस लाओ</div>`:'')
     + `<div class="f-chip" onclick="openTagEditor()" title="Filter नाम बदलें">✏️</div>`;
   applyFilterStyles();
 }

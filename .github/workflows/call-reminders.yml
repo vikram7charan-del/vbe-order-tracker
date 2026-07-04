@@ -1,0 +1,37 @@
+# ══════════════════════════════════════════════════════════
+# VBE Call Tracker — हर 5 मिनट में due calls की push notification
+# App बंद होने पर भी phone पर reminder आएगा (FCM)
+#
+# ⚠️ SETUP (एक बार): repo → Settings → Secrets and variables →
+#    Actions → New repository secret →
+#    Name: FIREBASE_SA   Value: (service account JSON पूरा paste)
+# ══════════════════════════════════════════════════════════
+name: 📞 Call Reminders
+
+on:
+  schedule:
+    - cron: '*/5 * * * *' # हर 5 मिनट (GitHub कभी-कभी 5-10 min delay करता है)
+  workflow_dispatch: # हाथ से भी चला सकते हैं (Actions tab → Run workflow)
+
+concurrency:
+  group: call-reminders
+  cancel-in-progress: false
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install firebase-admin
+        run: npm install firebase-admin --no-save --no-audit --no-fund
+
+      - name: Send due call reminders
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
+        run: node scripts/call-reminders.js

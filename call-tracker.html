@@ -382,6 +382,34 @@ body.th-round .inp{border-radius:18px}
 body.th-round .stat{border-radius:18px}
 body.th-round .qbtn,body.th-round .da,body.th-round .qd-btn{border-radius:16px}
 body.th-round .btn-save,body.th-round .btn-confirm-call{border-radius:20px}
+/* 💎 Crystal Glass — glassmorphism, गहरा gradient background */
+body.th-glass{background:linear-gradient(160deg,#0c1230 0%,#2b1258 45%,#0a2440 100%);background-attachment:fixed}
+body.th-glass .sv-item,body.th-glass .card,body.th-glass .stat,body.th-glass .qdial-popup,body.th-glass .modal-box{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.17);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+body.th-glass .sv-item,body.th-glass .card{border-radius:18px;box-shadow:0 8px 26px rgba(0,0,0,.3)}
+body.th-glass .app-hdr,body.th-glass .filter-bar{background:rgba(12,14,42,.6);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+body.th-glass .f-chip,body.th-glass .strip-chip,body.th-glass .inp{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.16)}
+body.th-glass .hdr-title{color:#e9d5ff}
+/* 🟨 Neo Bold — मोटी borders, hard shadows, sharp corners */
+body.th-neo{background:#13100a}
+body.th-neo .sv-item,body.th-neo .card{background:#1e1a10;border:2px solid #fbbf24;border-radius:6px;box-shadow:4px 4px 0 rgba(251,191,36,.85)}
+body.th-neo .sv-item.overdue,body.th-neo .card.overdue{border-color:#ef4444;box-shadow:4px 4px 0 rgba(239,68,68,.85)}
+body.th-neo .sv-item.ok,body.th-neo .card.ok{border-color:#22c55e;box-shadow:4px 4px 0 rgba(34,197,94,.7)}
+body.th-neo .sv-av,body.th-neo .c-av{border-radius:9px}
+body.th-neo .app-hdr,body.th-neo .filter-bar{background:#13100a}
+body.th-neo .hdr-title{color:#fbbf24}
+body.th-neo .stat{background:#1e1a10;border:2px solid #443b1c;border-radius:6px}
+body.th-neo .qdial-popup,body.th-neo .modal-box{border:2.5px solid #fbbf24;border-radius:8px;box-shadow:7px 7px 0 rgba(251,191,36,.7)}
+body.th-neo .f-chip,body.th-neo .inp{border-radius:6px;border-width:2px}
+/* 🔷 Geo Diamond — कटे कोने, hexagon avatars, cyan geometry */
+body.th-hex{background:#03141c}
+body.th-hex .sv-item,body.th-hex .card{background:linear-gradient(135deg,#082633,#04161f);border-color:rgba(34,211,238,.35);border-radius:3px;clip-path:polygon(15px 0,100% 0,100% calc(100% - 15px),calc(100% - 15px) 100%,0 100%,0 15px)}
+body.th-hex .sv-av,body.th-hex .c-av{border-radius:0;clip-path:polygon(50% 0,94% 25%,94% 75%,50% 100%,6% 75%,6% 25%)}
+body.th-hex .app-hdr,body.th-hex .filter-bar{background:linear-gradient(180deg,#062a38 0%,#03141c 100%)}
+body.th-hex .hdr-title{color:#22d3ee}
+body.th-hex .stat{background:#082633;border-color:rgba(34,211,238,.3);border-radius:0;clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}
+body.th-hex .c-topic,body.th-hex .sv-tasks{color:#67e8f9}
+body.th-hex .qdial-popup{border-color:rgba(34,211,238,.5);border-radius:4px;clip-path:polygon(22px 0,100% 0,100% calc(100% - 22px),calc(100% - 22px) 100%,0 100%,0 22px)}
+body.th-hex .f-chip{border-radius:4px}
 </style>
 </head>
 <body>
@@ -794,10 +822,14 @@ function render(){
   // Hidden count बदला (10 min बाद वापस आए) तो filter bar refresh
   const hn=hiddenIds().length;
   if(hn!==_lastHN){ _lastHN=hn; renderFilterBar(); }
-  // Smart popup खुला हो तो fresh data से refresh करो
+  // Smart popup खुला हो तो fresh data से refresh — पर typing के बीच में नहीं
   if(_spId){
     const p=document.getElementById('sp-popup');
-    if(p&&p.style.display==='block') renderSmartPop();
+    if(p&&p.style.display==='block'){
+      const ae=document.activeElement;
+      const typing=ae&&p.contains(ae)&&(ae.tagName==='INPUT'||ae.tagName==='TEXTAREA');
+      if(!typing) renderSmartPop();
+    }
   }
 }
 function renderStats(list){
@@ -843,14 +875,16 @@ function getHidden(){ try{ return JSON.parse(localStorage.getItem('vbe_ct_hidden
 function hiddenIds(){ const m=getHidden(); const now=Date.now(); return Object.keys(m).filter(k=>m[k]>now); }
 function hideContact(id,el){
   if(el&&el.animate){
-    // 3D fly-away — पहले आपकी तरफ उठता है, फिर घूमकर दूर चला जाता है
+    // 3D fly-away — उछलकर आपकी तरफ आता है, हवा में पूरा पलटता है, blur होकर दूर उड़ जाता है
     const start=el.style.transform||'none';
-    el.style.zIndex='50';
+    el.style.zIndex='60';
+    try{ if(navigator.vibrate) navigator.vibrate(35); }catch(e){}
     el.animate([
-      {transform:start,opacity:el.style.opacity||'1'},
-      {transform:'perspective(700px) translateX(35vw) translateZ(140px) rotateY(45deg) rotateZ(10deg) scale(1.08)',opacity:.95,offset:.35},
-      {transform:'perspective(700px) translateX(140vw) translateZ(-500px) rotateY(90deg) rotateZ(35deg) scale(.35)',opacity:0}
-    ],{duration:700,easing:'cubic-bezier(.3,0,.75,.4)',fill:'forwards'});
+      {transform:start,opacity:el.style.opacity||'1',filter:'blur(0px)'},
+      {transform:'perspective(550px) translateX(28vw) translateY(-34px) translateZ(180px) rotateY(55deg) rotateZ(6deg) scale(1.14)',opacity:1,filter:'blur(0px)',offset:.28},
+      {transform:'perspective(550px) translateX(85vw) translateY(-14px) translateZ(-120px) rotateY(140deg) rotateZ(22deg) scale(.75)',opacity:.65,filter:'blur(1.5px)',offset:.62},
+      {transform:'perspective(550px) translateX(150vw) translateY(45px) translateZ(-700px) rotateY(230deg) rotateZ(50deg) scale(.2)',opacity:0,filter:'blur(4px)'}
+    ],{duration:820,easing:'cubic-bezier(.25,0,.65,.35)',fill:'forwards'});
   } else if(el){
     el.style.transition='transform .5s cubic-bezier(.35,0,.9,.6),opacity .5s';
     el.style.transform='translateX(130vw) rotateZ(24deg) scale(.6)';
@@ -860,7 +894,7 @@ function hideContact(id,el){
   localStorage.setItem('vbe_ct_hidden',JSON.stringify(m));
   const c=contacts.find(x=>x.id===id);
   toast(`🙈 ${c?c.name:''} — 30 min बाद खुद वापस आएगा`);
-  setTimeout(()=>{ render(); renderFilterBar(); },720);
+  setTimeout(()=>{ render(); renderFilterBar(); },840);
 }
 window.unhideAll=function(){
   const n=hiddenIds().length;
@@ -1353,8 +1387,13 @@ function renderSmartPop(){
   const tps=normTopics(c).map((x,i)=>({...x,i})).filter(x=>!x.done);
   const prev=(c.callLog||[]).filter(l=>l.note).slice(-1)[0];
   const hasWA=!!(c.waPhone||c.phone);
+  // Filter chips — tap करके सीधे बदलो
+  const tagRow=`<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px">${Object.entries(TAGS).map(([k,t])=>{
+    const on=c.tag===k;
+    return `<span onclick="spSetTag('${k}')" style="cursor:pointer;font-size:9.5px;font-weight:800;padding:4px 10px;border-radius:12px;border:1.5px solid ${on?t.color:'rgba(30,58,95,.8)'};color:${on?t.color:'#475569'};background:${on?t.color+'22':'transparent'};touch-action:manipulation">${escH(t.label)}</span>`;
+  }).join('')}</div>`;
   document.getElementById('sp-popup').innerHTML=`
-    <div style="display:flex;align-items:center;gap:11px;margin-bottom:12px">
+    <div style="display:flex;align-items:center;gap:11px;margin-bottom:10px">
       <div class="qd-av" style="width:48px;height:48px;background:${c.color||COLORS[0]};font-size:${c.emoji?'21px':'12px'}">${escH(avatarContent(c))}</div>
       <div style="flex:1;min-width:0">
         <div style="font-size:16.5px;font-weight:900;color:#e2e8f0;line-height:1.25;word-break:break-word">${escH(c.name)}${c.pinned?' 📌':''}</div>
@@ -1362,13 +1401,21 @@ function renderSmartPop(){
       </div>
       <span class="qd-close" onclick="closeSmartPop()">✕</span>
     </div>
-    ${tps.length?`<div style="background:#060d1a;border:1px solid rgba(30,58,95,.7);border-radius:11px;padding:9px 11px;margin-bottom:10px">
+    ${tagRow}
+    ${tps.length?`<div style="background:#060d1a;border:1px solid rgba(30,58,95,.7);border-radius:11px;padding:9px 11px;margin-bottom:8px">
       <div style="font-size:9px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">🗣️ किस बारे में बात करनी है</div>
       ${tps.map((x,n)=>`<div style="display:flex;align-items:flex-start;gap:7px;padding:3px 0">
         <span class="tp-chk" style="margin-top:1px" onclick="doneTopic('${c.id}',${x.i})"></span>
         <span style="flex:1;font-size:13.5px;font-weight:700;color:#fbbf24;line-height:1.4;word-break:break-word">${tps.length>1?(n+1)+'. ':''}${escH(x.t)}</span>
       </div>`).join('')}
     </div>`:''}
+    <div style="margin-bottom:10px">
+      <input class="inp" id="sp-new1" placeholder="➕ नया काम सीधे यहाँ लिखें..." style="padding:9px 11px;font-size:12.5px;margin-bottom:6px" onkeydown="if(event.key==='Enter')spSaveNewTasks()">
+      <div style="display:flex;gap:6px">
+        <input class="inp" id="sp-new2" placeholder="➕ और एक काम..." style="flex:1;min-width:0;padding:9px 11px;font-size:12.5px" onkeydown="if(event.key==='Enter')spSaveNewTasks()">
+        <button onclick="spSaveNewTasks()" style="padding:0 15px;border:none;border-radius:11px;background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff;font-weight:900;font-size:13px;font-family:inherit;cursor:pointer;touch-action:manipulation">💾</button>
+      </div>
+    </div>
     ${prev?`<div style="font-size:11.5px;color:#94a3b8;font-style:italic;margin-bottom:10px;line-height:1.45">🕘 पिछली बार: ${escH(prev.note)}</div>`:''}
     <div class="qd-btns" style="margin-bottom:7px">
       <button class="qd-btn qd-call" onclick="spCall()">📞 Call</button>
@@ -1382,6 +1429,29 @@ function renderSmartPop(){
       <button class="qd-btn sp-sec" onclick="spEdit()">✏️</button>
     </div>`;
 }
+/* Popup से सीधे नए काम save */
+window.spSaveNewTasks=function(){
+  const c=contacts.find(x=>x.id===_spId);
+  if(!c) return;
+  const v1=(document.getElementById('sp-new1')||{}).value||'';
+  const v2=(document.getElementById('sp-new2')||{}).value||'';
+  const add=[v1.trim(),v2.trim()].filter(Boolean).map(t=>({t,done:false,doneAt:null}));
+  if(!add.length){ toast('⚠️ पहले काम लिखें','warn'); return; }
+  const tps=normTopics(c);
+  const act=tps.filter(x=>!x.done), don=tps.filter(x=>x.done);
+  c.topics=[...act,...add,...don];
+  c.note=[...act,...add].map(x=>x.t).join(' · ');
+  render(); fbSave(c); renderSmartPop();
+  toast(`✅ ${add.length} काम जुड़ गए`);
+};
+/* Popup से filter/tag बदलो */
+window.spSetTag=function(k){
+  const c=contacts.find(x=>x.id===_spId);
+  if(!c) return;
+  c.tag=(c.tag===k)?'':k;
+  render(); fbSave(c); renderSmartPop();
+  toast(c.tag?('🏷️ '+(TAGS[k]?TAGS[k].label:k)):'🏷️ Filter हटाया');
+};
 window.spDial=function(){ const c=contacts.find(x=>x.id===_spId); if(c&&c.phone){ closeSmartPop(); location.href='tel:'+c.phone; } };
 window.spCall=function(){ const id=_spId; closeSmartPop(); recordCall(id); };
 window.spWA=function(){ const id=_spId; closeSmartPop(); openWA(id); };
@@ -1394,6 +1464,9 @@ window.spEdit=function(){ const id=_spId; closeSmartPop(); editContact(id); };
 /* ══ THEMES — 🎨 button से बदलती हैं ══ */
 const THEMES=[
   {cls:'',                 name:'🌊 Navy (default)'},
+  {cls:'th-glass',         name:'💎 Crystal Glass'},
+  {cls:'th-neo',           name:'🟨 Neo Bold'},
+  {cls:'th-hex',           name:'🔷 Geo Diamond'},
   {cls:'th-black',         name:'⬛ AMOLED Black'},
   {cls:'th-purple',        name:'💜 Royal Purple'},
   {cls:'th-emerald',       name:'🟢 Emerald Green'},
@@ -1403,7 +1476,7 @@ const THEMES=[
 ];
 let _theme=localStorage.getItem('vbe_ct_theme')||'';
 function applyTheme(){
-  document.body.classList.remove('th-black','th-purple','th-emerald','th-round');
+  document.body.classList.remove('th-black','th-purple','th-emerald','th-round','th-glass','th-neo','th-hex');
   if(_theme) _theme.split(' ').forEach(c=>document.body.classList.add(c));
 }
 window.cycleTheme=function(){

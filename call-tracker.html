@@ -105,7 +105,10 @@ body{
   box-shadow:0 12px 40px rgba(0,0,0,.75),0 0 0 1px rgba(59,130,246,.08);
   animation:popIn .18s cubic-bezier(.4,0,.2,1);
 }
-@keyframes popIn{from{opacity:0;transform:translate(-50%,-50%) scale(.82) rotateX(-14deg)}to{opacity:1;transform:translate(-50%,-50%) scale(1) rotateX(0)}}
+@keyframes popIn{
+  from{opacity:0;transform:translate(-50%,-50%) perspective(900px) rotateX(-32deg) scale(.75)}
+  to{opacity:1;transform:translate(-50%,-50%) perspective(900px) rotateX(0) scale(1)}
+}
 .qd-head{display:flex;align-items:center;gap:10px;margin-bottom:13px}
 .qd-av{width:42px;height:42px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#fff;letter-spacing:-.3px;text-align:center}
 .qd-info{flex:1;min-width:0}
@@ -124,6 +127,9 @@ body{
 .qd-call{background:linear-gradient(135deg,#059669,#22c55e);color:#fff;box-shadow:0 2px 10px rgba(34,197,94,.35)}
 .qd-wa{background:#0a2118;border:1.5px solid rgba(34,197,94,.3);color:#4ade80}
 .qd-sms{background:#0d1a2a;border:1.5px solid rgba(99,179,237,.3);color:#63b3ed}
+
+/* Tick/sync re-render पर animation replay नहीं — सिर्फ़ view/filter बदलने पर */
+#card-list.no-anim .card,#card-list.no-anim .sv-item{animation:none}
 
 /* ── Section label ── */
 .sec-lbl{font-size:9px;color:#475569;font-weight:700;letter-spacing:.6px;text-transform:uppercase;padding:8px 13px 4px;display:flex;align-items:center;gap:6px}
@@ -302,8 +308,11 @@ body{
 .toast.warn{background:#d97706}
 
 @keyframes pulse-r{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.5)}60%{box-shadow:0 0 0 6px rgba(239,68,68,0)}}
-@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
-.card{animation:fadeIn .2s ease}
+@keyframes fadeIn{
+  from{opacity:0;transform:perspective(900px) rotateX(18deg) translateY(18px)}
+  to{opacity:1;transform:perspective(900px) rotateX(0) translateY(0)}
+}
+.card{animation:fadeIn .32s cubic-bezier(.2,.7,.3,1) both;will-change:transform}
 
 /* ── Filter bar — सिर्फ़ यह ऊपर चिपकी रहती है ── */
 .filter-bar{
@@ -330,11 +339,14 @@ body{
   border-radius:11px;padding:8px 7px;cursor:pointer;
   touch-action:pan-y;min-height:52px;
   transition:transform .1s,opacity .15s;
-  animation:in3d .28s ease both;
+  animation:in3d .42s cubic-bezier(.2,.7,.3,1) both;
   will-change:transform;
 }
-@keyframes in3d{from{opacity:0;transform:rotateX(10deg) translateY(12px) scale(.96)}to{opacity:1;transform:none}}
-.sv-item:active{transform:scale(.96);opacity:.8}
+@keyframes in3d{
+  from{opacity:0;transform:perspective(800px) rotateX(35deg) translateY(30px) translateZ(-80px) scale(.88)}
+  to{opacity:1;transform:perspective(800px) rotateX(0) translateY(0) translateZ(0) scale(1)}
+}
+.sv-item:active{transform:perspective(600px) rotateX(8deg) scale(.95);opacity:.85}
 .sv-item.overdue{border-left-color:#ef4444}
 .sv-item.due-soon{border-left-color:#fbbf24}
 .sv-item.ok{border-left-color:#22c55e}
@@ -410,6 +422,7 @@ body.th-round .btn-save,body.th-round .btn-confirm-call{border-radius:20px}
         <button class="btn-add" onclick="openAddModal()" title="नया contact">+</button>
         <button class="btn-icon" id="view-btn" onclick="toggleView()" title="Layout बदलें" style="cursor:pointer;font-family:inherit">🔲</button>
         <button class="btn-icon" onclick="cycleTheme()" title="Theme बदलें" style="cursor:pointer;font-family:inherit">🎨</button>
+        <button class="btn-icon" onclick="unhideAll()" title="Swipe किए हुए सब वापस लाओ" style="cursor:pointer;font-family:inherit">👁️</button>
         <a href="./quick-add.html" class="btn-icon" title="Quick Order Add">📦</a>
         <a href="./" class="btn-back">← App</a>
       </div>
@@ -771,9 +784,13 @@ function sorted(){
 
 /* ──────── Render ──────── */
 let _lastHN=-1;
+let _animNext=true; // पहली render में 3D entrance, फिर सिर्फ़ view/filter बदलने पर
 function render(){
   const list=sorted();
+  const cl=document.getElementById('card-list');
+  if(cl) cl.classList.toggle('no-anim',!_animNext);
   renderStrip(list); renderCards(list); renderStats(list); updateHdrSub();
+  _animNext=false;
   // Hidden count बदला (10 min बाद वापस आए) तो filter bar refresh
   const hn=hiddenIds().length;
   if(hn!==_lastHN){ _lastHN=hn; renderFilterBar(); }
@@ -821,25 +838,35 @@ function renderStrip(list){
 }
 
 /* ══ SWIPE-TO-HIDE — right swipe पर 3D में उड़ जाता है, 10 min बाद खुद वापस ══ */
-const HIDE_MS=10*60*1000;
+const HIDE_MS=30*60*1000; // swipe किए हुए 30 min बाद खुद वापस
 function getHidden(){ try{ return JSON.parse(localStorage.getItem('vbe_ct_hidden')||'{}'); }catch(e){ return {}; } }
 function hiddenIds(){ const m=getHidden(); const now=Date.now(); return Object.keys(m).filter(k=>m[k]>now); }
 function hideContact(id,el){
-  if(el){
+  if(el&&el.animate){
+    // 3D fly-away — पहले आपकी तरफ उठता है, फिर घूमकर दूर चला जाता है
+    const start=el.style.transform||'none';
+    el.style.zIndex='50';
+    el.animate([
+      {transform:start,opacity:el.style.opacity||'1'},
+      {transform:'perspective(700px) translateX(35vw) translateZ(140px) rotateY(45deg) rotateZ(10deg) scale(1.08)',opacity:.95,offset:.35},
+      {transform:'perspective(700px) translateX(140vw) translateZ(-500px) rotateY(90deg) rotateZ(35deg) scale(.35)',opacity:0}
+    ],{duration:700,easing:'cubic-bezier(.3,0,.75,.4)',fill:'forwards'});
+  } else if(el){
     el.style.transition='transform .5s cubic-bezier(.35,0,.9,.6),opacity .5s';
-    el.style.transform='translateX(120vw) rotateZ(24deg) rotateY(40deg) scale(.7)';
+    el.style.transform='translateX(130vw) rotateZ(24deg) scale(.6)';
     el.style.opacity='0';
   }
   const m=getHidden(); m[id]=Date.now()+HIDE_MS;
   localStorage.setItem('vbe_ct_hidden',JSON.stringify(m));
   const c=contacts.find(x=>x.id===id);
-  toast(`🙈 ${c?c.name:''} — 10 min बाद खुद वापस आएगा`);
-  setTimeout(()=>{ render(); renderFilterBar(); },520);
+  toast(`🙈 ${c?c.name:''} — 30 min बाद खुद वापस आएगा`);
+  setTimeout(()=>{ render(); renderFilterBar(); },720);
 }
 window.unhideAll=function(){
+  const n=hiddenIds().length;
   localStorage.removeItem('vbe_ct_hidden');
-  render(); renderFilterBar();
-  toast('👀 सब वापस आ गए');
+  _animNext=true; render(); renderFilterBar();
+  toast(n?`👀 ${n} contact वापस आ गए`:'👀 कोई hidden नहीं है');
 };
 
 /* Touch swipe handlers */
@@ -863,8 +890,11 @@ window.svTM=function(e){
   if(dx>4){
     _sw.moved=true;
     if(e.cancelable) e.preventDefault();
-    _sw.el.style.transform=`translateX(${_sw.dx}px) rotateZ(${_sw.dx/22}deg) rotateY(${Math.min(_sw.dx/8,30)}deg)`;
-    _sw.el.style.opacity=String(Math.max(.35,1-_sw.dx/280));
+    // perspective() खुद transform में — इसी से असली 3D दिखता है
+    _sw.el.style.transform=`perspective(650px) translateX(${_sw.dx}px) translateZ(${Math.min(_sw.dx/2.5,110)}px) rotateY(${Math.min(_sw.dx/5,45)}deg) rotateZ(${_sw.dx/26}deg)`;
+    _sw.el.style.opacity=String(Math.max(.4,1-_sw.dx/300));
+    _sw.el.style.zIndex='50';
+    _sw.el.style.boxShadow='0 18px 40px rgba(0,0,0,.6)';
   }
 };
 window.svTE=function(){
@@ -873,8 +903,8 @@ window.svTE=function(){
   if(s.moved){ _swBlock=true; setTimeout(()=>{_swBlock=false;},350); }
   if(s.dx>90){ hideContact(s.id,s.el); }
   else {
-    s.el.style.transition='transform .25s,opacity .25s';
-    s.el.style.transform=''; s.el.style.opacity='';
+    s.el.style.transition='transform .3s cubic-bezier(.2,.8,.3,1.2),opacity .25s,box-shadow .25s';
+    s.el.style.transform=''; s.el.style.opacity=''; s.el.style.boxShadow=''; s.el.style.zIndex='';
   }
 };
 
@@ -883,7 +913,7 @@ let _view=localStorage.getItem('vbe_ct_view')||'card';
 window.toggleView=function(){
   _view=_view==='card'?'smart':'card';
   localStorage.setItem('vbe_ct_view',_view);
-  updateViewBtn(); render();
+  updateViewBtn(); _animNext=true; render();
   toast(_view==='smart'?'🔲 Smart View — compact grid':'📋 Card View — पूरी detail');
 };
 function updateViewBtn(){
@@ -898,9 +928,10 @@ function renderSmart(list){
     el.innerHTML=`<div class="empty"><div class="empty-ico">📞</div><div class="empty-txt">अभी कोई follow-up contact नहीं<br>+ button से जोड़ें</div></div>`;
     return;
   }
-  el.innerHTML=`<div class="sv-grid">`+list.map(c=>{
+  el.innerHTML=`<div class="sv-grid">`+list.map((c,idx)=>{
     const s=status(c);
     const cls=c.pinned?'pinned':s;
+    const dly=Math.min(idx*24,400);
     const nextMs=c.nextCallAt?new Date(c.nextCallAt).getTime()-Date.now():null;
     let t='—', tc='dim';
     if(nextMs!==null){
@@ -908,7 +939,7 @@ function renderSmart(list){
       else { t=fmtCompact(nextMs); tc=nextMs<5*60*1000?'amber':'green'; }
     }
     const actN=normTopics(c).filter(x=>!x.done).length;
-    return `<div class="sv-item ${cls}" onclick="openSmartPop('${c.id}')"
+    return `<div class="sv-item ${cls}" style="animation-delay:${dly}ms" onclick="openSmartPop('${c.id}')"
       ontouchstart="svTS(event,'${c.id}')" ontouchmove="svTM(event)" ontouchend="svTE(event)">
       <div class="sv-av" style="background:${c.color||COLORS[0]};font-size:${c.emoji?'16px':'9px'}">${escH(avatarContent(c))}<span class="s-dot ${c.pinned?'pinned':s}"></span></div>
       <div class="sv-mid">
@@ -1713,7 +1744,7 @@ function applyFilterStyles(){
 window.setFilter=function(f){
   _activeFilter=f;
   applyFilterStyles();
-  render();
+  _animNext=true; render();
 };
 
 /* ── Tag नाम editor ── */

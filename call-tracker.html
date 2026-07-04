@@ -168,6 +168,17 @@ body{
 .c-topics{margin-top:3px}
 .c-topic{font-size:12.5px;font-weight:700;color:#fbbf24;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word;margin-bottom:1px}
 .c-topic .tnum{color:#f59e0b;opacity:.75;margin-right:2px}
+/* काम पूरा करने का गोल checkbox */
+.tp-chk{display:inline-block;width:16px;height:16px;border-radius:50%;border:2px solid #f59e0b;margin-right:6px;vertical-align:-3px;cursor:pointer;flex-shrink:0;background:transparent;touch-action:manipulation}
+.tp-chk:active{background:rgba(34,197,94,.45);border-color:#22c55e}
+/* History में note edit/delete buttons */
+.log-btn{width:27px;height:27px;border-radius:7px;border:1px solid #1e3a5f;background:#0d1526;color:#94a3b8;font-size:11px;cursor:pointer;touch-action:manipulation;flex-shrink:0}
+.log-btn:active{opacity:.6}
+.log-btn.del{color:#f87171;border-color:rgba(239,68,68,.3)}
+/* Mic button — बोलकर note */
+.mic-btn{width:46px;border:1.5px solid rgba(59,130,246,.4);border-radius:11px;background:#0a1220;color:#60a5fa;font-size:17px;cursor:pointer;touch-action:manipulation;flex-shrink:0}
+.mic-btn:active{opacity:.7}
+.mic-btn.rec{background:rgba(239,68,68,.15);border-color:#ef4444;animation:pulse-r 1.3s ease-in-out infinite}
 /* Modal — multi-topic editor rows */
 .topic-row{display:flex;align-items:center;gap:5px;margin-bottom:6px}
 .topic-num{font-size:11px;font-weight:900;color:#f59e0b;width:14px;text-align:center;flex-shrink:0}
@@ -226,7 +237,7 @@ body{
 .det-calls{font-size:9px;color:#475569}
 
 /* Action row inside detail */
-.det-actions{display:flex;gap:5px;padding:5px 10px 7px;border-top:1px solid rgba(15,30,54,.9)}
+.det-actions{display:flex;flex-wrap:wrap;gap:5px;padding:5px 10px 7px;border-top:1px solid rgba(15,30,54,.9)}
 .da{
   flex:1;padding:8px 3px;border:none;border-radius:9px;
   font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;
@@ -459,8 +470,11 @@ body{
   </div>
   <div id="pc-topic" style="font-size:11.5px;color:#fbbf24;font-weight:700;margin-bottom:6px"></div>
   <div id="pc-last" style="font-size:11px;color:#94a3b8;font-style:italic;background:#060d1a;border:1px solid rgba(30,58,95,.7);border-radius:9px;padding:7px 10px;margin-bottom:9px;max-height:64px;overflow-y:auto"></div>
-  <input class="inp" id="pc-note" placeholder="क्या बात हुई? यहाँ note करें..."
-         onkeydown="if(event.key==='Enter')savePostCallNote()">
+  <div style="display:flex;gap:6px">
+    <input class="inp" id="pc-note" style="flex:1;min-width:0" placeholder="क्या बात हुई? लिखें या 🎤 दबाकर बोलें..."
+           onkeydown="if(event.key==='Enter')savePostCallNote()">
+    <button class="mic-btn" id="pc-mic" onclick="pcMic()" title="बोलकर note करें">🎤</button>
+  </div>
   <button class="btn-confirm-call" style="margin-top:8px;padding:11px" onclick="savePostCallNote()">💾 Note Save करो</button>
 </div>
 
@@ -489,7 +503,7 @@ body{
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { initializeAppCheck, ReCaptchaV3Provider } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js';
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { initializeFirestore, persistentLocalCache, persistentSingleTabManager, collection, doc, setDoc, deleteDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 const FB_CFG = {
   apiKey:'AIzaSyBCe5DKNKcthOl4umprfRm2QBfbVaFORg8',
@@ -506,7 +520,10 @@ const app  = initializeApp(FB_CFG, 'call-tracker');
 const VBE_AC_KEY = ''; // ← यहाँ site key डालो, खाली = disabled
 if(VBE_AC_KEY) initializeAppCheck(app, { provider: new ReCaptchaV3Provider(VBE_AC_KEY), isTokenAutoRefreshEnabled: true });
 const auth = getAuth(app);
-const db   = getFirestore(app);
+// Offline cache — internet बंद होने पर भी app चलेगा, net आते ही sync
+const db   = initializeFirestore(app, {
+  localCache: persistentLocalCache({ tabManager: persistentSingleTabManager() })
+});
 const CT_COL = collection(db, 'vbe_call_tracker');
 
 const COLORS = ['#3b82f6','#f97316','#eab308','#22c55e','#ec4899','#8b5cf6','#06b6d4','#f43f5e'];
@@ -652,7 +669,9 @@ function matchesSearch(c){
   const digits=_search.replace(/[^0-9]/g,'');
   if((c.name||'').toLowerCase().includes(_search)) return true;
   if(digits.length>=3 && ((c.phone||'').includes(digits)||(c.waPhone||'').includes(digits))) return true;
-  if(topicsOf(c).some(t=>t.toLowerCase().includes(_search))) return true;
+  if(normTopics(c).some(x=>x.t.toLowerCase().includes(_search))) return true;
+  // पुरानी बातचीत के notes में भी खोजो
+  if((c.callLog||[]).some(l=>(l.note||'').toLowerCase().includes(_search))) return true;
   return false;
 }
 
@@ -660,8 +679,12 @@ function matchesSearch(c){
 function sorted(){
   const urg={overdue:0,'due-soon':1,new:2,ok:3};
   return [...contacts].filter(c=>{
-    if(c.active===false) return false;
-    if(_activeFilter && (c.tag||'')!==_activeFilter) return false;
+    if(_activeFilter==='_arch'){
+      if(c.active!==false) return false; // सिर्फ़ बंद वाले
+    } else {
+      if(c.active===false) return false;
+      if(_activeFilter && (c.tag||'')!==_activeFilter) return false;
+    }
     if(!matchesSearch(c)) return false;
     return true;
   }).sort((a,b)=>{
@@ -762,12 +785,17 @@ function cardHTML(c,s){
   else if(nextMs>=0) nextF=fmtFull(nextMs);
 
   const todayN=(c.callLog||[]).filter(l=>{ const b=new Date();b.setHours(0,0,0,0);return new Date(l.at)>=b; }).length;
-  const recentLog=(c.callLog||[]).slice(-8).reverse().map(l=>`
+  const logArr=c.callLog||[];
+  const recentLog=logArr.map((l,i)=>({l,i})).slice(-8).reverse().map(({l,i})=>`
     <div class="log-item">
       <div class="log-dot"></div>
       <div style="flex:1;min-width:0">
         ${l.note?`<div class="log-note">${escH(l.note)}</div>`:`<div class="log-note dim">📞 call हुई — note नहीं लिखा</div>`}
         <div class="log-when">🕘 ${new Date(l.at).toLocaleString('hi-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
+      </div>
+      <div style="display:flex;gap:4px;flex-shrink:0">
+        <button class="log-btn" onclick="event.stopPropagation();editLogNote('${c.id}',${i})">✏️</button>
+        <button class="log-btn del" onclick="event.stopPropagation();delLogEntry('${c.id}',${i})">✕</button>
       </div>
     </div>`).join('')||'<div style="font-size:11px;color:#334155;padding:4px 0">अभी कोई बातचीत record नहीं</div>';
 
@@ -820,12 +848,16 @@ function cardHTML(c,s){
       ${waDiff?`<div style="padding:4px 12px 5px;font-size:10px;color:#4ade80;font-weight:700">💬 WA: ${escH(c.waPhone)}</div>`:''}
       ${tagInfo?`<div style="padding:2px 12px 5px"><span style="background:${tagInfo.color}22;color:${tagInfo.color};border:1px solid ${tagInfo.color}44;border-radius:5px;padding:2px 7px;font-size:9px;font-weight:800">${tagInfo.label}</span></div>`:''}
       ${alarmRow}
+      ${doneListHTML(c)}
       <div class="det-actions" onclick="event.stopPropagation()">
         <button class="da da-add" onclick="addTaskTo('${c.id}')">➕ काम</button>
         <button class="${pinBtnCls}" onclick="togglePin('${c.id}')">${c.pinned?'📌':'📍'} Pin</button>
         ${c.phone?`<button class="da da-msg" onclick="sendSMS('${c.id}')">✉️ SMS</button>`:''}
         <button class="da da-cal" onclick="addToGCal('${c.id}')">📅 Cal</button>
         <button class="da da-edit" onclick="editContact('${c.id}')">✏️</button>
+        ${c.active===false
+          ?`<button class="da da-add" onclick="restoreContact('${c.id}')">↩️ वापस</button>`
+          :`<button class="da da-edit" onclick="archiveContact('${c.id}')">📦 बंद</button>`}
         <button class="da da-del" onclick="delContact('${c.id}')">🗑️</button>
       </div>
       <div class="det-log-toggle" onclick="toggleLog('${c.id}')">
@@ -927,18 +959,92 @@ function avatarFontSize(c){
   return c.emoji ? '24px' : '12px';
 }
 
-/* ──────── Topics — एक व्यक्ति के कई काम ──────── */
-function topicsOf(c){
-  if(Array.isArray(c.topics)&&c.topics.length) return c.topics;
-  return c.note?[c.note]:[];
+/* ──────── Topics — एक व्यक्ति के कई काम (✓ पूरा करने के साथ) ──────── */
+function normTopics(c){
+  // पुराना format (string array) → नया format ({t, done, doneAt})
+  if(Array.isArray(c.topics)&&c.topics.length)
+    return c.topics.map(x=>typeof x==='string'?{t:x,done:false,doneAt:null}:x);
+  return c.note?[{t:c.note,done:false,doneAt:null}]:[];
 }
+function topicsOf(c){ return normTopics(c).filter(x=>!x.done).map(x=>x.t); }
 function topicListHTML(c){
-  const tps=topicsOf(c);
-  if(!tps.length) return '';
-  return `<div class="c-topics">${tps.map((t,i)=>
-    `<div class="c-topic">${tps.length>1?`<span class="tnum">${i+1}.</span>`:'🗣️ '}${escH(t)}</div>`
+  const act=normTopics(c).map((x,i)=>({...x,i})).filter(x=>!x.done);
+  if(!act.length) return '';
+  const multi=act.length>1;
+  return `<div class="c-topics">${act.map((x,n)=>
+    `<div class="c-topic"><span class="tp-chk" onclick="event.stopPropagation();doneTopic('${c.id}',${x.i})"></span>${multi?`<span class="tnum">${n+1}.</span>`:''}${escH(x.t)}</div>`
   ).join('')}</div>`;
 }
+window.doneTopic=function(id,idx){
+  const c=contacts.find(x=>x.id===id);
+  if(!c) return;
+  const tps=normTopics(c);
+  if(!tps[idx]||tps[idx].done) return;
+  tps[idx].done=true; tps[idx].doneAt=new Date().toISOString();
+  c.topics=tps;
+  c.note=tps.filter(x=>!x.done).map(x=>x.t).join(' · ');
+  render(); fbSave(c);
+  toast('✅ काम पूरा — '+tps[idx].t.slice(0,24));
+};
+window.undoneTopic=function(id,idx){
+  const c=contacts.find(x=>x.id===id);
+  if(!c) return;
+  const tps=normTopics(c);
+  if(!tps[idx]) return;
+  tps[idx].done=false; tps[idx].doneAt=null;
+  c.topics=tps;
+  c.note=tps.filter(x=>!x.done).map(x=>x.t).join(' · ');
+  render(); fbSave(c);
+  toast('↩️ काम वापस list में आया');
+};
+/* पूरे हुए काम — expanded detail में strikethrough list */
+function doneListHTML(c){
+  const doneT=normTopics(c).map((x,i)=>({...x,i})).filter(x=>x.done);
+  if(!doneT.length) return '';
+  return `<div style="padding:4px 12px 6px" onclick="event.stopPropagation()">
+    <div style="font-size:10px;font-weight:800;color:#4ade80;margin-bottom:3px">✅ पूरे हुए काम (${doneT.length})</div>
+    ${doneT.map(x=>`<div style="display:flex;align-items:center;gap:6px;padding:2px 0">
+      <span style="flex:1;font-size:12px;color:#64748b;text-decoration:line-through;word-break:break-word">${escH(x.t)}</span>
+      <span style="font-size:9px;color:#334155;flex-shrink:0">${x.doneAt?new Date(x.doneAt).toLocaleDateString('hi-IN',{day:'numeric',month:'short'}):''}</span>
+      <button class="log-btn" onclick="undoneTopic('${c.id}',${x.i})" title="वापस लाओ">↩️</button>
+    </div>`).join('')}</div>`;
+}
+
+/* ──────── Archive (📦 बंद) — record रहता है, list से हटता है ──────── */
+window.archiveContact=function(id){
+  const c=contacts.find(x=>x.id===id);
+  if(!c) return;
+  c.active=false;
+  _expandedIds.delete(id);
+  render(); fbSave(c);
+  toast(`📦 ${c.name} बंद किया — "📦 बंद" filter में मिलेगा`,'warn');
+};
+window.restoreContact=function(id){
+  const c=contacts.find(x=>x.id===id);
+  if(!c) return;
+  c.active=true;
+  render(); fbSave(c);
+  toast(`↩️ ${c.name} वापस active list में आया`);
+};
+
+/* ──────── पुराने call notes सुधारना / मिटाना ──────── */
+window.editLogNote=function(id,idx){
+  const c=contacts.find(x=>x.id===id);
+  if(!c||!c.callLog||!c.callLog[idx]) return;
+  const v=prompt('Note सुधारें:', c.callLog[idx].note||'');
+  if(v===null) return;
+  c.callLog[idx].note=v.trim();
+  render(); fbSave(c);
+  toast('✅ Note update हुआ');
+};
+window.delLogEntry=function(id,idx){
+  const c=contacts.find(x=>x.id===id);
+  if(!c||!c.callLog||!c.callLog[idx]) return;
+  if(!confirm('यह बातचीत record मिटाएं?')) return;
+  c.callLog.splice(idx,1);
+  render(); fbSave(c);
+  toast('🗑️ Record हटाया','warn');
+};
 
 /* Topic editor (modal में) — add / delete / ▲▼ reorder */
 let selTopics=[''];
@@ -1100,6 +1206,31 @@ window.savePostCallNote=function(){
   }
   closePostCall();
 };
+/* 🎤 बोलकर note — Hindi speech-to-text */
+let _micRec=null;
+window.pcMic=function(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const btn=document.getElementById('pc-mic');
+  if(!SR){ toast('⚠️ इस browser में voice support नहीं — Chrome use करें','err'); return; }
+  if(_micRec){ try{_micRec.stop();}catch(e){} _micRec=null; return; }
+  const r=new SR();
+  r.lang='hi-IN'; r.interimResults=false; r.maxAlternatives=1;
+  btn.textContent='🔴'; btn.classList.add('rec');
+  r.onresult=e=>{
+    const t=e.results[0][0].transcript;
+    const inp=document.getElementById('pc-note');
+    inp.value=(inp.value?inp.value+' ':'')+t;
+  };
+  r.onend=()=>{ btn.textContent='🎤'; btn.classList.remove('rec'); _micRec=null; };
+  r.onerror=ev=>{
+    btn.textContent='🎤'; btn.classList.remove('rec'); _micRec=null;
+    if(ev.error==='not-allowed') toast('⚠️ Mic permission दें — browser settings में','err');
+    else if(ev.error!=='aborted') toast('⚠️ आवाज़ समझ नहीं आई — फिर बोलें','warn');
+  };
+  _micRec=r;
+  try{ r.start(); }catch(e){ btn.textContent='🎤'; btn.classList.remove('rec'); _micRec=null; }
+};
+
 /* ⏱ 15 मिनट बाद call करने का reminder */
 window.snooze15=function(id){
   const c=contacts.find(x=>x.id===id);
@@ -1190,8 +1321,12 @@ window.saveContact=function(){
   const waPhoneRaw=normalizePhone(document.getElementById('f-waph').value||'');
   const waPhone=(waPhoneRaw&&waPhoneRaw.length>=10)?waPhoneRaw:'';
   readTopicInputs();
-  const topics=selTopics.map(s=>s.trim()).filter(Boolean);
-  const note=topics.join(' · '); // पुराने pages के लिए backward-compat
+  const activeTopics=selTopics.map(s=>s.trim()).filter(Boolean).map(t=>({t,done:false,doneAt:null}));
+  // पूरे हुए काम edit में नहीं दिखते — उन्हें preserve करो
+  const oldC=editingId?contacts.find(x=>x.id===editingId):null;
+  const doneTopics=oldC?normTopics(oldC).filter(x=>x.done):[];
+  const topics=[...activeTopics,...doneTopics];
+  const note=activeTopics.map(x=>x.t).join(' · '); // पुराने pages के लिए backward-compat
   if(!name){ toast('⚠️ नाम जरूरी है','err'); return; }
   if(!phone||phone.length<10){ toast('⚠️ सही 10 अंकों का नंबर डालें','err'); return; }
   // Duplicate check — यह नंबर पहले से किसी और में तो नहीं?
@@ -1262,6 +1397,7 @@ function renderFilterBar(){
   el.innerHTML=`<div class="f-chip" data-f="" onclick="setFilter('')">🔍 सब</div>`
     + Object.entries(TAGS).map(([k,t])=>
       `<div class="f-chip" data-f="${k}" onclick="setFilter('${k}')">${escH(t.label)}</div>`).join('')
+    + `<div class="f-chip" data-f="_arch" onclick="setFilter('_arch')">📦 बंद</div>`
     + `<div class="f-chip" onclick="openTagEditor()" title="Filter नाम बदलें">✏️</div>`;
   applyFilterStyles();
 }

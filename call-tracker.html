@@ -320,6 +320,40 @@ body{
 .f-chip.on{background:rgba(59,130,246,.12);border-color:#3b82f6;color:#60a5fa}
 /* Tag button in modal */
 .tag-btn{padding:7px 12px;border-radius:9px;border:1.5px solid rgba(30,58,95,.8);background:#060d1a;color:#64748b;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;transition:all .15s;touch-action:manipulation}
+
+/* ══ SMART VIEW — compact grid, ज़्यादा नाम एक साथ ══ */
+.sv-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:8px 11px 20px}
+.sv-item{
+  display:flex;align-items:center;gap:7px;
+  background:#07111e;border:1.5px solid rgba(30,58,95,.75);
+  border-left-width:4px;border-left-color:#334155;
+  border-radius:11px;padding:8px 7px;cursor:pointer;
+  touch-action:manipulation;min-height:52px;
+  transition:transform .1s,opacity .15s;
+}
+.sv-item:active{transform:scale(.96);opacity:.8}
+.sv-item.overdue{border-left-color:#ef4444}
+.sv-item.due-soon{border-left-color:#fbbf24}
+.sv-item.ok{border-left-color:#22c55e}
+.sv-item.pinned{border-left-color:#fbbf24;box-shadow:0 0 8px rgba(251,191,36,.08)}
+.sv-av{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;position:relative}
+.sv-av .s-dot{position:absolute;bottom:-2px;right:-2px;width:9px;height:9px;border:2px solid #030810;border-radius:50%}
+.sv-mid{flex:1;min-width:0}
+.sv-name{font-size:12px;font-weight:800;color:#e2e8f0;line-height:1.3;word-break:break-word;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.sv-tasks{font-size:9px;color:#fbbf24;font-weight:700;margin-top:1px}
+.sv-time{font-size:9.5px;font-weight:900;flex-shrink:0;font-variant-numeric:tabular-nums}
+.sv-time.red{color:#f87171}.sv-time.amber{color:#fbbf24}.sv-time.green{color:#4ade80}.sv-time.dim{color:#334155}
+/* Smart popup की secondary buttons */
+.sp-sec{background:#10192b;border:1.5px solid rgba(30,58,95,.8);color:#94a3b8}
+
+/* ══ THEMES ══ */
+body.th-black{background:#000}
+body.th-black .card,body.th-black .sv-item,body.th-black .stat,body.th-black .strip-chip,body.th-black .f-chip,body.th-black .inp{background:#0b0b12;border-color:rgba(70,70,95,.55)}
+body.th-black .app-hdr,body.th-black .filter-bar{background:#000}
+body.th-purple{background:#0a0514}
+body.th-purple .card,body.th-purple .sv-item,body.th-purple .stat,body.th-purple .strip-chip,body.th-purple .f-chip,body.th-purple .inp{background:#150c28;border-color:rgba(139,92,246,.35)}
+body.th-purple .app-hdr,body.th-purple .filter-bar{background:linear-gradient(180deg,#170b2e 0%,#0a0514 100%)}
+body.th-purple .hdr-title{color:#c4b5fd}
 </style>
 </head>
 <body>
@@ -358,7 +392,9 @@ body{
       </div>
       <div class="hdr-btns">
         <button class="btn-add" onclick="openAddModal()" title="नया contact">+</button>
-        <a href="./quick-add.html" class="btn-icon" title="Quick Order Add">📦 काम जोड़ो</a>
+        <button class="btn-icon" id="view-btn" onclick="toggleView()" title="Layout बदलें" style="cursor:pointer;font-family:inherit">🔲</button>
+        <button class="btn-icon" onclick="cycleTheme()" title="Theme बदलें" style="cursor:pointer;font-family:inherit">🎨</button>
+        <a href="./quick-add.html" class="btn-icon" title="Quick Order Add">📦</a>
         <a href="./" class="btn-back">← App</a>
       </div>
     </div>
@@ -455,6 +491,10 @@ body{
     <button class="btn-save" onclick="saveContact()">💾 Save करो</button>
   </div>
 </div>
+
+<!-- ══ SMART POPUP — Smart View में व्यक्ति पर tap करने से बीच में खुलता है ══ -->
+<div class="qdial-bg" id="sp-bg" onclick="closeSmartPop()"></div>
+<div class="qdial-popup" id="sp-popup" style="width:90vw;max-width:352px;padding:16px 15px 13px;max-height:82dvh;overflow-y:auto"></div>
 
 <!-- ══ TAG NAME EDITOR — filter के नाम बदलने के लिए ══ -->
 <div class="qdial-bg" id="te-bg" onclick="closeTagEditor()"></div>
@@ -585,6 +625,7 @@ function initApp(){
   document.getElementById('s-app').style.display='block';
   buildColorPicker(); buildEmojiPicker(); buildIntervalPicker();
   renderFilterBar(); renderTagBtns();
+  applyTheme(); updateViewBtn();
   startFirestoreSync(); startTick(); askNotifPermission(); setupPush();
 }
 
@@ -709,6 +750,11 @@ function sorted(){
 function render(){
   const list=sorted();
   renderStrip(list); renderCards(list); renderStats(list); updateHdrSub();
+  // Smart popup खुला हो तो fresh data से refresh करो
+  if(_spId){
+    const p=document.getElementById('sp-popup');
+    if(p&&p.style.display==='block') renderSmartPop();
+  }
 }
 function renderStats(list){
   document.getElementById('st-total').textContent=list.length;
@@ -747,9 +793,53 @@ function renderStrip(list){
   }).join('');
 }
 
+/* ══ VIEW MODE — Card / Smart ══ */
+let _view=localStorage.getItem('vbe_ct_view')||'card';
+window.toggleView=function(){
+  _view=_view==='card'?'smart':'card';
+  localStorage.setItem('vbe_ct_view',_view);
+  updateViewBtn(); render();
+  toast(_view==='smart'?'🔲 Smart View — compact grid':'📋 Card View — पूरी detail');
+};
+function updateViewBtn(){
+  const b=document.getElementById('view-btn');
+  if(b) b.textContent=_view==='smart'?'📋':'🔲';
+}
+
+/* Smart View — 2-column grid, पूरा नाम + छोटा गोल icon */
+function renderSmart(list){
+  const el=document.getElementById('card-list');
+  if(!list.length){
+    el.innerHTML=`<div class="empty"><div class="empty-ico">📞</div><div class="empty-txt">अभी कोई follow-up contact नहीं<br>+ button से जोड़ें</div></div>`;
+    return;
+  }
+  el.innerHTML=`<div class="sv-grid">`+list.map(c=>{
+    const s=status(c);
+    const cls=c.pinned?'pinned':s;
+    const nextMs=c.nextCallAt?new Date(c.nextCallAt).getTime()-Date.now():null;
+    let t='—', tc='dim';
+    if(nextMs!==null){
+      if(nextMs<0){ t='LATE'; tc='red'; }
+      else { t=fmtCompact(nextMs); tc=nextMs<5*60*1000?'amber':'green'; }
+    }
+    const actN=normTopics(c).filter(x=>!x.done).length;
+    return `<div class="sv-item ${cls}" onclick="openSmartPop('${c.id}')">
+      <div class="sv-av" style="background:${c.color||COLORS[0]};font-size:${c.emoji?'16px':'9px'}">${escH(avatarContent(c))}<span class="s-dot ${c.pinned?'pinned':s}"></span></div>
+      <div class="sv-mid">
+        <div class="sv-name">${c.pinned?'📌 ':''}${escH(c.name)}</div>
+        ${actN?`<div class="sv-tasks">🗣️ ${actN} काम</div>`:''}
+      </div>
+      <div class="sv-time ${tc}">${t}</div>
+    </div>`;
+  }).join('')+`</div>`;
+}
+
 /* Compact cards */
 function renderCards(list){
   const el=document.getElementById('card-list');
+  const stripEl=document.getElementById('strip');
+  if(stripEl) stripEl.style.display=_view==='smart'?'none':'flex';
+  if(_view==='smart'){ renderSmart(list); return; }
   if(!list.length){
     el.innerHTML=`<div class="empty"><div class="empty-ico">📞</div><div class="empty-txt">अभी कोई follow-up contact नहीं<br>+ button से जोड़ें</div></div>`;
     return;
@@ -1119,6 +1209,86 @@ window.addTopicRow=function(){
 window.addTaskTo=function(id){
   editContact(id);
   setTimeout(()=>window.addTopicRow(),380);
+};
+
+/* ══ SMART POPUP — बीच screen में, नाम + काम + सारे actions ══ */
+let _spId=null;
+window.openSmartPop=function(id){
+  _spId=id;
+  renderSmartPop();
+  document.getElementById('sp-bg').style.display='block';
+  const p=document.getElementById('sp-popup');
+  p.style.display='block';
+  p.style.animation='none';
+  requestAnimationFrame(()=>{ p.style.animation='popIn .18s cubic-bezier(.4,0,.2,1)'; });
+};
+window.closeSmartPop=function(){
+  document.getElementById('sp-bg').style.display='none';
+  document.getElementById('sp-popup').style.display='none';
+  _spId=null;
+};
+function renderSmartPop(){
+  const c=contacts.find(x=>x.id===_spId);
+  if(!c){ closeSmartPop(); return; }
+  const tps=normTopics(c).map((x,i)=>({...x,i})).filter(x=>!x.done);
+  const prev=(c.callLog||[]).filter(l=>l.note).slice(-1)[0];
+  const hasWA=!!(c.waPhone||c.phone);
+  document.getElementById('sp-popup').innerHTML=`
+    <div style="display:flex;align-items:center;gap:11px;margin-bottom:12px">
+      <div class="qd-av" style="width:48px;height:48px;background:${c.color||COLORS[0]};font-size:${c.emoji?'21px':'12px'}">${escH(avatarContent(c))}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:16.5px;font-weight:900;color:#e2e8f0;line-height:1.25;word-break:break-word">${escH(c.name)}${c.pinned?' 📌':''}</div>
+        ${c.phone?`<div style="font-size:12.5px;color:#60a5fa;font-weight:700;margin-top:2px;cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" onclick="spDial()">📱 ${escH(c.phone)}</div>`:''}
+      </div>
+      <span class="qd-close" onclick="closeSmartPop()">✕</span>
+    </div>
+    ${tps.length?`<div style="background:#060d1a;border:1px solid rgba(30,58,95,.7);border-radius:11px;padding:9px 11px;margin-bottom:10px">
+      <div style="font-size:9px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">🗣️ किस बारे में बात करनी है</div>
+      ${tps.map((x,n)=>`<div style="display:flex;align-items:flex-start;gap:7px;padding:3px 0">
+        <span class="tp-chk" style="margin-top:1px" onclick="doneTopic('${c.id}',${x.i})"></span>
+        <span style="flex:1;font-size:13.5px;font-weight:700;color:#fbbf24;line-height:1.4;word-break:break-word">${tps.length>1?(n+1)+'. ':''}${escH(x.t)}</span>
+      </div>`).join('')}
+    </div>`:''}
+    ${prev?`<div style="font-size:11.5px;color:#94a3b8;font-style:italic;margin-bottom:10px;line-height:1.45">🕘 पिछली बार: ${escH(prev.note)}</div>`:''}
+    <div class="qd-btns" style="margin-bottom:7px">
+      <button class="qd-btn qd-call" onclick="spCall()">📞 Call</button>
+      ${hasWA?`<button class="qd-btn qd-wa" onclick="spWA()">💬 WA</button>`:''}
+      ${c.phone?`<button class="qd-btn qd-sms" onclick="spSMS()">✉️ SMS</button>`:''}
+    </div>
+    <div class="qd-btns">
+      <button class="qd-btn sp-sec" onclick="spPin()">${c.pinned?'📌 Unpin':'📍 Pin'}</button>
+      <button class="qd-btn sp-sec" onclick="spSnooze()">⏱ 15m</button>
+      <button class="qd-btn sp-sec" onclick="spAddTask()">➕ काम</button>
+      <button class="qd-btn sp-sec" onclick="spEdit()">✏️</button>
+    </div>`;
+}
+window.spDial=function(){ const c=contacts.find(x=>x.id===_spId); if(c&&c.phone){ closeSmartPop(); location.href='tel:'+c.phone; } };
+window.spCall=function(){ const id=_spId; closeSmartPop(); recordCall(id); };
+window.spWA=function(){ const id=_spId; closeSmartPop(); openWA(id); };
+window.spSMS=function(){ const id=_spId; closeSmartPop(); sendSMS(id); };
+window.spPin=function(){ const c=contacts.find(x=>x.id===_spId); if(!c)return; c.pinned=!c.pinned; render(); fbSave(c); renderSmartPop(); };
+window.spSnooze=function(){ window.snooze15(_spId); renderSmartPop(); };
+window.spAddTask=function(){ const id=_spId; closeSmartPop(); addTaskTo(id); };
+window.spEdit=function(){ const id=_spId; closeSmartPop(); editContact(id); };
+
+/* ══ THEMES — 🎨 button से बदलती हैं ══ */
+const THEMES=[
+  {cls:'',        name:'🌊 Navy (default)'},
+  {cls:'th-black',name:'⬛ AMOLED Black'},
+  {cls:'th-purple',name:'💜 Royal Purple'},
+];
+let _theme=localStorage.getItem('vbe_ct_theme')||'';
+function applyTheme(){
+  document.body.classList.remove('th-black','th-purple');
+  if(_theme) document.body.classList.add(_theme);
+}
+window.cycleTheme=function(){
+  const i=THEMES.findIndex(t=>t.cls===_theme);
+  const next=THEMES[(i+1)%THEMES.length];
+  _theme=next.cls;
+  localStorage.setItem('vbe_ct_theme',_theme);
+  applyTheme();
+  toast('🎨 '+next.name);
 };
 
 /* ──────── Quick Dial Popup ──────── */

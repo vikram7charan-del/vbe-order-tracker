@@ -37,13 +37,10 @@ body{
 .btn-login{width:100%;padding:15px;border:none;border-radius:13px;background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;touch-action:manipulation;box-shadow:0 4px 16px rgba(59,130,246,.35)}
 .login-err{color:#f87171;font-size:12px;text-align:center;margin-top:10px;min-height:18px}
 
-/* ── App Header (sticky) ── */
+/* ── App Header (scroll के साथ ऊपर चला जाता है) ── */
 .app-hdr{
   background:linear-gradient(180deg,#07101e 0%,#030810 100%);
-  border-bottom:1px solid rgba(30,58,95,.5);
-  padding:11px 13px 0;
-  position:sticky;top:0;z-index:100;
-  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  padding:11px 13px 2px;
 }
 .hdr-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
 .hdr-title{font-size:15px;font-weight:900;color:#f59e0b;letter-spacing:.2px}
@@ -308,8 +305,15 @@ body{
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 .card{animation:fadeIn .2s ease}
 
-/* ── Filter bar ── */
-.filter-bar{display:flex;gap:6px;overflow-x:auto;padding:2px 13px 8px;scrollbar-width:none;-ms-overflow-style:none}
+/* ── Filter bar — सिर्फ़ यह ऊपर चिपकी रहती है ── */
+.filter-bar{
+  display:flex;gap:6px;overflow-x:auto;padding:8px 13px;
+  scrollbar-width:none;-ms-overflow-style:none;
+  position:sticky;top:0;z-index:120;
+  background:linear-gradient(180deg,#07101e 0%,#030810 100%);
+  border-bottom:1px solid rgba(30,58,95,.5);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+}
 .filter-bar::-webkit-scrollbar{display:none}
 .f-chip{display:inline-flex;align-items:center;gap:4px;cursor:pointer;flex-shrink:0;background:#060d1a;border:1.5px solid #1e3a5f;border-radius:18px;padding:5px 12px;font-size:10.5px;font-weight:800;color:#64748b;transition:all .15s;touch-action:manipulation;white-space:nowrap}
 .f-chip:active{opacity:.72;transform:scale(.97)}
@@ -366,16 +370,18 @@ body{
       <div class="stat"><div class="stat-n amber" id="st-due">0</div><div class="stat-l">⏰ जल्दी</div></div>
       <div class="stat"><div class="stat-n green" id="st-today">0</div><div class="stat-l">✅ आज</div></div>
     </div>
-    <!-- Filter bar (dynamic — renderFilterBar से बनता है) -->
-    <div class="filter-bar" id="filter-bar">
-      <div class="f-chip on" data-f="" onclick="setFilter('')">🔍 सब</div>
-    </div>
-    <!-- Search bar -->
-    <div style="padding:0 0 9px;position:relative">
-      <input class="inp" id="search-inp" style="padding:9px 34px 9px 12px;font-size:13px;border-radius:10px"
-             placeholder="🔍 नाम या नंबर खोजें..." oninput="onSearchInput(this.value)">
-      <span id="search-clear" onclick="clearSearch()" style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-60%);font-size:15px;color:#64748b;cursor:pointer;padding:4px">✕</span>
-    </div>
+  </div>
+
+  <!-- Filter bar — sticky, हमेशा ऊपर दिखती है -->
+  <div class="filter-bar" id="filter-bar">
+    <div class="f-chip on" data-f="" onclick="setFilter('')">🔍 सब</div>
+  </div>
+
+  <!-- Search bar — scroll के साथ ऊपर चली जाती है -->
+  <div style="padding:8px 13px 4px;position:relative">
+    <input class="inp" id="search-inp" style="padding:9px 34px 9px 12px;font-size:13px;border-radius:10px"
+           placeholder="🔍 नाम या नंबर खोजें..." oninput="onSearchInput(this.value)">
+    <span id="search-clear" onclick="clearSearch()" style="display:none;position:absolute;right:22px;top:50%;transform:translateY(-50%);font-size:15px;color:#64748b;cursor:pointer;padding:4px">✕</span>
   </div>
 
   <!-- Horizontal Strip -->

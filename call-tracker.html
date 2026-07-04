@@ -627,6 +627,10 @@ function initApp(){
   renderFilterBar(); renderTagBtns();
   applyTheme(); updateViewBtn();
   startFirestoreSync(); startTick(); askNotifPermission(); setupPush();
+  // App icon के long-press shortcuts (manifest से)
+  const act=new URLSearchParams(location.search).get('action');
+  if(act==='new') setTimeout(()=>window.openAddModal(),400);
+  if(act==='search') setTimeout(()=>{ const s=document.getElementById('search-inp'); if(s) s.focus(); },400);
 }
 
 /* ──────── Firestore sync ──────── */

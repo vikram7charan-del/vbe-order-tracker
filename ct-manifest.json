@@ -17,6 +17,13 @@
       "description": "Call Tracker में नया contact add करें",
       "url": "./call-tracker.html?action=new",
       "icons": [{ "src": "ct-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "🔍 नाम या नंबर खोजें",
+      "short_name": "Search",
+      "description": "Contact search करें",
+      "url": "./call-tracker.html?action=search",
+      "icons": [{ "src": "ct-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
     }
   ],
   "icons": [

@@ -50,9 +50,10 @@ async function main() {
   const snap = await db.collection('vbe_call_tracker').get();
   const due = [];
   const batch = db.batch();
+  let settingsData = null;
 
   snap.forEach((d) => {
-    if (d.id === '_settings') return;
+    if (d.id === '_settings') { settingsData = d.data() || {}; return; }
     const c = d.data();
     if (c.active === false) return;
     if (!c.nextCallAt) return;
@@ -67,8 +68,38 @@ async function main() {
     batch.update(d.ref, { lastNotifiedAt: new Date().toISOString() });
   });
 
-  if (!due.length) {
+  // 🌅 सुबह का digest — रोज़ 7:30-8:00 IST के बीच एक बार, आज की पूरी list
+  let digest = null;
+  const parts = {};
+  new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Kolkata', hour12: false,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit',
+  }).formatToParts(new Date()).forEach((x) => { parts[x.type] = x.value; });
+  const istMin = Number(parts.hour) * 60 + Number(parts.minute);
+  const todayKey = parts.year + '-' + parts.month + '-' + parts.day;
+  const lastDigest = settingsData ? settingsData.lastDigestDate : null;
+  if (istMin >= 450 && istMin < 510 && lastDigest !== todayKey) {
+    const allDue = [];
+    snap.forEach((d) => {
+      if (d.id === '_settings') return;
+      const c = d.data();
+      if (c.active === false || !c.nextCallAt) return;
+      if (new Date(c.nextCallAt).getTime() <= now) allDue.push(c.name || '?');
+    });
+    if (allDue.length) {
+      digest = { count: allDue.length, names: allDue };
+      batch.set(
+        db.collection('vbe_call_tracker').doc('_settings'),
+        { lastDigestDate: todayKey },
+        { merge: true }
+      );
+    }
+  }
+
+  if (!due.length && !digest) {
     console.log('कोई call due नहीं ✓');
+    await batch.commit();
     return;
   }
 
@@ -86,32 +117,50 @@ async function main() {
     return;
   }
 
-  const title =
-    due.length === 1
-      ? `📞 Call करो: ${due[0].name}`
-      : `📞 ${due.length} calls बाकी हैं!`;
-  const body =
-    due
-      .slice(0, 6)
-      .map((c) => `• ${c.name}${c.phone ? ' — ' + c.phone : ''}`)
-      .join('\n') + (due.length > 6 ? `\n…और ${due.length - 6}` : '');
+  const msgs = [];
+  if (digest) {
+    msgs.push({
+      title: `🌅 आज ${digest.count} calls करनी हैं`,
+      body:
+        digest.names.slice(0, 8).map((n) => `• ${n}`).join('\n') +
+        (digest.count > 8 ? `\n…और ${digest.count - 8}` : ''),
+      tag: 'vbe-digest',
+    });
+  }
+  if (due.length) {
+    msgs.push({
+      title:
+        due.length === 1
+          ? `📞 Call करो: ${due[0].name}`
+          : `📞 ${due.length} calls बाकी हैं!`,
+      body:
+        due
+          .slice(0, 6)
+          .map((c) => `• ${c.name}${c.phone ? ' — ' + c.phone : ''}`)
+          .join('\n') + (due.length > 6 ? `\n…और ${due.length - 6}` : ''),
+      tag: 'vbe-call-due',
+    });
+  }
 
-  const resp = await admin.messaging().sendEachForMulticast({
-    tokens,
-    notification: { title, body },
-    data: { link: APP_LINK },
-    webpush: {
-      fcmOptions: { link: APP_LINK },
-      notification: {
-        icon: '/ct-icon.svg',
-        badge: '/ct-icon.svg',
-        tag: 'vbe-call-due',
-        renotify: true,
-        requireInteraction: true,
+  let resp = null;
+  for (const m of msgs) {
+    resp = await admin.messaging().sendEachForMulticast({
+      tokens,
+      notification: { title: m.title, body: m.body },
+      data: { link: APP_LINK },
+      webpush: {
+        fcmOptions: { link: APP_LINK },
+        notification: {
+          icon: '/ct-icon.svg',
+          badge: '/ct-icon.svg',
+          tag: m.tag,
+          renotify: true,
+          requireInteraction: true,
+        },
+        headers: { Urgency: 'high' },
       },
-      headers: { Urgency: 'high' },
-    },
-  });
+    });
+  }
 
   // मरे हुए tokens साफ़ करो
   const dead = [];

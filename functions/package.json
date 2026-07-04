@@ -1,0 +1,11 @@
+{
+  "name": "vbe-call-reminder-functions",
+  "description": "VBE Call Tracker - background push reminders",
+  "engines": { "node": "20" },
+  "main": "index.js",
+  "dependencies": {
+    "firebase-admin": "^12.1.0",
+    "firebase-functions": "^5.0.1"
+  },
+  "private": true
+}

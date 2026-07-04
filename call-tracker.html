@@ -504,6 +504,7 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/fireba
 import { initializeAppCheck, ReCaptchaV3Provider } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js';
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { initializeFirestore, persistentLocalCache, persistentSingleTabManager, collection, doc, setDoc, deleteDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getMessaging, getToken, onMessage } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js';
 
 const FB_CFG = {
   apiKey:'AIzaSyBCe5DKNKcthOl4umprfRm2QBfbVaFORg8',
@@ -578,7 +579,7 @@ function initApp(){
   document.getElementById('s-app').style.display='block';
   buildColorPicker(); buildEmojiPicker(); buildIntervalPicker();
   renderFilterBar(); renderTagBtns();
-  startFirestoreSync(); startTick(); askNotifPermission();
+  startFirestoreSync(); startTick(); askNotifPermission(); setupPush();
 }
 
 /* ──────── Firestore sync ──────── */
@@ -917,6 +918,32 @@ function fireNotif(c){
 }
 function askNotifPermission(){
   if(typeof Notification!=='undefined'&&Notification.permission==='default') Notification.requestPermission();
+}
+
+/* ──────── FCM Push — app बंद होने पर भी reminder (server से) ──────── */
+const VAPID_KEY='BNFBPxoVlakw8p-M9XDxEAthTavUKmZO7S5OUeI4S1gxd4bzRW_-MlU9tBDUDGfQ_omyhELh26gC6-fBMmA1kFM';
+async function setupPush(){
+  try{
+    if(typeof Notification==='undefined'||!('serviceWorker' in navigator)) return;
+    if(Notification.permission==='default') await Notification.requestPermission();
+    if(Notification.permission!=='granted') return;
+    let reg=await navigator.serviceWorker.getRegistration('./');
+    if(!reg) reg=await navigator.serviceWorker.register('./firebase-messaging-sw.js',{scope:'./'});
+    const messaging=getMessaging(app);
+    // Foreground — app खुला हो तो in-app toast
+    onMessage(messaging,(payload)=>{
+      const n=payload.notification||{};
+      toast('🔔 '+(n.title||'')+' '+(n.body?'— '+n.body.split('\n')[0]:''),'warn');
+    });
+    const token=await getToken(messaging,{vapidKey:VAPID_KEY,serviceWorkerRegistration:reg});
+    if(!token) return;
+    const devId=localStorage.getItem('vbe_dev_id')||(function(){const d='d'+Math.random().toString(36).slice(2,8);localStorage.setItem('vbe_dev_id',d);return d;})();
+    const uid=auth.currentUser?auth.currentUser.uid:'anon';
+    await setDoc(doc(db,'vbe_fcm_tokens',uid+'_'+devId),{
+      token, uid, updatedAt:new Date().toISOString(), ua:navigator.userAgent, src:'call-tracker'
+    });
+    console.log('[FCM] token registered');
+  }catch(e){ console.warn('[FCM] setup failed:',e); }
 }
 
 /* ──────── Card expand/collapse ──────── */

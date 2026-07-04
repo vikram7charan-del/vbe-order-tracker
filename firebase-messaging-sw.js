@@ -37,13 +37,17 @@ messaging.onBackgroundMessage(function(payload){
   self.registration.showNotification(title, options);
 });
 
-// Notification पर tap करने से app खुले
+// Notification पर tap करने से app खुले (data.link हो तो वही page)
 self.addEventListener('notificationclick', function(event){
   event.notification.close();
+  const link = (event.notification.data && event.notification.data.link) || '/';
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(list){
+      for (const c of list) {
+        if (c.url && c.url.indexOf(new URL(link, self.location.origin).pathname) !== -1 && 'focus' in c) return c.focus();
+      }
       for (const c of list) { if (c.url && 'focus' in c) return c.focus(); }
-      if (clients.openWindow) return clients.openWindow('/');
+      if (clients.openWindow) return clients.openWindow(link);
     })
   );
 });

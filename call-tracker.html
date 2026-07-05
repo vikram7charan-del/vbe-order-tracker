@@ -590,6 +590,10 @@ body.th-geo .btn-add-big{background:linear-gradient(135deg,#6366f1,#a855f7);box-
 <div class="qdial-bg" id="sp-bg" onclick="closeSmartPop()"></div>
 <div class="qdial-popup" id="sp-popup" style="width:90vw;max-width:352px;padding:16px 15px 13px;max-height:82dvh;overflow-y:auto"></div>
 
+<!-- ══ CATEGORY PICKER — काम की श्रेणी चुनने के लिए ══ -->
+<div class="qdial-bg" id="cat-bg" style="z-index:220" onclick="closeCatPick()"></div>
+<div class="qdial-popup" id="cat-pop" style="z-index:221;width:80vw;max-width:290px;padding:15px 13px 10px"></div>
+
 <!-- ══ TAG NAME EDITOR — filter के नाम बदलने के लिए ══ -->
 <div class="qdial-bg" id="te-bg" onclick="closeTagEditor()"></div>
 <div class="qdial-popup" id="te-popup" style="width:88vw;max-width:330px;padding:15px 14px 12px">
@@ -1423,7 +1427,7 @@ function renderTopicRows(){
     const ci=catInfo(x.cat);
     return `<div class="topic-row">
       <span class="topic-num">${i+1}</span>
-      <button class="tr-btn" type="button" onclick="rowCycleCat(${i})" title="श्रेणी बदलें">${ci?ci.logo:'⬜'}</button>
+      <button class="tr-btn" type="button" onclick="rowPickCat(${i})" title="श्रेणी चुनें">${ci?ci.logo:'⬜'}</button>
       <input class="inp topic-inp" value="${escAttr(x.t)}" placeholder="काम ${i+1} — जैसे: payment बाकी...">
       <button class="tr-btn" type="button" onclick="moveTopic(${i},-1)" ${i===0?'disabled':''}>▲</button>
       <button class="tr-btn" type="button" onclick="moveTopic(${i},1)" ${i===selTopics.length-1?'disabled':''}>▼</button>
@@ -1431,14 +1435,6 @@ function renderTopicRows(){
     </div>`;
   }).join('');
 }
-window.rowCycleCat=function(i){
-  readTopicInputs();
-  if(!selTopics[i]) return;
-  selTopics[i].cat=nextCat(selTopics[i].cat);
-  renderTopicRows();
-  const ci=catInfo(selTopics[i].cat);
-  toast(ci?(ci.logo+' '+ci.label):'⬜ कोई श्रेणी नहीं');
-};
 window.moveTopic=function(i,d){
   readTopicInputs();
   const j=i+d;
@@ -1510,7 +1506,7 @@ function renderSmartPop(){
         return `<div style="display:flex;align-items:flex-start;gap:7px;padding:4px 0">
         <span class="tp-chk" style="margin-top:1px" onclick="doneTopic('${c.id}',${x.i})"></span>
         <span style="flex:1;font-size:13.5px;font-weight:700;color:#fbbf24;line-height:1.4;word-break:break-word">${ci?ci.logo+' ':''}${tps.length>1?(n+1)+'. ':''}${escH(x.t)}</span>
-        <span onclick="spCycleCat('${c.id}',${x.i})" style="cursor:pointer;font-size:15px;width:30px;text-align:center;flex-shrink:0;padding:1px 0;border:1px dashed rgba(100,116,139,.4);border-radius:7px;margin-left:4px" title="श्रेणी बदलें">${ci?ci.logo:'⬜'}</span>
+        <span onclick="spPickCat('${c.id}',${x.i})" style="cursor:pointer;font-size:15px;width:30px;text-align:center;flex-shrink:0;padding:1px 0;border:1px dashed rgba(100,116,139,.4);border-radius:7px;margin-left:4px" title="श्रेणी चुनें">${ci?ci.logo:'⬜'}</span>
       </div>`;
       }).join('')}
       ${(()=>{
@@ -1562,16 +1558,55 @@ window.spSaveNewTasks=function(){
   render(); fbSave(c); renderSmartPop();
   toast(`✅ ${add.length} काम जुड़ गए`);
 };
-/* Task की श्रेणी cycle करो — ⬜→🏆→💻→🛒→🏪→⬜ */
-window.spCycleCat=function(id,idx){
-  const c=contacts.find(x=>x.id===id);
-  if(!c) return;
-  const tps=normTopics(c);
-  if(!tps[idx]) return;
-  tps[idx].cat=nextCat(tps[idx].cat);
-  c.topics=tps;
-  render(); fbSave(c); renderSmartPop();
-  const ci=catInfo(tps[idx].cat);
+/* ══ CATEGORY PICKER — चारों option सामने, सीधे चुनो ══ */
+let _catPick=null;
+function openCatPick(mode,id,idx){
+  _catPick={mode,id,idx};
+  let cur='';
+  if(mode==='row'){ cur=(selTopics[idx]&&selTopics[idx].cat)||''; }
+  else {
+    const c=contacts.find(x=>x.id===id);
+    const t=c&&normTopics(c)[idx];
+    cur=(t&&t.cat)||'';
+  }
+  document.getElementById('cat-pop').innerHTML=
+    `<div style="font-size:13.5px;font-weight:900;color:#e2e8f0;margin-bottom:10px">🏷️ काम की श्रेणी चुनें</div>`
+    +[...TASK_CATS,{k:'',label:'कोई श्रेणी नहीं',logo:'⬜'}].map(tc=>`
+      <div onclick="pickCat('${tc.k}')" style="display:flex;align-items:center;gap:11px;padding:12px 11px;border-radius:12px;cursor:pointer;margin-bottom:5px;touch-action:manipulation;border:1.5px solid ${cur===tc.k?'#3b82f6':'rgba(30,58,95,.6)'};background:${cur===tc.k?'rgba(59,130,246,.14)':'#060d1a'}">
+        <span style="font-size:21px">${tc.logo}</span>
+        <span style="font-size:14px;font-weight:800;color:${cur===tc.k?'#60a5fa':'#cbd5e1'}">${tc.label}</span>
+        ${cur===tc.k?'<span style="margin-left:auto;color:#4ade80;font-weight:900">✓</span>':''}
+      </div>`).join('');
+  document.getElementById('cat-bg').style.display='block';
+  const p=document.getElementById('cat-pop');
+  p.style.display='block';
+  p.style.animation='none';
+  requestAnimationFrame(()=>{ p.style.animation='popIn .18s cubic-bezier(.4,0,.2,1)'; });
+}
+window.closeCatPick=function(){
+  document.getElementById('cat-bg').style.display='none';
+  document.getElementById('cat-pop').style.display='none';
+  _catPick=null;
+};
+window.spPickCat=function(id,idx){ openCatPick('topic',id,idx); };
+window.rowPickCat=function(i){ readTopicInputs(); openCatPick('row',null,i); };
+window.pickCat=function(k){
+  const p=_catPick;
+  closeCatPick();
+  if(!p) return;
+  if(p.mode==='row'){
+    if(selTopics[p.idx]) selTopics[p.idx].cat=k;
+    renderTopicRows();
+  } else {
+    const c=contacts.find(x=>x.id===p.id);
+    if(!c) return;
+    const tps=normTopics(c);
+    if(!tps[p.idx]) return;
+    tps[p.idx].cat=k;
+    c.topics=tps;
+    render(); fbSave(c);
+  }
+  const ci=catInfo(k);
   toast(ci?(ci.logo+' '+ci.label):'⬜ कोई श्रेणी नहीं');
 };
 /* 📤 सारे काम WhatsApp पर एक click में भेजो */

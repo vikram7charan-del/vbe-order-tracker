@@ -61,16 +61,26 @@ body{
 }
 .btn-back{font-size:11px;color:#94a3b8;text-decoration:none;background:#0d1526;border:1px solid #1e3a5f;border-radius:8px;padding:5px 10px;font-weight:700}
 
-/* ── Stats row ── */
-.stats{display:flex;gap:5px;margin-bottom:8px}
+/* ── Stats row — compact pills, दाईं तरफ बड़ा + button ── */
+.hdr-row2{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.stats{display:flex;gap:4px;flex:1;min-width:0}
 .stat{
-  flex:1;border-radius:10px;padding:6px 3px;text-align:center;
+  flex:1;border-radius:9px;padding:4px 2px;text-align:center;
   background:linear-gradient(135deg,#090f20,#0c1528);
   border:1px solid rgba(30,58,95,.65);
 }
-.stat-n{font-size:19px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums}
+.stat-n{font-size:13.5px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums}
 .stat-n.red{color:#f87171}.stat-n.amber{color:#fbbf24}.stat-n.green{color:#4ade80}.stat-n.blue{color:#60a5fa}
-.stat-l{font-size:8px;color:#475569;margin-top:1px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.stat-l{font-size:6.5px;color:#475569;margin-top:1px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.btn-add-big{
+  flex-shrink:0;height:44px;padding:0 18px;border:none;border-radius:14px;
+  background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;
+  font-size:14.5px;font-weight:900;font-family:inherit;cursor:pointer;
+  box-shadow:0 4px 16px rgba(239,68,68,.45),inset 0 1px 0 rgba(255,255,255,.25);
+  touch-action:manipulation;transition:transform .12s;
+  display:flex;align-items:center;gap:5px;
+}
+.btn-add-big:active{transform:scale(.94)}
 
 /* ── Horizontal Strip — pill chips ── */
 .strip{display:flex;gap:8px;overflow-x:auto;padding:5px 13px 9px;scrollbar-width:none;-ms-overflow-style:none}
@@ -410,6 +420,31 @@ body.th-hex .stat{background:#082633;border-color:rgba(34,211,238,.3);border-rad
 body.th-hex .c-topic,body.th-hex .sv-tasks{color:#67e8f9}
 body.th-hex .qdial-popup{border-color:rgba(34,211,238,.5);border-radius:4px;clip-path:polygon(22px 0,100% 0,100% calc(100% - 22px),calc(100% - 22px) 100%,0 100%,0 22px)}
 body.th-hex .f-chip{border-radius:4px}
+body.th-hex .sv-av .s-dot{display:none}
+/* 🔺 Geometry Mix — premium: हर contact अलग आकृति (गोल, त्रिभुज, पंचभुज, षट्भुज) */
+body.th-geo{background:linear-gradient(150deg,#0b1120 0%,#171d33 50%,#0e1729 100%);background-attachment:fixed}
+body.th-geo .sv-item,body.th-geo .card{background:linear-gradient(145deg,#182038,#101728);border-color:rgba(129,140,248,.24);box-shadow:0 6px 20px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.04)}
+body.th-geo .sv-item:nth-child(3n+1){border-radius:22px}
+body.th-geo .sv-item:nth-child(3n+2){border-radius:8px}
+body.th-geo .sv-item:nth-child(3n){border-radius:6px 26px 6px 26px}
+body.th-geo .sv-av{border-radius:0}
+body.th-geo .sv-item:nth-child(4n+1) .sv-av{clip-path:circle(50% at 50% 50%)}
+body.th-geo .sv-item:nth-child(4n+2) .sv-av{clip-path:polygon(50% 4%,98% 92%,2% 92%)}
+body.th-geo .sv-item:nth-child(4n+3) .sv-av{clip-path:polygon(50% 0,100% 38%,81% 100%,19% 100%,0 38%)}
+body.th-geo .sv-item:nth-child(4n) .sv-av{clip-path:polygon(50% 0,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%)}
+body.th-geo .sv-av .s-dot{display:none}
+body.th-geo .c-av{border-radius:26%}
+body.th-geo .app-hdr,body.th-geo .filter-bar{background:linear-gradient(180deg,#131a30 0%,#0b1120 100%)}
+body.th-geo .hdr-title{color:#a5b4fc}
+body.th-geo .stat{background:linear-gradient(145deg,#182038,#101728);border-color:rgba(129,140,248,.22)}
+body.th-geo .stat:nth-child(1){border-radius:14px 4px 14px 4px}
+body.th-geo .stat:nth-child(2){border-radius:4px 14px 4px 14px}
+body.th-geo .stat:nth-child(3){border-radius:14px 4px 14px 4px}
+body.th-geo .stat:nth-child(4){border-radius:4px 14px 4px 14px}
+body.th-geo .f-chip{border-radius:10px 3px 10px 3px}
+body.th-geo .qdial-popup,body.th-geo .modal-box{background:linear-gradient(160deg,#1a2240,#101728);border-color:rgba(129,140,248,.35);border-radius:24px 6px 24px 6px}
+body.th-geo .c-topic,body.th-geo .sv-tasks{color:#c7d2fe}
+body.th-geo .btn-add-big{background:linear-gradient(135deg,#6366f1,#a855f7);box-shadow:0 4px 16px rgba(139,92,246,.45)}
 </style>
 </head>
 <body>
@@ -447,7 +482,6 @@ body.th-hex .f-chip{border-radius:4px}
         <div class="hdr-sub" id="hdr-sub">Follow-up Accountability</div>
       </div>
       <div class="hdr-btns">
-        <button class="btn-add" onclick="openAddModal()" title="नया contact">+</button>
         <button class="btn-icon" id="view-btn" onclick="toggleView()" title="Layout बदलें" style="cursor:pointer;font-family:inherit">🔲</button>
         <button class="btn-icon" onclick="cycleTheme()" title="Theme बदलें" style="cursor:pointer;font-family:inherit">🎨</button>
         <button class="btn-icon" onclick="unhideAll()" title="Swipe किए हुए सब वापस लाओ" style="cursor:pointer;font-family:inherit">👁️</button>
@@ -456,12 +490,15 @@ body.th-hex .f-chip{border-radius:4px}
       </div>
     </div>
 
-    <!-- Stats -->
-    <div class="stats">
-      <div class="stat"><div class="stat-n blue" id="st-total">0</div><div class="stat-l">Contacts</div></div>
-      <div class="stat"><div class="stat-n red"  id="st-over">0</div><div class="stat-l">🔴 Late</div></div>
-      <div class="stat"><div class="stat-n amber" id="st-due">0</div><div class="stat-l">⏰ जल्दी</div></div>
-      <div class="stat"><div class="stat-n green" id="st-today">0</div><div class="stat-l">✅ आज</div></div>
+    <!-- Stats (compact) + बड़ा Add button दाईं तरफ -->
+    <div class="hdr-row2">
+      <div class="stats">
+        <div class="stat"><div class="stat-n blue" id="st-total">0</div><div class="stat-l">Contacts</div></div>
+        <div class="stat"><div class="stat-n red"  id="st-over">0</div><div class="stat-l">🔴 Late</div></div>
+        <div class="stat"><div class="stat-n amber" id="st-due">0</div><div class="stat-l">⏰ जल्दी</div></div>
+        <div class="stat"><div class="stat-n green" id="st-today">0</div><div class="stat-l">✅ आज</div></div>
+      </div>
+      <button class="btn-add-big" onclick="openAddModal()">➕ नया</button>
     </div>
   </div>
 
@@ -633,13 +670,28 @@ const CT_COL = collection(db, 'vbe_call_tracker');
 const COLORS = ['#3b82f6','#f97316','#eab308','#22c55e','#ec4899','#8b5cf6','#06b6d4','#f43f5e'];
 const EMOJIS = ['🔥','⚡','💎','🎯','🏆','🚀','💼','📦','🤝','👑','💰','🌟','✨','🦁','🐯','🦊','🦅','🌈','🎭','🔮','💪','🎖️','📊','🎪','🛡️'];
 
-/* Tags — नाम Firestore के _settings doc से बदले जा सकते हैं (✏️ chip से) */
-const TAGS = {
-  money:  { label: '💰 पैसों का मामला', color: '#f59e0b' },
-  jalipa: { label: '👥 मेरी टीम',        color: '#22c55e' },
-  c1:     { label: '1️⃣ एक',             color: '#3b82f6' },
-  c2:     { label: '2️⃣ दो',             color: '#8b5cf6' },
-};
+/* Tags — ordered list, Firestore के _settings doc में save होती है (✏️ chip से edit/add/reorder) */
+let TAG_LIST = [
+  { k:'money',  label:'💰 पैसों का मामला', color:'#f59e0b' },
+  { k:'jalipa', label:'👥 मेरी टीम',        color:'#22c55e' },
+  { k:'c1',     label:'1️⃣ एक',             color:'#3b82f6' },
+  { k:'c2',     label:'2️⃣ दो',             color:'#8b5cf6' },
+];
+const TAGS = {};
+function rebuildTags(){
+  Object.keys(TAGS).forEach(k=>delete TAGS[k]);
+  TAG_LIST.forEach(t=>{ TAGS[t.k]={label:t.label,color:t.color}; });
+}
+rebuildTags();
+
+/* काम की श्रेणियाँ — हर task पर logo लगाओ, group करके दिखेगा */
+const TASK_CATS = [
+  { k:'golden',   label:'गोल्डन कार्य', logo:'🏆' },
+  { k:'computer', label:'कंप्यूटर',     logo:'💻' },
+  { k:'market',   label:'मार्केट',      logo:'🛒' },
+  { k:'jalipa',   label:'जालीपा',       logo:'🏪' },
+];
+function catInfo(k){ return TASK_CATS.find(x=>x.k===k)||null; }
 
 let contacts = [];
 let editingId = null;
@@ -701,10 +753,17 @@ function startFirestoreSync(){
       if(d.id==='_settings'){ settings=d.data(); return; }
       contacts.push(d.data());
     });
-    if(settings&&settings.tagLabels){
-      Object.entries(settings.tagLabels).forEach(([k,v])=>{
-        if(TAGS[k]&&v) TAGS[k].label=v;
-      });
+    if(settings){
+      if(Array.isArray(settings.tagList)&&settings.tagList.length){
+        TAG_LIST=settings.tagList;
+      } else if(settings.tagLabels){
+        // पुराना format — labels apply करो
+        Object.entries(settings.tagLabels).forEach(([k,v])=>{
+          const t=TAG_LIST.find(x=>x.k===k);
+          if(t&&v) t.label=v;
+        });
+      }
+      rebuildTags();
     }
     renderFilterBar(); renderTagBtns(); render();
   }, ()=>toast('⚠️ Sync error — net check करें','err'));
@@ -793,7 +852,11 @@ function sorted(){
       if(c.active!==false) return false; // सिर्फ़ बंद वाले
     } else {
       if(c.active===false) return false;
-      if(_activeFilter && (c.tag||'')!==_activeFilter) return false;
+      if(_activeFilter.startsWith('cat:')){
+        // काम-श्रेणी filter — जिनके पास इस श्रेणी का बाकी काम है
+        const ck=_activeFilter.slice(4);
+        if(!normTopics(c).some(x=>!x.done&&x.cat===ck)) return false;
+      } else if(_activeFilter && (c.tag||'')!==_activeFilter) return false;
     }
     // Swipe से hide किए हुए — search में फिर भी दिखते हैं ताकि कुछ छूटे नहीं
     if(!_search && hm[c.id]>hNow) return false;
@@ -1243,13 +1306,20 @@ function normTopics(c){
   return c.note?[{t:c.note,done:false,doneAt:null}]:[];
 }
 function topicsOf(c){ return normTopics(c).filter(x=>!x.done).map(x=>x.t); }
+/* श्रेणी के हिसाब से grouped active topics (गोल्डन → कंप्यूटर → मार्केट → जालीपा → बाकी) */
+function groupedActive(c){
+  const order={golden:0,computer:1,market:2,jalipa:3};
+  return normTopics(c).map((x,i)=>({...x,i})).filter(x=>!x.done)
+    .sort((a,b)=>((a.cat in order)?order[a.cat]:9)-((b.cat in order)?order[b.cat]:9));
+}
 function topicListHTML(c){
-  const act=normTopics(c).map((x,i)=>({...x,i})).filter(x=>!x.done);
+  const act=groupedActive(c);
   if(!act.length) return '';
   const multi=act.length>1;
-  return `<div class="c-topics">${act.map((x,n)=>
-    `<div class="c-topic"><span class="tp-chk" onclick="event.stopPropagation();doneTopic('${c.id}',${x.i})"></span>${multi?`<span class="tnum">${n+1}.</span>`:''}${escH(x.t)}</div>`
-  ).join('')}</div>`;
+  return `<div class="c-topics">${act.map((x,n)=>{
+    const ci=catInfo(x.cat);
+    return `<div class="c-topic"><span class="tp-chk" onclick="event.stopPropagation();doneTopic('${c.id}',${x.i})"></span>${ci?ci.logo+' ':''}${multi?`<span class="tnum">${n+1}.</span>`:''}${escH(x.t)}</div>`;
+  }).join('')}</div>`;
 }
 window.doneTopic=function(id,idx){
   const c=contacts.find(x=>x.id===id);
@@ -1322,23 +1392,39 @@ window.delLogEntry=function(id,idx){
   toast('🗑️ Record हटाया','warn');
 };
 
-/* Topic editor (modal में) — add / delete / ▲▼ reorder */
-let selTopics=[''];
+/* Topic editor (modal में) — add / delete / ▲▼ reorder / श्रेणी cycle */
+let selTopics=[{t:'',cat:''}];
 function escAttr(s){ return escH(s).replace(/"/g,'&quot;'); }
+function nextCat(cur){
+  const cats=['','golden','computer','market','jalipa'];
+  return cats[(cats.indexOf(cur||'')+1)%cats.length];
+}
 function readTopicInputs(){
-  selTopics=[...document.querySelectorAll('.topic-inp')].map(i=>i.value);
-  if(!selTopics.length) selTopics=[''];
+  const vals=[...document.querySelectorAll('.topic-inp')].map(i=>i.value);
+  selTopics=vals.map((v,i)=>({t:v,cat:(selTopics[i]&&selTopics[i].cat)||''}));
+  if(!selTopics.length) selTopics=[{t:'',cat:''}];
 }
 function renderTopicRows(){
-  document.getElementById('topic-rows').innerHTML=selTopics.map((t,i)=>`
-    <div class="topic-row">
+  document.getElementById('topic-rows').innerHTML=selTopics.map((x,i)=>{
+    const ci=catInfo(x.cat);
+    return `<div class="topic-row">
       <span class="topic-num">${i+1}</span>
-      <input class="inp topic-inp" value="${escAttr(t)}" placeholder="काम ${i+1} — जैसे: payment बाकी...">
+      <button class="tr-btn" type="button" onclick="rowCycleCat(${i})" title="श्रेणी बदलें">${ci?ci.logo:'⬜'}</button>
+      <input class="inp topic-inp" value="${escAttr(x.t)}" placeholder="काम ${i+1} — जैसे: payment बाकी...">
       <button class="tr-btn" type="button" onclick="moveTopic(${i},-1)" ${i===0?'disabled':''}>▲</button>
       <button class="tr-btn" type="button" onclick="moveTopic(${i},1)" ${i===selTopics.length-1?'disabled':''}>▼</button>
       <button class="tr-btn tr-del" type="button" onclick="delTopicRow(${i})">✕</button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
+window.rowCycleCat=function(i){
+  readTopicInputs();
+  if(!selTopics[i]) return;
+  selTopics[i].cat=nextCat(selTopics[i].cat);
+  renderTopicRows();
+  const ci=catInfo(selTopics[i].cat);
+  toast(ci?(ci.logo+' '+ci.label):'⬜ कोई श्रेणी नहीं');
+};
 window.moveTopic=function(i,d){
   readTopicInputs();
   const j=i+d;
@@ -1349,12 +1435,12 @@ window.moveTopic=function(i,d){
 window.delTopicRow=function(i){
   readTopicInputs();
   selTopics.splice(i,1);
-  if(!selTopics.length) selTopics=[''];
+  if(!selTopics.length) selTopics=[{t:'',cat:''}];
   renderTopicRows();
 };
 window.addTopicRow=function(){
   readTopicInputs();
-  selTopics.push('');
+  selTopics.push({t:'',cat:''});
   renderTopicRows();
   setTimeout(()=>{ const els=document.querySelectorAll('.topic-inp'); if(els.length) els[els.length-1].focus(); },60);
 };
@@ -1384,7 +1470,7 @@ window.closeSmartPop=function(){
 function renderSmartPop(){
   const c=contacts.find(x=>x.id===_spId);
   if(!c){ closeSmartPop(); return; }
-  const tps=normTopics(c).map((x,i)=>({...x,i})).filter(x=>!x.done);
+  const tps=groupedActive(c);
   const prev=(c.callLog||[]).filter(l=>l.note).slice(-1)[0];
   const hasWA=!!(c.waPhone||c.phone);
   // Filter chips — tap करके सीधे बदलो
@@ -1404,10 +1490,14 @@ function renderSmartPop(){
     ${tagRow}
     ${tps.length?`<div style="background:#060d1a;border:1px solid rgba(30,58,95,.7);border-radius:11px;padding:9px 11px;margin-bottom:8px">
       <div style="font-size:9px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">🗣️ किस बारे में बात करनी है</div>
-      ${tps.map((x,n)=>`<div style="display:flex;align-items:flex-start;gap:7px;padding:3px 0">
+      ${tps.map((x,n)=>{
+        const ci=catInfo(x.cat);
+        return `<div style="display:flex;align-items:flex-start;gap:6px;padding:3px 0">
         <span class="tp-chk" style="margin-top:1px" onclick="doneTopic('${c.id}',${x.i})"></span>
+        <span onclick="spCycleCat('${c.id}',${x.i})" style="cursor:pointer;font-size:14px;width:20px;text-align:center;flex-shrink:0" title="श्रेणी बदलें">${ci?ci.logo:'⬜'}</span>
         <span style="flex:1;font-size:13.5px;font-weight:700;color:#fbbf24;line-height:1.4;word-break:break-word">${tps.length>1?(n+1)+'. ':''}${escH(x.t)}</span>
-      </div>`).join('')}
+      </div>`;
+      }).join('')}
     </div>`:''}
     <div style="margin-bottom:10px">
       <input class="inp" id="sp-new1" placeholder="➕ नया काम सीधे यहाँ लिखें..." style="padding:9px 11px;font-size:12.5px;margin-bottom:6px" onkeydown="if(event.key==='Enter')spSaveNewTasks()">
@@ -1417,6 +1507,7 @@ function renderSmartPop(){
       </div>
     </div>
     ${prev?`<div style="font-size:11.5px;color:#94a3b8;font-style:italic;margin-bottom:10px;line-height:1.45">🕘 पिछली बार: ${escH(prev.note)}</div>`:''}
+    ${tps.length&&hasWA?`<button class="qd-btn qd-wa" style="width:100%;margin-bottom:7px;padding:10px" onclick="spSendTasks()">📤 सारे काम WhatsApp पर भेजो</button>`:''}
     <div class="qd-btns" style="margin-bottom:7px">
       <button class="qd-btn qd-call" onclick="spCall()">📞 Call</button>
       ${hasWA?`<button class="qd-btn qd-wa" onclick="spWA()">💬 WA</button>`:''}
@@ -1435,7 +1526,7 @@ window.spSaveNewTasks=function(){
   if(!c) return;
   const v1=(document.getElementById('sp-new1')||{}).value||'';
   const v2=(document.getElementById('sp-new2')||{}).value||'';
-  const add=[v1.trim(),v2.trim()].filter(Boolean).map(t=>({t,done:false,doneAt:null}));
+  const add=[v1.trim(),v2.trim()].filter(Boolean).map(t=>({t,done:false,doneAt:null,cat:''}));
   if(!add.length){ toast('⚠️ पहले काम लिखें','warn'); return; }
   const tps=normTopics(c);
   const act=tps.filter(x=>!x.done), don=tps.filter(x=>x.done);
@@ -1443,6 +1534,37 @@ window.spSaveNewTasks=function(){
   c.note=[...act,...add].map(x=>x.t).join(' · ');
   render(); fbSave(c); renderSmartPop();
   toast(`✅ ${add.length} काम जुड़ गए`);
+};
+/* Task की श्रेणी cycle करो — ⬜→🏆→💻→🛒→🏪→⬜ */
+window.spCycleCat=function(id,idx){
+  const c=contacts.find(x=>x.id===id);
+  if(!c) return;
+  const tps=normTopics(c);
+  if(!tps[idx]) return;
+  tps[idx].cat=nextCat(tps[idx].cat);
+  c.topics=tps;
+  render(); fbSave(c); renderSmartPop();
+  const ci=catInfo(tps[idx].cat);
+  toast(ci?(ci.logo+' '+ci.label):'⬜ कोई श्रेणी नहीं');
+};
+/* 📤 सारे काम WhatsApp पर एक click में भेजो */
+window.spSendTasks=function(){
+  const c=contacts.find(x=>x.id===_spId);
+  if(!c) return;
+  const tps=groupedActive(c);
+  if(!tps.length){ toast('⚠️ कोई बाकी काम नहीं','warn'); return; }
+  const rawPh=c.waPhone||c.phone;
+  if(!rawPh){ toast('⚠️ नंबर नहीं है','err'); return; }
+  let msg=`नमस्ते *${c.name}* 🙏\nआपके महत्वपूर्ण काम:\n\n`;
+  tps.forEach((x,n)=>{
+    const ci=catInfo(x.cat);
+    msg+=`${n+1}. ${ci?ci.logo+' ':''}${x.t}\n`;
+  });
+  msg+='\n– Vande Bharat Enterprises';
+  const ph=rawPh.replace(/[^0-9]/g,'');
+  const num=ph.length===10?'91'+ph:ph;
+  window.open('https://wa.me/'+num+'?text='+encodeURIComponent(msg),'_blank');
+  toast('📤 '+tps.length+' काम WhatsApp पर भेजे');
 };
 /* Popup से filter/tag बदलो */
 window.spSetTag=function(k){
@@ -1464,6 +1586,7 @@ window.spEdit=function(){ const id=_spId; closeSmartPop(); editContact(id); };
 /* ══ THEMES — 🎨 button से बदलती हैं ══ */
 const THEMES=[
   {cls:'',                 name:'🌊 Navy (default)'},
+  {cls:'th-geo',           name:'🔺 Geometry Mix — हर आकृति अलग'},
   {cls:'th-glass',         name:'💎 Crystal Glass'},
   {cls:'th-neo',           name:'🟨 Neo Bold'},
   {cls:'th-hex',           name:'🔷 Geo Diamond'},
@@ -1476,7 +1599,7 @@ const THEMES=[
 ];
 let _theme=localStorage.getItem('vbe_ct_theme')||'';
 function applyTheme(){
-  document.body.classList.remove('th-black','th-purple','th-emerald','th-round','th-glass','th-neo','th-hex');
+  document.body.classList.remove('th-black','th-purple','th-emerald','th-round','th-glass','th-neo','th-hex','th-geo');
   if(_theme) _theme.split(' ').forEach(c=>document.body.classList.add(c));
 }
 window.cycleTheme=function(){
@@ -1681,7 +1804,8 @@ window.editContact=function(id){
   document.getElementById('f-name').value=c.name||'';
   document.getElementById('f-phone').value=c.phone||'';
   document.getElementById('f-waph').value=c.waPhone||'';
-  selTopics=topicsOf(c).length?[...topicsOf(c)]:[''];
+  const actT=normTopics(c).filter(x=>!x.done);
+  selTopics=actT.length?actT.map(x=>({t:x.t,cat:x.cat||''})):[{t:'',cat:''}];
   renderTopicRows();
   document.getElementById('f-alarm').value=c.alarmTime||'';
   selInterval=c.intervalMins||30; selColor=c.color||COLORS[0]; selEmoji=c.emoji||''; selTag=c.tag||'';
@@ -1705,7 +1829,7 @@ window.openAddModal=function(){
   document.getElementById('f-name').value='';
   document.getElementById('f-phone').value='';
   document.getElementById('f-waph').value='';
-  selTopics=[''];
+  selTopics=[{t:'',cat:''}];
   renderTopicRows();
   document.getElementById('f-alarm').value='';
   selInterval=30; selColor=COLORS[0]; selEmoji=''; selTag='';
@@ -1721,7 +1845,7 @@ window.saveContact=function(){
   const waPhoneRaw=normalizePhone(document.getElementById('f-waph').value||'');
   const waPhone=(waPhoneRaw&&waPhoneRaw.length>=10)?waPhoneRaw:'';
   readTopicInputs();
-  const activeTopics=selTopics.map(s=>s.trim()).filter(Boolean).map(t=>({t,done:false,doneAt:null}));
+  const activeTopics=selTopics.filter(x=>x.t.trim()).map(x=>({t:x.t.trim(),done:false,doneAt:null,cat:x.cat||''}));
   // पूरे हुए काम edit में नहीं दिखते — उन्हें preserve करो
   const oldC=editingId?contacts.find(x=>x.id===editingId):null;
   const doneTopics=oldC?normTopics(oldC).filter(x=>x.done):[];
@@ -1796,11 +1920,13 @@ function renderFilterBar(){
   if(!el) return;
   const hn=hiddenIds().length;
   el.innerHTML=`<div class="f-chip" data-f="" onclick="setFilter('')">🔍 सब</div>`
-    + Object.entries(TAGS).map(([k,t])=>
-      `<div class="f-chip" data-f="${k}" onclick="setFilter('${k}')">${escH(t.label)}</div>`).join('')
+    + TAG_LIST.map(t=>
+      `<div class="f-chip" data-f="${t.k}" onclick="setFilter('${t.k}')">${escH(t.label)}</div>`).join('')
+    + TASK_CATS.map(tc=>
+      `<div class="f-chip" data-f="cat:${tc.k}" onclick="setFilter('cat:${tc.k}')">${tc.logo} ${tc.label}</div>`).join('')
     + `<div class="f-chip" data-f="_arch" onclick="setFilter('_arch')">📦 बंद</div>`
     + (hn?`<div class="f-chip" style="border-color:rgba(251,191,36,.65);color:#fbbf24" onclick="unhideAll()">🙈 ${hn} वापस लाओ</div>`:'')
-    + `<div class="f-chip" onclick="openTagEditor()" title="Filter नाम बदलें">✏️</div>`;
+    + `<div class="f-chip" onclick="openTagEditor()" title="Filters edit / नए जोड़ें">✏️</div>`;
   applyFilterStyles();
 }
 function applyFilterStyles(){
@@ -1820,33 +1946,70 @@ window.setFilter=function(f){
   _animNext=true; render();
 };
 
-/* ── Tag नाम editor ── */
+/* ── Tag editor — नाम/logo बदलो, ▲▼ से order, ➕ नए जोड़ो, ✕ हटाओ ── */
+let _teList=null;
 window.openTagEditor=function(){
-  document.getElementById('te-rows').innerHTML=Object.entries(TAGS).map(([k,t])=>`
-    <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px">
-      <span style="width:12px;height:12px;border-radius:50%;background:${t.color};flex-shrink:0"></span>
-      <input class="inp te-inp" data-k="${k}" value="${escAttr(t.label)}" style="padding:9px 11px;font-size:13px">
-    </div>`).join('');
+  _teList=TAG_LIST.map(t=>({...t}));
+  renderTagEditor();
   document.getElementById('te-bg').style.display='block';
   const p=document.getElementById('te-popup');
   p.style.display='block';
   p.style.animation='none';
   requestAnimationFrame(()=>{ p.style.animation='popIn .18s cubic-bezier(.4,0,.2,1)'; });
 };
+function renderTagEditor(){
+  document.getElementById('te-rows').innerHTML=_teList.map((t,i)=>`
+    <div style="display:flex;align-items:center;gap:4px;margin-bottom:6px">
+      <span style="width:11px;height:11px;border-radius:50%;background:${t.color};flex-shrink:0"></span>
+      <input class="inp te-inp" data-i="${i}" value="${escAttr(t.label)}" style="flex:1;min-width:0;padding:8px 10px;font-size:12.5px">
+      <button class="tr-btn" type="button" onclick="teMove(${i},-1)" ${i===0?'disabled':''}>▲</button>
+      <button class="tr-btn" type="button" onclick="teMove(${i},1)" ${i===_teList.length-1?'disabled':''}>▼</button>
+      <button class="tr-btn tr-del" type="button" onclick="teDel(${i})">✕</button>
+    </div>`).join('')
+    +`<button class="btn-add-topic" type="button" onclick="teAdd()">➕ नया filter जोड़ें</button>
+    <div style="font-size:9px;color:#475569;margin-top:6px">💡 नाम की शुरुआत में emoji लिखें — वही logo बनेगा (जैसे 🚚 गाड़ी वाले)</div>`;
+}
+function teRead(){
+  document.querySelectorAll('.te-inp').forEach(inp=>{
+    const i=+inp.dataset.i;
+    if(_teList[i]) _teList[i].label=inp.value;
+  });
+}
+window.teMove=function(i,d){
+  teRead();
+  const j=i+d;
+  if(j<0||j>=_teList.length) return;
+  [_teList[i],_teList[j]]=[_teList[j],_teList[i]];
+  renderTagEditor();
+};
+window.teDel=function(i){
+  teRead();
+  if(!confirm(`"${_teList[i].label}" filter हटाएं?`)) return;
+  _teList.splice(i,1);
+  renderTagEditor();
+};
+window.teAdd=function(){
+  teRead();
+  const colors=['#f43f5e','#06b6d4','#84cc16','#e879f9','#f97316','#14b8a6','#a78bfa'];
+  _teList.push({k:'t'+Date.now().toString(36),label:'🆕 नया filter',color:colors[_teList.length%colors.length]});
+  renderTagEditor();
+  setTimeout(()=>{ const els=document.querySelectorAll('.te-inp'); if(els.length){ els[els.length-1].focus(); els[els.length-1].select(); } },60);
+};
 window.closeTagEditor=function(){
   document.getElementById('te-bg').style.display='none';
   document.getElementById('te-popup').style.display='none';
 };
 window.saveTagLabels=async function(){
-  const labels={};
-  document.querySelectorAll('.te-inp').forEach(i=>{
-    const k=i.dataset.k, v=(i.value||'').trim();
-    if(TAGS[k]&&v){ TAGS[k].label=v; labels[k]=v; }
-  });
+  teRead();
+  const clean=_teList.map(t=>({k:t.k,label:(t.label||'').trim()||'filter',color:t.color}));
+  if(!clean.length){ toast('⚠️ कम से कम 1 filter चाहिए','err'); return; }
+  TAG_LIST=clean; rebuildTags();
   closeTagEditor();
   renderFilterBar(); renderTagBtns(); render();
-  try{ await setDoc(doc(db,'vbe_call_tracker','_settings'), {id:'_settings', tagLabels:labels}); toast('✅ Filter नाम save हुए'); }
-  catch(e){ toast('⚠️ Save error','err'); }
+  try{
+    await setDoc(doc(db,'vbe_call_tracker','_settings'), {id:'_settings', tagList:clean}, {merge:true});
+    toast('✅ Filters save हुए');
+  } catch(e){ toast('⚠️ Save error','err'); }
 };
 
 /* ──────── Google Calendar ──────── */

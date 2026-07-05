@@ -349,6 +349,53 @@ body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:var(--bg)
 .vcrd-hi{font-size:18px;font-weight:900;color:var(--text)}
 .vcrd-en{font-size:13px;font-weight:700;color:var(--muted);margin-top:2px}
 .vcrd-tick{font-size:14px;color:var(--g);font-weight:900;margin-top:4px}
+/* ── MATH ── */
+.num-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.num-cell{background:#fff;border-radius:14px;padding:9px 2px;text-align:center;cursor:pointer;border:2px solid #e9d5ff;transition:all .12s;box-shadow:0 4px 0 #e9d5ff}
+.num-cell:active{transform:translateY(4px) scale(.95);box-shadow:0 0 0 #e9d5ff;background:#ede9fe}
+.num-n{font-size:20px;font-weight:900;color:var(--p);display:block;line-height:1.2}
+.num-w{font-size:9px;font-weight:700;color:var(--muted);display:block;margin-top:1px}
+.tbl-pills{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:10px;-webkit-overflow-scrolling:touch}
+.tbl-pill{min-width:46px;height:46px;border-radius:14px;background:#fff;border:2px solid #e9d5ff;font-size:19px;font-weight:900;color:var(--p);cursor:pointer;font-family:inherit;flex-shrink:0;transition:all .15s}
+.tbl-pill.sel{background:linear-gradient(135deg,var(--p),var(--pk));color:#fff;border-color:var(--p);transform:scale(1.1)}
+.tbl-rows{background:#fff;border-radius:18px;padding:8px;box-shadow:0 3px 14px rgba(109,40,217,.1)}
+.tbl-row{display:flex;justify-content:center;gap:6px;padding:10px;border-radius:12px;font-size:22px;font-weight:900;color:var(--text);cursor:pointer;transition:all .15s}
+.tbl-row:nth-child(even){background:#f5f3ff}
+.tbl-row:active{background:var(--p);color:#fff;transform:scale(.97)}
+.tbl-row .eq{color:var(--pk)}
+/* shapes — 3D flip cards */
+.shape-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;perspective:800px}
+.shape-wrap{height:140px;cursor:pointer;perspective:600px}
+.shape-i{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.34,1.4,.64,1)}
+.shape-wrap.flipped .shape-i{transform:rotateY(180deg)}
+.shape-f,.shape-b{position:absolute;inset:0;backface-visibility:hidden;border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(109,40,217,.12)}
+.shape-f{background:#fff;font-size:62px;line-height:1}
+.shape-f .shape-tap{font-size:11px;font-weight:800;color:var(--muted);margin-top:6px}
+.shape-b{background:linear-gradient(135deg,var(--p),var(--pk));color:#fff;transform:rotateY(180deg)}
+.shape-b .sb-name{font-size:22px;font-weight:900}
+.shape-b .sb-en{font-size:13px;opacity:.85;font-weight:700}
+.shape-b .sb-ex{font-size:15px;margin-top:6px;font-weight:700}
+/* ── PROFILES ── */
+.prof-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.prof-btn{background:#f5f3ff;border:3px solid #e9d5ff;border-radius:18px;padding:14px 8px;text-align:center;cursor:pointer;font-family:inherit;transition:all .2s}
+.prof-btn.active{border-color:var(--p);background:#ede9fe;box-shadow:0 0 0 4px rgba(109,40,217,.15)}
+.prof-btn:active{transform:scale(.94)}
+.prof-av{font-size:40px;display:block}
+.prof-name{font-size:15px;font-weight:900;color:var(--text);margin-top:4px}
+.prof-meta{font-size:11px;font-weight:700;color:var(--muted);margin-top:2px}
+.prof-add{background:#fff;border:3px dashed #c4b5fd;color:var(--p);font-size:14px;font-weight:900;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.cls-row{display:flex;gap:10px;margin-top:8px}
+.cls-btn{flex:1;padding:12px 0;border-radius:14px;border:3px solid #e9d5ff;background:#f5f3ff;font-size:18px;font-weight:900;color:var(--p);cursor:pointer;font-family:inherit;transition:all .15s}
+.cls-btn.selected{background:linear-gradient(135deg,var(--p),var(--pk));color:#fff;border-color:var(--p);transform:scale(1.08)}
+/* ── 3D EFFECTS ── */
+.mgrid{perspective:900px}
+.mcard{transform-style:preserve-3d;transition:transform .25s cubic-bezier(.34,1.56,.64,1)}
+.mcard:active{transform:scale(.93) rotateX(12deg)}
+.gcrd:active{transform:scale(.97) rotateX(6deg)}
+.qbox{animation:tiltIn .45s cubic-bezier(.22,1,.36,1)}
+@keyframes tiltIn{from{transform:perspective(700px) rotateX(28deg) translateY(14px);opacity:0}to{transform:perspective(700px) rotateX(0) translateY(0);opacity:1}}
+.float-shape{position:absolute;font-size:20px;opacity:.55;pointer-events:none;animation:float3d 5s ease-in-out infinite}
+@keyframes float3d{0%,100%{transform:translateY(0) rotateY(0deg)}50%{transform:translateY(-16px) rotateY(180deg)}}
 /* ── UTILS ── */
 .mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}
 .hidden{display:none!important}
@@ -356,6 +403,16 @@ body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:var(--bg)
 </head>
 <body>
 <canvas id="confettiCanvas"></canvas>
+
+<!-- PROFILE PICKER (4 बहनों के लिए) -->
+<div class="overlay" id="profileOverlay">
+  <div class="sheet">
+    <div class="sheet-title">आज कौन पढ़ेगा? 👧</div>
+    <div class="prof-grid" id="profGrid"></div>
+    <button class="btn btn-gray mt16 ripple-host" style="width:100%;justify-content:center" onclick="editCurrentProfile()">✏️ नाम / कक्षा बदलो</button>
+    <button class="btn btn-p mt8 ripple-host" style="width:100%;justify-content:center" onclick="closeProfilePicker()">ठीक है ✓</button>
+  </div>
+</div>
 
 <!-- AVATAR PICKER -->
 <div class="overlay" id="avatarOverlay">
@@ -373,6 +430,13 @@ body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:var(--bg)
     </div>
     <div class="name-row">
       <input class="name-input" id="nameInput" placeholder="अपना नाम लिखो..." maxlength="20">
+    </div>
+    <div style="font-size:14px;font-weight:800;margin-top:14px;color:var(--text)">कौन सी कक्षा में पढ़ती हो? 🏫</div>
+    <div class="cls-row" id="clsRow">
+      <button class="cls-btn selected" data-c="1" onclick="pickClass(this)">कक्षा 1</button>
+      <button class="cls-btn" data-c="2" onclick="pickClass(this)">कक्षा 2</button>
+      <button class="cls-btn" data-c="3" onclick="pickClass(this)">कक्षा 3</button>
+      <button class="cls-btn" data-c="4" onclick="pickClass(this)">कक्षा 4</button>
     </div>
     <button class="btn btn-p mt16 ripple-host" style="width:100%;justify-content:center" onclick="saveAvatar()">शुरू करो! 🚀</button>
   </div>
@@ -407,7 +471,7 @@ body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:var(--bg)
   <!-- HEADER -->
   <div class="hdr">
     <div class="hdr-left">
-      <div class="avatar-chip ripple-host" id="avatarChip" onclick="openAvatarPicker()">🦁</div>
+      <div class="avatar-chip ripple-host" id="avatarChip" onclick="openProfilePicker()">🦁</div>
       <div>
         <div class="hdr-title">पढ़ो और सीखो</div>
         <div class="hdr-sub" id="hdrName">नमस्ते! 👋</div>
@@ -422,6 +486,10 @@ body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:var(--bg)
   <!-- HOME -->
   <div id="screen-home" class="screen active">
     <div class="hero">
+      <span class="float-shape" style="top:14px;left:18px;animation-delay:0s">⭐</span>
+      <span class="float-shape" style="top:20px;right:22px;animation-delay:1.2s">📚</span>
+      <span class="float-shape" style="bottom:52px;left:30px;animation-delay:2.1s">🎈</span>
+      <span class="float-shape" style="bottom:60px;right:34px;animation-delay:.7s">✏️</span>
       <span class="mascot-big" id="heroMascot">🦁</span>
       <div class="hero-name" id="heroName">आज क्या सीखें?</div>
       <div class="hero-sub" id="heroLevelName">Level: नया सितारा</div>
@@ -468,10 +536,15 @@ body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:var(--bg)
         <div class="mcard-name">वर्णमाला</div>
         <div class="mcard-sub">अ आ इ · A B C</div>
       </button>
+      <button class="mcard mc-g ripple-host" onclick="goTo('math')">
+        <span class="mcard-icon">🔢</span>
+        <div class="mcard-name">गणित</div>
+        <div class="mcard-sub">गिनती · पहाड़े · आकार</div>
+      </button>
       <button class="mcard mc-o ripple-host" onclick="goTo('games')">
         <span class="mcard-icon">🎮</span>
         <div class="mcard-name">खेलो</div>
-        <div class="mcard-sub">11 मज़ेदार Games</div>
+        <div class="mcard-sub">14 मज़ेदार Games</div>
       </button>
       <button class="mcard mc-b ripple-host" onclick="goTo('stories')">
         <span class="mcard-icon">📖</span>
@@ -482,6 +555,11 @@ body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:var(--bg)
         <span class="mcard-icon">✏️</span>
         <div class="mcard-name">लिखो-सीखो</div>
         <div class="mcard-sub">Tracing Practice</div>
+      </button>
+      <button class="mcard mc-p ripple-host" style="background:linear-gradient(135deg,var(--pk),#f472b6)" onclick="goTo('learn');switchTab('voc')">
+        <span class="mcard-icon">🌍</span>
+        <div class="mcard-name">ज्ञान</div>
+        <div class="mcard-sub">दिन · महीने · भारत</div>
       </button>
     </div>
   </div>
@@ -589,6 +667,37 @@ body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:var(--bg)
     </div>
   </div>
 
+  <!-- MATH -->
+  <div id="screen-math" class="screen">
+    <div class="sub-tabs" id="mathTabs">
+      <button class="stb active" id="mtabCount" onclick="switchMathTab('count')">🔢 गिनती</button>
+      <button class="stb" id="mtabTbl" onclick="switchMathTab('tbl')">✖️ पहाड़े</button>
+      <button class="stb" id="mtabShape" onclick="switchMathTab('shape')">🔷 आकार</button>
+    </div>
+    <div id="mathCount">
+      <p style="font-size:13px;color:var(--muted);font-weight:600;margin-bottom:10px">किसी भी संख्या पर दबाओ → हिंदी में सुनो 🔊</p>
+      <div class="num-grid" id="numGrid"></div>
+    </div>
+    <div id="mathTbl" style="display:none">
+      <p style="font-size:13px;color:var(--muted);font-weight:600;margin-bottom:8px">पहाड़ा चुनो, फिर किसी लाइन पर दबाओ 🔊</p>
+      <div class="tbl-pills" id="tblPills"></div>
+      <button class="sread-btn ripple-host" onclick="speakFullTable()">🔊 पूरा पहाड़ा सुनो</button>
+      <div class="tbl-rows" id="tblRows"></div>
+    </div>
+    <div id="mathShape" style="display:none">
+      <p style="font-size:13px;color:var(--muted);font-weight:600;margin-bottom:10px">कार्ड पर दबाओ → पलटेगा और बोलेगा! 🎉</p>
+      <div class="shape-grid" id="shapeGrid"></div>
+    </div>
+    <button class="challenge-banner ripple-host mt16" onclick="goTo('games');startGame('mathquiz')">
+      <span class="ch-icon">🧮</span>
+      <div>
+        <div class="ch-title">गणित Quiz खेलो</div>
+        <div class="ch-sub">तुम्हारी कक्षा के हिसाब से सवाल → ⭐ कमाओ</div>
+      </div>
+      <span class="ch-arrow">›</span>
+    </button>
+  </div>
+
   <!-- GAMES -->
   <div id="screen-games" class="screen">
     <div id="gameListView">
@@ -637,6 +746,18 @@ body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:var(--bg)
         <button class="gcrd ripple-host" onclick="startGame('wordreadquiz')">
           <div class="gcrd-icon" style="background:#d1fae5">📖</div>
           <div><div class="gcrd-name">शब्द पढ़ो Quiz</div><div class="gcrd-desc">चित्र देखो – सही शब्द पढ़ो</div></div>
+        </button>
+        <button class="gcrd ripple-host" onclick="startGame('mathquiz')">
+          <div class="gcrd-icon" style="background:#ede9fe">🧮</div>
+          <div><div class="gcrd-name">गणित Quiz</div><div class="gcrd-desc">जोड़-घटाना — तुम्हारी कक्षा के हिसाब से</div></div>
+        </button>
+        <button class="gcrd ripple-host" onclick="startGame('tablequiz')">
+          <div class="gcrd-icon" style="background:#fef3c7">✖️</div>
+          <div><div class="gcrd-name">पहाड़े Quiz</div><div class="gcrd-desc">Tables याद करो — तेज़ जवाब दो</div></div>
+        </button>
+        <button class="gcrd ripple-host" onclick="startGame('clockquiz')">
+          <div class="gcrd-icon" style="background:#dbeafe">🕐</div>
+          <div><div class="gcrd-name">घड़ी Quiz</div><div class="gcrd-desc">घड़ी देखो — समय बताओ</div></div>
         </button>
       </div>
     </div>
@@ -722,6 +843,13 @@ body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:var(--bg)
         <div class="qbox"><span class="qbig" id="mqBig" style="font-size:64px"></span><div class="qtext" id="mqTxt">इस अक्षर में कौन सी मात्रा है?</div></div>
         <div class="qopts" id="mqOpts"></div>
       </div>
+      <!-- math / table / clock quiz (shared panel) -->
+      <div id="gMath" class="hidden">
+        <div class="qhdr"><div class="qscore">⭐ <span id="mgSc">0</span></div><div class="qprog"><span id="mgCur">1</span>/<span id="mgTot">10</span></div></div>
+        <div class="qprog-bar"><div class="qprog-fill" id="mgFill" style="width:0%"></div></div>
+        <div class="qbox" id="mgBox"><span class="qbig" id="mgBig" style="font-size:44px;font-weight:900;color:var(--text)"></span><div class="qtext" id="mgTxt"></div></div>
+        <div class="qopts" id="mgOpts"></div>
+      </div>
       <!-- word reading quiz -->
       <div id="gWordReadQuiz" class="hidden">
         <div class="qhdr"><div class="qscore">⭐ <span id="wrqSc">0</span></div><div class="qprog"><span id="wrqCur">1</span>/<span id="wrqTot">10</span></div></div>
@@ -765,7 +893,8 @@ body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:var(--bg)
     <div class="pitem"><div class="pitem-icon">🔤</div><div class="pitem-info"><div class="pitem-name">English A–Z</div><div class="pbar-wrap"><div class="pbar" id="barE" style="width:0%"></div></div></div><div class="ppct" id="pctE">0%</div></div>
     <div class="pitem"><div class="pitem-icon">✏️</div><div class="pitem-info"><div class="pitem-name">Tracing</div><div class="pbar-wrap"><div class="pbar" id="barT" style="width:0%"></div></div></div><div class="ppct" id="pctT">0</div></div>
     <div class="pitem"><div class="pitem-icon">🎮</div><div class="pitem-info"><div class="pitem-name">Games खेले</div><div class="pbar-wrap"><div class="pbar" id="barG" style="width:0%"></div></div></div><div class="ppct" id="pctG">0</div></div>
-    <div class="pitem"><div class="pitem-icon">📖</div><div class="pitem-info"><div class="pitem-name">कहानियां</div><div class="pbar-wrap"><div class="pbar" id="barS" style="width:0%"></div></div></div><div class="ppct" id="pctS">0/5</div></div>
+    <div class="pitem"><div class="pitem-icon">🔢</div><div class="pitem-info"><div class="pitem-name">गणित Games</div><div class="pbar-wrap"><div class="pbar" id="barM" style="width:0%"></div></div></div><div class="ppct" id="pctM">0</div></div>
+    <div class="pitem"><div class="pitem-icon">📖</div><div class="pitem-info"><div class="pitem-name">कहानियां</div><div class="pbar-wrap"><div class="pbar" id="barS" style="width:0%"></div></div></div><div class="ppct" id="pctS">0</div></div>
     <div class="stitle mt16">Badges 🏅</div>
     <div class="bdg-grid" id="bdgGrid"></div>
   </div>
@@ -773,6 +902,7 @@ body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:var(--bg)
   <nav class="bnav">
     <button class="nb active" id="nav-home" onclick="goTo('home')"><span class="ni">🏠</span><span class="nl">होम</span></button>
     <button class="nb" id="nav-learn" onclick="goTo('learn')"><span class="ni">📚</span><span class="nl">सीखो</span></button>
+    <button class="nb" id="nav-math" onclick="goTo('math')"><span class="ni">🔢</span><span class="nl">गणित</span></button>
     <button class="nb" id="nav-trace" onclick="goTo('trace')"><span class="ni">✏️</span><span class="nl">लिखो</span></button>
     <button class="nb" id="nav-games" onclick="goTo('games')"><span class="ni">🎮</span><span class="nl">खेलो</span></button>
     <button class="nb" id="nav-stories" onclick="goTo('stories')"><span class="ni">📖</span><span class="nl">कहानी</span></button>
@@ -788,10 +918,10 @@ const HINDI_GROUPS = {
   swar:   [{l:'अ',e:'🍎',w:'अनार',m:'Pomegranate'},{l:'आ',e:'🥭',w:'आम',m:'Mango'},{l:'इ',e:'🌿',w:'इमली',m:'Tamarind'},{l:'ई',e:'🎋',w:'ईख',m:'Sugarcane'},{l:'उ',e:'🦉',w:'उल्लू',m:'Owl'},{l:'ऊ',e:'🧶',w:'ऊन',m:'Wool'},{l:'ए',e:'☝️',w:'एक',m:'One'},{l:'ऐ',e:'👓',w:'ऐनक',m:'Glasses'},{l:'ओ',e:'🌊',w:'ओस',m:'Dew'},{l:'औ',e:'🔧',w:'औजार',m:'Tool'},{l:'अं',e:'🍇',w:'अंगूर',m:'Grapes'}],
   ka:     [{l:'क',e:'🕊️',w:'कबूतर',m:'Pigeon'},{l:'ख',e:'🐇',w:'खरगोश',m:'Rabbit'},{l:'ग',e:'🐄',w:'गाय',m:'Cow'},{l:'घ',e:'⏰',w:'घड़ी',m:'Clock'},{l:'ङ',e:'🐍',w:'ङ',m:'(rare)'}],
   cha:    [{l:'च',e:'🌙',w:'चाँद',m:'Moon'},{l:'छ',e:'☂️',w:'छाता',m:'Umbrella'},{l:'ज',e:'🫙',w:'जग',m:'Jug'},{l:'झ',e:'💧',w:'झील',m:'Lake'},{l:'ञ',e:'🐘',w:'ञ',m:'(rare)'}],
-  ta:     [{l:'ट',e:'🍅',w:'टमाटर',m:'Tomato'},{l:'ठ',e:'🛒',w:'ठेला',m:'Cart'},{l:'ड',e:'🥁',w:'ढोल',m:'Drum'},{l:'ढ',e:'🐊',w:'ढाका',m:'Dhaka'},{l:'ण',e:'🌼',w:'ण',m:'(rare)'}],
+  ta:     [{l:'ट',e:'🍅',w:'टमाटर',m:'Tomato'},{l:'ठ',e:'🛒',w:'ठेला',m:'Cart'},{l:'ड',e:'🪘',w:'डमरू',m:'Damru'},{l:'ढ',e:'🥁',w:'ढोल',m:'Drum'},{l:'ण',e:'🌼',w:'ण',m:'(rare)'}],
   ta2:    [{l:'त',e:'🍉',w:'तरबूज',m:'Watermelon'},{l:'थ',e:'🍽️',w:'थाली',m:'Plate'},{l:'द',e:'🥛',w:'दूध',m:'Milk'},{l:'ध',e:'🌞',w:'धूप',m:'Sunshine'},{l:'न',e:'🚢',w:'नाव',m:'Boat'}],
-  pa:     [{l:'प',e:'🌸',w:'पुष्प',m:'Flower'},{l:'फ',e:'🏀',w:'फुटबॉल',m:'Football'},{l:'ब',e:'🐐',w:'बकरी',m:'Goat'},{l:'भ',e:'🐻',w:'भालू',m:'Bear'},{l:'म',e:'🦚',w:'मोर',m:'Peacock'}],
-  ya:     [{l:'य',e:'🚂',w:'यान',m:'Vehicle'},{l:'र',e:'🌈',w:'रंग',m:'Colour'},{l:'ल',e:'🦊',w:'लोमड़ी',m:'Fox'},{l:'व',e:'🌲',w:'वन',m:'Forest'},{l:'श',e:'🔔',w:'शंख',m:'Conch'},{l:'ष',e:'⚡',w:'षट',m:'Six'},{l:'स',e:'☀️',w:'सूरज',m:'Sun'},{l:'ह',e:'🐘',w:'हाथी',m:'Elephant'}],
+  pa:     [{l:'प',e:'🌸',w:'पुष्प',m:'Flower'},{l:'फ',e:'🍏',w:'फल',m:'Fruit'},{l:'ब',e:'🐐',w:'बकरी',m:'Goat'},{l:'भ',e:'🐻',w:'भालू',m:'Bear'},{l:'म',e:'🦚',w:'मोर',m:'Peacock'}],
+  ya:     [{l:'य',e:'🚂',w:'यान',m:'Vehicle'},{l:'र',e:'🌈',w:'रंग',m:'Colour'},{l:'ल',e:'🦊',w:'लोमड़ी',m:'Fox'},{l:'व',e:'🌲',w:'वन',m:'Forest'},{l:'श',e:'🔔',w:'शंख',m:'Conch'},{l:'ष',e:'⬡',w:'षट्कोण',m:'Hexagon'},{l:'स',e:'☀️',w:'सूरज',m:'Sun'},{l:'ह',e:'🐘',w:'हाथी',m:'Elephant'}],
 };
 const ALL_HINDI = Object.values(HINDI_GROUPS).flat();
 
@@ -814,6 +944,16 @@ const STORIES = [
    pages:[{e:'🦊',t:'एक चालाक लोमड़ी थी।'},{e:'🍇',t:'उसने अंगूर देखे।'},{e:'🙏',t:'लोमड़ी ने कोशिश की।'},{e:'😤',t:'अंगूर बहुत ऊँचे थे।'},{e:'💡',t:'मेहनत से ही फल मिलता है!'}]},
   {id:'s5',title:'The Magic Seed',sub:'English · 5 pages',banner:'🌱',bg:'linear-gradient(135deg,#22c55e,#16a34a)',lang:'en',
    pages:[{e:'🌱',t:'A boy found a tiny seed.'},{e:'💧',t:'He watered it every day.'},{e:'☀️',t:'The sun gave it warmth.'},{e:'🌳',t:'It grew into a big tree.'},{e:'🎉',t:'Hard work always grows big!'}]},
+  {id:'s6',title:'प्यासा कौआ',sub:'हिंदी · 6 पन्ने',banner:'🐦‍⬛',bg:'linear-gradient(135deg,#334155,#64748b)',lang:'hi',
+   pages:[{e:'🐦‍⬛',t:'एक कौआ बहुत प्यासा था।'},{e:'🏺',t:'उसे एक घड़ा मिला।'},{e:'💧',t:'पानी बहुत नीचे था।'},{e:'🪨',t:'कौए ने कंकड़ डाले।'},{e:'⬆️',t:'पानी ऊपर आ गया।'},{e:'😊',t:'कौए ने पानी पिया। अकल बड़ी होती है!'}]},
+  {id:'s7',title:'खरगोश और कछुआ',sub:'हिंदी · 6 पन्ने',banner:'🐢',bg:'linear-gradient(135deg,#16a34a,#4ade80)',lang:'hi',
+   pages:[{e:'🐇',t:'खरगोश बहुत तेज़ था।'},{e:'🐢',t:'कछुआ धीरे चलता था।'},{e:'🏁',t:'दोनों की दौड़ हुई।'},{e:'😴',t:'खरगोश रास्ते में सो गया।'},{e:'🐢',t:'कछुआ चलता रहा।'},{e:'🏆',t:'कछुआ जीत गया! धीरे चलो पर रुको मत!'}]},
+  {id:'s8',title:'लालची कुत्ता',sub:'हिंदी · 6 पन्ने',banner:'🐕',bg:'linear-gradient(135deg,#ea580c,#fb923c)',lang:'hi',
+   pages:[{e:'🐕',t:'एक कुत्ते को रोटी मिली।'},{e:'🌉',t:'वह पुल पर चला।'},{e:'💧',t:'पानी में परछाई दिखी।'},{e:'🐶',t:'उसने सोचा — दूसरा कुत्ता है!'},{e:'😮',t:'भौंकते ही रोटी गिर गई।'},{e:'💡',t:'लालच बुरी बला है!'}]},
+  {id:'s9',title:'The Honest Woodcutter',sub:'English · 6 pages',banner:'🪓',bg:'linear-gradient(135deg,#0891b2,#22d3ee)',lang:'en',
+   pages:[{e:'🪓',t:'A man cut wood every day.'},{e:'🌊',t:'His axe fell in the river.'},{e:'🧚',t:'A fairy came out.'},{e:'✨',t:'She showed a gold axe.'},{e:'🙅',t:'He said, that is not mine.'},{e:'🎁',t:'She gave him all three. Honesty wins!'}]},
+  {id:'s10',title:'The Ant and the Dove',sub:'English · 6 pages',banner:'🐜',bg:'linear-gradient(135deg,#7c3aed,#a855f7)',lang:'en',
+   pages:[{e:'🐜',t:'An ant fell into water.'},{e:'🕊️',t:'A dove dropped a leaf.'},{e:'🍃',t:'The ant climbed on it.'},{e:'🏹',t:'A hunter aimed at the dove.'},{e:'🐜',t:'The ant bit his foot. The dove flew away.'},{e:'🤝',t:'Friends always help friends!'}]},
 ];
 
 const BADGES = [
@@ -829,6 +969,10 @@ const BADGES = [
   {id:'b10',icon:'🎮',name:'खिलाड़ी',ok:p=>p.games>=10},
   {id:'b11',icon:'🔥',name:'Streak 7',ok:p=>p.streak>=7},
   {id:'b12',icon:'👑',name:'सब सीखा!',ok:p=>p.h.length+p.e.length>=ALL_HINDI.length+26},
+  {id:'b13',icon:'🧮',name:'गणित वीर',ok:p=>(p.mg||0)>=5},
+  {id:'b14',icon:'🔢',name:'गणित गुरु',ok:p=>(p.mg||0)>=20},
+  {id:'b15',icon:'📚',name:'सब कहानियां',ok:p=>p.s.length>=STORIES.length},
+  {id:'b16',icon:'💯',name:'100 Stars',ok:p=>p.stars>=100},
 ];
 
 const LEVELS = [
@@ -909,7 +1053,6 @@ const READING_WORDS = [
   {word:'कान',syls:['का','न'],emoji:'👂',meaning:'Ear',colors:['#ec4899','#d97706']},
   {word:'नाक',syls:['ना','क'],emoji:'👃',meaning:'Nose',colors:['#ea580c','#6d28d9']},
   {word:'हाथ',syls:['हा','थ'],emoji:'✋',meaning:'Hand',colors:['#d97706','#16a34a']},
-  {word:'बाघ',syls:['बा','घ'],emoji:'🐯',meaning:'Tiger',colors:['#d97706','#dc2626']},
   {word:'ऊँट',syls:['ऊँ','ट'],emoji:'🐪',meaning:'Camel',colors:['#d97706','#ea580c']},
   {word:'तोता',syls:['तो','ता'],emoji:'🦜',meaning:'Parrot',colors:['#16a34a','#059669']},
   {word:'हंस',syls:['हं','स'],emoji:'🦢',meaning:'Swan',colors:['#2563eb','#6b7280']},
@@ -932,6 +1075,10 @@ const VOCAB = {
   'घर':    [{e:'🚪',h:'दरवाज़ा',en:'Door'},{e:'🪟',h:'खिड़की',en:'Window'},{e:'🛋️',h:'सोफा',en:'Sofa'},{e:'🛏️',h:'बिस्तर',en:'Bed'},{e:'🪑',h:'कुर्सी',en:'Chair'},{e:'🪞',h:'दर्पण',en:'Mirror'},{e:'💡',h:'बल्ब',en:'Bulb'},{e:'📺',h:'टीवी',en:'TV'},{e:'📱',h:'फ़ोन',en:'Phone'},{e:'📚',h:'किताब',en:'Book'},{e:'🖊️',h:'कलम',en:'Pen'},{e:'🧹',h:'झाड़ू',en:'Broom'},{e:'🪣',h:'बाल्टी',en:'Bucket'},{e:'🛁',h:'नल',en:'Tap'},{e:'🍳',h:'तवा',en:'Pan'}],
   'मौसम':  [{e:'🌧️',h:'बारिश',en:'Rain'},{e:'☀️',h:'धूप',en:'Sunshine'},{e:'☁️',h:'बादल',en:'Cloud'},{e:'❄️',h:'बर्फ़',en:'Snow'},{e:'🌬️',h:'हवा',en:'Wind'},{e:'🌈',h:'इंद्रधनुष',en:'Rainbow'},{e:'⛈️',h:'आंधी',en:'Storm'},{e:'🌫️',h:'धुंध',en:'Fog'},{e:'🌡️',h:'गर्मी',en:'Heat'},{e:'🥶',h:'ठंड',en:'Cold'},{e:'🌊',h:'बाढ़',en:'Flood'},{e:'⚡',h:'बिजली',en:'Lightning'}],
   'खेल':   [{e:'🏏',h:'क्रिकेट',en:'Cricket'},{e:'⚽',h:'फ़ुटबॉल',en:'Football'},{e:'🏊',h:'तैराकी',en:'Swimming'},{e:'🏃',h:'दौड़',en:'Running'},{e:'♟️',h:'शतरंज',en:'Chess'},{e:'🪁',h:'पतंग',en:'Kite'},{e:'🏸',h:'बैडमिंटन',en:'Badminton'},{e:'🏓',h:'टेबल टेनिस',en:'Table Tennis'},{e:'🤸',h:'कबड्डी',en:'Kabaddi'},{e:'🎯',h:'निशानेबाज़ी',en:'Shooting'},{e:'🏋️',h:'कुश्ती',en:'Wrestling'},{e:'🎮',h:'वीडियो गेम',en:'Video Game'}],
+  'दिन':   [{e:'🌙',h:'सोमवार',en:'Monday'},{e:'🔴',h:'मंगलवार',en:'Tuesday'},{e:'🟢',h:'बुधवार',en:'Wednesday'},{e:'🟡',h:'गुरुवार',en:'Thursday'},{e:'⚪',h:'शुक्रवार',en:'Friday'},{e:'🪐',h:'शनिवार',en:'Saturday'},{e:'☀️',h:'रविवार',en:'Sunday'}],
+  'महीने': [{e:'❄️',h:'जनवरी',en:'January'},{e:'🌤️',h:'फ़रवरी',en:'February'},{e:'🌸',h:'मार्च',en:'March'},{e:'☀️',h:'अप्रैल',en:'April'},{e:'🔥',h:'मई',en:'May'},{e:'🌧️',h:'जून',en:'June'},{e:'☔',h:'जुलाई',en:'July'},{e:'🌾',h:'अगस्त',en:'August'},{e:'🌼',h:'सितंबर',en:'September'},{e:'🪔',h:'अक्टूबर',en:'October'},{e:'🍂',h:'नवंबर',en:'November'},{e:'⛄',h:'दिसंबर',en:'December'}],
+  'ऋतुएं': [{e:'🌸',h:'वसंत ऋतु',en:'Spring'},{e:'☀️',h:'ग्रीष्म ऋतु (गर्मी)',en:'Summer'},{e:'🌧️',h:'वर्षा ऋतु (बारिश)',en:'Monsoon'},{e:'🌕',h:'शरद ऋतु',en:'Autumn'},{e:'🍂',h:'हेमंत ऋतु',en:'Pre-winter'},{e:'❄️',h:'शिशिर ऋतु (सर्दी)',en:'Winter'}],
+  'भारत':  [{e:'🇮🇳',h:'तिरंगा – राष्ट्रीय ध्वज',en:'National Flag'},{e:'🦚',h:'मोर – राष्ट्रीय पक्षी',en:'National Bird'},{e:'🐯',h:'बाघ – राष्ट्रीय पशु',en:'National Animal'},{e:'🪷',h:'कमल – राष्ट्रीय फूल',en:'National Flower'},{e:'🥭',h:'आम – राष्ट्रीय फल',en:'National Fruit'},{e:'🏑',h:'हॉकी – राष्ट्रीय खेल',en:'National Game'},{e:'🌊',h:'गंगा – राष्ट्रीय नदी',en:'National River'},{e:'🌳',h:'बरगद – राष्ट्रीय पेड़',en:'National Tree'},{e:'🎵',h:'जन गण मन – राष्ट्रगान',en:'National Anthem'},{e:'☸️',h:'अशोक चक्र',en:'Ashoka Chakra'}],
 };
 const VOCAB_CATS = Object.keys(VOCAB);
 
@@ -982,6 +1129,91 @@ const ANTONYMS = [
   {w:'मोटा',a:'पतला'},{w:'चौड़ा',a:'पतला'},{w:'कच्चा',a:'पक्का'},{w:'सूखा',a:'गीला'},{w:'साफ़',a:'गंदा'},
 ];
 
+// ── MATH DATA ──
+const NUM_WORDS = ['एक','दो','तीन','चार','पाँच','छह','सात','आठ','नौ','दस','ग्यारह','बारह','तेरह','चौदह','पंद्रह','सोलह','सत्रह','अठारह','उन्नीस','बीस','इक्कीस','बाईस','तेईस','चौबीस','पच्चीस','छब्बीस','सत्ताईस','अट्ठाईस','उनतीस','तीस','इकतीस','बत्तीस','तैंतीस','चौंतीस','पैंतीस','छत्तीस','सैंतीस','अड़तीस','उनतालीस','चालीस','इकतालीस','बयालीस','तैंतालीस','चौवालीस','पैंतालीस','छियालीस','सैंतालीस','अड़तालीस','उनचास','पचास','इक्यावन','बावन','तिरपन','चौवन','पचपन','छप्पन','सत्तावन','अट्ठावन','उनसठ','साठ','इकसठ','बासठ','तिरसठ','चौंसठ','पैंसठ','छियासठ','सड़सठ','अड़सठ','उनहत्तर','सत्तर','इकहत्तर','बहत्तर','तिहत्तर','चौहत्तर','पचहत्तर','छिहत्तर','सतहत्तर','अठहत्तर','उनासी','अस्सी','इक्यासी','बयासी','तिरासी','चौरासी','पचासी','छियासी','सत्तासी','अट्ठासी','नवासी','नब्बे','इक्यानवे','बानवे','तिरानवे','चौरानवे','पचानवे','छियानवे','सत्तानवे','अट्ठानवे','निन्यानवे','सौ'];
+
+const SHAPES = [
+  {s:'●',h:'वृत्त',en:'Circle',ex:'🫓 जैसे रोटी',c:'#6d28d9'},
+  {s:'▲',h:'त्रिभुज',en:'Triangle',ex:'🥟 जैसे समोसा',c:'#ec4899'},
+  {s:'■',h:'वर्ग',en:'Square',ex:'🍬 जैसे बर्फी',c:'#2563eb'},
+  {s:'▬',h:'आयत',en:'Rectangle',ex:'📚 जैसे किताब',c:'#16a34a'},
+  {s:'★',h:'तारा',en:'Star',ex:'✨ जैसे आकाश का तारा',c:'#d97706'},
+  {s:'♥',h:'दिल',en:'Heart',ex:'❤️ जैसे प्यार',c:'#dc2626'},
+  {s:'⬢',h:'षट्कोण',en:'Hexagon',ex:'🐝 जैसे मधुमक्खी का छत्ता',c:'#ea580c'},
+  {s:'◆',h:'हीरा (चतुर्भुज)',en:'Diamond',ex:'💎 जैसे हीरा',c:'#0891b2'},
+  {s:'⬭',h:'अंडाकार',en:'Oval',ex:'🥚 जैसे अंडा',c:'#7c3aed'},
+  {s:'◗',h:'अर्धवृत्त',en:'Semicircle',ex:'🌗 जैसे आधा चाँद',c:'#059669'},
+];
+
+const CLOCKS = [
+  {e:'🕐',h:1,m:0},{e:'🕑',h:2,m:0},{e:'🕒',h:3,m:0},{e:'🕓',h:4,m:0},{e:'🕔',h:5,m:0},{e:'🕕',h:6,m:0},
+  {e:'🕖',h:7,m:0},{e:'🕗',h:8,m:0},{e:'🕘',h:9,m:0},{e:'🕙',h:10,m:0},{e:'🕚',h:11,m:0},{e:'🕛',h:12,m:0},
+  {e:'🕜',h:1,m:30},{e:'🕝',h:2,m:30},{e:'🕞',h:3,m:30},{e:'🕟',h:4,m:30},{e:'🕠',h:5,m:30},{e:'🕡',h:6,m:30},
+  {e:'🕢',h:7,m:30},{e:'🕣',h:8,m:30},{e:'🕤',h:9,m:30},{e:'🕥',h:10,m:30},{e:'🕦',h:11,m:30},{e:'🕧',h:12,m:30},
+];
+function clockLabel(c){ return c.m===0 ? c.h+' बजे' : (c.h===1?'डेढ़ बजे':c.h===2?'ढाई बजे':'साढ़े '+c.h+' बजे'); }
+
+// ═══════════════════════════════════════════════════════════
+// PROFILES — 4 बहनों के लिए अलग-अलग खाते
+// ═══════════════════════════════════════════════════════════
+const PROF_KEY='vkids_profiles_v1';
+let PROFILES=(()=>{try{return JSON.parse(localStorage.getItem(PROF_KEY))||[]}catch(e){return[]}})();
+if(!PROFILES.length){
+  // पुराना single-profile data हो तो उसे profile 1 बना दो
+  let old={}; try{old=JSON.parse(localStorage.getItem('vkids3'))||{}}catch(e){}
+  PROFILES=[{id:'p1',key:'vkids3',name:old.name||'',avatar:old.avatar||'🦁',cls:old.cls||1}];
+  localStorage.setItem(PROF_KEY,JSON.stringify(PROFILES));
+}
+let ACTIVE=localStorage.getItem('vkids_active')||'';
+if(!PROFILES.find(p=>p.id===ACTIVE)) ACTIVE=PROFILES[0].id;
+function curProf(){ return PROFILES.find(p=>p.id===ACTIVE); }
+function saveProfiles(){ localStorage.setItem(PROF_KEY,JSON.stringify(PROFILES)); localStorage.setItem('vkids_active',ACTIVE); }
+
+function openProfilePicker(){
+  renderProfGrid();
+  document.getElementById('profileOverlay').classList.add('open');
+}
+function closeProfilePicker(){ document.getElementById('profileOverlay').classList.remove('open'); }
+function renderProfGrid(){
+  const g=document.getElementById('profGrid');
+  let html=PROFILES.map(pr=>{
+    let st={stars:0}; try{st=JSON.parse(localStorage.getItem(pr.key))||st}catch(e){}
+    return `<div class="prof-btn${pr.id===ACTIVE?' active':''} ripple-host" onclick="switchProfile('${pr.id}')">
+      <span class="prof-av">${pr.avatar||'🦁'}</span>
+      <div class="prof-name">${pr.name||'नई प्रोफ़ाइल'}</div>
+      <div class="prof-meta">कक्षा ${pr.cls||1} · ⭐ ${st.stars||0}</div>
+    </div>`;
+  }).join('');
+  if(PROFILES.length<6) html+=`<div class="prof-btn prof-add ripple-host" onclick="newProfile()"><span style="font-size:32px">➕</span>नई प्रोफ़ाइल</div>`;
+  g.innerHTML=html;
+}
+function switchProfile(id){
+  if(id===ACTIVE){ closeProfilePicker(); return; }
+  saveSession();
+  ACTIVE=id; saveProfiles();
+  P=loadState(); _sessStart=Date.now();
+  refreshAllUI();
+  closeProfilePicker();
+  goTo('home');
+  showMini('👋 नमस्ते, '+(P.name||'दोस्त')+'!');
+}
+function newProfile(){
+  if(PROFILES.length>=6) return;
+  const id='p'+Date.now();
+  PROFILES.push({id,key:'vkids3_'+id,name:'',avatar:'🦁',cls:1});
+  ACTIVE=id; saveProfiles();
+  P=loadState(); _sessStart=Date.now();
+  refreshAllUI();
+  closeProfilePicker();
+  openAvatarPicker();
+}
+function editCurrentProfile(){ closeProfilePicker(); openAvatarPicker(); }
+function refreshAllUI(){
+  updateHdr(); updateHomeStats();
+  renderHindiGroup(curHindiGroup); renderEnglish(); renderStoryList();
+  const vg=document.getElementById('vcrdGrid'); if(vg.innerHTML) showVocabCat(curVocabCat||VOCAB_CATS[0], document.querySelector('.vcat-btn.active'));
+}
+
 // ═══════════════════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════════════════
@@ -1000,10 +1232,16 @@ let wbItems=[], wbIdx=0, wbSc=0, wbCurrent=null, wbTyped=[];
 let traceDrawn = false;
 
 function loadState() {
-  try { const d=localStorage.getItem('vkids3'); if(d) return JSON.parse(d); } catch(e){}
-  return {stars:0,h:[],e:[],t:0,games:0,s:[],streak:0,lastDay:'',avatar:'🦁',name:'',levelXP:0};
+  const pr=curProf();
+  try { const d=localStorage.getItem(pr.key); if(d){const st=JSON.parse(d); if(!st.cls) st.cls=pr.cls||1; return st;} } catch(e){}
+  return {stars:0,h:[],e:[],t:0,games:0,s:[],streak:0,lastDay:'',avatar:pr.avatar||'🦁',name:pr.name||'',cls:pr.cls||1,levelXP:0,mg:0};
 }
-function save() { localStorage.setItem('vkids3',JSON.stringify(P)); updateHdr(); updateHomeStats(); }
+function save() {
+  const pr=curProf();
+  localStorage.setItem(pr.key,JSON.stringify(P));
+  pr.name=P.name; pr.avatar=P.avatar; pr.cls=P.cls||1; saveProfiles();
+  updateHdr(); updateHomeStats();
+}
 
 // ═══════════════════════════════════════════════════════════
 // SPEECH
@@ -1023,6 +1261,35 @@ function speak(text, lang='hi-IN') {
   const v = _voices.find(v => v.lang.startsWith(lang.slice(0,2)));
   if (v) u.voice = v;
   speechSynthesis.speak(u);
+}
+
+// ═══════════════════════════════════════════════════════════
+// SOUND EFFECTS (WebAudio — कोई फाइल नहीं चाहिए)
+// ═══════════════════════════════════════════════════════════
+let _actx=null, _lastWin=0;
+function _ac(){
+  if(!_actx){ try{_actx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){} }
+  if(_actx&&_actx.state==='suspended') _actx.resume();
+  return _actx;
+}
+function sfx(type){
+  const ac=_ac(); if(!ac) return;
+  const t=ac.currentTime;
+  function tone(f,st,d,wave,g){
+    const o=ac.createOscillator(),gn=ac.createGain();
+    o.type=wave||'sine'; o.frequency.value=f;
+    gn.gain.setValueAtTime(g||.14,t+st);
+    gn.gain.exponentialRampToValueAtTime(.001,t+st+d);
+    o.connect(gn); gn.connect(ac.destination);
+    o.start(t+st); o.stop(t+st+d);
+  }
+  if(type==='good'){ tone(523,0,.15); tone(659,.1,.15); tone(784,.2,.3); }
+  else if(type==='bad'){ tone(220,0,.2,'square',.07); tone(175,.15,.3,'square',.07); }
+  else if(type==='pop'){ tone(880,0,.08,'triangle',.12); }
+  else if(type==='win'){
+    if(Date.now()-_lastWin<800) return; _lastWin=Date.now();
+    [523,659,784,1047].forEach((f,i)=>tone(f,i*.12,.35));
+  }
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1054,6 +1321,7 @@ function goTo(screen) {
   if(screen==='progress') renderProgress();
   if(screen==='stories') renderStoryList();
   if(screen==='trace') initTrace();
+  if(screen==='math') initMath();
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1065,7 +1333,7 @@ function updateHdr() {
   document.getElementById('avatarChip').textContent = P.avatar;
   document.getElementById('heroMascot').textContent = P.avatar;
   const name = P.name || 'दोस्त';
-  document.getElementById('hdrName').textContent = 'नमस्ते, '+name+' 👋';
+  document.getElementById('hdrName').textContent = 'नमस्ते, '+name+' · कक्षा '+(P.cls||1);
   document.getElementById('heroName').textContent = name+', आज क्या सीखें?';
   updateLevel();
 }
@@ -1096,20 +1364,28 @@ function checkStreak() {
 // ═══════════════════════════════════════════════════════════
 // AVATAR
 // ═══════════════════════════════════════════════════════════
-let selectedAv = '🦁';
+let selectedAv = '🦁', selectedCls = 1;
 function openAvatarPicker() {
   document.getElementById('avatarOverlay').classList.add('open');
   document.getElementById('nameInput').value = P.name||'';
   selectedAv = P.avatar||'🦁';
+  selectedCls = P.cls||1;
   document.querySelectorAll('.av-btn').forEach(b=>{b.classList.toggle('selected',b.dataset.av===selectedAv);});
+  document.querySelectorAll('.cls-btn').forEach(b=>{b.classList.toggle('selected',+b.dataset.c===selectedCls);});
 }
 function pickAvatar(btn) {
   document.querySelectorAll('.av-btn').forEach(b=>b.classList.remove('selected'));
   btn.classList.add('selected');
   selectedAv = btn.dataset.av;
 }
+function pickClass(btn) {
+  document.querySelectorAll('.cls-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedCls = +btn.dataset.c;
+}
 function saveAvatar() {
   P.avatar = selectedAv;
+  P.cls = selectedCls;
   P.name = document.getElementById('nameInput').value.trim()||'दोस्त';
   save();
   document.getElementById('avatarOverlay').classList.remove('open');
@@ -1430,10 +1706,80 @@ function doneTrace() {
 }
 
 // ═══════════════════════════════════════════════════════════
+// MATH SCREEN — गिनती · पहाड़े · आकार
+// ═══════════════════════════════════════════════════════════
+let curTable=2, mathInited=false;
+function initMath() {
+  if(mathInited) return;
+  mathInited=true;
+  renderNumGrid();
+  renderTblPills();
+  renderTable(2);
+  renderShapes();
+}
+function switchMathTab(t) {
+  ['count','tbl','shape'].forEach(x=>{
+    document.getElementById('math'+(x==='count'?'Count':x==='tbl'?'Tbl':'Shape')).style.display = x===t?'':'none';
+  });
+  document.getElementById('mtabCount').classList.toggle('active',t==='count');
+  document.getElementById('mtabTbl').classList.toggle('active',t==='tbl');
+  document.getElementById('mtabShape').classList.toggle('active',t==='shape');
+}
+function renderNumGrid() {
+  document.getElementById('numGrid').innerHTML = NUM_WORDS.map((w,i)=>`
+    <div class="num-cell ripple-host" onclick="speakNum(${i+1})">
+      <span class="num-n">${i+1}</span>
+      <span class="num-w">${w}</span>
+    </div>`).join('');
+}
+function speakNum(n) { sfx('pop'); speak(NUM_WORDS[n-1],'hi-IN'); showMini('🔊 '+n+' = '+NUM_WORDS[n-1]); }
+function renderTblPills() {
+  const pills=[];
+  for(let n=2;n<=20;n++) pills.push(`<button class="tbl-pill${n===2?' sel':''} ripple-host" id="tp-${n}" onclick="selectTable(${n})">${n}</button>`);
+  document.getElementById('tblPills').innerHTML=pills.join('');
+}
+function selectTable(n) {
+  curTable=n;
+  document.querySelectorAll('.tbl-pill').forEach(b=>b.classList.remove('sel'));
+  document.getElementById('tp-'+n).classList.add('sel');
+  renderTable(n);
+}
+function renderTable(n) {
+  let html='';
+  for(let i=1;i<=10;i++) html+=`<div class="tbl-row ripple-host" onclick="speakTblRow(${n},${i})"><span>${n}</span><span class="eq">×</span><span>${i}</span><span class="eq">=</span><span>${n*i}</span></div>`;
+  document.getElementById('tblRows').innerHTML=html;
+}
+function speakTblRow(n,i) { speak(n+' गुणा '+i+' बराबर '+(n*i),'hi-IN'); }
+function speakFullTable() {
+  let txt='';
+  for(let i=1;i<=10;i++) txt+=curTable+' गुणा '+i+' बराबर '+(curTable*i)+'। ';
+  speak(txt,'hi-IN');
+  showMini('🔊 '+curTable+' का पहाड़ा');
+}
+function renderShapes() {
+  document.getElementById('shapeGrid').innerHTML = SHAPES.map((sh,i)=>`
+    <div class="shape-wrap" id="shp-${i}" onclick="flipShape(${i})">
+      <div class="shape-i">
+        <div class="shape-f"><span style="color:${sh.c}">${sh.s}</span><span class="shape-tap">दबाओ 👆</span></div>
+        <div class="shape-b"><div class="sb-name">${sh.h}</div><div class="sb-en">${sh.en}</div><div class="sb-ex">${sh.ex}</div></div>
+      </div>
+    </div>`).join('');
+}
+function flipShape(i) {
+  const el=document.getElementById('shp-'+i);
+  el.classList.toggle('flipped');
+  if(el.classList.contains('flipped')) {
+    const sh=SHAPES[i]; sfx('pop');
+    speak(sh.h,'hi-IN');
+    setTimeout(()=>speak(sh.en,'en-US'),1000);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
 // GAMES
 // ═══════════════════════════════════════════════════════════
 function showGamePanel(id) {
-  ['gQuiz','gBubble','gMemory','gWordBuild','gResult','gVocabQuiz','gSentence','gAntonym','gBKQuiz','gMatraQuiz','gWordReadQuiz'].forEach(d=>{
+  ['gQuiz','gBubble','gMemory','gWordBuild','gResult','gVocabQuiz','gSentence','gAntonym','gBKQuiz','gMatraQuiz','gWordReadQuiz','gMath'].forEach(d=>{
     const el=document.getElementById(d);
     if(el) el.classList.toggle('hidden',el.id!==id);
   });
@@ -1454,6 +1800,9 @@ function startGame(type) {
   else if(type==='bkquiz') startBKQuiz();
   else if(type==='matraquiz') startMatraQuiz();
   else if(type==='wordreadquiz') startWordReadQuiz();
+  else if(type==='mathquiz') startMathQuiz();
+  else if(type==='tablequiz') startTableQuiz();
+  else if(type==='clockquiz') startClockQuiz();
 }
 function exitGame() {
   if(bTimer) {clearInterval(bTimer);bTimer=null;}
@@ -1495,6 +1844,7 @@ function renderQ() {
 function checkQ(btn, isC) {
   document.querySelectorAll('.qopt').forEach(o=>o.classList.add('disabled'));
   btn.classList.add(isC?'correct':'wrong');
+  sfx(isC?'good':'bad');
   if(!isC) document.querySelectorAll('.qopt[data-c="true"]').forEach(o=>o.classList.add('show-correct'));
   if(isC){qSc++;P.stars++;save();}
   setTimeout(()=>{qIdx++;renderQ();},900);
@@ -1541,8 +1891,8 @@ function nextBubbleRound() {
   });
 }
 function popBubble(btn,isC) {
-  if(isC){bSc++;P.stars++;save();showMini('✅ सही!');bRound++;}
-  else{showMini('❌ गलत!');}
+  if(isC){bSc++;P.stars++;save();showMini('✅ सही!');sfx('good');bRound++;}
+  else{showMini('❌ गलत!');sfx('bad');}
   const arena=document.getElementById('bArena');
   arena.querySelectorAll('.bubble').forEach(b=>b.style.pointerEvents='none');
   setTimeout(()=>{nextBubbleRound();},700);
@@ -1593,7 +1943,7 @@ function checkMemMatch() {
   if(ca.l===cb.l&&ca.side!==cb.side) {
     document.getElementById(`mc-${a}`).classList.add('matched');
     document.getElementById(`mc-${b}`).classList.add('matched');
-    memPairs++; memSc+=2; P.stars+=2; save();
+    memPairs++; memSc+=2; P.stars+=2; save(); sfx('good');
     document.getElementById('mPairs').textContent=memPairs;
     document.getElementById('mSc').textContent=memSc;
     if(memPairs===8){setTimeout(endMemory,500);}
@@ -1690,6 +2040,7 @@ function renderVQ() {
 function checkVQ(btn,isC) {
   document.querySelectorAll('#vqOpts .qopt').forEach(o=>o.classList.add('disabled'));
   btn.classList.add(isC?'correct':'wrong');
+  sfx(isC?'good':'bad');
   if(!isC) document.querySelectorAll('#vqOpts .qopt[data-c="true"]').forEach(o=>o.classList.add('show-correct'));
   if(isC){vqSc++;P.stars++;save();}
   setTimeout(()=>{vqIdx++;renderVQ();},900);
@@ -1724,6 +2075,7 @@ function renderSQ() {
 function checkSQ(btn,isC) {
   document.querySelectorAll('#sqOpts .qopt').forEach(o=>o.classList.add('disabled'));
   btn.classList.add(isC?'correct':'wrong');
+  sfx(isC?'good':'bad');
   if(!isC) document.querySelectorAll('#sqOpts .qopt[data-c="true"]').forEach(o=>o.classList.add('show-correct'));
   if(isC){sqSc++;P.stars++;save();}
   setTimeout(()=>{sqIdx++;renderSQ();},900);
@@ -1760,6 +2112,7 @@ function renderAQ() {
 function checkAQ(btn,isC) {
   document.querySelectorAll('#aqOpts .qopt').forEach(o=>o.classList.add('disabled'));
   btn.classList.add(isC?'correct':'wrong');
+  sfx(isC?'good':'bad');
   if(!isC) document.querySelectorAll('#aqOpts .qopt[data-c="true"]').forEach(o=>o.classList.add('show-correct'));
   if(isC){aqSc++;P.stars++;save();}
   setTimeout(()=>{aqIdx++;renderAQ();},900);
@@ -1798,6 +2151,7 @@ function renderBKQ() {
 function checkBKQ(btn,isC) {
   document.querySelectorAll('#bkqOpts .qopt').forEach(o=>o.classList.add('disabled'));
   btn.classList.add(isC?'correct':'wrong');
+  sfx(isC?'good':'bad');
   if(!isC) document.querySelectorAll('#bkqOpts .qopt[data-c="true"]').forEach(o=>o.classList.add('show-correct'));
   if(isC){bkqSc++;P.stars++;save();}
   setTimeout(()=>{bkqIdx++;renderBKQ();},900);
@@ -1839,6 +2193,7 @@ function renderMQ() {
 function checkMQ(btn,isC) {
   document.querySelectorAll('#mqOpts .qopt').forEach(o=>o.classList.add('disabled'));
   btn.classList.add(isC?'correct':'wrong');
+  sfx(isC?'good':'bad');
   if(!isC) document.querySelectorAll('#mqOpts .qopt[data-c="true"]').forEach(o=>o.classList.add('show-correct'));
   if(isC){mqSc++;P.stars++;save();}
   setTimeout(()=>{mqIdx++;renderMQ();},900);
@@ -1878,6 +2233,7 @@ function renderWRQ() {
 function checkWRQ(btn,isC) {
   document.querySelectorAll('#wrqOpts .qopt').forEach(o=>o.classList.add('disabled'));
   btn.classList.add(isC?'correct':'wrong');
+  sfx(isC?'good':'bad');
   if(!isC) document.querySelectorAll('#wrqOpts .qopt[data-c="true"]').forEach(o=>o.classList.add('show-correct'));
   if(isC){wrqSc++;P.stars++;save();}
   setTimeout(()=>{wrqIdx++;renderWRQ();},900);
@@ -1890,6 +2246,113 @@ function endWRQ() {
   document.getElementById('resPlayAgain').onclick=()=>startGame('wordreadquiz');
   if(pct>=80) launchConfetti();
   saveScore('शब्द पढ़ो Quiz',wrqSc,wrqItems.length);
+}
+
+/* ── MATH GAMES (गणित · पहाड़े · घड़ी) — कक्षा के हिसाब से ── */
+let mgItems=[],mgIdx=0,mgSc=0,mgLabel='';
+function rnd(a,b){ return a+Math.floor(Math.random()*(b-a+1)); }
+function numOpts(ans,spread){
+  const s=new Set([ans]); let guard=0;
+  while(s.size<4&&guard++<80){
+    const w=ans+(Math.random()<.5?-1:1)*rnd(1,Math.max(2,spread));
+    if(w>=0&&w!==ans) s.add(w);
+  }
+  return shuffle([...s]).map(v=>({t:String(v),c:v===ans}));
+}
+function genMathQ(cls){
+  const pool = cls===1?['add','add','sub','cmp','count']:cls===2?['add','sub','mul','cmp']:['add','sub','mul','div'];
+  const t=pool[rnd(0,pool.length-1)];
+  const AR=[[1,10],[10,99],[100,999],[1000,9999]][cls-1];
+  const MMAX=[5,10,15,20][cls-1];
+  if(t==='add'){
+    const a=rnd(AR[0],AR[1]),b=rnd(AR[0],AR[1]);
+    return {big:a+' + '+b+' = ?',txt:'जोड़ करो ➕',opts:numOpts(a+b,Math.max(3,Math.round((a+b)*.12)))};
+  }
+  if(t==='sub'){
+    let a=rnd(AR[0],AR[1]),b=rnd(AR[0],AR[1]);
+    if(b>a)[a,b]=[b,a];
+    return {big:a+' − '+b+' = ?',txt:'घटाओ ➖',opts:numOpts(a-b,Math.max(3,Math.round(a*.1)))};
+  }
+  if(t==='mul'){
+    const a=rnd(2,MMAX),b=rnd(1,10);
+    return {big:a+' × '+b+' = ?',txt:'गुणा करो ✖️',opts:numOpts(a*b,Math.max(3,a))};
+  }
+  if(t==='div'){
+    const a=rnd(2,MMAX),b=rnd(1,10);
+    return {big:(a*b)+' ÷ '+a+' = ?',txt:'भाग करो ➗',opts:numOpts(b,3)};
+  }
+  if(t==='cmp'){
+    const hi=cls===1?50:99;
+    let a=rnd(1,hi),b=rnd(1,hi);
+    while(b===a) b=rnd(1,hi);
+    return {big:a+'  या  '+b+' ?',txt:'कौन सी संख्या बड़ी है? 🤔',opts:shuffle([{t:String(a),c:a>b},{t:String(b),c:b>a}])};
+  }
+  // count — emoji गिनो
+  const ems=['🍎','⭐','🎈','🐟','🌸','🦋','🍌','⚽'];
+  const em=ems[rnd(0,ems.length-1)], n=rnd(3,9);
+  return {big:Array(n).fill(em).join(' '),size:'26px',txt:'कितने हैं? गिनो! 🔢',opts:numOpts(n,2)};
+}
+function runMathGame(items,label){
+  mgItems=items; mgIdx=0; mgSc=0; mgLabel=label;
+  showGamePanel('gMath');
+  document.getElementById('mgTot').textContent=items.length;
+  renderMG();
+}
+function renderMG(){
+  if(mgIdx>=mgItems.length){endMG();return;}
+  document.getElementById('mgSc').textContent=mgSc;
+  document.getElementById('mgCur').textContent=mgIdx+1;
+  document.getElementById('mgFill').style.width=Math.round(mgIdx/mgItems.length*100)+'%';
+  const q=mgItems[mgIdx];
+  const big=document.getElementById('mgBig');
+  big.textContent=q.big;
+  big.style.fontSize=q.size||'44px';
+  document.getElementById('mgTxt').textContent=q.txt||'';
+  if(q.say) speak(q.say,'hi-IN');
+  document.getElementById('mgOpts').innerHTML=q.opts.map(o=>
+    `<button class="qopt ripple-host" style="font-size:26px;font-weight:900" data-c="${o.c}" onclick="checkMG(this,${o.c})">${o.t}</button>`
+  ).join('');
+}
+function checkMG(btn,isC){
+  document.querySelectorAll('#mgOpts .qopt').forEach(o=>o.classList.add('disabled'));
+  btn.classList.add(isC?'correct':'wrong');
+  sfx(isC?'good':'bad');
+  if(!isC) document.querySelectorAll('#mgOpts .qopt[data-c="true"]').forEach(o=>o.classList.add('show-correct'));
+  if(isC){mgSc++;P.stars++;save();}
+  setTimeout(()=>{mgIdx++;renderMG();},900);
+}
+function endMG(){
+  showGamePanel('gResult');
+  const pct=Math.round(mgSc/mgItems.length*100);
+  document.getElementById('resEmoji').textContent=pct>=80?'🎉':pct>=50?'👍':'💪';
+  document.getElementById('resText').textContent=mgLabel+': '+mgSc+'/'+mgItems.length+' सही!';
+  const g=curGame;
+  document.getElementById('resPlayAgain').onclick=()=>startGame(g);
+  P.mg=(P.mg||0)+1; save();
+  if(pct>=80) launchConfetti();
+  saveScore(mgLabel+' (कक्षा '+(P.cls||1)+')',mgSc,mgItems.length);
+}
+function startMathQuiz(){
+  const cls=P.cls||1;
+  runMathGame(Array.from({length:10},()=>genMathQ(cls)),'गणित Quiz');
+}
+function startTableQuiz(){
+  const max=[5,10,15,20][(P.cls||1)-1];
+  const items=Array.from({length:10},()=>{
+    const a=rnd(2,max),b=rnd(1,10);
+    return {big:a+' × '+b+' = ?',txt:'पहाड़ा याद करो! ✖️',opts:numOpts(a*b,Math.max(3,a))};
+  });
+  runMathGame(items,'पहाड़े Quiz');
+}
+function startClockQuiz(){
+  const pool=(P.cls||1)===1?CLOCKS.slice(0,12):CLOCKS;
+  const qs=shuffle([...pool]).slice(0,10);
+  const items=qs.map(c=>{
+    const wrong=shuffle(pool.filter(x=>x!==c)).slice(0,3);
+    return {big:c.e,size:'80px',txt:'कितने बजे हैं? 🕐',
+      opts:shuffle([{t:clockLabel(c),c:true},...wrong.map(w=>({t:clockLabel(w),c:false}))])};
+  });
+  runMathGame(items,'घड़ी Quiz');
 }
 
 /* ── MINI TOAST ── */
@@ -1974,8 +2437,9 @@ function renderProgress() {
   document.getElementById('barE').style.width=pE+'%'; document.getElementById('pctE').textContent=pE+'%';
   document.getElementById('barT').style.width=Math.min(100,P.t*2)+'%'; document.getElementById('pctT').textContent=P.t;
   document.getElementById('barG').style.width=Math.min(100,P.games*3)+'%'; document.getElementById('pctG').textContent=P.games;
-  const pS=Math.round(P.s.length/5*100);
-  document.getElementById('barS').style.width=pS+'%'; document.getElementById('pctS').textContent=P.s.length+'/5';
+  document.getElementById('barM').style.width=Math.min(100,(P.mg||0)*5)+'%'; document.getElementById('pctM').textContent=P.mg||0;
+  const pS=Math.round(P.s.length/STORIES.length*100);
+  document.getElementById('barS').style.width=pS+'%'; document.getElementById('pctS').textContent=P.s.length+'/'+STORIES.length;
   document.getElementById('bdgGrid').innerHTML=BADGES.map(b=>`
     <div class="bdg${b.ok(P)?'':' locked'}">
       <span class="bdg-icon">${b.icon}</span>
@@ -1987,6 +2451,7 @@ function renderProgress() {
 // REWARD + CONFETTI
 // ═══════════════════════════════════════════════════════════
 function showReward(big,text,sub='') {
+  sfx('win');
   document.getElementById('rewardBig').textContent=big;
   document.getElementById('rewardText').textContent=text;
   document.getElementById('rewardSub').textContent=sub;
@@ -1995,6 +2460,7 @@ function showReward(big,text,sub='') {
 function closeReward() { document.getElementById('rewardOverlay').classList.remove('show'); }
 
 function launchConfetti() {
+  sfx('win');
   const cv=document.getElementById('confettiCanvas');
   cv.width=window.innerWidth; cv.height=window.innerHeight;
   cv.style.display='block';
@@ -2162,6 +2628,9 @@ async function loadParentDash() {
   renderStoryList();
   if(!P.name) {
     setTimeout(()=>document.getElementById('avatarOverlay').classList.add('open'),600);
+  } else if(PROFILES.length>1) {
+    // कई प्रोफ़ाइल हैं → पूछो कि आज कौन पढ़ेगा
+    setTimeout(openProfilePicker,600);
   }
   // PWA Service Worker
   if('serviceWorker' in navigator) {

@@ -431,6 +431,47 @@ body{font-family:'Nunito','Noto Sans Devanagari',sans-serif;background:var(--bg)
 /* ── UTILS ── */
 .mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}
 .hidden{display:none!important}
+
+/* ══ TABLET LAYOUT (Samsung Tab आदि) ══ */
+@media(min-width:700px){
+  .app{max-width:780px}
+  .bnav{max-width:780px}
+  .hdr{border-radius:0 0 22px 22px}
+  .mgrid{grid-template-columns:repeat(3,1fr)}
+  .mcard-icon{font-size:52px}
+  .lgrid{grid-template-columns:repeat(5,1fr)}
+  .num-grid{grid-template-columns:repeat(10,1fr)}
+  .num-n{font-size:22px}
+  .vcrd-grid{grid-template-columns:repeat(4,1fr)}
+  .matra-grid{grid-template-columns:repeat(3,1fr)}
+  .shape-grid{grid-template-columns:repeat(4,1fr)}
+  .game-list{grid-template-columns:1fr 1fr}
+  .slist{grid-template-columns:1fr 1fr}
+  .slist .stitle{grid-column:1/-1}
+  .bdg-grid{grid-template-columns:repeat(6,1fr)}
+  .wrd-cards{grid-template-columns:1fr 1fr}
+  .tselect{grid-template-columns:repeat(8,1fr)}
+  .prof-grid{grid-template-columns:repeat(3,1fr)}
+  .mmgrid{grid-template-columns:repeat(8,1fr)}
+  .qopts{grid-template-columns:repeat(4,1fr)}
+  .qbig{font-size:96px}
+  .drag-board{max-width:620px;margin:0 auto}
+  .bubble-arena{height:400px}
+  .overlay{align-items:center;padding:20px}
+  .sheet{max-width:560px;border-radius:26px;animation:popIn .35s cubic-bezier(.34,1.56,.64,1)}
+  .builder-syl{font-size:100px}
+  .nb .ni{font-size:28px}
+  .nb .nl{font-size:12px}
+}
+@media(min-width:1100px){
+  .app{max-width:960px}
+  .bnav{max-width:960px}
+  .lgrid{grid-template-columns:repeat(6,1fr)}
+  .mgrid{grid-template-columns:repeat(3,1fr)}
+  .vcrd-grid{grid-template-columns:repeat(5,1fr)}
+  .shape-grid{grid-template-columns:repeat(5,1fr)}
+  .game-list{grid-template-columns:repeat(3,1fr)}
+}
 </style>
 </head>
 <body>
@@ -1452,7 +1493,7 @@ function goTo(screen) {
   if(nb) nb.classList.add('active');
   if(screen==='progress') renderProgress();
   if(screen==='stories') renderStoryList();
-  if(screen==='trace') initTrace();
+  if(screen==='trace'){ initTrace(); resizeCanvas(); }
   if(screen==='math') initMath();
 }
 
@@ -1881,8 +1922,12 @@ const tc = document.getElementById('traceCanvas');
 const ctx2 = tc.getContext('2d');
 let tDrawing = false, tStrokes = 0;
 function resizeCanvas() {
-  const w = Math.min(window.innerWidth-64, 420);
-  tc.width = w; tc.height = 200;
+  // टैबलेट पर canvas बड़ा — container की चौड़ाई के हिसाब से
+  const wrap = tc.parentElement;
+  let w = wrap && wrap.clientWidth > 0 ? wrap.clientWidth - 32 : window.innerWidth - 64;
+  w = Math.min(Math.max(w, 240), 700);
+  tc.width = w;
+  tc.height = w > 500 ? 300 : 200;
   clearTrace();
 }
 resizeCanvas();

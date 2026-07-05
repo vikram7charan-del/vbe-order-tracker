@@ -1039,7 +1039,7 @@ function renderSmart(list){
       if(nextMs<0){ t='LATE'; tc='red'; }
       else { t=fmtCompact(nextMs); tc=nextMs<5*60*1000?'amber':'green'; }
     }
-    const actN=normTopics(c).filter(x=>!x.done).length;
+    const actN=normTopics(c).filter(x=>!x.done).length+assignedTo(c.id).length;
     return `<div class="sv-item ${cls}" style="animation-delay:${dly}ms" onclick="openSmartPop('${c.id}')"
       ontouchstart="svTS(event,'${c.id}')" ontouchmove="svTM(event)" ontouchend="svTE(event)">
       <div class="sv-av" style="background:${c.color||COLORS[0]};font-size:${c.emoji?'16px':'9px'}">${escH(avatarContent(c))}<span class="s-dot ${c.pinned?'pinned':s}"></span></div>
@@ -1310,6 +1310,20 @@ function normTopics(c){
   return c.note?[{t:c.note,done:false,doneAt:null}]:[];
 }
 function topicsOf(c){ return normTopics(c).filter(x=>!x.done).map(x=>x.t); }
+/* ── Staff assignment — मेरी टीम (tag: jalipa) के लोग ── */
+function staffList(){ return contacts.filter(c=>c.active!==false&&c.tag==='jalipa'); }
+function staffName(id){ const s=contacts.find(x=>x.id===id); return s?s.name:'?'; }
+/* इस staff को दूसरे contacts से सौंपे गए active काम */
+function assignedTo(staffId){
+  const out=[];
+  contacts.forEach(c=>{
+    if(c.id===staffId||c.active===false) return;
+    normTopics(c).forEach((x,i)=>{
+      if(!x.done&&x.assignTo===staffId) out.push({...x,i,srcId:c.id,srcName:c.name||'?'});
+    });
+  });
+  return out;
+}
 /* श्रेणी के हिसाब से grouped active topics (गोल्डन → कंप्यूटर → मार्केट → जालीपा → बाकी) */
 function groupedActive(c){
   const order={golden:0,computer:1,market:2,jalipa:3};
@@ -1318,11 +1332,15 @@ function groupedActive(c){
 }
 function topicListHTML(c){
   const act=groupedActive(c);
-  if(!act.length) return '';
+  const asg=assignedTo(c.id);
+  if(!act.length&&!asg.length) return '';
   const multi=act.length>1;
   return `<div class="c-topics">${act.map((x,n)=>{
     const ci=catInfo(x.cat);
-    return `<div class="c-topic"><span class="tp-chk" onclick="event.stopPropagation();doneTopic('${c.id}',${x.i})"></span>${ci?ci.logo+' ':''}${multi?`<span class="tnum">${n+1}.</span>`:''}${escH(x.t)}</div>`;
+    return `<div class="c-topic"><span class="tp-chk" onclick="event.stopPropagation();doneTopic('${c.id}',${x.i})"></span>${ci?ci.logo+' ':''}${multi?`<span class="tnum">${n+1}.</span>`:''}${escH(x.t)}${x.assignTo?` <span style="font-size:10px;color:#4ade80;font-weight:800">→👤${escH(staffName(x.assignTo))}</span>`:''}</div>`;
+  }).join('')}${asg.map(x=>{
+    const ci=catInfo(x.cat);
+    return `<div class="c-topic" style="color:#86efac"><span class="tp-chk" style="border-color:#22c55e" onclick="event.stopPropagation();doneTopic('${x.srcId}',${x.i})"></span>${ci?ci.logo+' ':''}${escH(x.t)} <span style="font-size:10px;opacity:.7">(📌 ${escH(x.srcName)})</span></div>`;
   }).join('')}</div>`;
 }
 window.doneTopic=function(id,idx){
@@ -1411,7 +1429,7 @@ window.delLogEntry=function(id,idx){
 };
 
 /* Topic editor (modal में) — add / delete / ▲▼ reorder / श्रेणी cycle */
-let selTopics=[{t:'',cat:''}];
+let selTopics=[{t:'',cat:'',assignTo:''}];
 function escAttr(s){ return escH(s).replace(/"/g,'&quot;'); }
 function nextCat(cur){
   const cats=['','golden','computer','market','jalipa'];
@@ -1419,8 +1437,8 @@ function nextCat(cur){
 }
 function readTopicInputs(){
   const vals=[...document.querySelectorAll('.topic-inp')].map(i=>i.value);
-  selTopics=vals.map((v,i)=>({t:v,cat:(selTopics[i]&&selTopics[i].cat)||''}));
-  if(!selTopics.length) selTopics=[{t:'',cat:''}];
+  selTopics=vals.map((v,i)=>({t:v,cat:(selTopics[i]&&selTopics[i].cat)||'',assignTo:(selTopics[i]&&selTopics[i].assignTo)||''}));
+  if(!selTopics.length) selTopics=[{t:'',cat:'',assignTo:''}];
 }
 function renderTopicRows(){
   document.getElementById('topic-rows').innerHTML=selTopics.map((x,i)=>{
@@ -1445,12 +1463,12 @@ window.moveTopic=function(i,d){
 window.delTopicRow=function(i){
   readTopicInputs();
   selTopics.splice(i,1);
-  if(!selTopics.length) selTopics=[{t:'',cat:''}];
+  if(!selTopics.length) selTopics=[{t:'',cat:'',assignTo:''}];
   renderTopicRows();
 };
 window.addTopicRow=function(){
   readTopicInputs();
-  selTopics.push({t:'',cat:''});
+  selTopics.push({t:'',cat:'',assignTo:''});
   renderTopicRows();
   setTimeout(()=>{ const els=document.querySelectorAll('.topic-inp'); if(els.length) els[els.length-1].focus(); },60);
 };
@@ -1482,6 +1500,7 @@ function renderSmartPop(){
   if(!c){ closeSmartPop(); return; }
   const tps=groupedActive(c);
   const doneT=normTopics(c).map((x,i)=>({...x,i})).filter(x=>x.done);
+  const asg=assignedTo(c.id); // इस व्यक्ति (staff) को सौंपे गए काम
   const prev=(c.callLog||[]).filter(l=>l.note).slice(-1)[0];
   const hasWA=!!(c.waPhone||c.phone);
   // Filter chips — tap करके सीधे बदलो
@@ -1503,10 +1522,14 @@ function renderSmartPop(){
       ${tps.length?`<div style="font-size:9px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">🗣️ किस बारे में बात करनी है</div>`:''}
       ${tps.map((x,n)=>{
         const ci=catInfo(x.cat);
-        return `<div style="display:flex;align-items:flex-start;gap:7px;padding:4px 0">
+        return `<div style="display:flex;align-items:flex-start;gap:6px;padding:4px 0">
         <span class="tp-chk" style="margin-top:1px" onclick="doneTopic('${c.id}',${x.i})"></span>
-        <span style="flex:1;font-size:13.5px;font-weight:700;color:#fbbf24;line-height:1.4;word-break:break-word">${ci?ci.logo+' ':''}${tps.length>1?(n+1)+'. ':''}${escH(x.t)}</span>
-        <span onclick="spPickCat('${c.id}',${x.i})" style="cursor:pointer;font-size:15px;width:30px;text-align:center;flex-shrink:0;padding:1px 0;border:1px dashed rgba(100,116,139,.4);border-radius:7px;margin-left:4px" title="श्रेणी चुनें">${ci?ci.logo:'⬜'}</span>
+        <span style="flex:1;min-width:0">
+          <span style="font-size:13.5px;font-weight:700;color:#fbbf24;line-height:1.4;word-break:break-word">${ci?ci.logo+' ':''}${tps.length>1?(n+1)+'. ':''}${escH(x.t)}</span>
+          ${x.assignTo?`<div style="font-size:10px;color:#4ade80;font-weight:800;margin-top:1px">👤 ${escH(staffName(x.assignTo))} को सौंपा</div>`:''}
+        </span>
+        <span onclick="spPickAssign('${c.id}',${x.i})" style="cursor:pointer;font-size:13px;width:27px;text-align:center;flex-shrink:0;padding:2px 0;border:1px dashed ${x.assignTo?'rgba(34,197,94,.65)':'rgba(100,116,139,.4)'};border-radius:7px" title="Staff को सौंपें">👤</span>
+        <span onclick="spPickCat('${c.id}',${x.i})" style="cursor:pointer;font-size:15px;width:29px;text-align:center;flex-shrink:0;padding:1px 0;border:1px dashed rgba(100,116,139,.4);border-radius:7px" title="श्रेणी चुनें">${ci?ci.logo:'⬜'}</span>
       </div>`;
       }).join('')}
       ${(()=>{
@@ -1522,6 +1545,19 @@ function renderSmartPop(){
         </div>`;
       })()}
     </div>`:''}
+    ${asg.length?`<div style="background:#04190f;border:1px solid rgba(34,197,94,.4);border-radius:11px;padding:9px 11px;margin-bottom:8px">
+      <div style="font-size:9px;font-weight:800;color:#4ade80;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">👥 इनको सौंपे गए काम (${asg.length})</div>
+      ${asg.map((x,n)=>{
+        const ci=catInfo(x.cat);
+        return `<div style="display:flex;align-items:flex-start;gap:7px;padding:4px 0">
+        <span class="tp-chk" style="margin-top:1px;border-color:#22c55e" onclick="doneTopic('${x.srcId}',${x.i})"></span>
+        <span style="flex:1;min-width:0">
+          <span style="font-size:13.5px;font-weight:700;color:#86efac;line-height:1.4;word-break:break-word">${ci?ci.logo+' ':''}${n+1}. ${escH(x.t)}</span>
+          <div style="font-size:10px;color:#64748b;margin-top:1px">📌 ${escH(x.srcName)} का काम</div>
+        </span>
+      </div>`;
+      }).join('')}
+    </div>`:''}
     <div style="margin-bottom:10px">
       <input class="inp" id="sp-new1" placeholder="➕ नया काम सीधे यहाँ लिखें..." style="padding:9px 11px;font-size:12.5px;margin-bottom:6px" onkeydown="if(event.key==='Enter')spSaveNewTasks()">
       <div style="display:flex;gap:6px">
@@ -1530,7 +1566,7 @@ function renderSmartPop(){
       </div>
     </div>
     ${prev?`<div style="font-size:11.5px;color:#94a3b8;font-style:italic;margin-bottom:10px;line-height:1.45">🕘 पिछली बार: ${escH(prev.note)}</div>`:''}
-    ${tps.length&&hasWA?`<button class="qd-btn qd-wa" style="width:100%;margin-bottom:7px;padding:10px" onclick="spSendTasks()">📤 सारे काम WhatsApp पर भेजो</button>`:''}
+    ${(tps.length||asg.length)&&hasWA?`<button class="qd-btn qd-wa" style="width:100%;margin-bottom:7px;padding:10px" onclick="spSendTasks()">📤 सारे काम WhatsApp पर भेजो</button>`:''}
     <div class="qd-btns" style="margin-bottom:7px">
       <button class="qd-btn qd-call" onclick="spCall()">📞 Call</button>
       ${hasWA?`<button class="qd-btn qd-wa" onclick="spWA()">💬 WA</button>`:''}
@@ -1549,7 +1585,7 @@ window.spSaveNewTasks=function(){
   if(!c) return;
   const v1=(document.getElementById('sp-new1')||{}).value||'';
   const v2=(document.getElementById('sp-new2')||{}).value||'';
-  const add=[v1.trim(),v2.trim()].filter(Boolean).map(t=>({t,done:false,doneAt:null,cat:''}));
+  const add=[v1.trim(),v2.trim()].filter(Boolean).map(t=>({t,done:false,doneAt:null,cat:'',assignTo:''}));
   if(!add.length){ toast('⚠️ पहले काम लिखें','warn'); return; }
   const tps=normTopics(c);
   const act=tps.filter(x=>!x.done), don=tps.filter(x=>x.done);
@@ -1587,9 +1623,52 @@ window.closeCatPick=function(){
   document.getElementById('cat-bg').style.display='none';
   document.getElementById('cat-pop').style.display='none';
   _catPick=null;
+  if(typeof _asPick!=='undefined') _asPick=null;
 };
 window.spPickCat=function(id,idx){ openCatPick('topic',id,idx); };
 window.rowPickCat=function(i){ readTopicInputs(); openCatPick('row',null,i); };
+
+/* ══ STAFF ASSIGN PICKER — मेरी टीम में से चुनो ══ */
+let _asPick=null;
+window.spPickAssign=function(id,idx){
+  const staff=staffList().filter(s=>s.id!==id);
+  if(!staff.length){ toast('⚠️ पहले किसी contact पर "👥 मेरी टीम" tag लगाएं — वही staff बनेंगे','warn'); return; }
+  _asPick={id,idx};
+  const c=contacts.find(x=>x.id===id);
+  const t=c&&normTopics(c)[idx];
+  const cur=(t&&t.assignTo)||'';
+  document.getElementById('cat-pop').innerHTML=
+    `<div style="font-size:13.5px;font-weight:900;color:#e2e8f0;margin-bottom:10px">👤 यह काम किसको सौंपें?</div>`
+    +staff.map(s=>`
+      <div onclick="pickAssign('${s.id}')" style="display:flex;align-items:center;gap:10px;padding:10px 11px;border-radius:12px;cursor:pointer;margin-bottom:5px;touch-action:manipulation;border:1.5px solid ${cur===s.id?'#22c55e':'rgba(30,58,95,.6)'};background:${cur===s.id?'rgba(34,197,94,.12)':'#060d1a'}">
+        <span style="width:30px;height:30px;border-radius:50%;background:${s.color||COLORS[0]};display:flex;align-items:center;justify-content:center;font-size:${s.emoji?'15px':'9px'};font-weight:900;color:#fff;flex-shrink:0">${escH(avatarContent(s))}</span>
+        <span style="font-size:13.5px;font-weight:800;color:${cur===s.id?'#4ade80':'#cbd5e1'};flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escH(s.name)}</span>
+        ${cur===s.id?'<span style="color:#4ade80;font-weight:900">✓</span>':''}
+      </div>`).join('')
+    +`<div onclick="pickAssign('')" style="display:flex;align-items:center;gap:10px;padding:10px 11px;border-radius:12px;cursor:pointer;border:1.5px solid rgba(30,58,95,.6);background:#060d1a;touch-action:manipulation">
+        <span style="font-size:17px;width:30px;text-align:center">⬜</span>
+        <span style="font-size:13.5px;font-weight:800;color:#94a3b8">किसी को नहीं</span>
+      </div>`;
+  document.getElementById('cat-bg').style.display='block';
+  const p=document.getElementById('cat-pop');
+  p.style.display='block';
+  p.style.animation='none';
+  requestAnimationFrame(()=>{ p.style.animation='popIn .18s cubic-bezier(.4,0,.2,1)'; });
+};
+window.pickAssign=function(sid){
+  const p=_asPick;
+  _asPick=null;
+  closeCatPick();
+  if(!p) return;
+  const c=contacts.find(x=>x.id===p.id);
+  if(!c) return;
+  const tps=normTopics(c);
+  if(!tps[p.idx]) return;
+  tps[p.idx].assignTo=sid||'';
+  c.topics=tps;
+  render(); fbSave(c);
+  toast(sid?('👤 '+staffName(sid)+' को सौंपा — उनके card पर भी दिखेगा'):'👤 Assignment हटाया');
+};
 window.pickCat=function(k){
   const p=_catPick;
   closeCatPick();
@@ -1614,19 +1693,30 @@ window.spSendTasks=function(){
   const c=contacts.find(x=>x.id===_spId);
   if(!c) return;
   const tps=groupedActive(c);
-  if(!tps.length){ toast('⚠️ कोई बाकी काम नहीं','warn'); return; }
+  const asg=assignedTo(c.id);
+  if(!tps.length&&!asg.length){ toast('⚠️ कोई बाकी काम नहीं','warn'); return; }
   const rawPh=c.waPhone||c.phone;
   if(!rawPh){ toast('⚠️ नंबर नहीं है','err'); return; }
-  let msg=`नमस्ते *${c.name}* 🙏\nआपके महत्वपूर्ण काम:\n\n`;
-  tps.forEach((x,n)=>{
-    const ci=catInfo(x.cat);
-    msg+=`${n+1}. ${ci?ci.logo+' ':''}${x.t}\n`;
-  });
+  let msg=`नमस्ते *${c.name}* 🙏\n`;
+  if(tps.length){
+    msg+=`आपके महत्वपूर्ण काम:\n\n`;
+    tps.forEach((x,n)=>{
+      const ci=catInfo(x.cat);
+      msg+=`${n+1}. ${ci?ci.logo+' ':''}${x.t}\n`;
+    });
+  }
+  if(asg.length){
+    msg+=`\n👥 आपको सौंपे गए काम:\n\n`;
+    asg.forEach((x,n)=>{
+      const ci=catInfo(x.cat);
+      msg+=`${n+1}. ${ci?ci.logo+' ':''}${x.t} (📌 ${x.srcName})\n`;
+    });
+  }
   msg+='\n– Vande Bharat Enterprises';
   const ph=rawPh.replace(/[^0-9]/g,'');
   const num=ph.length===10?'91'+ph:ph;
   window.open('https://wa.me/'+num+'?text='+encodeURIComponent(msg),'_blank');
-  toast('📤 '+tps.length+' काम WhatsApp पर भेजे');
+  toast('📤 '+(tps.length+asg.length)+' काम WhatsApp पर भेजे');
 };
 /* Popup से filter/tag बदलो */
 window.spSetTag=function(k){
@@ -1867,7 +1957,7 @@ window.editContact=function(id){
   document.getElementById('f-phone').value=c.phone||'';
   document.getElementById('f-waph').value=c.waPhone||'';
   const actT=normTopics(c).filter(x=>!x.done);
-  selTopics=actT.length?actT.map(x=>({t:x.t,cat:x.cat||''})):[{t:'',cat:''}];
+  selTopics=actT.length?actT.map(x=>({t:x.t,cat:x.cat||'',assignTo:x.assignTo||''})):[{t:'',cat:'',assignTo:''}];
   renderTopicRows();
   document.getElementById('f-alarm').value=c.alarmTime||'';
   selInterval=c.intervalMins||30; selColor=c.color||COLORS[0]; selEmoji=c.emoji||''; selTag=c.tag||'';
@@ -1891,7 +1981,7 @@ window.openAddModal=function(){
   document.getElementById('f-name').value='';
   document.getElementById('f-phone').value='';
   document.getElementById('f-waph').value='';
-  selTopics=[{t:'',cat:''}];
+  selTopics=[{t:'',cat:'',assignTo:''}];
   renderTopicRows();
   document.getElementById('f-alarm').value='';
   selInterval=30; selColor=COLORS[0]; selEmoji=''; selTag='';
@@ -1907,7 +1997,7 @@ window.saveContact=function(){
   const waPhoneRaw=normalizePhone(document.getElementById('f-waph').value||'');
   const waPhone=(waPhoneRaw&&waPhoneRaw.length>=10)?waPhoneRaw:'';
   readTopicInputs();
-  const activeTopics=selTopics.filter(x=>x.t.trim()).map(x=>({t:x.t.trim(),done:false,doneAt:null,cat:x.cat||''}));
+  const activeTopics=selTopics.filter(x=>x.t.trim()).map(x=>({t:x.t.trim(),done:false,doneAt:null,cat:x.cat||'',assignTo:x.assignTo||''}));
   // पूरे हुए काम edit में नहीं दिखते — उन्हें preserve करो
   const oldC=editingId?contacts.find(x=>x.id===editingId):null;
   const doneTopics=oldC?normTopics(oldC).filter(x=>x.done):[];

@@ -1310,8 +1310,14 @@ function normTopics(c){
   return c.note?[{t:c.note,done:false,doneAt:null}]:[];
 }
 function topicsOf(c){ return normTopics(c).filter(x=>!x.done).map(x=>x.t); }
-/* ── Staff assignment — मेरी टीम (tag: jalipa) के लोग ── */
-function staffList(){ return contacts.filter(c=>c.active!==false&&c.tag==='jalipa'); }
+/* ── Staff assignment — जो filter "टीम" है उसके लोग ── */
+function teamKey(){
+  const marked=TAG_LIST.find(t=>t.team);
+  if(marked) return marked.k;
+  const byName=TAG_LIST.find(t=>/टीम|team/i.test(t.label||''));
+  return byName?byName.k:'jalipa';
+}
+function staffList(){ const tk=teamKey(); return contacts.filter(c=>c.active!==false&&c.tag===tk); }
 function staffName(id){ const s=contacts.find(x=>x.id===id); return s?s.name:'?'; }
 /* इस staff को दूसरे contacts से सौंपे गए active काम */
 function assignedTo(staffId){
@@ -2114,12 +2120,13 @@ function renderTagEditor(){
     <div style="display:flex;align-items:center;gap:4px;margin-bottom:6px">
       <span style="width:11px;height:11px;border-radius:50%;background:${t.color};flex-shrink:0"></span>
       <input class="inp te-inp" data-i="${i}" value="${escAttr(t.label)}" style="flex:1;min-width:0;padding:8px 10px;font-size:12.5px">
+      <button class="tr-btn" type="button" onclick="teTeam(${i})" title="इसे टीम वाला filter बनाओ" style="${t.team?'border-color:#22c55e;color:#4ade80;background:rgba(34,197,94,.12)':''}">👥</button>
       <button class="tr-btn" type="button" onclick="teMove(${i},-1)" ${i===0?'disabled':''}>▲</button>
       <button class="tr-btn" type="button" onclick="teMove(${i},1)" ${i===_teList.length-1?'disabled':''}>▼</button>
       <button class="tr-btn tr-del" type="button" onclick="teDel(${i})">✕</button>
     </div>`).join('')
     +`<button class="btn-add-topic" type="button" onclick="teAdd()">➕ नया filter जोड़ें</button>
-    <div style="font-size:9px;color:#475569;margin-top:6px">💡 नाम की शुरुआत में emoji लिखें — वही logo बनेगा (जैसे 🚚 गाड़ी वाले)</div>`;
+    <div style="font-size:9px;color:#475569;margin-top:6px">💡 नाम की शुरुआत में emoji = logo · 👥 दबाकर टीम वाला filter चुनें (काम उन्हीं को सौंपे जाएंगे)</div>`;
 }
 function teRead(){
   document.querySelectorAll('.te-inp').forEach(inp=>{
@@ -2147,13 +2154,19 @@ window.teAdd=function(){
   renderTagEditor();
   setTimeout(()=>{ const els=document.querySelectorAll('.te-inp'); if(els.length){ els[els.length-1].focus(); els[els.length-1].select(); } },60);
 };
+window.teTeam=function(i){
+  teRead();
+  _teList.forEach((t,j)=>{ t.team=(j===i); });
+  renderTagEditor();
+  toast('👥 "'+_teList[i].label+'" अब टीम वाला filter है — काम इन्हीं को सौंपे जा सकेंगे');
+};
 window.closeTagEditor=function(){
   document.getElementById('te-bg').style.display='none';
   document.getElementById('te-popup').style.display='none';
 };
 window.saveTagLabels=async function(){
   teRead();
-  const clean=_teList.map(t=>({k:t.k,label:(t.label||'').trim()||'filter',color:t.color}));
+  const clean=_teList.map(t=>({k:t.k,label:(t.label||'').trim()||'filter',color:t.color,team:!!t.team}));
   if(!clean.length){ toast('⚠️ कम से कम 1 filter चाहिए','err'); return; }
   TAG_LIST=clean; rebuildTags();
   closeTagEditor();

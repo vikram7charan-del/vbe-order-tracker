@@ -1353,8 +1353,22 @@ function doneListHTML(c){
       <span style="flex:1;font-size:12px;color:#64748b;text-decoration:line-through;word-break:break-word">${escH(x.t)}</span>
       <span style="font-size:9px;color:#334155;flex-shrink:0">${x.doneAt?new Date(x.doneAt).toLocaleDateString('hi-IN',{day:'numeric',month:'short'}):''}</span>
       <button class="log-btn" onclick="undoneTopic('${c.id}',${x.i})" title="वापस लाओ">↩️</button>
+      <button class="log-btn del" onclick="delTopicPermanent('${c.id}',${x.i})" title="हमेशा के लिए मिटाओ">🗑</button>
     </div>`).join('')}</div>`;
 }
+/* परमानेंट डिलीट — सिर्फ़ पूरे हुए काम, confirm के साथ */
+window.delTopicPermanent=function(id,idx){
+  const c=contacts.find(x=>x.id===id);
+  if(!c) return;
+  const tps=normTopics(c);
+  if(!tps[idx]) return;
+  if(!confirm(`"${tps[idx].t.slice(0,40)}" हमेशा के लिए मिटाएं?`)) return;
+  tps.splice(idx,1);
+  c.topics=tps;
+  c.note=tps.filter(x=>!x.done).map(x=>x.t).join(' · ');
+  render(); fbSave(c);
+  toast('🗑️ काम हमेशा के लिए हटाया','warn');
+};
 
 /* ──────── Archive (📦 बंद) — record रहता है, list से हटता है ──────── */
 window.archiveContact=function(id){
@@ -1471,6 +1485,7 @@ function renderSmartPop(){
   const c=contacts.find(x=>x.id===_spId);
   if(!c){ closeSmartPop(); return; }
   const tps=groupedActive(c);
+  const doneT=normTopics(c).map((x,i)=>({...x,i})).filter(x=>x.done);
   const prev=(c.callLog||[]).filter(l=>l.note).slice(-1)[0];
   const hasWA=!!(c.waPhone||c.phone);
   // Filter chips — tap करके सीधे बदलो
@@ -1488,16 +1503,28 @@ function renderSmartPop(){
       <span class="qd-close" onclick="closeSmartPop()">✕</span>
     </div>
     ${tagRow}
-    ${tps.length?`<div style="background:#060d1a;border:1px solid rgba(30,58,95,.7);border-radius:11px;padding:9px 11px;margin-bottom:8px">
-      <div style="font-size:9px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">🗣️ किस बारे में बात करनी है</div>
+    ${(tps.length||doneT.length)?`<div style="background:#060d1a;border:1px solid rgba(30,58,95,.7);border-radius:11px;padding:9px 11px;margin-bottom:8px">
+      ${tps.length?`<div style="font-size:9px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">🗣️ किस बारे में बात करनी है</div>`:''}
       ${tps.map((x,n)=>{
         const ci=catInfo(x.cat);
-        return `<div style="display:flex;align-items:flex-start;gap:6px;padding:3px 0">
+        return `<div style="display:flex;align-items:flex-start;gap:7px;padding:4px 0">
         <span class="tp-chk" style="margin-top:1px" onclick="doneTopic('${c.id}',${x.i})"></span>
-        <span onclick="spCycleCat('${c.id}',${x.i})" style="cursor:pointer;font-size:14px;width:20px;text-align:center;flex-shrink:0" title="श्रेणी बदलें">${ci?ci.logo:'⬜'}</span>
-        <span style="flex:1;font-size:13.5px;font-weight:700;color:#fbbf24;line-height:1.4;word-break:break-word">${tps.length>1?(n+1)+'. ':''}${escH(x.t)}</span>
+        <span style="flex:1;font-size:13.5px;font-weight:700;color:#fbbf24;line-height:1.4;word-break:break-word">${ci?ci.logo+' ':''}${tps.length>1?(n+1)+'. ':''}${escH(x.t)}</span>
+        <span onclick="spCycleCat('${c.id}',${x.i})" style="cursor:pointer;font-size:15px;width:30px;text-align:center;flex-shrink:0;padding:1px 0;border:1px dashed rgba(100,116,139,.4);border-radius:7px;margin-left:4px" title="श्रेणी बदलें">${ci?ci.logo:'⬜'}</span>
       </div>`;
       }).join('')}
+      ${(()=>{
+        const doneT=normTopics(c).map((x,i)=>({...x,i})).filter(x=>x.done);
+        if(!doneT.length) return '';
+        return `<div style="border-top:1.5px dashed rgba(100,116,139,.45);margin-top:7px;padding-top:6px">
+          <div style="font-size:9px;font-weight:800;color:#4ade80;margin-bottom:3px">✅ पूरे हुए काम (${doneT.length}) — गलती हुई तो ↩️ से वापस लाएं</div>
+          ${doneT.map(x=>`<div style="display:flex;align-items:center;gap:6px;padding:3px 0">
+            <span style="flex:1;font-size:12px;color:#64748b;text-decoration:line-through;word-break:break-word">${escH(x.t)}</span>
+            <button class="log-btn" onclick="undoneTopic('${c.id}',${x.i})" title="वापस काम की सूची में">↩️</button>
+            <button class="log-btn del" onclick="delTopicPermanent('${c.id}',${x.i})" title="हमेशा के लिए मिटाओ">🗑</button>
+          </div>`).join('')}
+        </div>`;
+      })()}
     </div>`:''}
     <div style="margin-bottom:10px">
       <input class="inp" id="sp-new1" placeholder="➕ नया काम सीधे यहाँ लिखें..." style="padding:9px 11px;font-size:12.5px;margin-bottom:6px" onkeydown="if(event.key==='Enter')spSaveNewTasks()">

@@ -81,18 +81,6 @@ body{
   display:flex;align-items:center;gap:5px;
 }
 .btn-add-big:active{transform:scale(.94)}
-/* श्रेणी Hub — category quick buttons row */
-.cathub-row{display:flex;gap:6px;margin-bottom:9px}
-.cathub-btn{
-  flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
-  padding:7px 3px;border-radius:12px;cursor:pointer;touch-action:manipulation;
-  background:linear-gradient(135deg,#0c1528,#0a1120);border:1.5px solid rgba(59,130,246,.28);
-  transition:transform .12s,border-color .15s;
-}
-.cathub-btn:active{transform:scale(.93)}
-.cathub-ico{font-size:20px;line-height:1}
-.cathub-lbl{font-size:8.5px;font-weight:800;color:#94a3b8;text-align:center;line-height:1.1}
-.cathub-cnt{font-size:10px;font-weight:900;color:#60a5fa;line-height:1}
 /* Category Hub full modal */
 .hub-bg{position:fixed;inset:0;background:rgba(2,6,14,.92);z-index:250;display:none;overflow-y:auto;backdrop-filter:blur(3px)}
 .hub-wrap{max-width:480px;margin:0 auto;padding:14px 12px 40px;min-height:100dvh}
@@ -102,16 +90,19 @@ body{
 .hub-tabs::-webkit-scrollbar{display:none}
 .hub-tab{flex-shrink:0;display:flex;align-items:center;gap:5px;padding:8px 13px;border-radius:20px;font-size:12px;font-weight:800;cursor:pointer;background:#0c1528;border:1.5px solid #1e3a5f;color:#94a3b8;touch-action:manipulation}
 .hub-tab.on{background:rgba(59,130,246,.16);border-color:#3b82f6;color:#60a5fa}
-.hub-item{background:#07111e;border:1.5px solid rgba(30,58,95,.75);border-left-width:4px;border-radius:12px;padding:10px 11px;margin-bottom:8px;animation:fadeIn .3s cubic-bezier(.2,.7,.3,1) both}
-.hub-task{font-size:14px;font-weight:800;color:#e2e8f0;line-height:1.4;word-break:break-word;display:flex;align-items:flex-start;gap:8px}
-.hub-meta{font-size:11px;color:#64748b;margin-top:5px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.hub-item{background:#07111e;border:1px solid rgba(30,58,95,.7);border-left-width:3px;border-radius:9px;padding:7px 8px;margin-bottom:5px;animation:fadeIn .25s ease both}
+.hub-top{display:flex;align-items:flex-start;gap:7px}
+.hub-chk{width:16px;height:16px;border-radius:50%;border:2px solid #f59e0b;flex-shrink:0;margin-top:2px;cursor:pointer;touch-action:manipulation}
+.hub-chk:active{background:rgba(34,197,94,.4)}
+.hub-body{flex:1;min-width:0}
+.hub-task{font-size:12.5px;font-weight:700;color:#e2e8f0;line-height:1.35;word-break:break-word}
+.hub-meta{font-size:10px;margin-top:2px;display:flex;flex-wrap:wrap;gap:7px;align-items:center}
 .hub-src{color:#fbbf24;font-weight:700}
 .hub-asg{color:#4ade80;font-weight:700}
-.hub-acts{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
-.hub-act{padding:6px 11px;border-radius:9px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;border:1.5px solid rgba(30,58,95,.8);background:#0d1526;color:#94a3b8;touch-action:manipulation}
-.hub-act:active{opacity:.7}
+.hub-acts{display:flex;gap:4px;flex-shrink:0}
+.hub-act{width:30px;height:30px;padding:0;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;border:1px solid rgba(30,58,95,.8);background:#0d1526;color:#94a3b8;touch-action:manipulation;display:flex;align-items:center;justify-content:center}
+.hub-act:active{opacity:.65}
 .hub-act.call{background:linear-gradient(135deg,#059669,#22c55e);color:#fff;border:none}
-.hub-act.done{background:#0f1e0a;border-color:rgba(34,197,94,.4);color:#4ade80}
 
 /* ── Horizontal Strip — pill chips ── */
 .strip{display:flex;gap:8px;overflow-x:auto;padding:5px 13px 9px;scrollbar-width:none;-ms-overflow-style:none}
@@ -513,6 +504,7 @@ body.th-geo .btn-add-big{background:linear-gradient(135deg,#6366f1,#a855f7);box-
         <div class="hdr-sub" id="hdr-sub">Follow-up Accountability</div>
       </div>
       <div class="hdr-btns">
+        <button class="btn-icon" onclick="openHub()" title="श्रेणी Hub — category-wise सारे काम" style="cursor:pointer;font-family:inherit">🗂️</button>
         <button class="btn-icon" id="view-btn" onclick="toggleView()" title="Layout बदलें" style="cursor:pointer;font-family:inherit">🔲</button>
         <button class="btn-icon" onclick="cycleTheme()" title="Theme बदलें" style="cursor:pointer;font-family:inherit">🎨</button>
         <button class="btn-icon" onclick="unhideAll()" title="Swipe किए हुए सब वापस लाओ" style="cursor:pointer;font-family:inherit">👁️</button>
@@ -531,9 +523,6 @@ body.th-geo .btn-add-big{background:linear-gradient(135deg,#6366f1,#a855f7);box-
       </div>
       <button class="btn-add-big" onclick="openAddModal()">➕ नया</button>
     </div>
-
-    <!-- श्रेणी Hub — चारों category एक-एक click में, सबके काम एक जगह -->
-    <div class="cathub-row" id="cathub-row"></div>
   </div>
 
   <!-- Filter bar — sticky, हमेशा ऊपर दिखती है -->
@@ -931,7 +920,7 @@ function render(){
   const list=sorted();
   const cl=document.getElementById('card-list');
   if(cl) cl.classList.toggle('no-anim',!_animNext);
-  renderStrip(list); renderCards(list); renderStats(list); updateHdrSub(); renderCatHub();
+  renderStrip(list); renderCards(list); renderStats(list); updateHdrSub();
   if(hubOpenNow()) renderHub();
   _animNext=false;
   // Hidden count बदला (10 min बाद वापस आए) तो filter bar refresh
@@ -1395,20 +1384,10 @@ function tasksByCat(ck){
 }
 function catCount(ck){ return tasksByCat(ck).length; }
 /* Header की 4 category buttons */
-function renderCatHub(){
-  const el=document.getElementById('cathub-row');
-  if(!el) return;
-  el.innerHTML=TASK_CATS.map(tc=>{
-    const n=catCount(tc.k);
-    return `<div class="cathub-btn" onclick="openHub('${tc.k}')">
-      <span class="cathub-ico">${tc.logo}</span>
-      <span class="cathub-lbl">${escH(tc.label)}</span>
-      <span class="cathub-cnt">${n}</span>
-    </div>`;
-  }).join('');
-}
+function renderCatHub(){ /* बड़ी row हटा दी — अब सिर्फ 🗂️ button से hub खुलता है */ }
 window.openHub=function(ck){
-  _hubCat=ck||'golden';
+  if(ck) _hubCat=ck;
+  if(!_hubCat) _hubCat='golden';
   document.getElementById('hub-bg').style.display='block';
   renderHub();
 };
@@ -1427,16 +1406,21 @@ function renderHub(){
     const c=contacts.find(z=>z.id===x.srcId);
     const clr=c?(c.color||COLORS[0]):COLORS[0];
     return `<div class="hub-item" style="border-left-color:${clr}">
-      <div class="hub-task"><span class="tp-chk" style="margin-top:2px" onclick="hubDone('${x.srcId}',${x.i})"></span><span>${n+1}. ${escH(x.t)}</span></div>
-      <div class="hub-meta">
-        <span class="hub-src">📌 ${escH(x.srcName)}</span>
-        ${x.assignTo?`<span class="hub-asg">👤 ${escH(staffName(x.assignTo))}</span>`:''}
-      </div>
-      <div class="hub-acts">
-        <button class="hub-act call" onclick="hubCall('${x.srcId}')">📞 Call</button>
-        <button class="hub-act" onclick="hubReCat('${x.srcId}',${x.i})">🏷️ श्रेणी</button>
-        <button class="hub-act" onclick="hubAssign('${x.srcId}',${x.i})">👤 सौंपो</button>
-        <button class="hub-act" onclick="hubOpen('${x.srcId}')">↗ खोलो</button>
+      <div class="hub-top">
+        <span class="hub-chk" onclick="hubDone('${x.srcId}',${x.i})"></span>
+        <div class="hub-body">
+          <div class="hub-task">${n+1}. ${escH(x.t)}</div>
+          <div class="hub-meta">
+            <span class="hub-src">📌 ${escH(x.srcName)}</span>
+            ${x.assignTo?`<span class="hub-asg">👤 ${escH(staffName(x.assignTo))}</span>`:''}
+          </div>
+        </div>
+        <div class="hub-acts">
+          <button class="hub-act call" onclick="hubCall('${x.srcId}')" title="Call">📞</button>
+          <button class="hub-act" onclick="hubReCat('${x.srcId}',${x.i})" title="श्रेणी बदलो">🏷️</button>
+          <button class="hub-act" onclick="hubAssign('${x.srcId}',${x.i})" title="सौंपो">👤</button>
+          <button class="hub-act" onclick="hubOpen('${x.srcId}')" title="खोलो">↗</button>
+        </div>
       </div>
     </div>`;
   }).join('');

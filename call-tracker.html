@@ -322,6 +322,8 @@ body{
 .emoji-btn{width:38px;height:38px;border-radius:9px;background:#060d1a;border:2px solid transparent;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation;transition:border-color .15s,background .15s}
 .emoji-btn.on{border-color:#f59e0b;background:rgba(245,158,11,.14)}
 .btn-clear-emoji{font-size:10px;font-weight:800;color:#475569;background:transparent;border:1px solid #1e3a5f;border-radius:7px;padding:4px 9px;cursor:pointer;font-family:inherit;margin-top:6px;touch-action:manipulation}
+.emoji-toggle{flex:1;font-size:12px;font-weight:800;color:#93c5fd;background:#0a1424;border:1.5px solid rgba(59,130,246,.4);border-radius:10px;padding:11px 10px;cursor:pointer;font-family:inherit;touch-action:manipulation}
+.emoji-toggle:active{opacity:.7}
 
 /* Alarm row in card detail */
 .det-alarm{display:flex;align-items:center;gap:7px;padding:5px 12px 7px;border-top:1px solid rgba(15,30,54,.9)}
@@ -511,6 +513,7 @@ body.th-geo .btn-add-big{background:linear-gradient(135deg,#6366f1,#a855f7);box-
         <button class="btn-icon" onclick="openHub()" title="श्रेणी Hub — category-wise सारे काम" style="cursor:pointer;font-family:inherit">🗂️</button>
         <button class="btn-icon" id="view-btn" onclick="toggleView()" title="Layout बदलें" style="cursor:pointer;font-family:inherit">🔲</button>
         <button class="btn-icon" onclick="cycleTheme()" title="Theme बदलें" style="cursor:pointer;font-family:inherit">🎨</button>
+        <button class="btn-icon" onclick="shuffleLooks()" title="सबके रंग और emoji बदलो — नयापन" style="cursor:pointer;font-family:inherit">🎲</button>
         <button class="btn-icon" onclick="unhideAll()" title="Swipe किए हुए सब वापस लाओ" style="cursor:pointer;font-family:inherit">👁️</button>
         <a href="./quick-add.html" class="btn-icon" title="Quick Order Add">📦</a>
         <a href="./" class="btn-back">← App</a>
@@ -598,8 +601,12 @@ body.th-geo .btn-add-big{background:linear-gradient(135deg,#6366f1,#a855f7);box-
     </div>
     <div class="fg">
       <label class="lbl">😊 Avatar Emoji (optional — रंग से override होगा)</label>
-      <div class="emoji-grid" id="emoji-btns"></div>
-      <button class="btn-clear-emoji" onclick="clearEmoji()">🔄 Emoji हटाओ (initials use करो)</button>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div id="emoji-current" style="width:44px;height:44px;border-radius:12px;background:#060d1a;border:1.5px solid #1e3a5f;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🙂</div>
+        <button type="button" class="emoji-toggle" onclick="toggleEmojiPicker()">😊 Emoji चुनें ▾</button>
+        <button type="button" class="btn-clear-emoji" style="margin-top:0" onclick="clearEmoji()">🔄 हटाओ</button>
+      </div>
+      <div class="emoji-grid" id="emoji-btns" style="display:none;max-height:190px;overflow-y:auto;margin-top:8px;padding:6px;background:#060d1a;border:1px solid #17263f;border-radius:10px"></div>
     </div>
     <div class="fg">
       <label class="lbl">🎨 रंग (background color)</label>
@@ -1904,6 +1911,18 @@ window.cycleTheme=function(){
   applyTheme();
   toast('🎨 '+next.name);
 };
+/* 🎲 सबके रंग + emoji एक बार में बदलो — नयापन */
+window.shuffleLooks=function(){
+  const list=contacts.filter(c=>c.active!==false);
+  if(!list.length){ toast('कोई contact नहीं','warn'); return; }
+  if(!confirm(list.length+' contacts के रंग और emoji नए कर दें?')) return;
+  const rnd=a=>a[Math.floor(Math.random()*a.length)];
+  list.forEach(c=>{ c.color=rnd(COLORS); c.emoji=rnd(EMOJIS); });
+  _animNext=true; render();
+  toast('🎲 '+list.length+' contacts का नया रूप!');
+  // Firestore में save (offline cache तुरंत, net आते ही sync)
+  list.forEach(c=>fbSave(c));
+};
 
 /* ──────── Quick Dial Popup ──────── */
 let _qdialId=null;
@@ -2104,6 +2123,7 @@ window.editContact=function(id){
   document.getElementById('f-alarm').value=c.alarmTime||'';
   selInterval=c.intervalMins||30; selColor=c.color||COLORS[0]; selEmoji=c.emoji||''; selTag=c.tag||'';
   updateIntBtns(); updateClrBtns(); updateEmojiBtns(); updateTagBtns();
+  { const g=document.getElementById('emoji-btns'); if(g) g.style.display='none'; }
   document.getElementById('m-add-title').textContent='✏️ Edit करो';
   openModal('m-add');
   setTimeout(()=>document.getElementById('f-name').focus(),300);
@@ -2128,6 +2148,7 @@ window.openAddModal=function(){
   document.getElementById('f-alarm').value='';
   selInterval=30; selColor=COLORS[0]; selEmoji=''; selTag='';
   updateIntBtns(); updateClrBtns(); updateEmojiBtns(); updateTagBtns();
+  { const g=document.getElementById('emoji-btns'); if(g) g.style.display='none'; }
   document.getElementById('m-add-title').textContent='📞 नया Contact जोड़ें';
   openModal('m-add');
   setTimeout(()=>document.getElementById('f-name').focus(),300);
@@ -2182,8 +2203,16 @@ window.pickColor=function(c){ selColor=c; updateClrBtns(); };
 function buildEmojiPicker(){
   document.getElementById('emoji-btns').innerHTML=EMOJIS.map(e=>`<button class="emoji-btn${e===selEmoji?' on':''}" onclick="pickEmoji('${e}')">${e}</button>`).join('');
 }
-function updateEmojiBtns(){ document.querySelectorAll('.emoji-btn').forEach(b=>b.classList.toggle('on',b.textContent===selEmoji)); }
-window.pickEmoji=function(e){ selEmoji=(selEmoji===e?'':e); updateEmojiBtns(); };
+function updateEmojiCurrent(){
+  const el=document.getElementById('emoji-current');
+  if(el) el.textContent=selEmoji||'🙂';
+}
+window.toggleEmojiPicker=function(){
+  const g=document.getElementById('emoji-btns');
+  if(g) g.style.display=(g.style.display==='none'||!g.style.display)?'flex':'none';
+};
+function updateEmojiBtns(){ document.querySelectorAll('.emoji-btn').forEach(b=>b.classList.toggle('on',b.textContent===selEmoji)); updateEmojiCurrent(); }
+window.pickEmoji=function(e){ selEmoji=(selEmoji===e?'':e); updateEmojiBtns(); const g=document.getElementById('emoji-btns'); if(g&&selEmoji) g.style.display='none'; };
 window.clearEmoji=function(){ selEmoji=''; updateEmojiBtns(); toast('Initials use होंगे'); };
 
 /* ── Tag / Category picker (modal में — dynamic) ── */

@@ -81,6 +81,37 @@ body{
   display:flex;align-items:center;gap:5px;
 }
 .btn-add-big:active{transform:scale(.94)}
+/* श्रेणी Hub — category quick buttons row */
+.cathub-row{display:flex;gap:6px;margin-bottom:9px}
+.cathub-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding:7px 3px;border-radius:12px;cursor:pointer;touch-action:manipulation;
+  background:linear-gradient(135deg,#0c1528,#0a1120);border:1.5px solid rgba(59,130,246,.28);
+  transition:transform .12s,border-color .15s;
+}
+.cathub-btn:active{transform:scale(.93)}
+.cathub-ico{font-size:20px;line-height:1}
+.cathub-lbl{font-size:8.5px;font-weight:800;color:#94a3b8;text-align:center;line-height:1.1}
+.cathub-cnt{font-size:10px;font-weight:900;color:#60a5fa;line-height:1}
+/* Category Hub full modal */
+.hub-bg{position:fixed;inset:0;background:rgba(2,6,14,.92);z-index:250;display:none;overflow-y:auto;backdrop-filter:blur(3px)}
+.hub-wrap{max-width:480px;margin:0 auto;padding:14px 12px 40px;min-height:100dvh}
+.hub-head{display:flex;align-items:center;gap:10px;position:sticky;top:0;background:linear-gradient(180deg,#050a14 70%,transparent);padding:6px 2px 12px;z-index:2}
+.hub-title{flex:1;font-size:18px;font-weight:900;color:#e2e8f0}
+.hub-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;scrollbar-width:none}
+.hub-tabs::-webkit-scrollbar{display:none}
+.hub-tab{flex-shrink:0;display:flex;align-items:center;gap:5px;padding:8px 13px;border-radius:20px;font-size:12px;font-weight:800;cursor:pointer;background:#0c1528;border:1.5px solid #1e3a5f;color:#94a3b8;touch-action:manipulation}
+.hub-tab.on{background:rgba(59,130,246,.16);border-color:#3b82f6;color:#60a5fa}
+.hub-item{background:#07111e;border:1.5px solid rgba(30,58,95,.75);border-left-width:4px;border-radius:12px;padding:10px 11px;margin-bottom:8px;animation:fadeIn .3s cubic-bezier(.2,.7,.3,1) both}
+.hub-task{font-size:14px;font-weight:800;color:#e2e8f0;line-height:1.4;word-break:break-word;display:flex;align-items:flex-start;gap:8px}
+.hub-meta{font-size:11px;color:#64748b;margin-top:5px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.hub-src{color:#fbbf24;font-weight:700}
+.hub-asg{color:#4ade80;font-weight:700}
+.hub-acts{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
+.hub-act{padding:6px 11px;border-radius:9px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;border:1.5px solid rgba(30,58,95,.8);background:#0d1526;color:#94a3b8;touch-action:manipulation}
+.hub-act:active{opacity:.7}
+.hub-act.call{background:linear-gradient(135deg,#059669,#22c55e);color:#fff;border:none}
+.hub-act.done{background:#0f1e0a;border-color:rgba(34,197,94,.4);color:#4ade80}
 
 /* ── Horizontal Strip — pill chips ── */
 .strip{display:flex;gap:8px;overflow-x:auto;padding:5px 13px 9px;scrollbar-width:none;-ms-overflow-style:none}
@@ -500,6 +531,9 @@ body.th-geo .btn-add-big{background:linear-gradient(135deg,#6366f1,#a855f7);box-
       </div>
       <button class="btn-add-big" onclick="openAddModal()">➕ नया</button>
     </div>
+
+    <!-- श्रेणी Hub — चारों category एक-एक click में, सबके काम एक जगह -->
+    <div class="cathub-row" id="cathub-row"></div>
   </div>
 
   <!-- Filter bar — sticky, हमेशा ऊपर दिखती है -->
@@ -590,9 +624,22 @@ body.th-geo .btn-add-big{background:linear-gradient(135deg,#6366f1,#a855f7);box-
 <div class="qdial-bg" id="sp-bg" onclick="closeSmartPop()"></div>
 <div class="qdial-popup" id="sp-popup" style="width:90vw;max-width:352px;padding:16px 15px 13px;max-height:82dvh;overflow-y:auto"></div>
 
+<!-- ══ CATEGORY HUB — सभी category के काम एक जगह ══ -->
+<div class="hub-bg" id="hub-bg">
+  <div class="hub-wrap">
+    <div class="hub-head">
+      <div class="hub-title" id="hub-title">🗂️ श्रेणी Hub</div>
+      <button class="hub-act" onclick="hubCopy()" title="सारे काम copy करो">📋 Copy</button>
+      <span class="qd-close" onclick="closeHub()" style="font-size:24px">✕</span>
+    </div>
+    <div class="hub-tabs" id="hub-tabs"></div>
+    <div id="hub-list"></div>
+  </div>
+</div>
+
 <!-- ══ CATEGORY PICKER — काम की श्रेणी चुनने के लिए ══ -->
-<div class="qdial-bg" id="cat-bg" style="z-index:220" onclick="closeCatPick()"></div>
-<div class="qdial-popup" id="cat-pop" style="z-index:221;width:80vw;max-width:290px;padding:15px 13px 10px"></div>
+<div class="qdial-bg" id="cat-bg" style="z-index:260" onclick="closeCatPick()"></div>
+<div class="qdial-popup" id="cat-pop" style="z-index:261;width:80vw;max-width:290px;padding:15px 13px 10px"></div>
 
 <!-- ══ TAG NAME EDITOR — filter के नाम बदलने के लिए ══ -->
 <div class="qdial-bg" id="te-bg" onclick="closeTagEditor()"></div>
@@ -884,7 +931,8 @@ function render(){
   const list=sorted();
   const cl=document.getElementById('card-list');
   if(cl) cl.classList.toggle('no-anim',!_animNext);
-  renderStrip(list); renderCards(list); renderStats(list); updateHdrSub();
+  renderStrip(list); renderCards(list); renderStats(list); updateHdrSub(); renderCatHub();
+  if(hubOpenNow()) renderHub();
   _animNext=false;
   // Hidden count बदला (10 min बाद वापस आए) तो filter bar refresh
   const hn=hiddenIds().length;
@@ -1330,6 +1378,97 @@ function assignedTo(staffId){
   });
   return out;
 }
+
+/* ══ CATEGORY HUB — सभी contacts के काम category-wise एक जगह ══ */
+let _hubCat='golden';
+function tasksByCat(ck){
+  const out=[];
+  contacts.forEach(c=>{
+    if(c.active===false) return;
+    normTopics(c).forEach((x,i)=>{
+      if(x.done) return;
+      if(ck==='_none'? (x.cat&&x.cat!=='') : (x.cat!==ck)) return;
+      out.push({t:x.t,cat:x.cat,i,srcId:c.id,srcName:c.name||'?',srcPhone:c.phone||'',assignTo:x.assignTo||''});
+    });
+  });
+  return out;
+}
+function catCount(ck){ return tasksByCat(ck).length; }
+/* Header की 4 category buttons */
+function renderCatHub(){
+  const el=document.getElementById('cathub-row');
+  if(!el) return;
+  el.innerHTML=TASK_CATS.map(tc=>{
+    const n=catCount(tc.k);
+    return `<div class="cathub-btn" onclick="openHub('${tc.k}')">
+      <span class="cathub-ico">${tc.logo}</span>
+      <span class="cathub-lbl">${escH(tc.label)}</span>
+      <span class="cathub-cnt">${n}</span>
+    </div>`;
+  }).join('');
+}
+window.openHub=function(ck){
+  _hubCat=ck||'golden';
+  document.getElementById('hub-bg').style.display='block';
+  renderHub();
+};
+window.closeHub=function(){ document.getElementById('hub-bg').style.display='none'; };
+function renderHub(){
+  const tabs=document.getElementById('hub-tabs');
+  tabs.innerHTML=TASK_CATS.map(tc=>
+    `<div class="hub-tab ${tc.k===_hubCat?'on':''}" onclick="hubTab('${tc.k}')">${tc.logo} ${escH(tc.label)} <b>${catCount(tc.k)}</b></div>`
+  ).join('');
+  const ci=catInfo(_hubCat);
+  document.getElementById('hub-title').textContent=(ci?ci.logo+' '+ci.label:'श्रेणी')+' के काम';
+  const list=tasksByCat(_hubCat);
+  const el=document.getElementById('hub-list');
+  if(!list.length){ el.innerHTML=`<div style="text-align:center;padding:40px 20px;color:#475569;font-size:13px">इस श्रेणी में कोई बाकी काम नहीं</div>`; return; }
+  el.innerHTML=list.map((x,n)=>{
+    const c=contacts.find(z=>z.id===x.srcId);
+    const clr=c?(c.color||COLORS[0]):COLORS[0];
+    return `<div class="hub-item" style="border-left-color:${clr}">
+      <div class="hub-task"><span class="tp-chk" style="margin-top:2px" onclick="hubDone('${x.srcId}',${x.i})"></span><span>${n+1}. ${escH(x.t)}</span></div>
+      <div class="hub-meta">
+        <span class="hub-src">📌 ${escH(x.srcName)}</span>
+        ${x.assignTo?`<span class="hub-asg">👤 ${escH(staffName(x.assignTo))}</span>`:''}
+      </div>
+      <div class="hub-acts">
+        <button class="hub-act call" onclick="hubCall('${x.srcId}')">📞 Call</button>
+        <button class="hub-act" onclick="hubReCat('${x.srcId}',${x.i})">🏷️ श्रेणी</button>
+        <button class="hub-act" onclick="hubAssign('${x.srcId}',${x.i})">👤 सौंपो</button>
+        <button class="hub-act" onclick="hubOpen('${x.srcId}')">↗ खोलो</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+window.hubTab=function(ck){ _hubCat=ck; renderHub(); };
+window.hubDone=function(id,idx){ doneTopic(id,idx); renderHub(); renderCatHub(); };
+window.hubCall=function(id){ const c=contacts.find(x=>x.id===id); if(c&&c.phone){ closeHub(); recordCall(id); } };
+window.hubReCat=function(id,idx){ openCatPick('topic',id,idx); };
+function hubOpenNow(){ return document.getElementById('hub-bg').style.display==='block'; }
+window.hubAssign=function(id,idx){ spPickAssign(id,idx); };
+window.hubOpen=function(id){ closeHub(); openSmartPop(id); };
+window.hubCopy=function(){
+  const list=tasksByCat(_hubCat);
+  if(!list.length){ toast('कोई काम नहीं','warn'); return; }
+  const ci=catInfo(_hubCat);
+  let txt=(ci?ci.logo+' '+ci.label:'श्रेणी')+' के काम:\n\n';
+  list.forEach((x,n)=>{
+    txt+=`${n+1}. ${x.t}\n   📌 ${x.srcName}${x.assignTo?' → 👤 '+staffName(x.assignTo):''}\n`;
+  });
+  txt+='\n– Vande Bharat Enterprises';
+  const done=()=>toast('📋 '+list.length+' काम copy हुए — कहीं भी paste करें');
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(done).catch(()=>hubCopyFallback(txt,done));
+  } else hubCopyFallback(txt,done);
+};
+function hubCopyFallback(txt,cb){
+  const ta=document.createElement('textarea');
+  ta.value=txt; ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); cb(); }catch(e){ toast('Copy नहीं हुआ','err'); }
+  document.body.removeChild(ta);
+}
 /* श्रेणी के हिसाब से grouped active topics (गोल्डन → कंप्यूटर → मार्केट → जालीपा → बाकी) */
 function groupedActive(c){
   const order={golden:0,computer:1,market:2,jalipa:3};
@@ -1673,6 +1812,7 @@ window.pickAssign=function(sid){
   tps[p.idx].assignTo=sid||'';
   c.topics=tps;
   render(); fbSave(c);
+  if(hubOpenNow()){ renderHub(); renderCatHub(); }
   toast(sid?('👤 '+staffName(sid)+' को सौंपा — उनके card पर भी दिखेगा'):'👤 Assignment हटाया');
 };
 window.pickCat=function(k){
@@ -1690,6 +1830,7 @@ window.pickCat=function(k){
     tps[p.idx].cat=k;
     c.topics=tps;
     render(); fbSave(c);
+    if(hubOpenNow()){ renderHub(); renderCatHub(); }
   }
   const ci=catInfo(k);
   toast(ci?(ci.logo+' '+ci.label):'⬜ कोई श्रेणी नहीं');

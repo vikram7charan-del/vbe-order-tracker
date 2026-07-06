@@ -1713,7 +1713,7 @@ function renderSmartPop(){
       </div>
     </div>
     ${prev?`<div style="font-size:11.5px;color:#94a3b8;font-style:italic;margin-bottom:10px;line-height:1.45">🕘 पिछली बार: ${escH(prev.note)}</div>`:''}
-    ${(tps.length||asg.length)&&hasWA?`<button class="qd-btn qd-wa" style="width:100%;margin-bottom:7px;padding:10px" onclick="spSendTasks()">📤 सारे काम WhatsApp पर भेजो</button>`:''}
+    ${(tps.length||asg.length)&&hasWA?`<button class="qd-btn qd-wa" style="width:100%;margin-bottom:7px;padding:10px" onclick="spSendTasks()">${(c.waMsg&&c.waMsgAt&&(Date.now()-new Date(c.waMsgAt).getTime())<6*60*60*1000)?'🤖 AI message WhatsApp पर भेजो':'📤 सारे काम WhatsApp पर भेजो'}</button>`:''}
     <div class="qd-btns" style="margin-bottom:7px">
       <button class="qd-btn qd-call" onclick="spCall()">📞 Call</button>
       ${hasWA?`<button class="qd-btn qd-wa" onclick="spWA()">💬 WA</button>`:''}
@@ -1838,6 +1838,19 @@ window.pickCat=function(k){
   toast(ci?(ci.logo+' '+ci.label):'⬜ कोई श्रेणी नहीं');
 };
 /* 📤 सारे काम WhatsApp पर एक click में भेजो */
+function buildTemplateMsg(c,tps,asg){
+  let msg=`नमस्ते *${c.name}* 🙏\n`;
+  if(tps.length){
+    msg+=`आपके महत्वपूर्ण काम:\n\n`;
+    tps.forEach((x,n)=>{ const ci=catInfo(x.cat); msg+=`${n+1}. ${ci?ci.logo+' ':''}${x.t}\n`; });
+  }
+  if(asg.length){
+    msg+=`\n👥 आपको सौंपे गए काम:\n\n`;
+    asg.forEach((x,n)=>{ const ci=catInfo(x.cat); msg+=`${n+1}. ${ci?ci.logo+' ':''}${x.t} (📌 ${x.srcName})\n`; });
+  }
+  msg+='\n– Vande Bharat Enterprises';
+  return msg;
+}
 window.spSendTasks=function(){
   const c=contacts.find(x=>x.id===_spId);
   if(!c) return;
@@ -1846,26 +1859,17 @@ window.spSendTasks=function(){
   if(!tps.length&&!asg.length){ toast('⚠️ कोई बाकी काम नहीं','warn'); return; }
   const rawPh=c.waPhone||c.phone;
   if(!rawPh){ toast('⚠️ नंबर नहीं है','err'); return; }
-  let msg=`नमस्ते *${c.name}* 🙏\n`;
-  if(tps.length){
-    msg+=`आपके महत्वपूर्ण काम:\n\n`;
-    tps.forEach((x,n)=>{
-      const ci=catInfo(x.cat);
-      msg+=`${n+1}. ${ci?ci.logo+' ':''}${x.t}\n`;
-    });
+  // Claude का तैयार message हो (6 घंटे से नया) तो वही — हर बार अलग भाषा; वरना सीधा template
+  let msg, ai=false;
+  if(c.waMsg && c.waMsgAt && (Date.now()-new Date(c.waMsgAt).getTime())<6*60*60*1000){
+    msg=c.waMsg; ai=true;
+  } else {
+    msg=buildTemplateMsg(c,tps,asg);
   }
-  if(asg.length){
-    msg+=`\n👥 आपको सौंपे गए काम:\n\n`;
-    asg.forEach((x,n)=>{
-      const ci=catInfo(x.cat);
-      msg+=`${n+1}. ${ci?ci.logo+' ':''}${x.t} (📌 ${x.srcName})\n`;
-    });
-  }
-  msg+='\n– Vande Bharat Enterprises';
   const ph=rawPh.replace(/[^0-9]/g,'');
   const num=ph.length===10?'91'+ph:ph;
   window.open('https://wa.me/'+num+'?text='+encodeURIComponent(msg),'_blank');
-  toast('📤 '+(tps.length+asg.length)+' काम WhatsApp पर भेजे');
+  toast(ai?'🤖 AI message तैयार — बस Send दबाएँ':'📤 '+(tps.length+asg.length)+' काम भेजे');
 };
 /* Popup से filter/tag बदलो */
 window.spSetTag=function(k){

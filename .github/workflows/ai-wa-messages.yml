@@ -1,0 +1,33 @@
+# ══════════════════════════════════════════════════════════
+# VBE Call Tracker — हर 30 मिनट AI WhatsApp reminder messages बनाओ
+# Claude हर due contact के लिए अलग भाषा में message लिखकर Firestore में रखता है
+#
+# ⚠️ SETUP (एक बार): repo secrets में FIREBASE_SA और ANTHROPIC_KEY होने चाहिए
+# ══════════════════════════════════════════════════════════
+name: 🤖 AI WhatsApp Messages
+
+on:
+  schedule:
+    - cron: '*/30 * * * *' # हर 30 मिनट
+  workflow_dispatch: # हाथ से भी चला सकते हैं
+
+concurrency:
+  group: ai-wa-messages
+  cancel-in-progress: false
+
+jobs:
+  gen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install firebase-admin
+        run: npm install firebase-admin --no-save --no-audit --no-fund
+      - name: Generate AI WhatsApp messages
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
+          ANTHROPIC_KEY: ${{ secrets.ANTHROPIC_KEY }}
+        run: node scripts/ai-wa-messages.js

@@ -160,6 +160,9 @@ body{
   from{opacity:0;transform:translate(-50%,-50%) perspective(900px) rotateX(-32deg) scale(.75)}
   to{opacity:1;transform:translate(-50%,-50%) perspective(900px) rotateX(0) scale(1)}
 }
+/* Smart popup — ऊपर से शुरू, पूरा scroll (चाहे 100 काम हों) */
+#sp-popup{top:1.5dvh!important;bottom:auto!important;transform:translateX(-50%)!important;max-height:96dvh!important;overflow-y:auto;-webkit-overflow-scrolling:touch}
+@keyframes popInTop{from{opacity:0;transform:translateX(-50%) scale(.93)}to{opacity:1;transform:translateX(-50%) scale(1)}}
 .qd-head{display:flex;align-items:center;gap:10px;margin-bottom:13px}
 .qd-av{width:42px;height:42px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#fff;letter-spacing:-.3px;text-align:center}
 .qd-info{flex:1;min-width:0}
@@ -1735,8 +1738,9 @@ window.openSmartPop=function(id){
   document.getElementById('sp-bg').style.display='block';
   const p=document.getElementById('sp-popup');
   p.style.display='block';
+  p.scrollTop=0;
   p.style.animation='none';
-  requestAnimationFrame(()=>{ p.style.animation='popIn .18s cubic-bezier(.4,0,.2,1)'; });
+  requestAnimationFrame(()=>{ p.style.animation='popInTop .18s cubic-bezier(.4,0,.2,1)'; });
 };
 window.closeSmartPop=function(){
   document.getElementById('sp-bg').style.display='none';

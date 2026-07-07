@@ -16,12 +16,15 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html{height:100%}
+html{height:100%;overflow-x:clip;overscroll-behavior-x:none}
 body{
   background:#030810;color:#e2e8f0;
   font-family:'Noto Sans Devanagari',sans-serif;
   min-height:100dvh;max-width:480px;margin:0 auto;
   padding-bottom:70px;
+  /* तिरछी तेज़ स्वाइप पर पूरा पेज बाएँ-दाएँ न खिसके — horizontal scroll/overscroll बंद।
+     clip = scroll-container बनाए बिना horizontal overflow काट देता है */
+  width:100%;overflow-x:clip;overscroll-behavior-x:none;position:relative;
 }
 
 /* ── Login ── */

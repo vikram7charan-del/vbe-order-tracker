@@ -1,0 +1,35 @@
+# ══════════════════════════════════════════════════════════
+# VBE Call Tracker — Google Calendar auto-sync (हर घंटे)
+# हर contact की अगली call को Google Calendar event बना देता है
+#
+# ⚠️ SETUP (एक बार):
+#  1) repo secret FIREBASE_SA होना चाहिए
+#  2) अपना Google Calendar service account email के साथ share करना है
+#     ("Make changes to events" permission)
+# ══════════════════════════════════════════════════════════
+name: 📅 Calendar Sync
+
+on:
+  schedule:
+    - cron: '25 * * * *' # हर घंटे (minute 25 पर)
+  workflow_dispatch: # हाथ से भी
+
+concurrency:
+  group: calendar-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install deps
+        run: npm install firebase-admin googleapis --no-save --no-audit --no-fund
+      - name: Sync calls to Google Calendar
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
+        run: node scripts/calendar-sync.js

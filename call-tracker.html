@@ -1821,6 +1821,8 @@ function renderSmartPop(){
     ${c.lastWaSentAt?`<div style="text-align:center;font-size:11px;font-weight:700;color:${(Date.now()-new Date(c.lastWaSentAt).getTime())<2*60*60*1000?'#fbbf24':'#64748b'};margin-bottom:6px">🕘 पिछली बार message भेजा: ${agoText(c.lastWaSentAt)}</div>`:''}
     ${(tps.length||asg.length)&&hasWA?`<button class="qd-btn qd-wa" style="width:100%;margin-bottom:7px;padding:10px" onclick="spSendTasks()">${(c.waMsg&&c.waMsgAt&&(Date.now()-new Date(c.waMsgAt).getTime())<6*60*60*1000)?'🤖 AI message WhatsApp पर भेजो':'📤 सारे काम WhatsApp पर भेजो'}</button>`:''}
     ${(tps.length||asg.length)&&hasWA&&window._n8nUrl?`<button class="qd-btn sp-sec" style="width:100%;margin-bottom:7px;padding:9px;color:#c4b5fd;border-color:rgba(139,92,246,.4)" onclick="spFreshAI()">✨ नया AI message बनाओ (सिर्फ़ इनके लिए)</button>`:''}
+    ${(tps.length||asg.length)?`<button class="qd-btn sp-sec" style="width:100%;margin-bottom:7px;padding:9px;color:#4ade80;border-color:rgba(34,197,94,.4)" onclick="spCopyMsg()">📋 message copy करो (कहीं भी paste करें)</button>`:''}
+    ${c.waMsg?`<div style="font-size:11px;color:#94a3b8;background:#060d1a;border:1px solid rgba(30,58,95,.7);border-radius:9px;padding:9px 11px;margin-bottom:8px;white-space:pre-wrap;max-height:120px;overflow-y:auto;line-height:1.5">${escH(c.waMsg)}</div>`:''}
     <div class="qd-btns" style="margin-bottom:7px">
       <button class="qd-btn qd-call" onclick="spCall()">📞 Call</button>
       ${hasWA?`<button class="qd-btn qd-wa" onclick="spWA()">💬 WA</button>`:''}
@@ -1944,19 +1946,20 @@ window.pickCat=function(k){
   const ci=catInfo(k);
   toast(ci?(ci.logo+' '+ci.label):'⬜ कोई श्रेणी नहीं');
 };
-/* WhatsApp खोलो — छोटा message सीधे तैयार; बड़ा message clipboard में copy करके chat खोलो (paste करना) */
+/* WhatsApp खोलो — installed app सीधे (whatsapp://); बड़ा message clipboard में copy करके */
 function openWhatsApp(num, msg){
-  // बड़ा message wa.me link में कट जाता है — इसलिए ~1000 अक्षर से ऊपर copy+paste रास्ता
-  if(msg.length <= 1000){
-    window.open('https://wa.me/'+num+'?text='+encodeURIComponent(msg),'_blank');
-    return;
-  }
-  // पहले chat खोलो (user gesture), फिर पूरा message clipboard में
-  window.open('https://wa.me/'+num,'_blank');
-  const okMsg=()=>toast('📋 पूरा message copy हो गया — WhatsApp chat में दबाकर Paste करें फिर Send','warn');
+  // हर हाल में पूरा message clipboard में डाल दो (paste के लिए तैयार)
+  const big = msg.length > 1000;
   if(navigator.clipboard&&navigator.clipboard.writeText){
-    navigator.clipboard.writeText(msg).then(okMsg).catch(()=>waClipFallback(msg,okMsg));
-  } else waClipFallback(msg,okMsg);
+    navigator.clipboard.writeText(msg).catch(()=>waClipFallback(msg,()=>{}));
+  } else waClipFallback(msg,()=>{});
+  // installed WhatsApp app खोलो (Chrome वाला नहीं)
+  if(big){
+    window.location.href='whatsapp://send?phone='+num;
+    toast('📋 पूरा message copy हो गया — WhatsApp में दबाकर Paste करें फिर Send','warn');
+  } else {
+    window.location.href='whatsapp://send?phone='+num+'&text='+encodeURIComponent(msg);
+  }
 }
 function waClipFallback(txt,cb){
   try{
@@ -2040,6 +2043,17 @@ window.setN8nUrl=async function(){
   try{ await setDoc(doc(db,'vbe_call_tracker','_settings'), {id:'_settings', n8nUrl:window._n8nUrl}, {merge:true});
     toast(window._n8nUrl?'✅ n8n URL save हुआ':'n8n URL हटाया'); }
   catch(e){ toast('⚠️ Save error','err'); }
+};
+/* 📋 message copy — c.waMsg हो तो वही, वरना template */
+window.spCopyMsg=function(){
+  const c=contacts.find(x=>x.id===_spId);
+  if(!c) return;
+  const tps=groupedActive(c), asg=assignedTo(c.id);
+  const msg=(c.waMsg&&c.waMsg.trim())?c.waMsg:buildTemplateMsg(c,tps,asg);
+  const ok=()=>toast('📋 पूरा message copy हो गया — WhatsApp में Paste करें');
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(msg).then(ok).catch(()=>waClipFallback(msg,ok));
+  } else waClipFallback(msg,ok);
 };
 /* Popup से filter/tag बदलो */
 window.spSetTag=function(k){

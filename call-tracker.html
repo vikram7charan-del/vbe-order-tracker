@@ -43,17 +43,17 @@ body{
 /* ── App Header (scroll के साथ ऊपर चला जाता है) ── */
 .app-hdr{
   background:linear-gradient(180deg,#07101e 0%,#030810 100%);
-  padding:11px 13px 2px;
+  padding:8px 13px 2px;
 }
 .hdr-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
 .hdr-title{font-size:15px;font-weight:900;color:#f59e0b;letter-spacing:.2px}
 .hdr-sub{font-size:9px;color:#475569;margin-top:1px}
 /* छोटी पहचान पट्टी — बड़ा नाम हटाया, screenshot में पता चले भर */
 .app-tag{font-size:9px;font-weight:800;color:#f59e0b;opacity:.75;letter-spacing:.4px;
-  padding:0 2px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  padding:0 2px 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .app-tag-sub{color:#475569;font-weight:700}
 /* icon बटन: बाईं तरफ से, स्क्रीन के अंदर ही — ज़्यादा हों तो नीचे wrap */
-.hdr-btns{display:flex;flex-wrap:wrap;gap:5px;align-items:center;justify-content:flex-start;margin-bottom:9px}
+.hdr-btns{display:flex;flex-wrap:wrap;gap:5px;align-items:center;justify-content:flex-start;margin-bottom:7px}
 .btn-add{
   width:33px;height:33px;border-radius:50%;
   background:linear-gradient(135deg,#f59e0b,#ef4444);
@@ -68,9 +68,13 @@ body{
   display:flex;align-items:center;gap:3px;
 }
 .btn-back{font-size:11px;color:#94a3b8;text-decoration:none;background:#0d1526;border:1px solid #1e3a5f;border-radius:8px;padding:5px 10px;font-weight:700}
+/* ➕ नया — अब icon लाइन में ही, नारंगी ताकि अलग दिखे */
+.btn-new-top{background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;border:none;
+  font-size:12.5px;font-weight:900;padding:5px 13px;
+  box-shadow:0 2px 8px rgba(239,68,68,.4)}
 
 /* ── Stats row — compact pills, दाईं तरफ बड़ा + button ── */
-.hdr-row2{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.hdr-row2{display:flex;align-items:center;gap:8px;margin-bottom:6px}
 .stats{display:flex;gap:4px;flex:1;min-width:0}
 .stat{
   flex:1;border-radius:9px;padding:4px 2px;text-align:center;
@@ -540,10 +544,10 @@ body.th-geo .btn-add-big{background:linear-gradient(135deg,#6366f1,#a855f7);box-
         <button class="btn-icon" onclick="unhideAll()" title="Swipe किए हुए सब वापस लाओ" style="cursor:pointer;font-family:inherit">👁️</button>
         <button class="btn-icon" onclick="setN8nUrl()" title="n8n webhook URL (on-demand AI)" style="cursor:pointer;font-family:inherit">⚙️</button>
         <a href="./quick-add.html" class="btn-icon" title="Quick Order Add">📦</a>
-        <a href="./" class="btn-back">← App</a>
+        <button class="btn-icon btn-new-top" onclick="openAddModal()" title="नया contact जोड़ें" style="cursor:pointer;font-family:inherit">➕ नया</button>
       </div>
 
-    <!-- Stats (compact) + बड़ा Add button दाईं तरफ -->
+    <!-- Stats (compact) — पूरी चौड़ाई -->
     <div class="hdr-row2">
       <div class="stats">
         <div class="stat"><div class="stat-n blue" id="st-total">0</div><div class="stat-l">Contacts</div></div>
@@ -551,7 +555,6 @@ body.th-geo .btn-add-big{background:linear-gradient(135deg,#6366f1,#a855f7);box-
         <div class="stat"><div class="stat-n amber" id="st-due">0</div><div class="stat-l">⏰ जल्दी</div></div>
         <div class="stat"><div class="stat-n green" id="st-today">0</div><div class="stat-l">✅ आज</div></div>
       </div>
-      <button class="btn-add-big" onclick="openAddModal()">➕ नया</button>
     </div>
   </div>
 

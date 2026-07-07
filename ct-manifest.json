@@ -24,6 +24,13 @@
       "description": "Contact search करें",
       "url": "./call-tracker.html?action=search",
       "icons": [{ "src": "ct-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "📤 सबको message भेजो",
+      "short_name": "Broadcast",
+      "description": "भेजो Mode — एक-एक करके सबको WhatsApp",
+      "url": "./call-tracker.html?action=send",
+      "icons": [{ "src": "ct-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
     }
   ],
   "icons": [

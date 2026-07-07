@@ -81,6 +81,27 @@ body{
   display:flex;align-items:center;gap:5px;
 }
 .btn-add-big:active{transform:scale(.94)}
+/* भेजो Mode — Broadcast overlay */
+.bc-bg{position:fixed;inset:0;background:rgba(2,6,14,.95);z-index:300;display:none;overflow-y:auto;backdrop-filter:blur(3px)}
+.bc-wrap{max-width:480px;margin:0 auto;padding:14px 12px 120px;min-height:100dvh}
+.bc-head{display:flex;align-items:center;gap:10px;position:sticky;top:0;background:linear-gradient(180deg,#050a14 75%,transparent);padding:8px 2px 14px;z-index:2}
+.bc-title{flex:1;font-size:18px;font-weight:900;color:#e2e8f0}
+.bc-prog{font-size:12px;font-weight:800;color:#4ade80;background:rgba(34,197,94,.14);border:1px solid rgba(34,197,94,.4);border-radius:20px;padding:5px 12px}
+.bc-item{display:flex;align-items:center;gap:10px;background:#0a1526;border:1px solid rgba(30,58,95,.7);border-left-width:4px;border-radius:12px;padding:10px 11px;margin-bottom:7px;transition:opacity .3s,transform .3s}
+.bc-item.sent{opacity:.5;border-left-color:#22c55e!important}
+.bc-item.current{border-color:#3b82f6;box-shadow:0 0 0 2px rgba(59,130,246,.3)}
+.bc-av{width:38px;height:38px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff}
+.bc-body{flex:1;min-width:0}
+.bc-name{font-size:14px;font-weight:800;color:#e2e8f0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bc-tasks{font-size:10.5px;color:#fbbf24;font-weight:700;margin-top:1px}
+.bc-send-one{width:44px;height:44px;flex-shrink:0;border:none;border-radius:12px;background:linear-gradient(135deg,#059669,#22c55e);color:#fff;font-size:19px;cursor:pointer;touch-action:manipulation;box-shadow:0 3px 10px rgba(34,197,94,.35)}
+.bc-send-one:active{transform:scale(.9)}
+.bc-sent-tick{width:44px;height:44px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;color:#4ade80}
+/* नीचे बड़ा "अगला भेजो" bar */
+.bc-bottom{position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;padding:12px 14px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(0deg,#050a14 80%,transparent);z-index:3}
+.bc-next{width:100%;padding:16px;border:none;border-radius:16px;background:linear-gradient(135deg,#059669,#22c55e);color:#fff;font-size:16px;font-weight:900;font-family:inherit;cursor:pointer;touch-action:manipulation;box-shadow:0 5px 20px rgba(34,197,94,.4);display:flex;align-items:center;justify-content:center;gap:8px}
+.bc-next:active{transform:scale(.97)}
+.bc-next.done{background:linear-gradient(135deg,#1d4ed8,#3b82f6);box-shadow:0 5px 20px rgba(59,130,246,.4)}
 /* Category Hub full modal */
 .hub-bg{position:fixed;inset:0;background:rgba(2,6,14,.92);z-index:250;display:none;overflow-y:auto;backdrop-filter:blur(3px)}
 .hub-wrap{max-width:480px;margin:0 auto;padding:14px 12px 40px;min-height:100dvh}
@@ -510,6 +531,7 @@ body.th-geo .btn-add-big{background:linear-gradient(135deg,#6366f1,#a855f7);box-
         <div class="hdr-sub" id="hdr-sub">Follow-up Accountability</div>
       </div>
       <div class="hdr-btns">
+        <button class="btn-icon" onclick="openBroadcast()" title="भेजो Mode — सबको एक-एक करके WhatsApp" style="cursor:pointer;font-family:inherit">📤</button>
         <button class="btn-icon" onclick="openHub()" title="श्रेणी Hub — category-wise सारे काम" style="cursor:pointer;font-family:inherit">🗂️</button>
         <button class="btn-icon" id="view-btn" onclick="toggleView()" title="Layout बदलें" style="cursor:pointer;font-family:inherit">🔲</button>
         <button class="btn-icon" onclick="cycleTheme()" title="Theme बदलें" style="cursor:pointer;font-family:inherit">🎨</button>
@@ -623,6 +645,21 @@ body.th-geo .btn-add-big{background:linear-gradient(135deg,#6366f1,#a855f7);box-
 <!-- ══ SMART POPUP — Smart View में व्यक्ति पर tap करने से बीच में खुलता है ══ -->
 <div class="qdial-bg" id="sp-bg" onclick="closeSmartPop()"></div>
 <div class="qdial-popup" id="sp-popup" style="width:90vw;max-width:352px;padding:16px 15px 13px;max-height:82dvh;overflow-y:auto"></div>
+
+<!-- ══ भेजो MODE — एक-एक करके सबको WhatsApp message ══ -->
+<div class="bc-bg" id="bc-bg">
+  <div class="bc-wrap">
+    <div class="bc-head">
+      <div class="bc-title">📤 भेजो Mode</div>
+      <span class="bc-prog" id="bc-prog">0/0</span>
+      <span class="qd-close" onclick="closeBroadcast()" style="font-size:24px">✕</span>
+    </div>
+    <div id="bc-list"></div>
+  </div>
+  <div class="bc-bottom">
+    <button class="bc-next" id="bc-next" onclick="broadcastNext()">▶️ अगला भेजो</button>
+  </div>
+</div>
 
 <!-- ══ CATEGORY HUB — सभी category के काम एक जगह ══ -->
 <div class="hub-bg" id="hub-bg">
@@ -802,6 +839,7 @@ function initApp(){
   const act=new URLSearchParams(location.search).get('action');
   if(act==='new') setTimeout(()=>window.openAddModal(),400);
   if(act==='search') setTimeout(()=>{ const s=document.getElementById('search-inp'); if(s) s.focus(); },400);
+  if(act==='send') setTimeout(()=>window.openBroadcast(),600);
 }
 
 /* ──────── Firestore sync ──────── */
@@ -1407,6 +1445,76 @@ function tasksByCat(ck){
 function catCount(ck){ return tasksByCat(ck).length; }
 /* Header की 4 category buttons */
 function renderCatHub(){ /* बड़ी row हटा दी — अब सिर्फ 🗂️ button से hub खुलता है */ }
+/* ══ भेजो MODE — तैयार AI message वाले सबको एक-एक करके भेजो ══ */
+let _bcList=[], _bcSent={}, _bcIdx=0;
+function bcHasMsg(c){ return c.waMsg && String(c.waMsg).trim().length>0; }
+function bcCandidates(){
+  // जिनके पास तैयार message है और बाकी काम हैं — WhatsApp नंबर वाले
+  return sorted().filter(c=>{
+    if(c.active===false) return false;
+    if(!(c.waPhone||c.phone)) return false;
+    const has=groupedActive(c).length||assignedTo(c.id).length;
+    return has && bcHasMsg(c);
+  });
+}
+window.openBroadcast=function(){
+  _bcList=bcCandidates();
+  _bcSent={}; _bcIdx=0;
+  if(!_bcList.length){ toast('अभी कोई तैयार message नहीं — थोड़ी देर में AI बना देगा','warn'); return; }
+  document.getElementById('bc-bg').style.display='block';
+  renderBroadcast();
+};
+window.closeBroadcast=function(){ document.getElementById('bc-bg').style.display='none'; };
+function renderBroadcast(){
+  const el=document.getElementById('bc-list');
+  const sentN=Object.keys(_bcSent).length;
+  document.getElementById('bc-prog').textContent=sentN+'/'+_bcList.length;
+  el.innerHTML=_bcList.map((c,i)=>{
+    const n=(groupedActive(c).length)+(assignedTo(c.id).length);
+    const sent=_bcSent[c.id];
+    const cur=(i===_bcIdx&&!sent);
+    return `<div class="bc-item ${sent?'sent':''} ${cur?'current':''}" style="border-left-color:${c.color||COLORS[0]}">
+      <div class="bc-av" style="background:${c.color||COLORS[0]};font-size:${c.emoji?'17px':'10px'}">${escH(avatarContent(c))}</div>
+      <div class="bc-body">
+        <div class="bc-name">${escH(c.name)}</div>
+        <div class="bc-tasks">🗣️ ${n} काम${sent?' · भेजा ✓':''}</div>
+      </div>
+      ${sent?'<div class="bc-sent-tick">✅</div>':`<button class="bc-send-one" onclick="broadcastSendOne('${c.id}')">📤</button>`}
+    </div>`;
+  }).join('');
+  const btn=document.getElementById('bc-next');
+  if(sentN>=_bcList.length){ btn.textContent='✅ सब भेज दिए! ('+sentN+')'; btn.classList.add('done'); }
+  else { btn.textContent='▶️ अगला भेजो ('+(sentN+1)+'/'+_bcList.length+')'; btn.classList.remove('done'); }
+}
+function bcOpenWA(c){
+  const rawPh=c.waPhone||c.phone; if(!rawPh) return;
+  const msg=(c.waMsg&&c.waMsg.trim())?c.waMsg:buildTemplateMsg(c,groupedActive(c),assignedTo(c.id));
+  const ph=rawPh.replace(/[^0-9]/g,'');
+  const num=ph.length===10?'91'+ph:ph;
+  window.open('https://wa.me/'+num+'?text='+encodeURIComponent(msg),'_blank');
+}
+window.broadcastSendOne=function(id){
+  const c=contacts.find(x=>x.id===id); if(!c) return;
+  bcOpenWA(c);
+  _bcSent[id]=true;
+  const pos=_bcList.findIndex(x=>x.id===id);
+  if(pos===_bcIdx){ // अगला बिना-भेजा वाला ढूँढो
+    let nx=_bcIdx+1;
+    while(nx<_bcList.length && _bcSent[_bcList[nx].id]) nx++;
+    _bcIdx=nx;
+  }
+  renderBroadcast();
+};
+window.broadcastNext=function(){
+  const sentN=Object.keys(_bcSent).length;
+  if(sentN>=_bcList.length){ toast('🎉 सबको भेज दिया, विक्रम भाई!'); closeBroadcast(); return; }
+  // पहला बिना-भेजा वाला
+  let i=0; while(i<_bcList.length && _bcSent[_bcList[i].id]) i++;
+  if(i>=_bcList.length){ closeBroadcast(); return; }
+  _bcIdx=i;
+  broadcastSendOne(_bcList[i].id);
+};
+
 window.openHub=function(ck){
   if(ck) _hubCat=ck;
   if(!_hubCat) _hubCat='golden';

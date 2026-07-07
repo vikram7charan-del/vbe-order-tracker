@@ -48,7 +48,12 @@ body{
 .hdr-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
 .hdr-title{font-size:15px;font-weight:900;color:#f59e0b;letter-spacing:.2px}
 .hdr-sub{font-size:9px;color:#475569;margin-top:1px}
-.hdr-btns{display:flex;gap:6px;align-items:center}
+/* छोटी पहचान पट्टी — बड़ा नाम हटाया, screenshot में पता चले भर */
+.app-tag{font-size:9px;font-weight:800;color:#f59e0b;opacity:.75;letter-spacing:.4px;
+  padding:0 2px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.app-tag-sub{color:#475569;font-weight:700}
+/* icon बटन: बाईं तरफ से, स्क्रीन के अंदर ही — ज़्यादा हों तो नीचे wrap */
+.hdr-btns{display:flex;flex-wrap:wrap;gap:5px;align-items:center;justify-content:flex-start;margin-bottom:9px}
 .btn-add{
   width:33px;height:33px;border-radius:50%;
   background:linear-gradient(135deg,#f59e0b,#ef4444);
@@ -59,7 +64,7 @@ body{
 .btn-icon{
   font-size:13px;text-decoration:none;
   background:#0d1526;border:1px solid #1e3a5f;border-radius:8px;
-  padding:5px 8px;color:#94a3b8;font-weight:700;white-space:nowrap;
+  padding:5px 7px;color:#94a3b8;font-weight:700;white-space:nowrap;
   display:flex;align-items:center;gap:3px;
 }
 .btn-back{font-size:11px;color:#94a3b8;text-decoration:none;background:#0d1526;border:1px solid #1e3a5f;border-radius:8px;padding:5px 10px;font-weight:700}
@@ -525,12 +530,8 @@ body.th-geo .btn-add-big{background:linear-gradient(135deg,#6366f1,#a855f7);box-
 
   <!-- Sticky Header -->
   <div class="app-hdr">
-    <div class="hdr-row">
-      <div>
-        <div class="hdr-title">📞 Call Tracker</div>
-        <div class="hdr-sub" id="hdr-sub">Follow-up Accountability</div>
-      </div>
-      <div class="hdr-btns">
+    <div class="app-tag">📞 Call Tracker <span id="hdr-sub" class="app-tag-sub">· Follow-up</span></div>
+    <div class="hdr-btns">
         <button class="btn-icon" onclick="openBroadcast()" title="भेजो Mode — सबको एक-एक करके WhatsApp" style="cursor:pointer;font-family:inherit">📤</button>
         <button class="btn-icon" onclick="openHub()" title="श्रेणी Hub — category-wise सारे काम" style="cursor:pointer;font-family:inherit">🗂️</button>
         <button class="btn-icon" id="view-btn" onclick="toggleView()" title="Layout बदलें" style="cursor:pointer;font-family:inherit">🔲</button>
@@ -541,7 +542,6 @@ body.th-geo .btn-add-big{background:linear-gradient(135deg,#6366f1,#a855f7);box-
         <a href="./quick-add.html" class="btn-icon" title="Quick Order Add">📦</a>
         <a href="./" class="btn-back">← App</a>
       </div>
-    </div>
 
     <!-- Stats (compact) + बड़ा Add button दाईं तरफ -->
     <div class="hdr-row2">
@@ -1004,8 +1004,8 @@ function renderStats(list){
 function updateHdrSub(){
   const over=sorted().filter(c=>status(c)==='overdue');
   const el=document.getElementById('hdr-sub');
-  if(over.length) el.innerHTML=`<span style="color:#f87171;font-weight:800">⚠️ ${over.length} call late!</span>`;
-  else el.textContent='Follow-up Accountability';
+  if(over.length) el.innerHTML=`<span style="color:#f87171;font-weight:800">· ⚠️ ${over.length} late</span>`;
+  else el.textContent='· Follow-up';
 }
 
 /* Strip — pill chips */

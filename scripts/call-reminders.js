@@ -97,7 +97,39 @@ async function main() {
     }
   }
 
-  if (!due.length && !digest) {
+  // 📤 भेजो-time ping — तय समय पर "message भेजो" push (default 9:00, 9:30, 11:00 IST)
+  // समय बदलने हों तो _settings doc में sendTimes: ['09:00','13:30',...] रखो
+  let sendPing = null;
+  const SEND_TIMES = (settingsData && Array.isArray(settingsData.sendTimes) && settingsData.sendTimes.length)
+    ? settingsData.sendTimes : ['09:00', '09:30', '11:00'];
+  for (const t of SEND_TIMES) {
+    const p = String(t).split(':');
+    const tm = Number(p[0]) * 60 + Number(p[1] || 0);
+    if (isNaN(tm)) continue;
+    if (istMin >= tm && istMin < tm + 8) { // 8-min window (cron हर 5 min)
+      const key = todayKey + '_' + t;
+      if ((settingsData && settingsData.lastSendPing) !== key) {
+        let ready = 0;
+        snap.forEach((d) => {
+          if (d.id === '_settings') return;
+          const c = d.data();
+          if (c.active === false) return;
+          if (c.waMsg && c.waMsgAt) ready++;
+        });
+        if (ready) {
+          sendPing = { key, ready, time: t };
+          batch.set(
+            db.collection('vbe_call_tracker').doc('_settings'),
+            { lastSendPing: key },
+            { merge: true }
+          );
+        }
+      }
+      break;
+    }
+  }
+
+  if (!due.length && !digest && !sendPing) {
     console.log('कोई call due नहीं ✓');
     await batch.commit();
     return;
@@ -118,6 +150,14 @@ async function main() {
   }
 
   const msgs = [];
+  if (sendPing) {
+    msgs.push({
+      title: `📤 ${sendPing.ready} लोगों के message तैयार हैं!`,
+      body: `विक्रम भाई, बस tap करके भेजते जाओ — सबको आज के काम की याद चली जाएगी 🙏`,
+      tag: 'vbe-sendtime',
+      link: APP_LINK + '?action=send',
+    });
+  }
   if (digest) {
     msgs.push({
       title: `🌅 आज ${digest.count} calls करनी हैं`,
@@ -144,12 +184,13 @@ async function main() {
 
   let resp = null;
   for (const m of msgs) {
+    const link = m.link || APP_LINK;
     resp = await admin.messaging().sendEachForMulticast({
       tokens,
       notification: { title: m.title, body: m.body },
-      data: { link: APP_LINK },
+      data: { link },
       webpush: {
-        fcmOptions: { link: APP_LINK },
+        fcmOptions: { link },
         notification: {
           icon: '/ct-icon.svg',
           badge: '/ct-icon.svg',

@@ -1,0 +1,42 @@
+# ══════════════════════════════════════════════════════════
+# VBE — Firebase Hosting deploy (हाथ से dispatch)
+# किसी भी branch का content web.app पर live कर देता है।
+# पहले हर बदलाव पर हाथ से firebase deploy करना पड़ता था — अब बस
+# Actions से "Run workflow" दबाओ (या ref बदल दो)।
+#
+# ⚠️ ज़रूरी: repo secret FIREBASE_SA (service account JSON) होना चाहिए,
+#    और उस service account के पास Firebase Hosting deploy permission हो।
+# ══════════════════════════════════════════════════════════
+name: 🚀 Deploy Hosting
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'कौन-सी branch/ref deploy करनी है'
+        required: true
+        default: 'claude/vande-bharat-firebase-jo82rc'
+
+concurrency:
+  group: deploy-hosting
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Write service account
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
+        run: printf '%s' "$FIREBASE_SA" > "$RUNNER_TEMP/sa.json"
+      - name: Deploy to Firebase Hosting
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/sa.json
+        run: npx firebase-tools@latest deploy --only hosting --project vbe-order-tracker-60324 --non-interactive

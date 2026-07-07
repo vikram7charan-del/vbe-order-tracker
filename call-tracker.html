@@ -1484,7 +1484,7 @@ function bcOpenWA(c){
   const msg=(c.waMsg&&c.waMsg.trim())?c.waMsg:buildTemplateMsg(c,groupedActive(c),assignedTo(c.id));
   const ph=rawPh.replace(/[^0-9]/g,'');
   const num=ph.length===10?'91'+ph:ph;
-  window.open('https://wa.me/'+num+'?text='+encodeURIComponent(msg),'_blank');
+  openWhatsApp(num, msg);
 }
 window.broadcastSendOne=function(id){
   const c=contacts.find(x=>x.id===id); if(!c) return;
@@ -1944,6 +1944,28 @@ window.pickCat=function(k){
   const ci=catInfo(k);
   toast(ci?(ci.logo+' '+ci.label):'⬜ कोई श्रेणी नहीं');
 };
+/* WhatsApp खोलो — छोटा message सीधे तैयार; बड़ा message clipboard में copy करके chat खोलो (paste करना) */
+function openWhatsApp(num, msg){
+  // बड़ा message wa.me link में कट जाता है — इसलिए ~1000 अक्षर से ऊपर copy+paste रास्ता
+  if(msg.length <= 1000){
+    window.open('https://wa.me/'+num+'?text='+encodeURIComponent(msg),'_blank');
+    return;
+  }
+  // पहले chat खोलो (user gesture), फिर पूरा message clipboard में
+  window.open('https://wa.me/'+num,'_blank');
+  const okMsg=()=>toast('📋 पूरा message copy हो गया — WhatsApp chat में दबाकर Paste करें फिर Send','warn');
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(msg).then(okMsg).catch(()=>waClipFallback(msg,okMsg));
+  } else waClipFallback(msg,okMsg);
+}
+function waClipFallback(txt,cb){
+  try{
+    const ta=document.createElement('textarea');
+    ta.value=txt; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta); cb();
+  }catch(e){ toast('⚠️ copy नहीं हुआ','err'); }
+}
 /* 📤 सारे काम WhatsApp पर एक click में भेजो */
 function buildTemplateMsg(c,tps,asg){
   let msg=`नमस्ते *${c.name}* 🙏\n`;
@@ -1975,9 +1997,9 @@ window.spSendTasks=function(){
   }
   const ph=rawPh.replace(/[^0-9]/g,'');
   const num=ph.length===10?'91'+ph:ph;
-  window.open('https://wa.me/'+num+'?text='+encodeURIComponent(msg),'_blank');
+  openWhatsApp(num, msg);
   markWaSent(c); renderSmartPop();
-  toast(ai?'🤖 AI message तैयार — बस Send दबाएँ':'📤 '+(tps.length+asg.length)+' काम भेजे');
+  if(msg.length<=1000) toast(ai?'🤖 AI message तैयार — बस Send दबाएँ':'📤 '+(tps.length+asg.length)+' काम भेजे');
 };
 /* ══ n8n से on-demand ताज़ा AI message — सिर्फ़ इसी व्यक्ति के लिए, इसी पल ══ */
 window.spFreshAI=async function(){
@@ -2003,10 +2025,10 @@ window.spFreshAI=async function(){
     const rawPh=c.waPhone||c.phone;
     if(rawPh){
       const ph=rawPh.replace(/[^0-9]/g,''); const num=ph.length===10?'91'+ph:ph;
-      window.open('https://wa.me/'+num+'?text='+encodeURIComponent(msg),'_blank');
+      openWhatsApp(num, msg);
       markWaSent(c); renderSmartPop();
     }
-    toast('🤖 ताज़ा AI message तैयार!');
+    if(msg.length<=1000) toast('🤖 ताज़ा AI message तैयार!');
   }catch(e){ toast('⚠️ n8n connect नहीं हुआ — net/URL check करें','err'); }
 };
 /* ⚙️ n8n webhook URL सेट करो (एक बार) */

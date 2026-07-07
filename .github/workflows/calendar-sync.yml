@@ -1,6 +1,8 @@
 # ══════════════════════════════════════════════════════════
-# VBE Call Tracker — Google Calendar auto-sync (हर घंटे)
-# हर contact की अगली call को Google Calendar event बना देता है
+# VBE Call Tracker — Google Calendar auto-sync (हर 15 मिनट)
+# हर contact की अगली call को Google Calendar event बना देता है।
+# App में follow-up बंद करते ही अगली sync में event delete भी हो जाता है।
+# sync की हालत doc में calSynced/calSyncedAt से app को दिखती है।
 #
 # ⚠️ SETUP (एक बार):
 #  1) repo secret FIREBASE_SA होना चाहिए
@@ -11,7 +13,7 @@ name: 📅 Calendar Sync
 
 on:
   schedule:
-    - cron: '25 * * * *' # हर घंटे (minute 25 पर)
+    - cron: '*/15 * * * *' # हर 15 मिनट (GitHub कभी-कभी थोड़ा delay करता है)
   workflow_dispatch: # हाथ से भी
 
 concurrency:
@@ -28,7 +30,8 @@ jobs:
         with:
           node-version: 20
       - name: Install deps
-        run: npm install firebase-admin googleapis --no-save --no-audit --no-fund
+        # firebase-admin@13 pinned — v14 ने पुराना admin.credential API हटा दिया है
+        run: npm install firebase-admin@13 googleapis --no-save --no-audit --no-fund
       - name: Sync calls to Google Calendar
         env:
           FIREBASE_SA: ${{ secrets.FIREBASE_SA }}

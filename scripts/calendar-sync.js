@@ -80,6 +80,11 @@ async function main() {
   const now = Date.now();
   let made = 0, upd = 0, del = 0, err = 0;
 
+  // sync की हालत doc में वापस लिखो — app इसी से "📅 Calendar में" badge दिखाता है
+  async function markSync(id, patch) {
+    try { await db.collection('vbe_call_tracker').doc(id).set(patch, { merge: true }); } catch (e) { /* non-fatal */ }
+  }
+
   for (const c of all) {
     const d = c.data;
     const evId = eventId(c.id);
@@ -90,8 +95,12 @@ async function main() {
       (t > now - 2 * 24 * 60 * 60 * 1000);
 
     if (!wantEvent) {
-      // पुराना event हो तो हटा दो
-      try { await cal.events.delete({ calendarId, eventId: evId }); del++; await sleep(THROTTLE_MS); } catch (e) { /* था ही नहीं */ }
+      // event था (या पुराने docs में पता नहीं) तो हटाओ; calSynced:false लिखो
+      if (d.calSynced !== false) {
+        try { await cal.events.delete({ calendarId, eventId: evId }); del++; console.log('- ', d.name); } catch (e) { /* था ही नहीं */ }
+        await markSync(c.id, { calSynced: false });
+        await sleep(THROTTLE_MS);
+      }
       continue;
     }
 
@@ -116,17 +125,19 @@ async function main() {
       },
     };
 
+    let synced = false;
     try {
       await withRetry(() => cal.events.insert({ calendarId, requestBody: body }));
-      made++; console.log('+ ', d.name);
+      made++; synced = true; console.log('+ ', d.name);
     } catch (e) {
       if (e.code === 409 || (e.errors && e.errors[0] && e.errors[0].reason === 'duplicate')) {
         try {
           await withRetry(() => cal.events.patch({ calendarId, eventId: evId, requestBody: body }));
-          upd++; console.log('~ ', d.name);
+          upd++; synced = true; console.log('~ ', d.name);
         } catch (e2) { err++; console.error('✗', d.name, e2.message); }
       } else { err++; console.error('✗', d.name, e.message); }
     }
+    if (synced) await markSync(c.id, { calSynced: true, calSyncedAt: new Date().toISOString(), calEventFor: d.nextCallAt });
     await sleep(THROTTLE_MS); // अगली call से पहले रुको (rate limit से बचाव)
   }
   console.log(`Calendar: ${made} बने, ${upd} अपडेट, ${del} हटाए, ${err} error (calendar=${calendarId})`);

@@ -320,6 +320,7 @@ body{
       </div>
       <div class="hdr-btns">
         <button class="btn-add" onclick="openAddModal()" title="नया contact">+</button>
+        <button class="btn-icon" style="cursor:pointer" onclick="openCalModal()" title="Follow-up / Calendar Manager">📅</button>
         <a href="./quick-add.html" class="btn-icon" title="Quick Order Add">📦 काम जोड़ो</a>
         <a href="./" class="btn-back">← App</a>
       </div>
@@ -429,7 +430,23 @@ body{
       <label class="lbl">📝 क्या बात हुई?</label>
       <input class="inp" id="f-callnote" placeholder="price confirm, delivery 3 दिन...">
     </div>
+    <div class="fg">
+      <label class="lbl">⏰ अगली call कब? (सिर्फ़ इस बार के लिए — permanent interval नहीं बदलेगा)</label>
+      <div class="int-btns" id="fu-btns">
+        <button class="int-btn" data-m="5">5m</button>
+        <button class="int-btn" data-m="10">10m</button>
+        <button class="int-btn" data-m="15">15m</button>
+        <button class="int-btn" data-m="20">20m</button>
+        <button class="int-btn" data-m="30">30m</button>
+        <button class="int-btn" data-m="60">1h</button>
+        <button class="int-btn" data-m="120">2h</button>
+        <button class="int-btn" data-m="300">5h</button>
+        <button class="int-btn" data-m="tom">कल 10 बजे</button>
+      </div>
+      <div id="fu-preview" style="font-size:10px;color:#f59e0b;margin-top:6px;font-weight:700"></div>
+    </div>
     <button class="btn-confirm-call" onclick="confirmCall()">✅ Call हुई — Record &amp; Dial करो</button>
+    <button class="btn-save" style="background:linear-gradient(135deg,#059669,#128c7e);box-shadow:0 4px 14px rgba(18,140,126,.3);margin-top:7px" onclick="confirmCallWA()">💬 Record + WhatsApp: "फिर याद दिलाऊँगा"</button>
     <button class="btn-save" style="background:#0e1a2c;box-shadow:none;margin-top:7px" onclick="confirmCallNoRecord()">📝 सिर्फ Record (dial नहीं)</button>
   </div>
 </div>
@@ -450,6 +467,21 @@ body{
     <button class="qd-btn qd-call" onclick="qdialCall()">📞 Call</button>
     <button class="qd-btn qd-wa" id="qd-wa-btn" onclick="qdialWA()">💬 WA</button>
     <button class="qd-btn qd-sms" id="qd-sms-btn" onclick="qdialSMS()">✉️ SMS</button>
+  </div>
+</div>
+
+<!-- ══ CALENDAR / FOLLOW-UP MANAGER MODAL ══ -->
+<div class="modal-bg" id="m-cal">
+  <div class="modal-box">
+    <div class="modal-title">
+      <span>📅 Follow-up Manager</span>
+      <span class="modal-x" onclick="closeModal('m-cal')">✕</span>
+    </div>
+    <div style="font-size:10px;color:#64748b;margin-bottom:10px;line-height:1.6">
+      यहाँ हर scheduled follow-up दिखता है। 📅 = Google Calendar में event बना हुआ है।<br>
+      🛑 बंद करने पर अगली call हट जाती है — और <b style="color:#94a3b8">15 मिनट के अंदर</b> Calendar से event भी अपने-आप delete हो जाता है।
+    </div>
+    <div id="cal-list"></div>
   </div>
 </div>
 
@@ -494,6 +526,7 @@ let selColor = COLORS[0];
 let selEmoji = '';
 let selTag = '';
 let pendingCallId = null;
+let selFollow = 30; // इस call के बाद अगली call कब — minutes या 'tom' (कल 10 बजे)
 let _tick = null;
 let _notifFired = new Set();
 let _expandedIds = new Set();
@@ -525,7 +558,7 @@ function showLogin(){
 function initApp(){
   document.getElementById('s-login').style.display='none';
   document.getElementById('s-app').style.display='block';
-  buildColorPicker(); buildEmojiPicker(); buildIntervalPicker(); updateTagBtns();
+  buildColorPicker(); buildEmojiPicker(); buildIntervalPicker(); buildFuPicker(); updateTagBtns();
   startFirestoreSync(); startTick(); askNotifPermission();
 }
 
@@ -545,6 +578,11 @@ async function fbSave(c){
 async function fbDelete(id){
   try{ await deleteDoc(doc(db,'vbe_call_tracker',id)); }
   catch(e){ toast('⚠️ Delete error','err'); }
+}
+// सिर्फ़ दिए गए fields merge से लिखो — बाकी document (topics, waMsg...) सुरक्षित रहे
+async function fbPatch(id,patch){
+  try{ await setDoc(doc(db,'vbe_call_tracker',id), patch, {merge:true}); }
+  catch(e){ toast('⚠️ Save error','err'); }
 }
 
 function genId(){ return 'CT'+Date.now().toString(36).toUpperCase()+Math.random().toString(36).slice(2,4).toUpperCase(); }
@@ -611,6 +649,8 @@ function sorted(){
 function render(){
   const list=sorted();
   renderStrip(list); renderCards(list); renderStats(list); updateHdrSub();
+  const mc=document.getElementById('m-cal');
+  if(mc&&mc.classList.contains('open')) renderCalList();
 }
 function renderStats(list){
   document.getElementById('st-total').textContent=list.length;
@@ -706,6 +746,7 @@ function cardHTML(c,s){
   const av=avatarContent(c);
   const avFs=avatarFontSize(c);
   const alarmRow=c.alarmTime?`<div class="det-alarm"><span class="det-alarm-lbl">⏰ Daily Alarm:</span><span class="det-alarm-val">${escH(c.alarmTime)}</span></div>`:'';
+  const calRow=c.calSynced?`<div style="padding:2px 12px 5px;font-size:10px;color:#60a5fa;font-weight:700">📅 Google Calendar में synced${c.calSyncedAt?' · '+new Date(c.calSyncedAt).toLocaleString('hi-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):''}</div>`:'';
   const tagInfo=c.tag&&TAGS[c.tag];
   const tagBadge=tagInfo?`<span style="background:${tagInfo.color}22;color:${tagInfo.color};border:1px solid ${tagInfo.color}44;border-radius:5px;padding:1px 5px;font-size:8.5px;font-weight:800;margin-right:4px">${tagInfo.label}</span>`:'';
   const hasWA=!!(c.waPhone||c.phone);
@@ -754,7 +795,7 @@ function cardHTML(c,s){
       </div>
       ${waDiff?`<div style="padding:4px 12px 5px;font-size:10px;color:#4ade80;font-weight:700">💬 WA: ${escH(c.waPhone)}</div>`:''}
       ${tagInfo?`<div style="padding:2px 12px 5px"><span style="background:${tagInfo.color}22;color:${tagInfo.color};border:1px solid ${tagInfo.color}44;border-radius:5px;padding:2px 7px;font-size:9px;font-weight:800">${tagInfo.label}</span></div>`:''}
-      ${alarmRow}
+      ${alarmRow}${calRow}
       <div class="det-actions" onclick="event.stopPropagation()">
         <button class="${pinBtnCls}" onclick="togglePin('${c.id}')">${c.pinned?'📌':'📍'} Pin</button>
         ${c.phone?`<button class="da da-msg" onclick="sendSMS('${c.id}')">✉️ SMS</button>`:''}
@@ -933,23 +974,65 @@ window.recordCall=function(id){
   document.getElementById('call-phone').textContent='📱 '+(c.phone||'—');
   document.getElementById('call-note-prev').textContent=c.note||'';
   document.getElementById('f-callnote').value='';
+  selFollow=c.intervalMins||30; updateFuBtns();
   openModal('m-call');
 };
-window.confirmCall=function(){ doRecordCall(true); };
-window.confirmCallNoRecord=function(){ doRecordCall(false); };
-function doRecordCall(dial){
+window.confirmCall=function(){ doRecordCall(true,false); };
+window.confirmCallNoRecord=function(){ doRecordCall(false,false); };
+window.confirmCallWA=function(){ doRecordCall(false,true); };
+
+/* ── Follow-up picker (इस call के लिए अगली call कब) ── */
+function fuMs(){
+  if(selFollow==='tom'){ const d=new Date(); d.setDate(d.getDate()+1); d.setHours(10,0,0,0); return d.getTime(); }
+  return Date.now()+selFollow*60*1000;
+}
+function fuLabel(){
+  if(selFollow==='tom') return 'कल सुबह 10 बजे';
+  if(selFollow>=60) return (selFollow%60===0?(selFollow/60):(selFollow/60).toFixed(1))+' घंटे बाद';
+  return selFollow+' मिनट बाद';
+}
+function buildFuPicker(){
+  const el=document.getElementById('fu-btns'); if(!el) return;
+  el.addEventListener('click',e=>{
+    const b=e.target.closest('.int-btn'); if(!b) return;
+    selFollow=b.dataset.m==='tom'?'tom':parseInt(b.dataset.m);
+    updateFuBtns();
+  });
+}
+function updateFuBtns(){
+  document.querySelectorAll('#fu-btns .int-btn').forEach(b=>{
+    const v=b.dataset.m==='tom'?'tom':parseInt(b.dataset.m);
+    b.classList.toggle('on',v===selFollow);
+  });
+  const p=document.getElementById('fu-preview');
+  if(p) p.textContent='⏰ अगली call: '+fuLabel()+' ('+new Date(fuMs()).toLocaleString('hi-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})+')';
+}
+/* contact को WhatsApp पर बताओ — "X बाद फिर याद दिलाऊँगा" (सामाजिक दबाव = काम जल्दी) */
+function waNotifyMsg(c){
+  const pend=(c.topics||[]).filter(t=>t&&!t.done).map(t=>t.t||t).slice(0,4);
+  const list=pend.length?('\n'+pend.map((t,i)=>(i+1)+'. '+t).join('\n')+'\n'):'\n';
+  return `नमस्ते ${c.name} जी! 🙏\nअभी आपसे बात हुई — समय देने के लिए धन्यवाद।${list}\n⏰ मैं ${fuLabel()} आपको इस काम के लिए फिर याद दिलाऊँगा — तब तक पूरा हो जाए तो बहुत बढ़िया रहेगा। 🙏\n\n*विक्रम — Vande Bharat Enterprises*`;
+}
+function doRecordCall(dial,waNotify){
   const c=contacts.find(x=>x.id===pendingCallId);
   if(!c) return;
   const note=(document.getElementById('f-callnote').value||'').trim();
   const now=new Date().toISOString();
   c.lastCallAt=now;
-  c.nextCallAt=new Date(Date.now()+c.intervalMins*60*1000).toISOString();
+  c.nextCallAt=new Date(fuMs()).toISOString();
   c.callLog=c.callLog||[]; c.callLog.push({at:now,note});
   _notifFired.delete(c.id);
   closeModal('m-call'); render();
-  toast(`✅ ${c.name} की call — ${c.intervalMins}min reminder`);
+  toast(`✅ ${c.name} की call — ${fuLabel()} reminder`);
   fbSave(c);
-  if(dial&&c.phone) setTimeout(()=>{ window.location.href='tel:'+c.phone; },400);
+  if(waNotify){
+    const rawPh=c.waPhone||c.phone;
+    if(rawPh){
+      const ph=rawPh.replace(/[^0-9]/g,'');
+      const num=ph.length===10?'91'+ph:ph;
+      setTimeout(()=>{ window.open('https://wa.me/'+num+'?text='+encodeURIComponent(waNotifyMsg(c)),'_blank'); },350);
+    }
+  } else if(dial&&c.phone) setTimeout(()=>{ window.location.href='tel:'+c.phone; },400);
 }
 
 window.openWA=function(id){
@@ -974,6 +1057,38 @@ window.togglePin=function(id){
   c.pinned=!c.pinned;
   render(); fbSave(c);
   toast(c.pinned?`📌 ${c.name} pinned`:`📍 ${c.name} unpinned`);
+};
+
+/* ──────── Follow-up / Calendar Manager ──────── */
+window.openCalModal=function(){ renderCalList(); openModal('m-cal'); };
+function renderCalList(){
+  const el=document.getElementById('cal-list'); if(!el) return;
+  const rows=[...contacts].filter(c=>c.active!==false&&c.nextCallAt)
+    .sort((a,b)=>new Date(a.nextCallAt)-new Date(b.nextCallAt));
+  if(!rows.length){
+    el.innerHTML='<div style="text-align:center;color:#475569;font-size:12px;padding:24px 0">कोई scheduled follow-up नहीं 🎉</div>';
+    return;
+  }
+  const fmt=iso=>new Date(iso).toLocaleString('hi-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+  el.innerHTML=rows.map(c=>{
+    const late=new Date(c.nextCallAt).getTime()<Date.now();
+    return `<div style="display:flex;align-items:center;gap:8px;padding:9px 2px;border-bottom:1px solid rgba(15,30,54,.9)">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:800;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escH(c.name)} ${c.calSynced?'<span title="Google Calendar में है">📅</span>':''}</div>
+        <div style="font-size:10px;color:${late?'#f87171':'#64748b'};margin-top:1px">📞 ${fmt(c.nextCallAt)}${late?' — LATE!':''}${c.lastNotifiedAt?' · 🔔 '+fmt(c.lastNotifiedAt):''}</div>
+      </div>
+      <button class="da da-del" style="flex:0 0 auto;padding:7px 10px" onclick="stopFollowUp('${c.id}')">🛑 बंद</button>
+    </div>`;
+  }).join('');
+}
+window.stopFollowUp=async function(id){
+  const c=contacts.find(x=>x.id===id);
+  if(!c) return;
+  if(!confirm(`"${c.name}" का follow-up बंद करें?\n\nGoogle Calendar से event भी 15 मिनट के अंदर अपने-आप हट जाएगा।`)) return;
+  c.nextCallAt=null;
+  await fbPatch(id,{nextCallAt:null});
+  toast(`🛑 ${c.name} — follow-up बंद (calendar से भी हट जाएगा)`,'warn');
+  renderCalList(); render();
 };
 
 window.toggleLog=function(id){

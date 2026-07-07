@@ -37,9 +37,12 @@ async function main() {
   admin.initializeApp({ credential: admin.credential.cert(sa) });
   const db = admin.firestore();
 
-  const auth = new google.auth.JWT(sa.client_email, null, sa.private_key, [
-    'https://www.googleapis.com/auth/calendar',
-  ]);
+  const auth = new google.auth.JWT({
+    email: sa.client_email,
+    key: sa.private_key,
+    scopes: ['https://www.googleapis.com/auth/calendar'],
+  });
+  await auth.authorize(); // token पक्का लो — वरना "missing auth credential" आता है
   const cal = google.calendar({ version: 'v3', auth });
 
   const snap = await db.collection('vbe_call_tracker').get();

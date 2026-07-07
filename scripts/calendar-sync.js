@@ -17,7 +17,7 @@ const admin = require('firebase-admin');
 const crypto = require('crypto');
 const { google } = require('googleapis');
 
-const DEFAULT_CALENDAR = '177mhwcanteen@gmail.com';
+const DEFAULT_CALENDAR = 'vikram7charan@gmail.com';
 const TASK_CATS = { golden: '🏆', computer: '💻', market: '🛒', jalipa: '🏪' };
 
 function normTopics(c) {
@@ -26,7 +26,7 @@ function normTopics(c) {
   return c.note ? [{ t: c.note, done: false }] : [];
 }
 function eventId(id) {
-  // Google event id: सिर्य़ a-v, 0-9 — sha1 hex (0-9a-f) safe है
+  // Google event id: सिर्फ़ a-v, 0-9 — sha1 hex (0-9a-f) safe है
   return 'vbe' + crypto.createHash('sha1').update(String(id)).digest('hex');
 }
 
@@ -37,9 +37,12 @@ async function main() {
   admin.initializeApp({ credential: admin.credential.cert(sa) });
   const db = admin.firestore();
 
-  const auth = new google.auth.JWT(sa.client_email, null, sa.private_key, [
-    'https://www.googleapis.com/auth/calendar',
-  ]);
+  const auth = new google.auth.JWT({
+    email: sa.client_email,
+    key: sa.private_key,
+    scopes: ['https://www.googleapis.com/auth/calendar'],
+  });
+  await auth.authorize(); // token पक्का लो — वरना "missing auth credential" आता है
   const cal = google.calendar({ version: 'v3', auth });
 
   const snap = await db.collection('vbe_call_tracker').get();

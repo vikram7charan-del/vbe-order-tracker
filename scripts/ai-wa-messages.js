@@ -115,7 +115,19 @@ async function main() {
 
   const snap = await db.collection('vbe_call_tracker').get();
   const all = [];
-  snap.forEach((d) => { if (d.id !== '_settings') all.push({ id: d.id, ref: d.ref, data: d.data() }); });
+  let settings = {};
+  snap.forEach((d) => {
+    if (d.id === '_settings') { settings = d.data() || {}; return; }
+    all.push({ id: d.id, ref: d.ref, data: d.data() });
+  });
+
+  // 💰 खर्च बचाने के लिए: सबके लिए auto-generate DEFAULT बंद।
+  // सिर्फ़ जिसको भेजना है उसी के लिए app में "✨ नया message" (n8n) से बनेगा।
+  // पूरे-सबके auto messages चाहिए तो _settings doc में autoGenAll: true रखो।
+  if (settings.autoGenAll !== true) {
+    console.log('autoGenAll off — mass generation skip (on-demand only)');
+    return;
+  }
 
   // हर contact के लिए: खुद के active काम + जो इन्हें सौंपे गए
   function tasksFor(id) {

@@ -531,6 +531,7 @@ body.th-geo .btn-add-big{background:linear-gradient(135deg,#6366f1,#a855f7);box-
         <button class="btn-icon" onclick="cycleTheme()" title="Theme बदलें" style="cursor:pointer;font-family:inherit">🎨</button>
         <button class="btn-icon" onclick="shuffleLooks()" title="सबके रंग और emoji बदलो — नयापन" style="cursor:pointer;font-family:inherit">🎲</button>
         <button class="btn-icon" onclick="unhideAll()" title="Swipe किए हुए सब वापस लाओ" style="cursor:pointer;font-family:inherit">👁️</button>
+        <button class="btn-icon" onclick="setN8nUrl()" title="n8n webhook URL (on-demand AI)" style="cursor:pointer;font-family:inherit">⚙️</button>
         <a href="./quick-add.html" class="btn-icon" title="Quick Order Add">📦</a>
         <a href="./" class="btn-back">← App</a>
       </div>
@@ -855,6 +856,7 @@ function startFirestoreSync(){
         });
       }
       rebuildTags();
+      if(settings.n8nUrl) window._n8nUrl=settings.n8nUrl;
     }
     renderFilterBar(); renderTagBtns(); render();
   }, ()=>toast('⚠️ Sync error — net check करें','err'));
@@ -1468,6 +1470,7 @@ function renderBroadcast(){
       <div class="bc-body">
         <div class="bc-name">${escH(c.name)}</div>
         <div class="bc-tasks">🗣️ ${n} काम${sent?' · भेजा ✓':''}</div>
+        ${c.lastWaSentAt&&!sent?`<div style="font-size:9.5px;color:${(Date.now()-new Date(c.lastWaSentAt).getTime())<2*60*60*1000?'#fbbf24':'#475569'};font-weight:700;margin-top:1px">🕘 ${agoText(c.lastWaSentAt)} भेजा था</div>`:''}
       </div>
       ${sent?'<div class="bc-sent-tick">✅</div>':`<button class="bc-send-one" onclick="broadcastSendOne('${c.id}')">📤</button>`}
     </div>`;
@@ -1484,8 +1487,26 @@ window.broadcastSendOne=function(id){
   const c=contacts.find(x=>x.id===id); if(!c) return;
   bcOpenWA(c);
   _bcSent[id]=true;
+  markWaSent(c);
   renderBroadcast();
 };
+/* WhatsApp भेजने का समय record करो — double message से बचने के लिए */
+function markWaSent(c){
+  c.lastWaSentAt=new Date().toISOString();
+  fbSave(c);
+}
+/* कितनी देर पहले — "5 मिनट पहले", "2 घंटे पहले", "कल" */
+function agoText(iso){
+  if(!iso) return '';
+  const ms=Date.now()-new Date(iso).getTime();
+  if(ms<0) return '';
+  const m=Math.floor(ms/60000), h=Math.floor(m/60), d=Math.floor(h/24);
+  if(d>=2) return d+' दिन पहले';
+  if(d===1) return 'कल';
+  if(h>=1) return h+' घंटे पहले';
+  if(m>=1) return m+' मिनट पहले';
+  return 'अभी-अभी';
+}
 
 window.openHub=function(ck){
   if(ck) _hubCat=ck;
@@ -1793,7 +1814,9 @@ function renderSmartPop(){
       </div>
     </div>
     ${prev?`<div style="font-size:11.5px;color:#94a3b8;font-style:italic;margin-bottom:10px;line-height:1.45">🕘 पिछली बार: ${escH(prev.note)}</div>`:''}
+    ${c.lastWaSentAt?`<div style="text-align:center;font-size:11px;font-weight:700;color:${(Date.now()-new Date(c.lastWaSentAt).getTime())<2*60*60*1000?'#fbbf24':'#64748b'};margin-bottom:6px">🕘 पिछली बार message भेजा: ${agoText(c.lastWaSentAt)}</div>`:''}
     ${(tps.length||asg.length)&&hasWA?`<button class="qd-btn qd-wa" style="width:100%;margin-bottom:7px;padding:10px" onclick="spSendTasks()">${(c.waMsg&&c.waMsgAt&&(Date.now()-new Date(c.waMsgAt).getTime())<6*60*60*1000)?'🤖 AI message WhatsApp पर भेजो':'📤 सारे काम WhatsApp पर भेजो'}</button>`:''}
+    ${(tps.length||asg.length)&&hasWA&&window._n8nUrl?`<button class="qd-btn sp-sec" style="width:100%;margin-bottom:7px;padding:9px;color:#c4b5fd;border-color:rgba(139,92,246,.4)" onclick="spFreshAI()">✨ नया AI message बनाओ (सिर्फ़ इनके लिए)</button>`:''}
     <div class="qd-btns" style="margin-bottom:7px">
       <button class="qd-btn qd-call" onclick="spCall()">📞 Call</button>
       ${hasWA?`<button class="qd-btn qd-wa" onclick="spWA()">💬 WA</button>`:''}
@@ -1949,7 +1972,48 @@ window.spSendTasks=function(){
   const ph=rawPh.replace(/[^0-9]/g,'');
   const num=ph.length===10?'91'+ph:ph;
   window.open('https://wa.me/'+num+'?text='+encodeURIComponent(msg),'_blank');
+  markWaSent(c); renderSmartPop();
   toast(ai?'🤖 AI message तैयार — बस Send दबाएँ':'📤 '+(tps.length+asg.length)+' काम भेजे');
+};
+/* ══ n8n से on-demand ताज़ा AI message — सिर्फ़ इसी व्यक्ति के लिए, इसी पल ══ */
+window.spFreshAI=async function(){
+  const c=contacts.find(x=>x.id===_spId);
+  if(!c) return;
+  const tps=groupedActive(c), asg=assignedTo(c.id);
+  if(!tps.length&&!asg.length){ toast('⚠️ कोई बाकी काम नहीं','warn'); return; }
+  if(!window._n8nUrl){ toast('⚙️ पहले n8n URL डालें (ऊपर ⚙️ button)','warn'); return; }
+  const tasks=[...tps.map(x=>(catInfo(x.cat)?catInfo(x.cat).logo+' ':'')+x.t),
+               ...asg.map(x=>(catInfo(x.cat)?catInfo(x.cat).logo+' ':'')+x.t+' ('+x.srcName+')')];
+  toast('🤖 नया message बन रहा है...');
+  try{
+    const r=await fetch(window._n8nUrl,{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name:c.name||'जी', tasks})
+    });
+    const data=await r.json().catch(()=>null);
+    const msg=(data&&(data.message||data.text||data.msg))|| (typeof data==='string'?data:'');
+    if(!msg){ toast('⚠️ n8n से message नहीं मिला','err'); return; }
+    c.waMsg=msg; c.waMsgAt=new Date().toISOString();
+    fbSave(c); renderSmartPop();
+    // तुरंत WhatsApp खोल दो
+    const rawPh=c.waPhone||c.phone;
+    if(rawPh){
+      const ph=rawPh.replace(/[^0-9]/g,''); const num=ph.length===10?'91'+ph:ph;
+      window.open('https://wa.me/'+num+'?text='+encodeURIComponent(msg),'_blank');
+      markWaSent(c); renderSmartPop();
+    }
+    toast('🤖 ताज़ा AI message तैयार!');
+  }catch(e){ toast('⚠️ n8n connect नहीं हुआ — net/URL check करें','err'); }
+};
+/* ⚙️ n8n webhook URL सेट करो (एक बार) */
+window.setN8nUrl=async function(){
+  const cur=window._n8nUrl||'';
+  const v=prompt('n8n Webhook URL यहाँ paste करें\n(खाली छोड़ने पर हट जाएगा):', cur);
+  if(v===null) return;
+  window._n8nUrl=v.trim();
+  try{ await setDoc(doc(db,'vbe_call_tracker','_settings'), {id:'_settings', n8nUrl:window._n8nUrl}, {merge:true});
+    toast(window._n8nUrl?'✅ n8n URL save हुआ':'n8n URL हटाया'); }
+  catch(e){ toast('⚠️ Save error','err'); }
 };
 /* Popup से filter/tag बदलो */
 window.spSetTag=function(k){

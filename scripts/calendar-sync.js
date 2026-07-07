@@ -20,6 +20,29 @@ const { google } = require('googleapis');
 const DEFAULT_CALENDAR = 'vikram7charan@gmail.com';
 const TASK_CATS = { golden: '🏆', computer: '💻', market: '🛒', jalipa: '🏪' };
 
+// Calendar API नई-नई enable हुई है → quota कम। हर call के बीच थोड़ा रुको
+// ताकि "Rate Limit Exceeded" न आए। साथ ही rate-limit पर 2 बार दोबारा कोशिश।
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const THROTTLE_MS = 600;
+function isRateLimit(e) {
+  return e && (e.code === 403 || e.code === 429 ||
+    (e.errors && e.errors[0] && /rate limit|quota|userRateLimit/i.test(e.errors[0].reason || e.errors[0].message || '')) ||
+    /rate limit/i.test(e.message || ''));
+}
+async function withRetry(fn) {
+  let lastErr;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try { return await fn(); }
+    catch (e) {
+      lastErr = e;
+      if (e.code === 409) throw e; // duplicate → caller खुद patch करेगा
+      if (!isRateLimit(e)) throw e;
+      await sleep(1500 * (attempt + 1)); // 1.5s, 3s
+    }
+  }
+  throw lastErr;
+}
+
 function normTopics(c) {
   if (Array.isArray(c.topics) && c.topics.length)
     return c.topics.map((x) => (typeof x === 'string' ? { t: x, done: false } : x));
@@ -68,7 +91,7 @@ async function main() {
 
     if (!wantEvent) {
       // पुराना event हो तो हटा दो
-      try { await cal.events.delete({ calendarId, eventId: evId }); del++; } catch (e) { /* था ही नहीं */ }
+      try { await cal.events.delete({ calendarId, eventId: evId }); del++; await sleep(THROTTLE_MS); } catch (e) { /* था ही नहीं */ }
       continue;
     }
 
@@ -94,16 +117,17 @@ async function main() {
     };
 
     try {
-      await cal.events.insert({ calendarId, requestBody: body });
+      await withRetry(() => cal.events.insert({ calendarId, requestBody: body }));
       made++; console.log('+ ', d.name);
     } catch (e) {
       if (e.code === 409 || (e.errors && e.errors[0] && e.errors[0].reason === 'duplicate')) {
         try {
-          await cal.events.patch({ calendarId, eventId: evId, requestBody: body });
+          await withRetry(() => cal.events.patch({ calendarId, eventId: evId, requestBody: body }));
           upd++; console.log('~ ', d.name);
         } catch (e2) { err++; console.error('✗', d.name, e2.message); }
       } else { err++; console.error('✗', d.name, e.message); }
     }
+    await sleep(THROTTLE_MS); // अगली call से पहले रुको (rate limit से बचाव)
   }
   console.log(`Calendar: ${made} बने, ${upd} अपडेट, ${del} हटाए, ${err} error (calendar=${calendarId})`);
 }

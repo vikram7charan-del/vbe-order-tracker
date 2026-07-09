@@ -516,7 +516,7 @@ function blobToB64(blob){
 }
 
 // ── Pricebook logging ──
-function itemKey(name){ return name.toLowerCase().trim().replace(/[^\p{L}\p{N} ]/gu,'').replace(/\s+/g,' '); }
+function itemKey(name){ return name.toLowerCase().trim().replace(/[^\p{L}\p{M}\p{N}]/gu,''); }
 async function logPricebook(expenseId, exp){
   for(const it of exp.items){
     if(!it.name || !it.rate) continue;

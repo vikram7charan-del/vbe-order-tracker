@@ -100,7 +100,7 @@ const db = getFirestore(app);
 
 let IS_ADMIN=false, ALL=[], GROUPS={}, CUR_KEY='';
 
-function itemKey(name){ return name.toLowerCase().trim().replace(/[^\p{L}\p{N} ]/gu,'').replace(/\s+/g,' '); }
+function itemKey(name){ return name.toLowerCase().trim().replace(/[^\p{L}\p{M}\p{N}]/gu,''); }
 function esc(s){ return String(s).replace(/</g,'&lt;'); }
 function fmt(n){ return '₹'+(+n).toLocaleString('hi-IN'); }
 

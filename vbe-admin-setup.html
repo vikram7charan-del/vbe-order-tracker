@@ -35,8 +35,8 @@ code{background:#0d1526;border-radius:4px;padding:1px 5px;font-size:10px;color:#
 <p class="sub">Firestore में vbe_admins collection बनाएगा — यह page सिर्फ एक बार चलाएं</p>
 
 <div class="warn-box">
-  ⚠️ <strong>पहले यह करो, फिर नए Firestore rules deploy करो।</strong><br>
-  अगर rules पहले deploy हो गए और यह page नहीं चला, तो app से lock out हो जाओगे।<br>
+  ⚠️ <strong>यह Setup चलाओ, फिर नए Firestore rules deploy करो।</strong><br>
+  rules में एक legacy fallback है तो लॉक-आउट नहीं होगा, पर पूरी security migration के लिए यह step ज़रूरी है।<br>
   Order: <strong>1. यह Setup चलाओ → 2. Rules Deploy करो</strong>
 </div>
 

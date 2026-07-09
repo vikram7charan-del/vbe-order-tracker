@@ -13,9 +13,9 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: 'कौन-सी branch/ref deploy करनी है'
+        description: 'कौन-सी branch/ref deploy करनी है (डिफ़ॉल्ट: main = सबसे नया सही version)'
         required: true
-        default: 'claude/vande-bharat-firebase-jo82rc'
+        default: 'main'
 
 concurrency:
   group: deploy-hosting

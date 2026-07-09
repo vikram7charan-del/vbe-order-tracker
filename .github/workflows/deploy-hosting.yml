@@ -13,9 +13,11 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: 'कौन-सी branch/ref deploy करनी है (डिफ़ॉल्ट: main = सबसे नया सही version)'
+        # ⚠️ असली LIVE app इसी branch पर है (compact Call Tracker, Cloud Functions आदि)।
+        # main एक अलग/पुरानी दिशा है — गलती से main deploy मत करना, वरना ढांचा बदल जाएगा।
+        description: 'कौन-सी branch/ref deploy करनी है (डिफ़ॉल्ट: असली live production branch)'
         required: true
-        default: 'main'
+        default: 'claude/vande-bharat-firebase-jo82rc'
 
 concurrency:
   group: deploy-hosting

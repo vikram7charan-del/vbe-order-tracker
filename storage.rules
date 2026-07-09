@@ -22,6 +22,16 @@ service firebase.storage {
       allow delete: if isSupplier();
     }
 
+    // खर्चा ट्रैकर bill photos — सिर्फ authenticated users, max 2MB, सिर्फ images
+    // (role check Firestore rules में है; यहां auth + size + type enforce होता है)
+    match /kharcha_bills/{fileName} {
+      allow read:   if request.auth != null;
+      allow write:  if request.auth != null
+                    && request.resource.size < 2 * 1024 * 1024
+                    && request.resource.contentType.matches('image/.*');
+      allow delete: if isSupplier();
+    }
+
     // बाकी सब बंद
     match /{allPaths=**} {
       allow read, write: if false;

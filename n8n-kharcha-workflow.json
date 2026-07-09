@@ -1,0 +1,207 @@
+{
+  "name": "VBE Kharcha - WhatsApp Reminders",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Setup (एक बार)\n1. **Google Service Account** credential बनाओ (n8n → Credentials → Google API) — Firebase project `vbe-order-tracker-60324` का service account JSON, scope: `https://www.googleapis.com/auth/datastore`\n2. दोनों Firestore HTTP nodes में वह credential चुनो\n3. `WA_PHONE_NUMBER_ID` और `WA_TOKEN` — दोनों WhatsApp nodes में Meta Cloud API के values डालो\n4. `VIKRAM_PHONE` — 24hr escalation node में अपना number (91XXXXXXXXXX)\n\n⚠️ Meta business-initiated messages के लिए approved **template** चाहिए (24hr window के बाहर)। Template name नीचे `kharcha_reminder` रखा है — Meta Business Manager में यही नाम से hi locale template बनाओ जिसमें 3 variables हों: {{1}}=नाम, {{2}}=amount, {{3}}=link",
+        "height": 420,
+        "width": 420
+      },
+      "id": "note-1",
+      "name": "Sticky Note - Setup",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-460, -200]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "minutes", "minutesInterval": 30 }]
+        }
+      },
+      "id": "trigger-1",
+      "name": "हर 30 मिनट",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-200, 100]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://firestore.googleapis.com/v1/projects/vbe-order-tracker-60324/databases/(default)/documents:runQuery",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ structuredQuery: { from: [{ collectionId: 'notification_queue' }], where: { fieldFilter: { field: { fieldPath: 'status' }, op: 'EQUAL', value: { stringValue: 'pending' } } }, limit: 50 } }) }}",
+        "options": {}
+      },
+      "id": "firestore-query",
+      "name": "Firestore: pending notifications",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [40, 100]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Firestore runQuery का response parse करो\nconst out = [];\nfor (const item of $input.all()) {\n  const doc = item.json.document;\n  if (!doc) continue;\n  const f = doc.fields || {};\n  const v = (k) => f[k]?.stringValue ?? f[k]?.doubleValue ?? f[k]?.integerValue ?? '';\n  const createdAt = v('createdAt');\n  const ageHours = createdAt ? (Date.now() - new Date(createdAt).getTime()) / 36e5 : 0;\n  out.push({ json: {\n    docName: doc.name,               // full Firestore path (PATCH के लिए)\n    staff_phone: String(v('staff_phone')),\n    staff_name: v('staff_name'),\n    amount: Number(v('amount')) || 0,\n    firm: v('firm'),\n    expense_id: v('expense_id'),\n    link: v('link') || 'https://vikram7charan-del.github.io/vbe-order-tracker/kharcha-entry.html',\n    escalated: f.escalated?.booleanValue === true,\n    ageHours: Math.round(ageHours)\n  }});\n}\nreturn out;"
+      },
+      "id": "parse-1",
+      "name": "Parse entries",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [280, 100]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "typeValidation": "strict" },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.ageHours }}",
+              "rightValue": 24,
+              "operator": { "type": "number", "operation": "gte" }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "if-24h",
+      "name": "24 घंटे से पुरानी?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [520, 100]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "typeValidation": "strict" },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.escalated }}",
+              "rightValue": false,
+              "operator": { "type": "boolean", "operation": "equals" }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "if-not-escalated",
+      "name": "Vikram को पहले alert नहीं गया?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [760, -40]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/WA_PHONE_NUMBER_ID/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer WA_TOKEN" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: 'VIKRAM_PHONE', type: 'text', text: { body: '🔴 VBE Alert: ' + $json.staff_name + ' ने ₹' + $json.amount + ' (' + $json.firm + ') की entry ' + $json.ageHours + ' घंटे से नहीं भरी है। Dashboard देखें।' } }) }}",
+        "options": {}
+      },
+      "id": "wa-vikram",
+      "name": "WhatsApp → Vikram (escalation)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1000, -40]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://firestore.googleapis.com/v1/{{ $('Parse entries').item.json.docName }}?updateMask.fieldPaths=escalated",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ fields: { escalated: { booleanValue: true } } }) }}",
+        "options": {}
+      },
+      "id": "mark-escalated",
+      "name": "Firestore: escalated=true",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1240, -40]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/WA_PHONE_NUMBER_ID/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer WA_TOKEN" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: '91' + $json.staff_phone, type: 'template', template: { name: 'kharcha_reminder', language: { code: 'hi' }, components: [{ type: 'body', parameters: [ { type: 'text', text: $json.staff_name }, { type: 'text', text: '₹' + $json.amount }, { type: 'text', text: $json.link } ] }] } }) }}",
+        "options": {}
+      },
+      "id": "wa-staff",
+      "name": "WhatsApp → Staff reminder",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [760, 240]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://firestore.googleapis.com/v1/{{ $('Parse entries').item.json.docName }}?updateMask.fieldPaths=status&updateMask.fieldPaths=sentAt",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ fields: { status: { stringValue: 'sent' }, sentAt: { stringValue: new Date().toISOString() } } }) }}",
+        "options": {}
+      },
+      "id": "mark-sent",
+      "name": "Firestore: status=sent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1000, 240]
+    },
+    {
+      "parameters": {
+        "content": "## Logic\n- **status='pending'** entries हर 30 min check होती हैं\n- **< 24hr पुरानी** → staff को template message + `status='sent'` (दोबारा नहीं जाएगा; staff details भरे तो app `status='done'` करती है)\n- **≥ 24hr पुरानी और status अभी भी pending** → Vikram को alert + `escalated=true` (एक ही बार)\n\nNote: staff reminder के बाद status='sent' हो जाता है, इसलिए 24hr escalation उन्हीं पर चलेगा जो 'pending' रह गईं (जैसे WhatsApp fail) — अगर आप चाहते हो कि हर अधूरी entry पर 24hr बाद Vikram alert जाए, तो app में status 'sent' → details भरने तक rakhna handled है: app भरने पर 'done' करती है, और आप चाहें तो escalation branch का filter `status IN ('pending','sent')` कर सकते हो (Firestore query में composite filter)।",
+        "height": 320,
+        "width": 400
+      },
+      "id": "note-2",
+      "name": "Sticky Note - Logic",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [1240, 240]
+    }
+  ],
+  "connections": {
+    "हर 30 मिनट": { "main": [[{ "node": "Firestore: pending notifications", "type": "main", "index": 0 }]] },
+    "Firestore: pending notifications": { "main": [[{ "node": "Parse entries", "type": "main", "index": 0 }]] },
+    "Parse entries": { "main": [[{ "node": "24 घंटे से पुरानी?", "type": "main", "index": 0 }]] },
+    "24 घंटे से पुरानी?": {
+      "main": [
+        [{ "node": "Vikram को पहले alert नहीं गया?", "type": "main", "index": 0 }],
+        [{ "node": "WhatsApp → Staff reminder", "type": "main", "index": 0 }]
+      ]
+    },
+    "Vikram को पहले alert नहीं गया?": {
+      "main": [
+        [{ "node": "WhatsApp → Vikram (escalation)", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "WhatsApp → Vikram (escalation)": { "main": [[{ "node": "Firestore: escalated=true", "type": "main", "index": 0 }]] },
+    "WhatsApp → Staff reminder": { "main": [[{ "node": "Firestore: status=sent", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "pinData": {}
+}

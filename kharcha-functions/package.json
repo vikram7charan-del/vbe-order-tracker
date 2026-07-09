@@ -1,0 +1,12 @@
+{
+  "name": "vbe-kharcha-functions",
+  "description": "VBE Kharcha Tracker - AI bill extract proxy (Anthropic vision)",
+  "main": "index.js",
+  "engines": { "node": "20" },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.1.0"
+  },
+  "private": true
+}

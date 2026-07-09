@@ -32,6 +32,77 @@ service cloud.firestore {
       allow write: if isAdmin() && request.auth.uid == uid;
     }
 
+    // ── खर्चा ट्रैकर roles ──
+    // Staff = vbe_users/{uid} doc जिसमें role == 'staff' हो (dashboard से बनता है)
+    function isStaff() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/vbe_users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/vbe_users/$(request.auth.uid)).data.role == 'staff';
+    }
+    function isAdminOrStaff() { return isAdmin() || isStaff(); }
+
+    // vbe_users — हर user अपना doc पढ़ सकता है (login role check), admin सब कुछ
+    match /vbe_users/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+      allow read, write, delete: if isAdmin();
+    }
+
+    // vbe_expenses — admin: सब; staff: बनाना (अपने नाम से) + अपनी pending entries update + पढ़ना (autocomplete के लिए)
+    match /vbe_expenses/{id} {
+      allow read: if isAdminOrStaff();
+      allow create: if isAdmin()
+        || (isStaff() && request.resource.data.staffUid == request.auth.uid);
+      allow update: if isAdmin()
+        || (isStaff() && resource.data.staffUid == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+
+    // vbe_pricebook — auto-populate हर expense से; merge सिर्फ admin
+    match /vbe_pricebook/{id} {
+      allow read, create: if isAdminOrStaff();
+      allow update, delete: if isAdmin();
+    }
+
+    // vbe_payment_accounts — editable master (admin), staff सिर्फ पढ़े
+    match /vbe_payment_accounts/{id} {
+      allow read: if isAdminOrStaff();
+      allow write, delete: if isAdmin();
+    }
+
+    // vbe_kharcha_units — army units master (admin only)
+    match /vbe_kharcha_units/{id} {
+      allow read, write, delete: if isAdmin();
+    }
+
+    // unit_receivables — admin only (पैसा डूबने से बचाने वाला module)
+    match /unit_receivables/{id} {
+      allow read, write, delete: if isAdmin();
+    }
+
+    // मारवाड़ रसोई डेली मैनेजमेंट — admin only
+    match /mr_daily/{id} {
+      allow read, write, delete: if isAdmin();
+    }
+    match /mr_udhari/{id} {
+      allow read, write, delete: if isAdmin();
+    }
+    match /mr_staff_ledger/{id} {
+      allow read, write, delete: if isAdmin();
+    }
+
+    // notification_queue — n8n WhatsApp reminders (n8n service-account/REST से पढ़ता है)
+    match /notification_queue/{id} {
+      allow read, create, update: if isAdminOrStaff();
+      allow delete: if isAdmin();
+    }
+
+    // _audit_logs — delete/edit का record; कोई edit/delete नहीं
+    match /_audit_logs/{id} {
+      allow create: if isAdminOrStaff();
+      allow read: if isAdmin();
+      allow update, delete: if false;
+    }
+
     match /vbe_orders/{orderId} {
       allow get: if true;
       allow list: if isAdmin();

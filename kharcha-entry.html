@@ -106,6 +106,18 @@ h2.sec-title{font-size:14px;font-weight:900;color:#1e293b;margin-bottom:10px}
     <div id="pend-list"></div>
   </div>
 
+  <!-- AI Auto Entry -->
+  <div class="card" style="border-color:#c4b5fd;background:linear-gradient(135deg,#faf5ff,#f5f3ff)">
+    <h2 class="sec-title">🤖 फोटो से Auto Entry <span class="mini" style="font-weight:600">(सबसे तेज़ तरीका)</span></h2>
+    <div class="mini" style="margin-bottom:10px">Bill की photo लें — AI खुद items, rates, दुकान, category पढ़कर <b>पूरी entry बना देगा</b>। आपको कुछ नहीं भरना।</div>
+    <div class="sec"><label class="lbl">🏢 Firm (किस business का खर्च)</label><select class="inp" id="auto-firm"></select></div>
+    <button class="btn" style="background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;box-shadow:0 4px 14px rgba(124,58,237,.3)" id="auto-btn"
+      onclick="document.getElementById('auto-photo').click()">📸 Photo लो → Entry अपने आप बनेगी</button>
+    <input type="file" id="auto-photo" accept="image/*" capture="environment" style="display:none" onchange="autoEntry(event)">
+    <div id="auto-status" class="mini" style="margin-top:8px;min-height:16px;font-weight:700"></div>
+    <div id="auto-result" style="display:none;background:#f0fdf4;border:1.5px solid #86efac;border-radius:11px;padding:11px 13px;margin-top:8px;font-size:13px;line-height:1.8"></div>
+  </div>
+
   <!-- Main form -->
   <div class="card">
     <h2 class="sec-title" id="form-title">➕ नया खर्चा</h2>
@@ -182,7 +194,7 @@ h2.sec-title{font-size:14px;font-weight:900;color:#1e293b;margin-bottom:10px}
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, query, where, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getFirestore, initializeFirestore, persistentLocalCache, collection, doc, getDoc, getDocs, setDoc, updateDoc, query, where, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
 
 const FB_CFG = {
@@ -208,7 +220,10 @@ const UNITS_HINT = {kg:'kg', pcs:'पीस', ltr:'लीटर', gm:'ग्र�
 
 const app = initializeApp(FB_CFG, 'kharcha-entry');
 const auth = getAuth(app);
-const db = getFirestore(app);
+// Offline-first: internet जाए तो भी writes queue होकर बाद में Firebase पहुंचती हैं
+let db;
+try { db = initializeFirestore(app, { localCache: persistentLocalCache() }); }
+catch(e) { db = getFirestore(app); }
 const storage = getStorage(app);
 
 let ME = null;          // {uid, name, phone, role}
@@ -216,6 +231,7 @@ let CAT = '';
 let PHOTO_BLOB = null;  // compressed jpeg blob
 let FILL_PENDING_ID = null; // expense id being completed
 let STAFF_LIST = [];    // for quick entry
+let AI_PROXY_DB = '';   // vbe_settings/kharcha_ai से auto-loaded proxy URL
 
 // ── Auth ──
 onAuthStateChanged(auth, async u => {
@@ -270,6 +286,12 @@ async function initApp(){
   const opts = FIRMS.map(f=>`<option>${f}</option>`).join('');
   document.getElementById('f-firm').innerHTML = opts;
   document.getElementById('q-firm').innerHTML = opts;
+  document.getElementById('auto-firm').innerHTML = opts;
+  // AI proxy URL — deploy workflow इसे vbe_settings/kharcha_ai में लिख देता है (कुछ paste नहीं करना पड़ता)
+  try{
+    const cfgDoc = await getDoc(doc(db,'vbe_settings','kharcha_ai'));
+    if(cfgDoc.exists() && cfgDoc.data().proxyUrl) AI_PROXY_DB = cfgDoc.data().proxyUrl;
+  }catch(e){}
   // category chips
   document.getElementById('cat-chips').innerHTML = CATEGORIES.map(c=>
     `<button class="chip" id="cat-${c.id}" onclick="setCat('${c.id}')">${c.label}</button>`).join('');
@@ -444,56 +466,67 @@ window.saveAiSettings = function(){
   localStorage.setItem('vbe_ai_key', val('set-key').trim());
   toast('✅ AI settings saved');
 };
+const AI_PROMPT = `यह एक खरीदारी का bill/receipt है। इसमें से data निकालकर सिर्फ यह JSON दो (कोई और text नहीं):
+{"vendor":"दुकान का नाम या null","date":"YYYY-MM-DD या null","category":"kaccha/fuel/army/repair/salary/other में से एक","items":[{"name":"item नाम","qty":संख्या,"unit":"kg/पीस/लीटर/ग्राम/बॉक्स/बोरी","rate":संख्या,"amount":संख्या}],"total":संख्या}
+category ऐसे चुनो: खाने-पीने/राशन/सब्ज़ी/dairy का सामान=kaccha, petrol/diesel=fuel, fridge/AC/electronics जैसी army unit supply=army, repair/spare parts=repair, salary/advance=salary, बाकी=other।
+जो field साफ न दिखे उसे null/0 रखो। Hindi item names ठीक वैसे ही रखो जैसे bill पर हैं।`;
+
+function aiConfigured(){
+  return AI_PROXY_DB || localStorage.getItem('vbe_ai_proxy_url') || localStorage.getItem('vbe_ai_key');
+}
+
+// Bill photo → Claude vision → parsed JSON {vendor, date, category, items[], total}
+async function aiExtract(b64){
+  const proxy = (localStorage.getItem('vbe_ai_proxy_url')||'') || AI_PROXY_DB;
+  const key = localStorage.getItem('vbe_ai_key')||'';
+  if(!proxy && !key) throw new Error('AI अभी setup नहीं हुआ — Vikram को बताएं');
+  let text;
+  if(proxy){
+    const idToken = await auth.currentUser.getIdToken();
+    const r = await fetch(proxy, {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+idToken},
+      body: JSON.stringify({imageBase64:b64, mediaType:'image/jpeg', prompt:AI_PROMPT})
+    });
+    if(!r.ok) throw new Error('Proxy error '+r.status+': '+await r.text());
+    text = (await r.json()).text;
+  } else {
+    const r = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key': key,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body: JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:2048,
+        messages:[{role:'user',content:[
+          {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},
+          {type:'text',text:AI_PROMPT}
+        ]}]
+      })
+    });
+    if(!r.ok) throw new Error('API error '+r.status+': '+await r.text());
+    const j = await r.json();
+    text = (j.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+  }
+  const m = text.match(/\{[\s\S]*\}/);
+  if(!m) throw new Error('AI से JSON नहीं मिला');
+  return JSON.parse(m[0]);
+}
+
+// Manual form में AI से भरना (verify-then-save)
 window.aiReadBill = async function(){
   if(!PHOTO_BLOB){ toast('⚠️ पहले bill photo लें','err'); return; }
-  const proxy = localStorage.getItem('vbe_ai_proxy_url')||'';
-  const key = localStorage.getItem('vbe_ai_key')||'';
-  if(!proxy && !key){ toast('⚠️ AI Settings में proxy URL या API key डालें','err'); return; }
   const btn=document.getElementById('ai-btn'), st=document.getElementById('ai-status');
   btn.disabled=true; st.textContent='🤖 AI bill पढ़ रहा है... (10-20 sec)';
   try{
-    const b64 = await blobToB64(PHOTO_BLOB);
-    const prompt = `यह एक खरीदारी का bill/receipt है। इसमें से data निकालकर सिर्फ यह JSON दो (कोई और text नहीं):
-{"vendor":"दुकान का नाम या null","date":"YYYY-MM-DD या null","items":[{"name":"item नाम","qty":संख्या,"unit":"kg/पीस/लीटर/ग्राम/बॉक्स/बोरी","rate":संख्या,"amount":संख्या}],"total":संख्या}
-जो field साफ न दिखे उसे null/0 रखो। Hindi item names ठीक वैसे ही रखो जैसे bill पर हैं।`;
-    let text;
-    if(proxy){
-      const idToken = await auth.currentUser.getIdToken();
-      const r = await fetch(proxy, {
-        method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':'Bearer '+idToken},
-        body: JSON.stringify({imageBase64:b64, mediaType:'image/jpeg', prompt})
-      });
-      if(!r.ok) throw new Error('Proxy error '+r.status+': '+await r.text());
-      const j = await r.json();
-      text = j.text;
-    } else {
-      const r = await fetch('https://api.anthropic.com/v1/messages',{
-        method:'POST',
-        headers:{
-          'Content-Type':'application/json',
-          'x-api-key': key,
-          'anthropic-version':'2023-06-01',
-          'anthropic-dangerous-direct-browser-access':'true'
-        },
-        body: JSON.stringify({
-          model:'claude-sonnet-4-6',
-          max_tokens:2048,
-          messages:[{role:'user',content:[
-            {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},
-            {type:'text',text:prompt}
-          ]}]
-        })
-      });
-      if(!r.ok) throw new Error('API error '+r.status+': '+await r.text());
-      const j = await r.json();
-      text = (j.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
-    }
-    const m = text.match(/\{[\s\S]*\}/);
-    if(!m) throw new Error('AI से JSON नहीं मिला');
-    const data = JSON.parse(m[0]);
+    const data = await aiExtract(await blobToB64(PHOTO_BLOB));
     if(data.vendor) document.getElementById('f-vendor').value = data.vendor;
     if(data.date && /^\d{4}-\d{2}-\d{2}$/.test(data.date)) document.getElementById('f-date').value = data.date;
+    if(data.category && CATEGORIES.some(c=>c.id===data.category)) setCat(data.category);
     if(Array.isArray(data.items) && data.items.length){
       document.getElementById('item-rows').innerHTML='';
       data.items.forEach(it=>addItemRow({name:it.name||'', qty:it.qty||0, unit:it.unit||'पीस', rate:it.rate||0, amount:it.amount||0}));
@@ -505,6 +538,63 @@ window.aiReadBill = async function(){
   }catch(e){
     st.textContent='❌ '+e.message;
     toast('❌ AI fail: '+e.message,'err');
+  }finally{ btn.disabled=false; }
+};
+
+// 📸 फोटो से पूरी entry अपने आप — photo → AI → save, एक भी field भरे बिना
+window.autoEntry = async function(ev){
+  const file = ev.target.files[0];
+  ev.target.value='';
+  if(!file) return;
+  const btn=document.getElementById('auto-btn'), st=document.getElementById('auto-status'), res=document.getElementById('auto-result');
+  btn.disabled=true; res.style.display='none';
+  try{
+    st.textContent='📷 Photo compress हो रही है...';
+    let blob = await compressImage(file, 1280, 0.8);
+    for(let q=0.65; blob.size>1024*1024 && q>=0.4; q-=0.15) blob = await compressImage(file, 1280, q);
+    st.textContent='🤖 AI bill पढ़ रहा है... (10-20 sec)';
+    const data = await aiExtract(await blobToB64(blob));
+    const items = (Array.isArray(data.items)?data.items:[]).filter(it=>it&&it.name).map(it=>({
+      name:String(it.name), qty:+it.qty||0, unit:it.unit||'पीस', rate:+it.rate||0, amount:+it.amount||0
+    }));
+    let total = +data.total||0;
+    if(!total) total = items.reduce((a,b)=>a+b.amount,0);
+    if(!total) throw new Error('AI को amount समझ नहीं आया — नीचे वाले form से manually भरें');
+    st.textContent='💾 Entry बन रही है...';
+    const id = 'exp_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+    const r = sRef(storage, 'kharcha_bills/'+id+'.jpg');
+    await uploadBytes(r, blob, {contentType:'image/jpeg'});
+    const billPhotoUrl = await getDownloadURL(r);
+    const now = new Date().toISOString();
+    const cat = CATEGORIES.some(c=>c.id===data.category) ? data.category : 'other';
+    const exp = {
+      id,
+      date: (data.date && /^\d{4}-\d{2}-\d{2}$/.test(data.date)) ? data.date : todayStr(),
+      firm: val('auto-firm'),
+      category: cat,
+      vendor: (data.vendor||'').trim(),
+      items, total,
+      paymentSource: val('f-pay')||'',
+      billPhotoUrl, billStatus:'ok', entryStatus:'complete',
+      staffUid: ME.uid, staffName: ME.name, staffPhone: ME.phone,
+      notes: '🤖 AI Auto Entry',
+      createdAt: now, updatedAt: now, createdBy: ME.uid, createdByName: ME.name
+    };
+    await setDoc(doc(db,'vbe_expenses',id), exp);
+    await logPricebook(id, exp);
+    st.textContent='';
+    const catLabel = (CATEGORIES.find(c=>c.id===cat)||{}).label||cat;
+    res.innerHTML = `✅ <b>₹${total.toLocaleString('hi-IN')}</b> की entry बन गई!<br>
+      🏪 ${esc(exp.vendor||'—')} · ${catLabel} · ${items.length} items<br>
+      ${items.slice(0,4).map(it=>`• ${esc(it.name)} — ${it.qty}${esc(it.unit)} × ₹${it.rate} = ₹${it.amount}`).join('<br>')}
+      ${items.length>4?'<br>…और '+(items.length-4)+' items':''}
+      <br><span class="mini">गलती दिखे तो dashboard से delete करके दोबारा photo लें</span>`;
+    res.style.display='block';
+    toast('🤖 ₹'+total.toLocaleString('hi-IN')+' की AI entry बनी!');
+    loadAutocomplete();
+  }catch(e){
+    st.textContent='❌ '+e.message;
+    toast('❌ '+e.message,'err');
   }finally{ btn.disabled=false; }
 };
 function blobToB64(blob){

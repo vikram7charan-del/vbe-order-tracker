@@ -1,0 +1,78 @@
+# ══════════════════════════════════════════════════════════
+# VBE — AI Bill Function deploy (हाथ से dispatch)
+# ANTHROPIC_API_KEY (GitHub secret) → Google Secret Manager →
+# Cloud Function deploy → proxy URL अपने आप Firestore
+# (vbe_settings/kharcha_ai) में लिख जाता है। App उसे खुद पढ़ लेती है —
+# किसी को कुछ paste नहीं करना पड़ता।
+#
+# ⚠️ ज़रूरी secrets: FIREBASE_SA (पहले से है) + ANTHROPIC_API_KEY
+# ══════════════════════════════════════════════════════════
+name: 🤖 Deploy AI Function
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'किस branch से deploy करना है'
+        required: true
+        default: 'claude/vande-bharat-firebase-jo82rc'
+
+concurrency:
+  group: deploy-ai-function
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Check secrets
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "❌ GitHub secret ANTHROPIC_API_KEY नहीं मिला — Settings → Secrets → Actions में बनाएं"
+            exit 1
+          fi
+      - name: Write service account
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
+        run: printf '%s' "$FIREBASE_SA" > "$RUNNER_TEMP/sa.json"
+      - name: Put API key in Secret Manager
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/sa.json
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          printf '%s' "$ANTHROPIC_API_KEY" > "$RUNNER_TEMP/key.txt"
+          npx firebase-tools@latest functions:secrets:set ANTHROPIC_API_KEY \
+            --data-file "$RUNNER_TEMP/key.txt" \
+            --project vbe-order-tracker-60324 --non-interactive --force
+          rm -f "$RUNNER_TEMP/key.txt"
+      - name: Deploy function (सिर्फ kharcha codebase — बाकी functions untouched)
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/sa.json
+        run: |
+          npx firebase-tools@latest deploy --only functions:kharcha \
+            --project vbe-order-tracker-60324 --non-interactive --force
+      - name: Write proxy URL to Firestore (app इसे खुद पढ़ लेगी)
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/sa.json
+        run: |
+          npm install --no-audit --no-fund firebase-admin@12
+          node - <<'EOF'
+          const admin = require('firebase-admin');
+          admin.initializeApp({ credential: admin.credential.applicationDefault() });
+          const url = 'https://asia-south1-vbe-order-tracker-60324.cloudfunctions.net/aiBillExtract';
+          admin.firestore().doc('vbe_settings/kharcha_ai').set({
+            proxyUrl: url, updatedAt: new Date().toISOString(), via: 'deploy-ai-function-workflow'
+          }, { merge: true }).then(() => {
+            console.log('✅ Proxy URL saved:', url);
+            process.exit(0);
+          }).catch(e => { console.error('❌', e.message); process.exit(1); });
+          EOF

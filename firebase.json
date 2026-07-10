@@ -3,9 +3,16 @@
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
-  "functions": {
-    "source": "functions"
-  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default"
+    },
+    {
+      "source": "kharcha-functions",
+      "codebase": "kharcha"
+    }
+  ],
   "hosting": {
     "public": ".",
     "headers": [

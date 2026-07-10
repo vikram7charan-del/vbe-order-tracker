@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#1d4ed8">
+<meta name="robots" content="noindex,nofollow">
+<title>मारवाड़ रसोई — डेली मैनेजमेंट</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#f1f5f9;color:#0f172a;font-family:'Noto Sans Devanagari',sans-serif;min-height:100dvh;max-width:480px;margin:0 auto;padding-bottom:50px}
+.topbar{background:linear-gradient(135deg,#b91c1c,#ef4444);color:#fff;padding:14px 16px;border-radius:0 0 18px 18px}
+.topbar h1{font-size:17px;font-weight:900}
+.topbar .sub{font-size:11px;opacity:.9;margin-top:2px}
+.tabs{display:flex;gap:5px;margin:12px 12px 0;overflow-x:auto}
+.tab{flex:1;white-space:nowrap;border:1.5px solid #cbd5e1;background:#fff;color:#475569;border-radius:10px;padding:10px 8px;font-size:12px;font-weight:800;font-family:inherit;cursor:pointer}
+.tab.on{background:#fee2e2;border-color:#ef4444;color:#b91c1c}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:14px;margin:12px 12px 0;box-shadow:0 1px 4px rgba(15,23,42,.05)}
+.lbl{font-size:12px;color:#475569;font-weight:800;margin-bottom:6px;display:block}
+.inp{background:#fff;border:1.5px solid #cbd5e1;border-radius:10px;padding:11px 12px;font-size:15px;font-family:inherit;width:100%;outline:none}
+.inp:focus{border-color:#ef4444}
+.btn{width:100%;padding:13px;border:none;border-radius:11px;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;background:linear-gradient(135deg,#b91c1c,#ef4444);color:#fff}
+.btn:disabled{opacity:.55}
+.btn-ghost{background:#fef2f2;color:#b91c1c;border:1.5px solid #fecaca;font-size:13px;padding:10px;box-shadow:none}
+.sec{margin-bottom:12px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;color:#64748b;font-size:10px;text-transform:uppercase;padding:6px 4px;border-bottom:1.5px solid #e2e8f0}
+td{padding:8px 4px;border-bottom:1px solid #f1f5f9}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat{border-radius:10px;padding:12px;text-align:center;border:1px solid}
+.stat .v{font-size:18px;font-weight:900}
+.stat .l{font-size:10px;color:#64748b;font-weight:700;margin-top:2px}
+.cust{display:flex;justify-content:space-between;align-items:center;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:11px 13px;margin-bottom:7px;cursor:pointer}
+.cust .amt{font-weight:900;color:#b91c1c;font-size:15px}
+.bill-row{display:flex;justify-content:space-between;align-items:center;padding:8px 4px;border-bottom:1px solid #f1f5f9;font-size:13px}
+.bill-row button{border:none;background:#16a34a;color:#fff;border-radius:7px;padding:6px 11px;font-weight:800;font-size:11px;font-family:inherit;cursor:pointer}
+.att-row{display:flex;justify-content:space-between;align-items:center;padding:9px 4px;border-bottom:1px solid #f1f5f9}
+.att-btns{display:flex;gap:5px}
+.att-btns button{border:1.5px solid #cbd5e1;background:#f8fafc;color:#64748b;border-radius:8px;width:38px;height:34px;font-weight:900;font-family:inherit;cursor:pointer;font-size:13px}
+.att-btns button.p{background:#dcfce7;border-color:#16a34a;color:#15803d}
+.att-btns button.a{background:#fee2e2;border-color:#dc2626;color:#b91c1c}
+.att-btns button.h{background:#fef3c7;border-color:#d97706;color:#b45309}
+h2.sec-title{font-size:14px;font-weight:900;margin-bottom:10px}
+.mini{font-size:11px;color:#64748b}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#16a34a;color:#fff;padding:11px 22px;border-radius:12px;font-size:13px;font-weight:800;opacity:0;transition:opacity .25s;pointer-events:none;z-index:999;max-width:90%;text-align:center}
+.toast.show{opacity:1}.toast.err{background:#dc2626}
+.login-note{text-align:center;padding:60px 20px;color:#64748b;font-size:14px}
+.ledger{background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:11px;padding:12px;margin-bottom:8px}
+.ledger .name{font-weight:900;font-size:14px}
+.ledger .row{display:flex;justify-content:space-between;font-size:12px;margin-top:4px;color:#475569}
+.ledger .due{font-size:16px;font-weight:900;color:#b91c1c}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <div><h1>🍽️ मारवाड़ रसोई</h1><div class="sub">डेली हिसाब · उधारी · स्टाफ · समरी</div></div>
+    <a href="./kharcha-dashboard.html" style="color:#fff;text-decoration:none;font-size:11px;background:rgba(255,255,255,.15);padding:6px 10px;border-radius:8px">📊 Dashboard</a>
+  </div>
+</div>
+
+<div id="s-wait" class="login-note">⏳ Login check...<br><br><a href="./kharcha-entry.html" style="color:#1d4ed8">Login करने के लिए खर्चा एंट्री page पर जाएं</a></div>
+
+<div id="s-app" style="display:none">
+  <div class="tabs">
+    <button class="tab on" id="tab-daily" onclick="setTab('daily')">📅 डेली हिसाब</button>
+    <button class="tab" id="tab-udhari" onclick="setTab('udhari')">📒 उधारी</button>
+    <button class="tab" id="tab-staff" onclick="setTab('staff')">👥 स्टाफ</button>
+    <button class="tab" id="tab-summary" onclick="setTab('summary')">📈 समरी</button>
+  </div>
+
+  <!-- ══ TAB 1: DAILY ══ -->
+  <div id="pane-daily">
+    <div class="card">
+      <h2 class="sec-title">आज का हिसाब</h2>
+      <div class="sec"><label class="lbl">तारीख</label><input class="inp" type="date" id="d-date" onchange="loadDaily()"></div>
+      <div class="two-col sec">
+        <div><label class="lbl">💵 Cash बिक्री</label><input class="inp" type="number" inputmode="decimal" id="d-cash" placeholder="0"></div>
+        <div><label class="lbl">📱 BharatPe / Online</label><input class="inp" type="number" inputmode="decimal" id="d-online" placeholder="0"></div>
+      </div>
+      <div class="sec"><label class="lbl">🧾 दिन का खर्च</label><input class="inp" type="number" inputmode="decimal" id="d-exp" placeholder="0"></div>
+      <div class="sec"><label class="lbl">📝 Notes</label><input class="inp" id="d-notes" placeholder="optional..."></div>
+      <button class="btn" onclick="saveDaily()" id="d-btn">💾 दिन Save करें</button>
+    </div>
+    <div class="card">
+      <h2 class="sec-title">इस महीने की entries</h2>
+      <table><thead><tr><th>तारीख</th><th>Cash</th><th>Online</th><th>कुल</th><th>खर्च</th></tr></thead>
+      <tbody id="d-month-rows"></tbody></table>
+      <div class="mini" id="d-month-total" style="margin-top:8px;font-weight:800"></div>
+    </div>
+  </div>
+
+  <!-- ══ TAB 2: UDHARI ══ -->
+  <div id="pane-udhari" style="display:none">
+    <div class="card">
+      <h2 class="sec-title">➕ नई उधारी</h2>
+      <div class="sec"><label class="lbl">👤 Customer</label>
+        <input class="inp" id="u-cust" placeholder="नाम..." list="cust-list" autocomplete="off">
+        <datalist id="cust-list"></datalist></div>
+      <div class="two-col sec">
+        <div><label class="lbl">₹ Amount</label><input class="inp" type="number" inputmode="decimal" id="u-amt"></div>
+        <div><label class="lbl">Table/Bill No.</label><input class="inp" id="u-bill" placeholder="T-5"></div>
+      </div>
+      <div class="sec"><label class="lbl">तारीख</label><input class="inp" type="date" id="u-date"></div>
+      <button class="btn" onclick="saveUdhari()">📒 उधारी लिखें</button>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <h2 class="sec-title" style="margin:0">बकाया — customer-wise</h2>
+        <span class="mini" style="font-weight:900;color:#b91c1c" id="u-total"></span>
+      </div>
+      <div id="u-groups"></div>
+    </div>
+    <div class="card" id="u-detail" style="display:none">
+      <h2 class="sec-title" id="u-d-name"></h2>
+      <div id="u-d-bills"></div>
+      <button class="btn btn-ghost" onclick="document.getElementById('u-detail').style.display='none'" style="margin-top:10px">← बंद करें</button>
+    </div>
+  </div>
+
+  <!-- ══ TAB 3: STAFF ══ -->
+  <div id="pane-staff" style="display:none">
+    <div class="card">
+      <h2 class="sec-title">➕ Staff जोड़ें</h2>
+      <div class="two-col sec">
+        <div><label class="lbl">नाम</label><input class="inp" id="st-name"></div>
+        <div><label class="lbl">₹ / दिन सैलरी</label><input class="inp" type="number" inputmode="decimal" id="st-perday"></div>
+      </div>
+      <button class="btn btn-ghost" onclick="addStaff()">＋ जोड़ें</button>
+    </div>
+    <div class="card">
+      <h2 class="sec-title">✅ Attendance</h2>
+      <div class="sec"><input class="inp" type="date" id="at-date" onchange="renderAttendance()"></div>
+      <div id="at-rows"></div>
+    </div>
+    <div class="card">
+      <h2 class="sec-title">💵 Advance दें</h2>
+      <div class="two-col sec">
+        <div><label class="lbl">Staff</label><select class="inp" id="ad-staff"></select></div>
+        <div><label class="lbl">₹ Amount</label><input class="inp" type="number" inputmode="decimal" id="ad-amt"></div>
+      </div>
+      <button class="btn btn-ghost" onclick="addAdvance()">💵 Advance record करें</button>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <h2 class="sec-title" style="margin:0">📋 Ledger</h2>
+        <input class="inp" type="month" id="led-month" style="width:150px;padding:7px" onchange="renderLedger()">
+      </div>
+      <div id="led-rows"></div>
+    </div>
+  </div>
+
+  <!-- ══ TAB 4: SUMMARY ══ -->
+  <div id="pane-summary" style="display:none">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <h2 class="sec-title" style="margin:0">इस महीने का हाल</h2>
+        <input class="inp" type="month" id="sum-month" style="width:150px;padding:7px" onchange="renderSummary()">
+      </div>
+      <div class="stat-grid">
+        <div class="stat" style="background:#f0fdf4;border-color:#bbf7d0"><div class="v" style="color:#15803d" id="s-income">—</div><div class="l">कुल बिक्री (Income)</div></div>
+        <div class="stat" style="background:#fef2f2;border-color:#fecaca"><div class="v" style="color:#b91c1c" id="s-exp">—</div><div class="l">कुल खर्च</div></div>
+        <div class="stat" style="background:#eff6ff;border-color:#bfdbfe"><div class="v" style="color:#1d4ed8" id="s-net">—</div><div class="l">Net (बिक्री − खर्च)</div></div>
+        <div class="stat" style="background:#fff7ed;border-color:#fed7aa"><div class="v" style="color:#c2410c" id="s-udhari">—</div><div class="l">कुल उधारी बकाया</div></div>
+      </div>
+      <div class="mini" style="margin-top:10px" id="s-note"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const FB_CFG = {
+  apiKey:'AIzaSyBCe5DKNKcthOl4umprfRm2QBfbVaFORg8',
+  authDomain:'vbe-order-tracker-60324.firebaseapp.com',
+  projectId:'vbe-order-tracker-60324',
+  storageBucket:'vbe-order-tracker-60324.firebasestorage.app',
+  messagingSenderId:'894023456122',
+  appId:'1:894023456122:web:6ee548f0913c887c67f2c3'
+};
+const app=initializeApp(FB_CFG,'marwar-rasoi');
+const auth=getAuth(app);
+const db=getFirestore(app);
+
+let DAILY=[], UDHARI=[], STAFF=[];
+
+function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function monthStr(){ return todayStr().slice(0,7); }
+function fmt(n){ return '₹'+(+(n||0)).toLocaleString('hi-IN'); }
+function esc(s){ return String(s).replace(/</g,'&lt;'); }
+
+onAuthStateChanged(auth, async u=>{
+  if(!u) return;
+  const a=await getDoc(doc(db,'vbe_admins',u.uid));
+  if(!a.exists()){ document.getElementById('s-wait').textContent='❌ सिर्फ Admin access'; return; }
+  document.getElementById('s-wait').style.display='none';
+  document.getElementById('s-app').style.display='block';
+  document.getElementById('d-date').value=todayStr();
+  document.getElementById('u-date').value=todayStr();
+  document.getElementById('at-date').value=todayStr();
+  document.getElementById('led-month').value=monthStr();
+  document.getElementById('sum-month').value=monthStr();
+  await Promise.all([loadDailyAll(), loadUdhariAll(), loadStaffAll()]);
+  loadDaily(); renderMonthTable(); renderUdhari(); renderAttendance(); renderLedger(); renderSummary();
+});
+
+window.setTab=function(t){
+  ['daily','udhari','staff','summary'].forEach(k=>{
+    document.getElementById('pane-'+k).style.display = k===t?'block':'none';
+    document.getElementById('tab-'+k).classList.toggle('on', k===t);
+  });
+};
+
+// ══ Daily ══
+async function loadDailyAll(){
+  DAILY=[];
+  const snap=await getDocs(collection(db,'mr_daily'));
+  snap.forEach(d=>DAILY.push(d.data()));
+  DAILY.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+}
+window.loadDaily=function(){
+  const dt=document.getElementById('d-date').value;
+  const e=DAILY.find(x=>x.date===dt);
+  document.getElementById('d-cash').value=e?.cashSale??'';
+  document.getElementById('d-online').value=e?.onlineSale??'';
+  document.getElementById('d-exp').value=e?.expense??'';
+  document.getElementById('d-notes').value=e?.notes??'';
+};
+window.saveDaily=async function(){
+  const date=document.getElementById('d-date').value;
+  if(!date){ toast('⚠️ तारीख चुनें','err'); return; }
+  const rec={
+    date,
+    cashSale: parseFloat(document.getElementById('d-cash').value)||0,
+    onlineSale: parseFloat(document.getElementById('d-online').value)||0,
+    expense: parseFloat(document.getElementById('d-exp').value)||0,
+    notes: document.getElementById('d-notes').value.trim(),
+    updatedAt:new Date().toISOString()
+  };
+  const btn=document.getElementById('d-btn'); btn.disabled=true;
+  try{
+    await setDoc(doc(db,'mr_daily',date), rec);
+    const i=DAILY.findIndex(x=>x.date===date);
+    if(i>=0) DAILY[i]=rec; else { DAILY.push(rec); DAILY.sort((a,b)=>b.date.localeCompare(a.date)); }
+    toast('✅ '+date+' का हिसाब save');
+    renderMonthTable(); renderSummary();
+  }catch(e){ toast('❌ '+e.message,'err'); }
+  finally{ btn.disabled=false; }
+};
+function renderMonthTable(){
+  const m=monthStr();
+  const rows=DAILY.filter(x=>x.date&&x.date.startsWith(m));
+  let tc=0,to=0,te=0;
+  document.getElementById('d-month-rows').innerHTML=rows.map(x=>{
+    tc+=x.cashSale; to+=x.onlineSale; te+=x.expense;
+    return `<tr><td>${x.date.slice(8)}/${x.date.slice(5,7)}</td><td>${fmt(x.cashSale)}</td><td>${fmt(x.onlineSale)}</td><td style="font-weight:800">${fmt(x.cashSale+x.onlineSale)}</td><td style="color:#b91c1c">${fmt(x.expense)}</td></tr>`;
+  }).join('') || '<tr><td colspan="5" class="mini">अभी कोई entry नहीं</td></tr>';
+  document.getElementById('d-month-total').textContent=`महीना: बिक्री ${fmt(tc+to)} (Cash ${fmt(tc)} + Online ${fmt(to)}) · खर्च ${fmt(te)}`;
+}
+
+// ══ Udhari ══
+async function loadUdhariAll(){
+  UDHARI=[];
+  const snap=await getDocs(collection(db,'mr_udhari'));
+  snap.forEach(d=>UDHARI.push(d.data()));
+}
+window.saveUdhari=async function(){
+  const cust=(document.getElementById('u-cust').value||'').trim();
+  const amt=parseFloat(document.getElementById('u-amt').value)||0;
+  if(!cust||!amt){ toast('⚠️ नाम और amount जरूरी','err'); return; }
+  const id='ud_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  const rec={
+    id, customer:cust, amount:amt,
+    date:document.getElementById('u-date').value||todayStr(),
+    billNo:(document.getElementById('u-bill').value||'').trim(),
+    status:'baki', jamaDate:'', createdAt:new Date().toISOString()
+  };
+  try{
+    await setDoc(doc(db,'mr_udhari',id),rec);
+    UDHARI.push(rec);
+    toast('📒 '+cust+' — '+fmt(amt)+' उधार लिखा');
+    document.getElementById('u-cust').value=''; document.getElementById('u-amt').value=''; document.getElementById('u-bill').value='';
+    renderUdhari(); renderSummary();
+  }catch(e){ toast('❌ '+e.message,'err'); }
+};
+function renderUdhari(){
+  const custs=[...new Set(UDHARI.map(x=>x.customer))];
+  document.getElementById('cust-list').innerHTML=custs.map(c=>`<option value="${esc(c)}">`).join('');
+  const groups={};
+  UDHARI.filter(x=>x.status==='baki').forEach(x=>{ (groups[x.customer]=groups[x.customer]||[]).push(x); });
+  let total=0;
+  const box=document.getElementById('u-groups');
+  const keys=Object.keys(groups).sort((a,b)=>sum(groups[b])-sum(groups[a]));
+  box.innerHTML='';
+  keys.forEach(c=>{
+    const s=sum(groups[c]); total+=s;
+    const div=document.createElement('div');
+    div.className='cust';
+    div.innerHTML=`<span>${esc(c)} <span class="mini">(${groups[c].length} bills)</span></span><span class="amt">${fmt(s)}</span>`;
+    div.onclick=()=>showCust(c);
+    box.appendChild(div);
+  });
+  if(!keys.length) box.innerHTML='<div class="mini">🎉 कोई बकाया नहीं</div>';
+  document.getElementById('u-total').textContent='कुल: '+fmt(total);
+}
+function sum(arr){ return arr.reduce((a,b)=>a+(+b.amount||0),0); }
+function showCust(c){
+  const bills=UDHARI.filter(x=>x.customer===c).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  document.getElementById('u-d-name').textContent='👤 '+c;
+  const box=document.getElementById('u-d-bills');
+  box.innerHTML='';
+  bills.forEach(b=>{
+    const row=document.createElement('div');
+    row.className='bill-row';
+    row.innerHTML=`<span>${b.date} ${b.billNo?('· '+esc(b.billNo)):''} — <b>${fmt(b.amount)}</b> ${b.status==='jama'?'<span style="color:#16a34a">✓ जमा '+(b.jamaDate||'')+'</span>':''}</span>`;
+    if(b.status==='baki'){
+      const btn=document.createElement('button');
+      btn.textContent='जमा ✓';
+      btn.onclick=async()=>{
+        try{
+          await updateDoc(doc(db,'mr_udhari',b.id),{status:'jama', jamaDate:todayStr()});
+          b.status='jama'; b.jamaDate=todayStr();
+          toast('✅ जमा हो गया'); showCust(c); renderUdhari(); renderSummary();
+        }catch(e){ toast('❌ '+e.message,'err'); }
+      };
+      row.appendChild(btn);
+    }
+    box.appendChild(row);
+  });
+  document.getElementById('u-detail').style.display='block';
+  document.getElementById('u-detail').scrollIntoView({behavior:'smooth'});
+}
+
+// ══ Staff ══
+async function loadStaffAll(){
+  STAFF=[];
+  const snap=await getDocs(collection(db,'mr_staff_ledger'));
+  snap.forEach(d=>STAFF.push(d.data()));
+  STAFF.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  document.getElementById('ad-staff').innerHTML=STAFF.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('');
+}
+window.addStaff=async function(){
+  const name=(document.getElementById('st-name').value||'').trim();
+  const perDay=parseFloat(document.getElementById('st-perday').value)||0;
+  if(!name||!perDay){ toast('⚠️ नाम और per-day salary जरूरी','err'); return; }
+  const id='mrs_'+Date.now().toString(36);
+  const rec={id, name, perDay, active:true, attendance:{}, advances:[], createdAt:new Date().toISOString()};
+  try{
+    await setDoc(doc(db,'mr_staff_ledger',id),rec);
+    STAFF.push(rec);
+    toast('✅ '+name+' जुड़ गया');
+    document.getElementById('st-name').value=''; document.getElementById('st-perday').value='';
+    await loadStaffAll(); renderAttendance(); renderLedger();
+  }catch(e){ toast('❌ '+e.message,'err'); }
+};
+window.renderAttendance=function(){
+  const dt=document.getElementById('at-date').value||todayStr();
+  const m=dt.slice(0,7), day=dt.slice(8);
+  const box=document.getElementById('at-rows');
+  box.innerHTML='';
+  if(!STAFF.length){ box.innerHTML='<div class="mini">पहले staff जोड़ें</div>'; return; }
+  STAFF.forEach(s=>{
+    const cur=(s.attendance?.[m]||{})[day]||'';
+    const row=document.createElement('div');
+    row.className='att-row';
+    row.innerHTML=`<span style="font-weight:700;font-size:13px">${esc(s.name)}</span>
+      <span class="att-btns">
+        <button class="${cur==='P'?'p':''}" data-v="P">P</button>
+        <button class="${cur==='H'?'h':''}" data-v="H">½</button>
+        <button class="${cur==='A'?'a':''}" data-v="A">A</button>
+      </span>`;
+    row.querySelectorAll('button').forEach(b=>b.onclick=async()=>{
+      const v=b.dataset.v;
+      s.attendance=s.attendance||{}; s.attendance[m]=s.attendance[m]||{};
+      s.attendance[m][day]=v;
+      try{
+        await updateDoc(doc(db,'mr_staff_ledger',s.id),{attendance:s.attendance});
+        renderAttendance(); renderLedger();
+      }catch(e){ toast('❌ '+e.message,'err'); }
+    });
+    box.appendChild(row);
+  });
+};
+window.addAdvance=async function(){
+  const id=document.getElementById('ad-staff').value;
+  const amt=parseFloat(document.getElementById('ad-amt').value)||0;
+  if(!id||!amt){ toast('⚠️ staff और amount जरूरी','err'); return; }
+  const s=STAFF.find(x=>x.id===id);
+  s.advances=s.advances||[];
+  s.advances.push({date:todayStr(), amount:amt});
+  try{
+    await updateDoc(doc(db,'mr_staff_ledger',id),{advances:s.advances});
+    toast('💵 '+s.name+' को '+fmt(amt)+' advance');
+    document.getElementById('ad-amt').value='';
+    renderLedger();
+  }catch(e){ toast('❌ '+e.message,'err'); }
+};
+window.renderLedger=function(){
+  const m=document.getElementById('led-month').value||monthStr();
+  const box=document.getElementById('led-rows');
+  box.innerHTML='';
+  if(!STAFF.length){ box.innerHTML='<div class="mini">कोई staff नहीं</div>'; return; }
+  STAFF.forEach(s=>{
+    const att=s.attendance?.[m]||{};
+    let days=0;
+    Object.values(att).forEach(v=>{ if(v==='P')days+=1; else if(v==='H')days+=0.5; });
+    const adv=(s.advances||[]).filter(a=>a.date&&a.date.startsWith(m)).reduce((a,b)=>a+(+b.amount||0),0);
+    const earned=days*(+s.perDay||0);
+    const due=earned-adv;
+    const div=document.createElement('div');
+    div.className='ledger';
+    div.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center">
+      <span class="name">${esc(s.name)}</span><span class="due">${fmt(due)} बाकी</span></div>
+      <div class="row"><span>दिन: ${days} × ${fmt(s.perDay)}</span><span>= ${fmt(earned)}</span></div>
+      <div class="row"><span>Advance (${m})</span><span style="color:#b91c1c">− ${fmt(adv)}</span></div>`;
+    box.appendChild(div);
+  });
+};
+
+// ══ Summary ══
+window.renderSummary=function(){
+  const m=document.getElementById('sum-month').value||monthStr();
+  const rows=DAILY.filter(x=>x.date&&x.date.startsWith(m));
+  const income=rows.reduce((a,b)=>a+(+b.cashSale||0)+(+b.onlineSale||0),0);
+  const exp=rows.reduce((a,b)=>a+(+b.expense||0),0);
+  const udhariBaki=UDHARI.filter(x=>x.status==='baki').reduce((a,b)=>a+(+b.amount||0),0);
+  document.getElementById('s-income').textContent=fmt(income);
+  document.getElementById('s-exp').textContent=fmt(exp);
+  document.getElementById('s-net').textContent=fmt(income-exp);
+  document.getElementById('s-udhari').textContent=fmt(udhariBaki);
+  document.getElementById('s-note').textContent=`${m} की ${rows.length} दिन की entries के आधार पर। उधारी बकाया overall है (सिर्फ इस महीने का नहीं)।`;
+};
+
+function toast(msg,type){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast show'+(type==='err'?' err':'');
+  clearTimeout(t._tm); t._tm=setTimeout(()=>t.classList.remove('show'),3000);
+}
+</script>
+</body>
+</html>

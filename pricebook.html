@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#1d4ed8">
+<meta name="robots" content="noindex,nofollow">
+<title>VBE प्राइसबुक</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#f1f5f9;color:#0f172a;font-family:'Noto Sans Devanagari',sans-serif;min-height:100dvh;max-width:480px;margin:0 auto;padding-bottom:40px}
+.topbar{background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#fff;padding:14px 16px;border-radius:0 0 18px 18px}
+.topbar h1{font-size:17px;font-weight:900}
+.topbar .sub{font-size:11px;opacity:.85;margin-top:2px}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:14px;margin:12px 12px 0;box-shadow:0 1px 4px rgba(15,23,42,.05)}
+.inp{background:#fff;border:1.5px solid #cbd5e1;border-radius:10px;padding:12px 13px;font-size:15px;font-family:inherit;width:100%;outline:none}
+.inp:focus{border-color:#2563eb}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.stat{background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:10px;text-align:center}
+.stat .v{font-size:18px;font-weight:900;color:#1d4ed8}
+.stat .l{font-size:10px;color:#64748b;font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px}
+th{text-align:left;color:#64748b;font-size:10px;text-transform:uppercase;padding:6px 4px;border-bottom:1.5px solid #e2e8f0}
+td{padding:8px 4px;border-bottom:1px solid #f1f5f9}
+.rate{font-weight:900;color:#1d4ed8}
+.item-btn{display:flex;justify-content:space-between;align-items:center;width:100%;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:11px 13px;margin-bottom:7px;font-family:inherit;font-size:14px;font-weight:700;color:#0f172a;cursor:pointer;text-align:left}
+.item-btn .last{font-size:12px;color:#1d4ed8;font-weight:900}
+.mini{font-size:11px;color:#64748b}
+.btn{width:100%;padding:12px;border:none;border-radius:10px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;background:#eff6ff;color:#1d4ed8;border:1.5px solid #bfdbfe}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#16a34a;color:#fff;padding:11px 22px;border-radius:12px;font-size:13px;font-weight:800;opacity:0;transition:opacity .25s;pointer-events:none;z-index:999}
+.toast.show{opacity:1}.toast.err{background:#dc2626}
+h2.sec-title{font-size:14px;font-weight:900;margin-bottom:8px}
+.login-note{text-align:center;padding:60px 20px;color:#64748b;font-size:14px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <div><h1>📗 प्राइसबुक — Item Price History</h1>
+    <div class="sub" id="h-sub">हर item का पूरा purchase record</div></div>
+    <a href="./kharcha-entry.html" style="color:#fff;text-decoration:none;font-size:11px;background:rgba(255,255,255,.15);padding:6px 10px;border-radius:8px">← एंट्री</a>
+  </div>
+</div>
+
+<div id="s-wait" class="login-note">⏳ Login check हो रहा है...<br><br><a href="./kharcha-entry.html" style="color:#1d4ed8">Login करने के लिए खर्चा एंट्री page पर जाएं</a></div>
+
+<div id="s-app" style="display:none">
+  <div class="card">
+    <input class="inp" id="search" placeholder="🔍 Item खोजें — चावल, Chocobar, तेल..." oninput="onSearch()">
+    <div class="mini" style="margin-top:6px">"चोकोबार" / "Chocobar" / "choco bar" एक ही item माने जाते हैं</div>
+  </div>
+
+  <div class="card" id="list-card">
+    <h2 class="sec-title">सभी Items <span class="mini" id="count"></span></h2>
+    <div id="item-list"></div>
+  </div>
+
+  <div class="card" id="detail-card" style="display:none">
+    <h2 class="sec-title" id="d-name"></h2>
+    <div class="stat-grid">
+      <div class="stat"><div class="v" id="d-last">—</div><div class="l">आखिरी रेट</div></div>
+      <div class="stat"><div class="v" id="d-avg">—</div><div class="l">Average रेट</div></div>
+      <div class="stat"><div class="v" id="d-max" style="color:#dc2626">—</div><div class="l">सबसे महंगा</div></div>
+      <div class="stat"><div class="v" id="d-min" style="color:#16a34a">—</div><div class="l">सबसे सस्ता</div></div>
+    </div>
+    <table>
+      <thead><tr><th>तारीख</th><th>Rate</th><th>Qty</th><th>Vendor</th><th>Firm</th></tr></thead>
+      <tbody id="d-rows"></tbody>
+    </table>
+    <div id="merge-box" style="display:none;margin-top:12px;border-top:1px dashed #e2e8f0;padding-top:10px">
+      <div class="mini" style="margin-bottom:6px">🔀 Admin: इस item को दूसरे item में merge करें (सारी entries उस नाम में चली जाएंगी)</div>
+      <input class="inp" id="merge-target" placeholder="Target item name (जैसे: चोकोबार)" style="margin-bottom:8px">
+      <button class="btn" onclick="doMerge()">🔀 Merge करें</button>
+    </div>
+    <button class="btn" onclick="backToList()" style="margin-top:10px">← वापस list पर</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, collection, doc, getDoc, getDocs, updateDoc, query, where } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const FB_CFG = {
+  apiKey:'AIzaSyBCe5DKNKcthOl4umprfRm2QBfbVaFORg8',
+  authDomain:'vbe-order-tracker-60324.firebaseapp.com',
+  projectId:'vbe-order-tracker-60324',
+  storageBucket:'vbe-order-tracker-60324.firebasestorage.app',
+  messagingSenderId:'894023456122',
+  appId:'1:894023456122:web:6ee548f0913c887c67f2c3'
+};
+const app = initializeApp(FB_CFG,'pricebook');
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let IS_ADMIN=false, ALL=[], GROUPS={}, CUR_KEY='';
+
+function itemKey(name){ return name.toLowerCase().trim().replace(/[^\p{L}\p{M}\p{N}]/gu,''); }
+function esc(s){ return String(s).replace(/</g,'&lt;'); }
+function fmt(n){ return '₹'+(+n).toLocaleString('hi-IN'); }
+
+onAuthStateChanged(auth, async u=>{
+  if(!u){ return; } // stays on wait screen with login link
+  try{
+    const a=await getDoc(doc(db,'vbe_admins',u.uid));
+    if(a.exists()) IS_ADMIN=true;
+    else{
+      const s=await getDoc(doc(db,'vbe_users',u.uid));
+      if(!s.exists()||s.data().role!=='staff'){ document.getElementById('s-wait').textContent='❌ Access नहीं है'; return; }
+    }
+    document.getElementById('s-wait').style.display='none';
+    document.getElementById('s-app').style.display='block';
+    loadAll();
+  }catch(e){ document.getElementById('s-wait').textContent='❌ '+e.message; }
+});
+
+async function loadAll(){
+  try{
+    const snap=await getDocs(collection(db,'vbe_pricebook'));
+    ALL=[]; snap.forEach(d=>ALL.push(d.data()));
+    buildGroups(); renderList('');
+  }catch(e){ toast('❌ '+e.message,'err'); }
+}
+
+function buildGroups(){
+  GROUPS={};
+  for(const e of ALL){
+    const k = e.item_key || itemKey(e.item_name||'');
+    if(!k) continue;
+    (GROUPS[k]=GROUPS[k]||[]).push(e);
+  }
+  for(const k in GROUPS) GROUPS[k].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+}
+
+window.onSearch = ()=>renderList(document.getElementById('search').value);
+
+function renderList(qstr){
+  const qk=itemKey(qstr||'');
+  const keys=Object.keys(GROUPS).filter(k=>!qk||k.includes(qk)).sort();
+  document.getElementById('count').textContent='('+keys.length+')';
+  const box=document.getElementById('item-list');
+  box.innerHTML='';
+  if(!keys.length){ box.innerHTML='<div class="mini" style="padding:10px">कोई item नहीं मिला — पहले खर्चा एंट्री करें</div>'; }
+  keys.slice(0,100).forEach(k=>{
+    const g=GROUPS[k];
+    const b=document.createElement('button');
+    b.className='item-btn';
+    b.innerHTML=`<span>${esc(g[0].item_name)} <span class="mini">(${g.length} बार)</span></span><span class="last">${fmt(g[0].rate)}/${esc(g[0].unit||'')}</span>`;
+    b.onclick=()=>showDetail(k);
+    box.appendChild(b);
+  });
+  document.getElementById('list-card').style.display='block';
+  document.getElementById('detail-card').style.display='none';
+}
+
+function showDetail(k){
+  CUR_KEY=k;
+  const g=GROUPS[k];
+  const rates=g.map(e=>+e.rate).filter(r=>r>0);
+  document.getElementById('d-name').textContent='📦 '+g[0].item_name;
+  document.getElementById('d-last').textContent=fmt(g[0].rate);
+  document.getElementById('d-avg').textContent=rates.length?fmt(Math.round(rates.reduce((a,b)=>a+b,0)/rates.length)):'—';
+  document.getElementById('d-max').textContent=rates.length?fmt(Math.max(...rates)):'—';
+  document.getElementById('d-min').textContent=rates.length?fmt(Math.min(...rates)):'—';
+  document.getElementById('d-rows').innerHTML=g.map(e=>
+    `<tr><td>${esc(e.date||'')}</td><td class="rate">${fmt(e.rate)}</td><td>${e.qty||''} ${esc(e.unit||'')}</td><td>${esc(e.vendor||'—')}</td><td>${esc((e.firm||'').slice(0,14))}</td></tr>`).join('');
+  document.getElementById('merge-box').style.display=IS_ADMIN?'block':'none';
+  document.getElementById('list-card').style.display='none';
+  document.getElementById('detail-card').style.display='block';
+}
+window.backToList=()=>renderList(document.getElementById('search').value);
+
+window.doMerge = async function(){
+  const target=(document.getElementById('merge-target').value||'').trim();
+  if(!target){ toast('⚠️ Target नाम डालें','err'); return; }
+  const tk=itemKey(target);
+  if(tk===CUR_KEY){ toast('⚠️ वही item है','err'); return; }
+  if(!confirm(`"${GROUPS[CUR_KEY][0].item_name}" की ${GROUPS[CUR_KEY].length} entries को "${target}" में merge करें?`)) return;
+  try{
+    const snap=await getDocs(query(collection(db,'vbe_pricebook'), where('item_key','==',CUR_KEY)));
+    for(const d of snap.docs) await updateDoc(d.ref,{item_key:tk, item_name:target});
+    toast('✅ Merge हो गया');
+    await loadAll();
+  }catch(e){ toast('❌ '+e.message,'err'); }
+};
+
+function toast(msg,type){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast show'+(type==='err'?' err':'');
+  clearTimeout(t._tm); t._tm=setTimeout(()=>t.classList.remove('show'),3000);
+}
+</script>
+</body>
+</html>

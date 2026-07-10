@@ -1,0 +1,33 @@
+# ══════════════════════════════════════════════════════════
+# VBE — Firestore weekly backup (data कभी गायब न हो)
+# हर रविवार सुबह 3 बजे (IST) पूरे Firestore का export
+# Firebase Storage bucket के vbe-backups/ folder में जाता है।
+# हाथ से भी चला सकते हैं (workflow_dispatch)।
+# ══════════════════════════════════════════════════════════
+name: 💾 Firestore Backup
+
+on:
+  schedule:
+    - cron: '30 21 * * 0'   # रविवार 21:30 UTC = सोमवार 3:00 AM IST
+  workflow_dispatch:
+
+concurrency:
+  group: firestore-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Write service account
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
+        run: printf '%s' "$FIREBASE_SA" > "$RUNNER_TEMP/sa.json"
+      - name: Export Firestore to Storage
+        run: |
+          gcloud auth activate-service-account --key-file="$RUNNER_TEMP/sa.json"
+          STAMP=$(date -u +%Y-%m-%d_%H%M)
+          gcloud firestore export "gs://vbe-order-tracker-60324.firebasestorage.app/vbe-backups/$STAMP" \
+            --project=vbe-order-tracker-60324
+          echo "✅ Backup done: vbe-backups/$STAMP"

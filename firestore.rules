@@ -47,14 +47,30 @@ service cloud.firestore {
       allow read, write, delete: if isAdmin();
     }
 
+    // Expense data की shape सही हो — गलत type का data कभी save न हो
+    function validExpense(d) {
+      return d.total is number && d.total >= 0
+        && d.items is list
+        && d.firm is string
+        && d.date is string
+        && d.staffUid is string;
+    }
+
     // vbe_expenses — admin: सब; staff: बनाना (अपने नाम से) + अपनी pending entries update + पढ़ना (autocomplete के लिए)
     match /vbe_expenses/{id} {
       allow read: if isAdminOrStaff();
-      allow create: if isAdmin()
-        || (isStaff() && request.resource.data.staffUid == request.auth.uid);
-      allow update: if isAdmin()
-        || (isStaff() && resource.data.staffUid == request.auth.uid);
+      allow create: if validExpense(request.resource.data)
+        && (isAdmin() || (isStaff() && request.resource.data.staffUid == request.auth.uid));
+      allow update: if validExpense(request.resource.data)
+        && (isAdmin() || (isStaff() && resource.data.staffUid == request.auth.uid));
       allow delete: if isAdmin();
+    }
+
+    // AI proxy URL — deploy workflow इसे लिखता है (Admin SDK, rules bypass);
+    // app में staff+admin दोनों को पढ़ना है ताकि AI auto-entry सबके लिए चले
+    match /vbe_settings/kharcha_ai {
+      allow get: if isAdminOrStaff();
+      allow write: if isAdmin();
     }
 
     // vbe_pricebook — auto-populate हर expense से; merge सिर्फ admin

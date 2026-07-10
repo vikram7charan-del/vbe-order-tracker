@@ -16,7 +16,9 @@ body{background:#f1f5f9;color:#0f172a;font-family:'Noto Sans Devanagari',sans-se
 .topbar .sub{font-size:11px;opacity:.85;margin-top:2px}
 .navlinks{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
 .navlinks a{color:#fff;text-decoration:none;font-size:11px;font-weight:800;background:rgba(255,255,255,.15);padding:6px 10px;border-radius:8px}
-.card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:14px;margin:12px 12px 0;box-shadow:0 1px 4px rgba(15,23,42,.05)}
+.card{background:linear-gradient(180deg,#ffffff,#fbfcfe);border:1px solid #e2e8f0;border-radius:16px;padding:14px;margin:14px 12px 0;box-shadow:0 10px 24px -12px rgba(15,23,42,.22),0 2px 6px rgba(15,23,42,.06)}
+.btn:active{transform:translateY(1px) scale(.99)}
+.btn{transition:transform .1s ease}
 .lbl{font-size:12px;color:#475569;font-weight:800;margin-bottom:6px;display:block}
 .inp{background:#fff;border:1.5px solid #cbd5e1;border-radius:10px;padding:11px 12px;font-size:14px;font-family:inherit;width:100%;outline:none}
 .inp:focus{border-color:#2563eb}
@@ -64,6 +66,7 @@ td{padding:7px 4px;border-bottom:1px solid #f1f5f9}
   <div class="sub" id="h-sub">सिर्फ Admin · <span id="h-date"></span></div>
   <div class="navlinks">
     <a href="./kharcha-entry.html">🧾 एंट्री</a>
+    <a href="./payments.html">💳 पेमेंट/स्टेटमेंट</a>
     <a href="./pricebook.html">📗 प्राइसबुक</a>
     <a href="./marwar-rasoi.html">🍽️ मारवाड़ रसोई</a>
     <a href="./unit-receivables.html">🎖️ Unit Receivables</a>
@@ -356,8 +359,21 @@ async function loadStaffAccounts(){
   const snap=await getDocs(collection(db,'vbe_users'));
   const box=document.getElementById('staff-list');
   const arr=[]; snap.forEach(d=>{const x=d.data(); if(x.role==='staff') arr.push(x);});
-  box.innerHTML=arr.map(s=>`<div class="acc-row"><span>👤 ${esc(s.name)} <span class="mini">(${esc(s.phone)})</span></span></div>`).join('')
-    || '<div class="mini">अभी कोई staff account नहीं</div>';
+  box.innerHTML='';
+  if(!arr.length){ box.innerHTML='<div class="mini">अभी कोई staff account नहीं</div>'; return; }
+  arr.forEach(s=>{
+    const row=document.createElement('div');
+    row.className='acc-row';
+    row.innerHTML=`<span>👤 ${esc(s.name)} <span class="mini">(${esc(s.phone)})</span></span>
+      <button style="background:#eff6ff;color:#1d4ed8">✏️ नाम</button>`;
+    row.querySelector('button').onclick=async()=>{
+      const name=prompt('नया नाम:', s.name);
+      if(!name||name.trim()===s.name) return;
+      try{ await updateDoc(doc(db,'vbe_users',s.uid),{name:name.trim()}); toast('✅ नाम बदला'); loadStaffAccounts(); }
+      catch(e){ toast('❌ '+e.message,'err'); }
+    };
+    box.appendChild(row);
+  });
 }
 window.createStaff=async function(){
   const name=(document.getElementById('ns-name').value||'').trim();
@@ -397,13 +413,29 @@ async function loadAccounts(){
   const box=document.getElementById('acc-list');
   box.innerHTML=ACCOUNTS.map((a,i)=>`
     <div class="acc-row">
-      <span>${a.active!==false?'💳':'🚫'} ${esc(a.name)}</span>
-      <button style="background:${a.active!==false?'#fef2f2;color:#b91c1c':'#f0fdf4;color:#166534'}" data-i="${i}">${a.active!==false?'बंद करें':'चालू करें'}</button>
+      <span>${a.active!==false?'💳':'🚫'} ${esc(a.name)} ${a.last4?`<span class="mini">••${esc(a.last4)}</span>`:''}</span>
+      <span style="display:flex;gap:4px">
+        <button style="background:#eff6ff;color:#1d4ed8" data-act="ren" data-i="${i}">✏️</button>
+        <button style="background:#f5f3ff;color:#6d28d9" data-act="l4" data-i="${i}" title="account के आखिरी 4 अंक (statement auto-detect के लिए)">🏦4</button>
+        <button style="background:${a.active!==false?'#fef2f2;color:#b91c1c':'#f0fdf4;color:#166534'}" data-act="tog" data-i="${i}">${a.active!==false?'बंद':'चालू'}</button>
+      </span>
     </div>`).join('') || '<div class="mini">Accounts खर्चा एंट्री page खोलने पर auto-seed होंगे</div>';
   box.querySelectorAll('button').forEach(b=>b.onclick=async()=>{
     const a=ACCOUNTS[+b.dataset.i];
-    await updateDoc(doc(db,'vbe_payment_accounts',a.docId),{active:a.active===false});
-    loadAccounts();
+    try{
+      if(b.dataset.act==='ren'){
+        const name=prompt('Account का नया नाम:', a.name);
+        if(!name||!name.trim()) return;
+        await updateDoc(doc(db,'vbe_payment_accounts',a.docId),{name:name.trim()});
+      } else if(b.dataset.act==='l4'){
+        const l4=prompt(a.name+' के account number के आखिरी 4 अंक (statement/receipt से auto-detect होगा):', a.last4||'');
+        if(l4===null) return;
+        await updateDoc(doc(db,'vbe_payment_accounts',a.docId),{last4:l4.replace(/[^0-9]/g,'').slice(-4)});
+      } else {
+        await updateDoc(doc(db,'vbe_payment_accounts',a.docId),{active:a.active===false});
+      }
+      loadAccounts();
+    }catch(e){ toast('❌ '+e.message,'err'); }
   });
 }
 window.addAccount=async function(){

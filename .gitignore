@@ -6,3 +6,4 @@ node_modules/
 firebase-debug.log
 ui-debug.log
 .firebase/
+kharcha-functions/.env

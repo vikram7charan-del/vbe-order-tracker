@@ -158,7 +158,8 @@ const FB_CFG = {
 const APPROVED_UID = 'tjkS5tg2vMflpndGHSQRjFYgRv03';
 const DUR_OPTS = [15,30,45,60,90,120];
 
-const app = initializeApp(FB_CFG, 'schedule');
+// call-tracker वाला ही app-name — ताकि वही login session मिल जाए (अलग नाम = अलग session)
+const app = initializeApp(FB_CFG, 'call-tracker');
 const auth = getAuth(app);
 const db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentSingleTabManager() }) });
 const CT_COL = collection(db, 'vbe_call_tracker');
@@ -177,9 +178,13 @@ function pendingText(c){ return pendingTopics(c).map(x=>x.t).join(' · '); }
 
 /* ── auth ── */
 onAuthStateChanged(auth, (user)=>{
-  if(!user){ location.replace('./call-tracker.html'); return; }
-  if(user.uid!==APPROVED_UID){ document.getElementById('gate').textContent='⛔ अनुमति नहीं'; return; }
-  document.getElementById('gate').style.display='none';
+  const g=document.getElementById('gate');
+  if(!user){
+    g.innerHTML='🔒 पहले <b style="color:#a855f7">Call Tracker</b> खोलकर login करें,<br>फिर यह पेज खुलेगा।<br><br><a href="./call-tracker.html" style="color:#60a5fa;font-weight:800;text-decoration:none;border:1px solid #1e3a5f;border-radius:10px;padding:9px 16px;display:inline-block">← Call Tracker खोलें</a>';
+    return;
+  }
+  if(user.uid!==APPROVED_UID){ g.textContent='⛔ अनुमति नहीं'; return; }
+  g.style.display='none';
   document.getElementById('app').style.display='block';
   startSync();
 });

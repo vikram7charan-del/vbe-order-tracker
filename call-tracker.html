@@ -512,6 +512,75 @@ body.th-geo .f-chip{border-radius:10px 3px 10px 3px}
 body.th-geo .qdial-popup,body.th-geo .modal-box{background:linear-gradient(160deg,#1a2240,#101728);border-color:rgba(129,140,248,.35);border-radius:24px 6px 24px 6px}
 body.th-geo .c-topic,body.th-geo .sv-tasks{color:#c7d2fe}
 body.th-geo .btn-add-big{background:linear-gradient(135deg,#6366f1,#a855f7);box-shadow:0 4px 16px rgba(139,92,246,.45)}
+
+/* ══ 📅 मेरा दिन — in-app timeline view ══ */
+.dv-wrap{padding:4px 13px 20px}
+.dv-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 2px 4px}
+.dv-title{font-size:12px;font-weight:900;color:#a78bfa;letter-spacing:.4px}
+.dv-reset{font-size:10px;font-weight:900;font-family:inherit;color:#fca5a5;background:rgba(28,6,6,.9);border:1px solid rgba(127,29,29,.7);border-radius:9px;padding:6px 10px;cursor:pointer}
+.dv-grp-h{font-size:11.5px;font-weight:900;color:#7d8db0;letter-spacing:.5px;margin:15px 2px 9px;display:flex;align-items:center;gap:7px}
+.dv-grp-h .cnt{background:linear-gradient(160deg,#1d2b4d,#131d38);color:#9fb2d8;border:1px solid #2b3f6b;border-radius:20px;padding:1px 9px;font-size:10px}
+.dv-grp-h.late{color:#f87171}.dv-grp-h.late .cnt{background:linear-gradient(160deg,#471015,#2a090c);color:#fca5a5;border-color:#7f1d1d}
+.dv-blk{font-size:10px;font-weight:900;letter-spacing:.4px;margin:11px 2px 7px;display:flex;align-items:center;gap:6px;opacity:.95}
+.dv-blk .ln{flex:1;height:1px;background:linear-gradient(90deg,currentColor,transparent);opacity:.35}
+.dv-rail{position:relative;padding-left:18px}
+.dv-rail::before{content:'';position:absolute;left:5px;top:6px;bottom:6px;width:2px;border-radius:2px;background:linear-gradient(180deg,rgba(139,92,246,.55),rgba(59,130,246,.25) 60%,transparent)}
+.dvc{position:relative;margin-bottom:11px;border-radius:18px;padding:11px 11px 10px;cursor:pointer;
+  background:linear-gradient(163deg,rgba(26,38,70,.92),rgba(10,16,32,.97) 55%,rgba(7,11,22,.98));
+  border:1px solid rgba(82,108,170,.28);
+  box-shadow:0 16px 32px -15px rgba(0,0,0,.85),0 4px 12px -6px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.075),inset 0 -10px 20px -16px rgba(0,0,0,.85);
+  transition:transform .15s;transform-style:preserve-3d}
+.dvc:active{transform:perspective(700px) rotateX(4deg) scale(.975)}
+.dvc::before{content:'';position:absolute;inset:0;border-radius:18px;padding:1.2px;pointer-events:none;opacity:.55;
+  background:linear-gradient(140deg,var(--c,#8b5cf6),transparent 32%,transparent 68%,rgba(96,165,250,.5));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+.dvc .dot{position:absolute;left:-16px;top:22px;width:9px;height:9px;border-radius:50%;background:var(--c,#8b5cf6);box-shadow:0 0 11px var(--c,#8b5cf6)}
+.dvc.late{border-color:rgba(239,68,68,.42);animation:dvGlow 2.4s ease-in-out infinite}
+.dvc.late::before{background:linear-gradient(140deg,#ef4444,transparent 36%,transparent 66%,rgba(239,68,68,.55))}
+.dvc.late .dot{background:#ef4444;box-shadow:0 0 13px #ef4444}
+@keyframes dvGlow{0%,100%{box-shadow:0 16px 32px -15px rgba(0,0,0,.85)}50%{box-shadow:0 16px 32px -15px rgba(0,0,0,.85),0 0 20px -4px rgba(239,68,68,.4)}}
+.dvc-top{display:flex;gap:10px;align-items:center}
+.dv-av{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:21px;flex-shrink:0;position:relative;background:radial-gradient(circle at 35% 30%,#182642,#0a1120);box-shadow:0 5px 14px -4px rgba(0,0,0,.7),inset 0 2px 4px rgba(255,255,255,.09)}
+.dv-av::before{content:'';position:absolute;inset:-3px;border-radius:50%;z-index:-1;opacity:.9;background:conic-gradient(from 200deg,var(--c,#8b5cf6),transparent 42%,var(--c,#8b5cf6) 75%,transparent 92%)}
+.dv-tm{flex-shrink:0;text-align:center;min-width:50px}
+.dv-tm .t1{font-size:16.5px;font-weight:900;line-height:1.05;font-variant-numeric:tabular-nums;background:linear-gradient(180deg,#fff,#93c5fd);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.dv-tm .t2{font-size:9px;color:#7d8db0;font-weight:800;margin-top:2px}
+.dv-tm .dur{font-size:8.5px;color:#54648a;margin-top:2px}
+.dv-bd{flex:1;min-width:0}
+.dv-nm{font-size:14px;font-weight:900;color:#f4f7ff;display:flex;align-items:center;gap:6px;word-break:break-word}
+.dv-sub{font-size:9.5px;color:#5f7096;margin-top:2px;font-weight:700}
+.dv-late-tag{font-size:9px;font-weight:900;color:#fca5a5;background:rgba(127,29,29,.5);border:1px solid rgba(239,68,68,.4);border-radius:6px;padding:1px 6px;flex-shrink:0}
+.dv-tasks{margin-top:8px;background:rgba(6,13,26,.75);border:1px solid rgba(30,58,95,.55);border-radius:11px;padding:7px 10px}
+.dv-task{font-size:11.5px;color:#c8d4ee;line-height:1.5;display:flex;gap:6px;align-items:flex-start}
+.dv-task .b{color:var(--c,#8b5cf6);flex-shrink:0}
+.dv-more{font-size:10px;color:#5f7096;font-weight:800;margin-top:2px}
+.dvc-foot{display:flex;align-items:center;gap:5px;margin-top:9px;flex-wrap:wrap}
+.dv-cd{font-size:10px;font-weight:900;font-variant-numeric:tabular-nums}
+.dv-btn{font-size:10.5px;font-weight:900;font-family:inherit;border-radius:9px;padding:6px 10px;cursor:pointer;border:1px solid #2a3d66;background:linear-gradient(160deg,#16223f,#0d1526);color:#c7d4ef;transition:transform .1s;touch-action:manipulation}
+.dv-btn:active{transform:scale(.92)}
+.dv-btn.snz{border-color:rgba(161,98,7,.55);color:#fcd34d;background:linear-gradient(160deg,#241a04,#140e02)}
+.dv-btn.call{border-color:rgba(21,128,61,.55);color:#86efac;background:linear-gradient(160deg,#052613,#031508)}
+.dv-btn.rm{border-color:rgba(127,29,29,.55);color:#fca5a5;background:linear-gradient(160deg,#260808,#150404)}
+.dv-sync{font-size:8.5px;font-weight:800;border-radius:6px;padding:2px 6px}
+.dv-sync.ok{color:#86efac;background:rgba(4,32,15,.8);border:1px solid rgba(21,128,61,.6)}
+.dv-sync.wait{color:#fcd34d;background:rgba(28,20,3,.8);border:1px solid rgba(161,98,7,.6)}
+.dv-us{display:flex;gap:9px;align-items:center;margin-bottom:7px;border-radius:13px;padding:8px 10px;cursor:pointer;background:linear-gradient(163deg,rgba(15,23,44,.75),rgba(8,12,24,.9));border:1px dashed rgba(80,105,165,.4)}
+.dv-us .nm{font-size:12.5px;font-weight:800;color:#d4def3}
+.dv-us .tk{font-size:10px;color:#7488ab;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dv-us .set{flex-shrink:0;font-size:10.5px;font-weight:900;font-family:inherit;border:none;border-radius:9px;padding:8px 11px;background:linear-gradient(120deg,#1d4ed8,#3b82f6);color:#fff;cursor:pointer}
+
+/* ══ ⏰ समय-picker (आज/कल/custom) ══ */
+.sk-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px}
+.sk-chip{font-size:12px;font-weight:800;font-family:inherit;border:1.5px solid #24365c;background:rgba(13,21,38,.85);color:#9fb2d8;border-radius:10px;padding:8px 13px;cursor:pointer;transition:all .13s;touch-action:manipulation}
+.sk-chip.on{border-color:#a855f7;background:rgba(76,29,149,.4);color:#e9d5ff;box-shadow:0 0 10px -3px rgba(168,85,247,.6)}
+.sk-chip.dis{opacity:.32;pointer-events:none;text-decoration:line-through}
+.sk-chip.sm{padding:7px 10px;font-size:11.5px}
+.sk-prev{font-size:13.5px;font-weight:900;color:#c4b5fd;background:rgba(76,29,149,.25);border:1px solid rgba(139,92,246,.4);border-radius:11px;padding:10px 13px;text-align:center;margin-top:11px}
+.sk-prev.bad{color:#fca5a5;background:rgba(127,29,29,.25);border-color:rgba(239,68,68,.4)}
+/* ऊपर के बटन fold — सिर्फ़ filters/stats ज़रूरत की चीज़ें रहें */
+body.hdr-folded .hdr-btns>*:not(#hdr-fold){display:none}
+body.hdr-folded .hdr-row2{display:none}
+body.hdr-folded #hdr-fold{transform:rotate(180deg)}
 </style>
 </head>
 <body>
@@ -557,7 +626,8 @@ body.th-geo .btn-add-big{background:linear-gradient(135deg,#6366f1,#a855f7);box-
         <button class="btn-icon" onclick="unhideAll()" title="Swipe किए हुए सब वापस लाओ" style="cursor:pointer;font-family:inherit">👁️</button>
         <button class="btn-icon" onclick="setN8nUrl()" title="n8n webhook URL (on-demand AI)" style="cursor:pointer;font-family:inherit">⚙️</button>
         <a href="./quick-add.html" class="btn-icon" title="Quick Order Add">📦</a>
-        <a href="./schedule.html" class="btn-icon" title="📅 मेरा दिन — Schedule/Calendar">📅 दिन</a>
+        <button class="btn-icon" id="day-btn" onclick="gotoDay()" title="📅 मेरा दिन — इसी पेज पर timeline" style="cursor:pointer;font-family:inherit">📅 दिन</button>
+        <button class="btn-icon" id="hdr-fold" onclick="foldHdr()" title="ऊपर के बटन छुपाओ/दिखाओ" style="cursor:pointer;font-family:inherit">⌃</button>
       </div>
 
     <!-- Stats (compact) + ➕ नया दाईं तरफ (पुराना सही स्थान) -->
@@ -763,6 +833,34 @@ body.th-geo .btn-add-big{background:linear-gradient(135deg,#6366f1,#a855f7);box-
   </div>
 </div>
 
+<!-- ⏰ समय-picker: आज/कल/परसों + समय chips + custom — सिर्फ़ आने वाला समय -->
+<div class="modal-bg" id="m-sched">
+  <div class="modal-box">
+    <div class="modal-title">
+      <span id="sk-title">⏰ समय चुनें</span>
+      <span class="modal-x" onclick="closeSchedPick()">✕</span>
+    </div>
+    <div id="sk-task" style="font-size:12px;font-weight:800;color:#fbbf24;margin-bottom:11px;line-height:1.45;word-break:break-word"></div>
+    <div class="fg">
+      <label class="lbl">📆 कौन-सा दिन?</label>
+      <div class="sk-chips" id="sk-days"></div>
+      <input class="inp" type="date" id="sk-date" style="display:none;margin-top:7px" onchange="skCustomDate()">
+    </div>
+    <div class="fg">
+      <label class="lbl">🕐 कितने बजे?</label>
+      <div class="sk-chips" id="sk-times"></div>
+      <input class="inp" type="time" id="sk-time" style="display:none;margin-top:7px" onchange="skCustomTime()">
+    </div>
+    <div class="fg" id="sk-dur-wrap">
+      <label class="lbl">⏳ कितनी देर लगेगी?</label>
+      <div class="sk-chips" id="sk-durs"></div>
+    </div>
+    <div class="sk-prev" id="sk-prev">—</div>
+    <button class="btn-save" onclick="saveSchedPick()">✅ Calendar में लगाओ — अलार्म भी</button>
+    <button id="sk-clear" class="btn-save" style="display:none;background:rgba(28,6,6,.9);border:1px solid rgba(127,29,29,.7);color:#fca5a5;box-shadow:none" onclick="clearSchedPick()">🔕 समय हटाओ (Calendar से भी हटेगा)</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script type="module">
@@ -878,6 +976,9 @@ function initApp(){
   if(act==='new') setTimeout(()=>window.openAddModal(),400);
   if(act==='search') setTimeout(()=>{ const s=document.getElementById('search-inp'); if(s) s.focus(); },400);
   if(act==='send') setTimeout(()=>window.openBroadcast(),600);
+  // Calendar event के link से आए हों तो सीधे उस व्यक्ति का popup खोलो
+  const openId=new URLSearchParams(location.search).get('open');
+  if(openId) window._pendingOpen=openId;
 }
 
 /* ──────── Firestore sync ──────── */
@@ -905,6 +1006,10 @@ function startFirestoreSync(){
       if(settings.n8nUrl) window._n8nUrl=settings.n8nUrl;
     }
     renderFilterBar(); renderTagBtns(); render();
+    if(window._pendingOpen){
+      const oid=window._pendingOpen; window._pendingOpen=null;
+      if(contacts.find(x=>x.id===oid)) setTimeout(()=>window.openSmartPop(oid),300);
+    }
   }, ()=>toast('⚠️ Sync error — net check करें','err'));
 }
 async function fbSave(c){
@@ -1148,15 +1253,30 @@ window.svTE=function(){
 /* ══ VIEW MODE — Card / Smart ══ */
 let _view=localStorage.getItem('vbe_ct_view')||'card';
 window.toggleView=function(){
-  _view=_view==='card'?'smart':'card';
+  _view=_view==='card'?'smart':'card'; // 🔲 बटन smart/card ही घुमाता है; 📅 दिन अलग बटन से
   localStorage.setItem('vbe_ct_view',_view);
   updateViewBtn(); _animNext=true; render();
   toast(_view==='smart'?'🔲 Smart View — compact grid':'📋 Card View — पूरी detail');
 };
+window.gotoDay=function(){
+  _view=_view==='day'?(localStorage.getItem('vbe_ct_view_prev')||'card'):'day';
+  if(_view==='day') localStorage.setItem('vbe_ct_view_prev',localStorage.getItem('vbe_ct_view')||'card');
+  localStorage.setItem('vbe_ct_view',_view);
+  updateViewBtn(); _animNext=true; render();
+  toast(_view==='day'?'📅 मेरा दिन — समय के हिसाब से':'वापस list view');
+};
 function updateViewBtn(){
   const b=document.getElementById('view-btn');
   if(b) b.textContent=_view==='smart'?'📋':'🔲';
+  const d=document.getElementById('day-btn');
+  if(d){ d.style.background=_view==='day'?'linear-gradient(135deg,#7c3aed,#a855f7)':''; d.style.color=_view==='day'?'#fff':''; d.style.borderColor=_view==='day'?'transparent':''; }
 }
+/* ऊपर के बटन एक click में छुपाओ — filters/खोज हमेशा रहें */
+window.foldHdr=function(){
+  const on=document.body.classList.toggle('hdr-folded');
+  localStorage.setItem('vbe_hdr_fold',on?'1':'');
+};
+if(localStorage.getItem('vbe_hdr_fold')==='1') document.body.classList.add('hdr-folded');
 
 /* Smart View — 2-column grid, पूरा नाम + छोटा गोल icon */
 function renderSmart(list){
@@ -1192,7 +1312,8 @@ function renderSmart(list){
 function renderCards(list){
   const el=document.getElementById('card-list');
   const stripEl=document.getElementById('strip');
-  if(stripEl) stripEl.style.display=_view==='smart'?'none':'flex';
+  if(stripEl) stripEl.style.display=(_view==='smart'||_view==='day')?'none':'flex';
+  if(_view==='day'){ renderDay(list); return; }
   if(_view==='smart'){ renderSmart(list); return; }
   if(!list.length){
     el.innerHTML=`<div class="empty"><div class="empty-ico">📞</div><div class="empty-txt">अभी कोई follow-up contact नहीं<br>+ button से जोड़ें</div></div>`;
@@ -1773,6 +1894,305 @@ window.addTaskTo=function(id){
 };
 
 /* ══ SMART POPUP — बीच screen में, नाम + काम + सारे actions ══ */
+/* ══════════ 📅 मेरा दिन — timeline view (इसी पेज के अंदर) ══════════ */
+const DAY_BLOCKS=[
+  {s:6, e:9,  label:'🌅 योजना का समय (6–9)',        c:'#38bdf8'},
+  {s:9, e:14, label:'🏢 जालीपा वर्क स्टेशन (9–2)',   c:'#22c55e'},
+  {s:14,e:18, label:'🛒 मार्केटिंग (2–6)',           c:'#f59e0b'},
+  {s:18,e:20, label:'📒 हिसाब / जालीपा राउंड (6–8)', c:'#a855f7'},
+  {s:20,e:24, label:'🏠 परिवार + सीखना (8–12)',      c:'#ec4899'},
+  {s:0, e:6,  label:'🌙 रात',                        c:'#64748b'},
+];
+function dayBlockOf(d){ const h=d.getHours(); return DAY_BLOCKS.find(b=>h>=b.s&&h<b.e)||DAY_BLOCKS[0]; }
+function genTid(){ return 'tp'+Math.random().toString(36).slice(2,9); }
+function dayKey0(d){ const x=new Date(d); x.setHours(0,0,0,0); return x.getTime(); }
+function dvDayLabel(k){
+  const diff=Math.round((k-dayKey0(new Date()))/86400000);
+  if(diff===0) return 'आज'; if(diff===1) return 'कल'; if(diff===2) return 'परसों'; if(diff===-1) return 'बीता कल';
+  return new Intl.DateTimeFormat('hi-IN',{weekday:'short',day:'numeric',month:'short'}).format(new Date(k));
+}
+function dvTime(d){ return new Intl.DateTimeFormat('en-IN',{hour:'2-digit',minute:'2-digit',hour12:false}).format(d); }
+function dvPart(d){ const h=d.getHours(); return h<12?'सुबह':(h<16?'दोपहर':(h<19?'शाम':'रात')); }
+function schedLabel(iso){ const d=new Date(iso); return dvDayLabel(dayKey0(d))+' '+dvPart(d)+' '+dvTime(d); }
+
+function dayRows(list){
+  const rows=[];
+  list.forEach(c=>{
+    const pend=normTopics(c).map((x,i)=>({...x,i})).filter(x=>!x.done);
+    if(c.nextCallAt&&pend.length){ const t=new Date(c.nextCallAt).getTime(); if(!isNaN(t)) rows.push({k:'c',c,t}); }
+    pend.forEach(x=>{ if(x.at){ const t=new Date(x.at).getTime(); if(!isNaN(t)) rows.push({k:'t',c,x,i:x.i,t}); } });
+  });
+  return rows.sort((a,b)=>a.t-b.t);
+}
+function renderDay(list){
+  const el=document.getElementById('card-list');
+  const now=Date.now();
+  const rows=dayRows(list);
+  const late=rows.filter(r=>r.t<=now), up=rows.filter(r=>r.t>now);
+  let h=`<div class="dv-wrap">
+    <div class="dv-head">
+      <div class="dv-title">📅 मेरा दिन — ${rows.length} काम समय पर</div>
+      <button class="dv-reset" onclick="resetToday()">🧹 आज reset</button>
+    </div>`;
+  if(late.length){
+    h+=`<div class="dv-grp-h late">🔴 देर हो गई <span class="cnt">${late.length}</span></div><div class="dv-rail">`;
+    late.forEach(r=>h+=dayCard(r,true));
+    h+=`</div>`;
+  }
+  if(up.length){
+    let curDay=null, curBlk=null;
+    up.forEach(r=>{
+      const d=new Date(r.t), k=dayKey0(d);
+      if(k!==curDay){
+        if(curDay!==null) h+=`</div>`;
+        h+=`<div class="dv-grp-h">🗓️ ${dvDayLabel(k)}</div><div class="dv-rail">`;
+        curDay=k; curBlk=null;
+      }
+      if(k===dayKey0(new Date())){ // सिर्फ़ आज के अंदर दिन के हिस्से दिखाओ
+        const b=dayBlockOf(d);
+        if(b!==curBlk){ h+=`<div class="dv-blk" style="color:${b.c}">${b.label}<span class="ln"></span></div>`; curBlk=b; }
+      }
+      h+=dayCard(r,false);
+    });
+    h+=`</div>`;
+  }
+  if(!rows.length) h+=`<div class="empty"><div class="empty-ico">📅</div><div class="empty-txt">अभी कोई काम समय पर नहीं लगा।<br>नीचे किसी काम पर <b style="color:#93c5fd">⏰ समय</b> दबाएँ या 🎙️ बोलो से जोड़ें</div></div>`;
+  // बिना समय वाले — यहीं से समय लगाओ (filter/search लागू)
+  const uns=list.filter(c=>!c.nextCallAt&&normTopics(c).some(x=>!x.done));
+  if(uns.length){
+    h+=`<div class="dv-grp-h">⏳ बिना समय वाले <span class="cnt">${uns.length}</span></div>`;
+    uns.slice(0,80).forEach(c=>{
+      const pend=normTopics(c).filter(x=>!x.done);
+      h+=`<div class="dv-us" onclick="openSmartPop('${c.id}')">
+        <div style="font-size:19px;width:30px;text-align:center;flex-shrink:0">${c.emoji||'📌'}</div>
+        <div style="flex:1;min-width:0"><div class="nm">${escH(c.name||'—')}</div><div class="tk">${escH(pend.map(x=>x.t).join(' · '))}</div></div>
+        <button class="set" onclick="event.stopPropagation();openSchedPick('c','${c.id}')">⏰ समय</button>
+      </div>`;
+    });
+  }
+  h+=`</div>`;
+  el.innerHTML=h;
+  tickCountdowns();
+}
+function dayCard(r,isLate){
+  const c=r.c, d=new Date(r.t), col=c.color||'#8b5cf6';
+  const sync=(ok)=>ok?'<span class="dv-sync ok">✅ Calendar</span>':'<span class="dv-sync wait">⏳ Calendar…</span>';
+  const ph=(c.phone||'').replace(/[^0-9]/g,'');
+  if(r.k==='c'){
+    const pend=normTopics(c).filter(x=>!x.done);
+    const dur=Number(c.durationMins)>0?Number(c.durationMins):15;
+    const okS=c.calSynced===true&&c.calEventFor===c.nextCallAt;
+    return `<div class="dvc ${isLate?'late':''}" style="--c:${col}" onclick="openSmartPop('${c.id}')">
+      <span class="dot"></span>
+      <div class="dvc-top">
+        <div class="dv-tm"><div class="t1">${dvTime(d)}</div><div class="t2">${dvPart(d)}</div><div class="dur">${dur} मिनट</div></div>
+        <div class="dv-av" style="--c:${col}">${c.emoji||'📅'}</div>
+        <div class="dv-bd">
+          <div class="dv-nm">${escH(c.name||'—')} ${isLate?'<span class="dv-late-tag">देर</span>':''}</div>
+          <div class="dv-sub">${ph?'📱 '+escH(c.phone):''}</div>
+        </div>
+      </div>
+      <div class="dv-tasks">${pend.slice(0,3).map(x=>`<div class="dv-task"><span class="b">•</span><span>${escH(x.t)}</span></div>`).join('')}${pend.length>3?`<div class="dv-more">+${pend.length-3} और काम — खोलकर देखें</div>`:''}</div>
+      <div class="dvc-foot" onclick="event.stopPropagation()">
+        <span class="dv-cd" data-t="${r.t}"></span>${sync(okS)}
+        <span style="flex:1"></span>
+        <button class="dv-btn snz" onclick="dvSnooze('${c.id}',15)">+15m</button>
+        <button class="dv-btn snz" onclick="dvSnooze('${c.id}',30)">+30m</button>
+        <button class="dv-btn snz" onclick="dvSnooze('${c.id}',60)">+1h</button>
+        <button class="dv-btn" onclick="openSchedPick('c','${c.id}')">📆 कल/बदलो</button>
+        ${ph?`<button class="dv-btn call" onclick="location.href='tel:+91${ph}'">📞</button>`:''}
+        <button class="dv-btn rm" onclick="dvClear('${c.id}')" title="सिर्फ़ Calendar से हटेगा — काम बना रहेगा">🔕</button>
+      </div>
+    </div>`;
+  }
+  const x=r.x;
+  const okS=!!(c.calTopicsSynced&&c.calTopicsSynced[x.tid]===x.at);
+  return `<div class="dvc ${isLate?'late':''}" style="--c:${col}" onclick="openSmartPop('${c.id}')">
+    <span class="dot"></span>
+    <div class="dvc-top">
+      <div class="dv-tm"><div class="t1">${dvTime(d)}</div><div class="t2">${dvPart(d)}</div></div>
+      <div class="dv-av" style="--c:${col}">⏰</div>
+      <div class="dv-bd">
+        <div class="dv-nm" style="font-size:12.5px;color:#fbbf24">${escH(x.t)}</div>
+        <div class="dv-sub">📌 ${escH(c.name||'')} ${isLate?'· <span class="dv-late-tag">देर</span>':''}</div>
+      </div>
+    </div>
+    <div class="dvc-foot" onclick="event.stopPropagation()">
+      <span class="dv-cd" data-t="${r.t}"></span>${sync(okS)}
+      <span style="flex:1"></span>
+      <button class="dv-btn snz" onclick="dvSnoozeT('${c.id}',${r.i},15)">+15m</button>
+      <button class="dv-btn snz" onclick="dvSnoozeT('${c.id}',${r.i},30)">+30m</button>
+      <button class="dv-btn snz" onclick="dvSnoozeT('${c.id}',${r.i},60)">+1h</button>
+      <button class="dv-btn" onclick="openSchedPick('t','${c.id}',${r.i})">📆</button>
+      <button class="dv-btn rm" onclick="dvClearT('${c.id}',${r.i})" title="सिर्फ़ Calendar से — काम बना रहेगा">🔕</button>
+    </div>
+  </div>`;
+}
+/* countdown/timer — हर सेकंड ताज़ा (सिर्फ़ day view में) */
+function tickCountdowns(){
+  document.querySelectorAll('.dv-cd').forEach(e=>{
+    const t=Number(e.dataset.t), diff=t-Date.now();
+    if(diff<=0){ e.textContent='🔴 '+fmtFull(-diff)+' देर'; e.style.color='#f87171'; }
+    else{ e.textContent='⏳ '+fmtFull(diff); e.style.color=diff<15*60000?'#fbbf24':'#7d8db0'; }
+  });
+}
+setInterval(()=>{ if(_view==='day') tickCountdowns(); },1000);
+
+/* day view actions — ये सिर्फ़ समय बदलते/हटाते हैं, काम कभी पूरा नहीं करते।
+   काम पूरा = सिर्फ़ popup खोलकर ✓ करने पर। */
+window.dvSnooze=function(id,mins){
+  const c=contacts.find(x=>x.id===id); if(!c) return;
+  const base=Math.max(Date.now(), c.nextCallAt?new Date(c.nextCallAt).getTime():Date.now());
+  c.nextCallAt=new Date(base+mins*60000).toISOString();
+  _notifFired.delete(c.id+'_next');
+  render(); fbSave(c);
+  toast('⏰ +'+mins+' मिनट — timer चालू');
+};
+window.dvSnoozeT=function(id,i,mins){
+  const c=contacts.find(x=>x.id===id); if(!c) return;
+  const tp=normTopics(c); if(!tp[i]) return;
+  const base=Math.max(Date.now(), tp[i].at?new Date(tp[i].at).getTime():Date.now());
+  tp[i]={...tp[i],at:new Date(base+mins*60000).toISOString(),tid:tp[i].tid||genTid()};
+  c.topics=tp; render(); fbSave(c);
+  toast('⏰ काम +'+mins+' मिनट आगे');
+};
+window.dvClear=function(id){
+  const c=contacts.find(x=>x.id===id); if(!c) return;
+  c.nextCallAt=null; render(); fbSave(c);
+  toast('🔕 Calendar से हटा — काम बना हुआ है');
+};
+window.dvClearT=function(id,i){
+  const c=contacts.find(x=>x.id===id); if(!c) return;
+  const tp=normTopics(c); if(!tp[i]) return;
+  tp[i]={...tp[i]}; delete tp[i].at; delete tp[i].notifAt;
+  c.topics=tp; render(); fbSave(c);
+  toast('🔕 काम का समय हटा — काम बना हुआ है');
+};
+/* 🧹 आज का पूरा schedule खाली (password 1234) — काम नहीं मिटते, सिर्फ़ समय हटता है */
+window.resetToday=function(){
+  const pw=prompt('🧹 आज के सारे समय हटेंगे (काम बने रहेंगे)।\nपासवर्ड डालें:');
+  if(pw===null) return;
+  if(pw.trim()!=='1234'){ toast('⛔ गलत पासवर्ड','err'); return; }
+  const eod=new Date(); eod.setHours(23,59,59,999);
+  let n=0;
+  contacts.forEach(c=>{
+    let ch=false;
+    if(c.nextCallAt && new Date(c.nextCallAt)<=eod){ c.nextCallAt=null; ch=true; }
+    if(Array.isArray(c.topics)){
+      c.topics.forEach(x=>{
+        if(x&&typeof x==='object'&&x.at&&new Date(x.at)<=eod){ delete x.at; delete x.notifAt; ch=true; }
+      });
+    }
+    if(ch){ n++; fbSave(c); }
+  });
+  render();
+  toast(n?('🧹 '+n+' के समय हटे — अब fresh planning करें'):'आज कुछ scheduled नहीं था');
+};
+
+/* ══════════ ⏰ समय-picker — आज/कल/परसों + बजे + अवधि (सिर्फ़ future) ══════════ */
+let _sk={kind:'c',id:null,idx:-1,day:0,customDate:'',hour:null,min:0,dur:30};
+window.openSchedPick=function(kind,id,idx){
+  const c=contacts.find(x=>x.id===id); if(!c) return;
+  _sk={kind,id,idx:idx==null?-1:idx,day:0,customDate:'',hour:null,min:0,dur:Number(c.durationMins)>0?Number(c.durationMins):30};
+  let cur=null, taskTxt='';
+  if(kind==='t'){
+    const x=normTopics(c)[_sk.idx]||{};
+    taskTxt='📝 '+(x.t||'');
+    if(x.at) cur=new Date(x.at);
+  } else {
+    taskTxt='👤 '+(c.name||'');
+    if(c.nextCallAt) cur=new Date(c.nextCallAt);
+  }
+  if(cur&&!isNaN(cur.getTime())&&cur.getTime()>Date.now()){
+    _sk.day=Math.max(0,Math.round((dayKey0(cur)-dayKey0(new Date()))/86400000));
+    if(_sk.day>2){ _sk.day=-1; _sk.customDate=cur.getFullYear()+'-'+String(cur.getMonth()+1).padStart(2,'0')+'-'+String(cur.getDate()).padStart(2,'0'); }
+    _sk.hour=cur.getHours(); _sk.min=cur.getMinutes();
+  }
+  document.getElementById('sk-title').textContent=kind==='t'?'⏰ इस काम का समय':'⏰ '+(c.name||'')+' का समय';
+  document.getElementById('sk-task').textContent=taskTxt;
+  document.getElementById('sk-dur-wrap').style.display=kind==='c'?'block':'none';
+  document.getElementById('sk-clear').style.display=cur?'block':'none';
+  renderSchedPick();
+  document.getElementById('m-sched').classList.add('open');
+};
+window.closeSchedPick=function(){ document.getElementById('m-sched').classList.remove('open'); };
+function skDate(){
+  let base;
+  if(_sk.day===-1){
+    if(!_sk.customDate) return null;
+    base=new Date(_sk.customDate+'T00:00:00');
+  } else { base=new Date(); base.setHours(0,0,0,0); base.setDate(base.getDate()+_sk.day); }
+  if(_sk.hour===null) return null;
+  base.setHours(_sk.hour,_sk.min,0,0);
+  return base;
+}
+function renderSchedPick(){
+  const now=new Date();
+  const days=[{v:0,l:'आज'},{v:1,l:'कल'},{v:2,l:'परसों'},{v:-1,l:'📅 और'}];
+  document.getElementById('sk-days').innerHTML=days.map(d=>
+    `<button class="sk-chip ${_sk.day===d.v?'on':''}" onclick="skDay(${d.v})">${d.l}</button>`).join('');
+  document.getElementById('sk-date').style.display=_sk.day===-1?'block':'none';
+  if(_sk.day===-1&&_sk.customDate) document.getElementById('sk-date').value=_sk.customDate;
+  // समय chips — आज के बीते घंटे बंद (बीते समय में काम ऐड नहीं होगा)
+  const hours=[6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22];
+  const isToday=_sk.day===0;
+  document.getElementById('sk-times').innerHTML=hours.map(hh=>{
+    const past=isToday&&(hh<now.getHours()||(hh===now.getHours()&&now.getMinutes()>50));
+    const lbl=(hh<12?'सुबह ':hh<16?'दोप ':hh<19?'शाम ':'रात ')+(hh>12?hh-12:hh);
+    return `<button class="sk-chip sm ${_sk.hour===hh&&_sk.min===0?'on':''} ${past?'dis':''}" onclick="skHour(${hh})">${lbl}</button>`;
+  }).join('')+`<button class="sk-chip sm ${_sk.hour!==null&&_sk.min!==0?'on':''}" onclick="skShowTime()">🕐 और</button>`;
+  document.getElementById('sk-durs').innerHTML=[15,30,45,60,90,120].map(m=>
+    `<button class="sk-chip sm ${_sk.dur===m?'on':''}" onclick="skDur(${m})">${m<60?m+'m':(m/60)+'h'}</button>`).join('');
+  const d=skDate();
+  const pv=document.getElementById('sk-prev');
+  if(!d){ pv.className='sk-prev'; pv.textContent='📆 दिन और 🕐 समय चुनें'; return; }
+  if(d.getTime()<=Date.now()+60000){ pv.className='sk-prev bad'; pv.textContent='⛔ यह समय बीत गया — आने वाला समय चुनें'; return; }
+  pv.className='sk-prev'; pv.textContent='🔔 '+schedLabel(d.toISOString())+' बजे अलार्म + Calendar';
+}
+window.skDay=function(v){ _sk.day=v; renderSchedPick(); };
+window.skHour=function(h){ _sk.hour=h; _sk.min=0; renderSchedPick(); };
+window.skDur=function(m){ _sk.dur=m; renderSchedPick(); };
+window.skShowTime=function(){ const e=document.getElementById('sk-time'); e.style.display='block'; e.focus(); };
+window.skCustomTime=function(){
+  const v=document.getElementById('sk-time').value;
+  if(!v) return;
+  const p=v.split(':'); _sk.hour=Number(p[0]); _sk.min=Number(p[1]||0);
+  renderSchedPick();
+};
+window.skCustomDate=function(){ _sk.customDate=document.getElementById('sk-date').value; renderSchedPick(); };
+window.saveSchedPick=function(){
+  const d=skDate();
+  if(!d){ toast('⚠️ दिन और समय चुनें','warn'); return; }
+  if(d.getTime()<=Date.now()+60000){ toast('⛔ बीता समय — आने वाला समय चुनें','err'); return; }
+  const c=contacts.find(x=>x.id===_sk.id); if(!c) return;
+  if(_sk.kind==='t'){
+    const tp=normTopics(c); if(!tp[_sk.idx]) return;
+    tp[_sk.idx]={...tp[_sk.idx],at:d.toISOString(),tid:tp[_sk.idx].tid||genTid()};
+    c.topics=tp;
+  } else {
+    c.nextCallAt=d.toISOString(); c.durationMins=_sk.dur;
+    _notifFired.delete(c.id+'_next');
+  }
+  render(); fbSave(c);
+  if(_spId) renderSmartPop();
+  closeSchedPick();
+  toast('✅ '+schedLabel(d.toISOString())+' — अलार्म लग गया');
+};
+window.clearSchedPick=function(){
+  const c=contacts.find(x=>x.id===_sk.id); if(!c) return;
+  if(_sk.kind==='t'){
+    const tp=normTopics(c); if(!tp[_sk.idx]) return;
+    tp[_sk.idx]={...tp[_sk.idx]}; delete tp[_sk.idx].at; delete tp[_sk.idx].notifAt;
+    c.topics=tp;
+  } else { c.nextCallAt=null; }
+  render(); fbSave(c);
+  if(_spId) renderSmartPop();
+  closeSchedPick();
+  toast('🔕 समय हटा — Calendar से भी हटेगा');
+};
+window.spSchedTask=function(id,i){ openSchedPick('t',id,i); };
+window.spSchedMain=function(){ openSchedPick('c',_spId); };
+
 let _spId=null;
 window.openSmartPop=function(id){
   if(_swBlock) return; // swipe के तुरंत बाद click ignore
@@ -1822,7 +2242,9 @@ function renderSmartPop(){
         <span style="flex:1;min-width:0">
           <span style="font-size:13.5px;font-weight:700;color:#fbbf24;line-height:1.4;word-break:break-word">${ci?ci.logo+' ':''}${tps.length>1?(n+1)+'. ':''}${escH(x.t)}</span>
           ${x.assignTo?`<div style="font-size:10px;color:#4ade80;font-weight:800;margin-top:1px">👤 ${escH(staffName(x.assignTo))} को सौंपा</div>`:''}
+          ${x.at?`<div onclick="spSchedTask('${c.id}',${x.i})" style="display:inline-block;cursor:pointer;font-size:9.5px;font-weight:800;color:#93c5fd;background:rgba(30,58,138,.35);border:1px solid rgba(59,130,246,.4);border-radius:7px;padding:2px 7px;margin-top:3px">📅 ${schedLabel(x.at)}</div>`:''}
         </span>
+        <span onclick="spSchedTask('${c.id}',${x.i})" style="cursor:pointer;font-size:13px;width:27px;text-align:center;flex-shrink:0;padding:2px 0;border:1px dashed ${x.at?'rgba(59,130,246,.65)':'rgba(100,116,139,.4)'};border-radius:7px" title="इस काम को Calendar में डालो — अपना समय/अलार्म">${x.at?'📅':'⏰'}</span>
         <span onclick="spPickAssign('${c.id}',${x.i})" style="cursor:pointer;font-size:13px;width:27px;text-align:center;flex-shrink:0;padding:2px 0;border:1px dashed ${x.assignTo?'rgba(34,197,94,.65)':'rgba(100,116,139,.4)'};border-radius:7px" title="Staff को सौंपें">👤</span>
         <span onclick="spPickCat('${c.id}',${x.i})" style="cursor:pointer;font-size:15px;width:29px;text-align:center;flex-shrink:0;padding:1px 0;border:1px dashed rgba(100,116,139,.4);border-radius:7px" title="श्रेणी चुनें">${ci?ci.logo:'⬜'}</span>
       </div>`;
@@ -1859,6 +2281,11 @@ function renderSmartPop(){
         <input class="inp" id="sp-new2" placeholder="➕ और एक काम..." style="flex:1;min-width:0;padding:9px 11px;font-size:12.5px" onkeydown="if(event.key==='Enter')spSaveNewTasks()">
         <button onclick="spSaveNewTasks()" style="padding:0 15px;border:none;border-radius:11px;background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff;font-weight:900;font-size:13px;font-family:inherit;cursor:pointer;touch-action:manipulation">💾</button>
       </div>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center;margin-bottom:10px;background:#060d1a;border:1px solid rgba(30,58,95,.7);border-radius:11px;padding:8px 10px">
+      <span style="flex:1;min-width:0;font-size:11px;font-weight:800;color:${c.nextCallAt?'#93c5fd':'#64748b'}">📅 ${c.nextCallAt?schedLabel(c.nextCallAt)+(c.calSynced===true&&c.calEventFor===c.nextCallAt?' · ✅ Calendar पर':' · ⏳ जा रहा…'):'Calendar में समय नहीं लगा'}</span>
+      <button onclick="spSchedMain()" style="flex-shrink:0;font-size:10.5px;font-weight:900;font-family:inherit;border:none;border-radius:9px;padding:7px 11px;background:linear-gradient(120deg,#1d4ed8,#3b82f6);color:#fff;cursor:pointer;touch-action:manipulation">⏰ ${c.nextCallAt?'बदलो':'समय लगाओ'}</button>
+      ${c.nextCallAt?`<button onclick="dvClear('${c.id}');renderSmartPop()" style="flex-shrink:0;font-size:12px;font-family:inherit;border:1px solid rgba(127,29,29,.6);border-radius:9px;padding:6px 9px;background:rgba(28,6,6,.9);color:#fca5a5;cursor:pointer;touch-action:manipulation" title="Calendar से हटाओ — काम बना रहेगा">🔕</button>`:''}
     </div>
     ${prev?`<div style="font-size:11.5px;color:#94a3b8;font-style:italic;margin-bottom:10px;line-height:1.45">🕘 पिछली बार: ${escH(prev.note)}</div>`:''}
     ${c.lastWaSentAt?`<div style="text-align:center;font-size:11px;font-weight:700;color:${(Date.now()-new Date(c.lastWaSentAt).getTime())<2*60*60*1000?'#fbbf24':'#64748b'};margin-bottom:6px">🕘 पिछली बार message भेजा: ${agoText(c.lastWaSentAt)}</div>`:''}

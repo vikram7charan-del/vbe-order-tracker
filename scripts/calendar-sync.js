@@ -101,6 +101,8 @@ async function main() {
         await markSync(c.id, { calSynced: false });
         await sleep(THROTTLE_MS);
       }
+      // main event नहीं, पर नीचे per-task events फिर भी sync होंगे
+      await syncTopicEvents(c, d);
       continue;
     }
 
@@ -141,7 +143,76 @@ async function main() {
     }
     if (synced) await markSync(c.id, { calSynced: true, calSyncedAt: new Date().toISOString(), calEventFor: d.nextCallAt });
     await sleep(THROTTLE_MS); // अगली call से पहले रुको (rate limit से बचाव)
+
+    await syncTopicEvents(c, d);
   }
+
+  /* ── हर काम का अपना समय (topic.at + tid) → अलग calendar event ──
+     schedule.html से किसी काम पर ⏰ लगाने से topic में {at, tid} आता है।
+     tid स्थायी id है — event उसी से बनता/हटता है। doc में calTopicsSynced
+     map ({tid: at}) लिखते हैं ताकि app badge दिखा सके और हटे काम का event
+     अगले run में साफ़ हो। */
+  async function syncTopicEvents(c, d) {
+    const topics = normTopics(d);
+    const tmap = (d.calTopicsSynced && typeof d.calTopicsSynced === 'object') ? d.calTopicsSynced : {};
+    const newMap = {};
+    let touched = false;
+    for (const x of topics) {
+      if (!x || !x.tid) continue;
+      const tt = x.at ? new Date(x.at).getTime() : 0;
+      const evTid = eventId(c.id + '_' + x.tid);
+      const wantT = d.active !== false && !x.done && tt > 0 && tt > now - 2 * 24 * 60 * 60 * 1000;
+      if (!wantT) {
+        if (tmap[x.tid]) {
+          try { await cal.events.delete({ calendarId, eventId: evTid }); del++; console.log('-⏰', String(x.t).slice(0, 30)); } catch (e) { /* था ही नहीं */ }
+          touched = true;
+          await sleep(THROTTLE_MS);
+        }
+        continue;
+      }
+      const tb = {
+        id: evTid,
+        summary: '⏰ ' + String(x.t).slice(0, 80) + (d.aiQuick ? '' : ' — ' + (d.name || '')),
+        description: (x.t || '') + `\n\n📌 ${d.name || ''}\n📱 ${d.phone || ''}\n— VBE Call Tracker (काम का अपना समय)`,
+        start: { dateTime: new Date(tt).toISOString(), timeZone: 'Asia/Kolkata' },
+        end: { dateTime: new Date(tt + 15 * 60000).toISOString(), timeZone: 'Asia/Kolkata' },
+        reminders: {
+          useDefault: false,
+          overrides: [
+            { method: 'popup', minutes: 0 },
+            { method: 'popup', minutes: 10 },
+          ],
+        },
+      };
+      let ok = false;
+      try {
+        await withRetry(() => cal.events.insert({ calendarId, requestBody: tb }));
+        made++; ok = true; console.log('+⏰', String(x.t).slice(0, 30));
+      } catch (e) {
+        if (e.code === 409 || (e.errors && e.errors[0] && e.errors[0].reason === 'duplicate')) {
+          try {
+            await withRetry(() => cal.events.patch({ calendarId, eventId: evTid, requestBody: tb }));
+            upd++; ok = true; console.log('~⏰', String(x.t).slice(0, 30));
+          } catch (e2) { err++; console.error('✗⏰', String(x.t).slice(0, 30), e2.message); }
+        } else { err++; console.error('✗⏰', String(x.t).slice(0, 30), e.message); }
+      }
+      if (ok) newMap[x.tid] = x.at;
+      if (tmap[x.tid] !== newMap[x.tid]) touched = true;
+      await sleep(THROTTLE_MS);
+    }
+    // topics से हटे tids के events भी साफ़ करो
+    for (const tid of Object.keys(tmap)) {
+      if (topics.find((x) => x && x.tid === tid)) continue;
+      try { await cal.events.delete({ calendarId, eventId: eventId(c.id + '_' + tid) }); del++; } catch (e) { /* था ही नहीं */ }
+      touched = true;
+      await sleep(THROTTLE_MS);
+    }
+    if (touched) {
+      // पूरा map बदलो (merge नहीं) ताकि हटे tids भी साफ़ हों
+      try { await db.collection('vbe_call_tracker').doc(c.id).update({ calTopicsSynced: newMap }); } catch (e) { /* non-fatal */ }
+    }
+  }
+
   console.log(`Calendar: ${made} बने, ${upd} अपडेट, ${del} हटाए, ${err} error (calendar=${calendarId})`);
 }
 

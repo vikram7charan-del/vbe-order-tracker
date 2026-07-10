@@ -49,6 +49,7 @@ async function main() {
 
   const snap = await db.collection('vbe_call_tracker').get();
   const due = [];
+  const dueTasks = []; // हर काम का अपना समय (topic.at) — schedule पेज से लगाया हुआ
   const batch = db.batch();
   let settingsData = null;
 
@@ -56,16 +57,38 @@ async function main() {
     if (d.id === '_settings') { settingsData = d.data() || {}; return; }
     const c = d.data();
     if (c.active === false) return;
-    if (!c.nextCallAt) return;
-    const t = new Date(c.nextCallAt).getTime();
-    if (isNaN(t) || t > now) return;
+    let patch = null;
 
-    // Dedupe — इसी due के लिए पिछले 30 min में remind किया हो तो skip
-    const lastN = c.lastNotifiedAt ? new Date(c.lastNotifiedAt).getTime() : 0;
-    if (lastN >= t && now - lastN < REMIND_GAP_MS) return;
+    // 1) मुख्य समय (nextCallAt)
+    if (c.nextCallAt) {
+      const t = new Date(c.nextCallAt).getTime();
+      if (!isNaN(t) && t <= now) {
+        // Dedupe — इसी due के लिए पिछले 30 min में remind किया हो तो skip
+        const lastN = c.lastNotifiedAt ? new Date(c.lastNotifiedAt).getTime() : 0;
+        if (!(lastN >= t && now - lastN < REMIND_GAP_MS)) {
+          due.push({ name: c.name || '?', phone: c.phone || '' });
+          patch = patch || {}; patch.lastNotifiedAt = new Date().toISOString();
+        }
+      }
+    }
 
-    due.push({ name: c.name || '?', phone: c.phone || '' });
-    batch.update(d.ref, { lastNotifiedAt: new Date().toISOString() });
+    // 2) हर काम का अपना समय (topics[].at)
+    if (Array.isArray(c.topics)) {
+      let changed = false;
+      c.topics.forEach((x) => {
+        if (!x || typeof x !== 'object' || x.done || !x.at) return;
+        const tt = new Date(x.at).getTime();
+        if (isNaN(tt) || tt > now) return;
+        const lastN = x.notifAt ? new Date(x.notifAt).getTime() : 0;
+        if (lastN >= tt && now - lastN < REMIND_GAP_MS) return;
+        dueTasks.push({ task: x.t || 'काम', name: c.name || '' });
+        x.notifAt = new Date().toISOString();
+        changed = true;
+      });
+      if (changed) { patch = patch || {}; patch.topics = c.topics; }
+    }
+
+    if (patch) batch.update(d.ref, patch);
   });
 
   // 🌅 सुबह का digest — रोज़ 7:30-8:00 IST के बीच एक बार, आज की पूरी list
@@ -129,8 +152,8 @@ async function main() {
     }
   }
 
-  if (!due.length && !digest && !sendPing) {
-    console.log('कोई call due नहीं ✓');
+  if (!due.length && !dueTasks.length && !digest && !sendPing) {
+    console.log('कोई call/काम due नहीं ✓');
     await batch.commit();
     return;
   }
@@ -165,6 +188,20 @@ async function main() {
         digest.names.slice(0, 8).map((n) => `• ${n}`).join('\n') +
         (digest.count > 8 ? `\n…और ${digest.count - 8}` : ''),
       tag: 'vbe-digest',
+    });
+  }
+  if (dueTasks.length) {
+    msgs.push({
+      title:
+        dueTasks.length === 1
+          ? `⏰ काम का समय: ${String(dueTasks[0].task).slice(0, 42)}`
+          : `⏰ ${dueTasks.length} कामों का समय हो गया!`,
+      body:
+        dueTasks
+          .slice(0, 6)
+          .map((x) => `• ${x.task}${x.name && x.name !== x.task.slice(0, x.name.length) ? ' (' + x.name + ')' : ''}`)
+          .join('\n') + (dueTasks.length > 6 ? `\n…और ${dueTasks.length - 6}` : ''),
+      tag: 'vbe-task-due',
     });
   }
   if (due.length) {

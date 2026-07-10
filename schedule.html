@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
-<meta name="theme-color" content="#050a14">
+<meta name="theme-color" content="#04070f">
 <title>VBE – मेरा दिन</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -12,82 +12,169 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html{height:100%;overflow-x:clip;overscroll-behavior-x:none}
 body{
-  background:#030810;color:#e2e8f0;font-family:'Noto Sans Devanagari',sans-serif;
-  min-height:100dvh;max-width:480px;margin:0 auto;padding-bottom:40px;
+  background:
+    radial-gradient(900px 480px at 88% -8%, rgba(124,58,237,.18), transparent 60%),
+    radial-gradient(760px 420px at -18% 26%, rgba(37,99,235,.14), transparent 60%),
+    radial-gradient(600px 400px at 60% 110%, rgba(217,70,239,.08), transparent 60%),
+    #04070f;
+  color:#e2e8f0;font-family:'Noto Sans Devanagari',sans-serif;
+  min-height:100dvh;max-width:480px;margin:0 auto;padding-bottom:56px;
   width:100%;overflow-x:clip;overscroll-behavior-x:none;position:relative;
 }
-.lbl{font-size:10px;color:#64748b;font-weight:700;letter-spacing:.5px;margin-bottom:5px;display:block;text-transform:uppercase}
-.inp{background:#0d1526;border:1.5px solid #1e3a5f;color:#e2e8f0;border-radius:11px;padding:11px 13px;font-size:14px;font-family:inherit;width:100%;outline:none}
-.inp:focus{border-color:#3b82f6}
+.lbl{font-size:10px;color:#64748b;font-weight:800;letter-spacing:.5px;margin-bottom:5px;display:block;text-transform:uppercase}
+.inp{background:rgba(10,18,36,.85);border:1.5px solid #22345a;color:#e2e8f0;border-radius:12px;padding:11px 13px;font-size:14px;font-family:inherit;width:100%;outline:none;transition:border-color .2s}
+.inp:focus{border-color:#8b5cf6;box-shadow:0 0 0 3px rgba(139,92,246,.15)}
 
-/* header */
-.hdr{background:linear-gradient(180deg,#07101e,#030810);padding:10px 13px 8px;position:sticky;top:0;z-index:20}
-.hdr-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
-.hdr-title{font-size:17px;font-weight:900;color:#a855f7}
-.hdr-sub{font-size:9px;color:#475569;margin-top:1px}
-.back-btn{font-size:11px;color:#94a3b8;text-decoration:none;background:#0d1526;border:1px solid #1e3a5f;border-radius:9px;padding:6px 11px;font-weight:800;white-space:nowrap}
-.synced{font-size:9.5px;color:#475569;background:#0a1120;border:1px solid #16233b;border-radius:8px;padding:5px 9px;line-height:1.5}
-.synced b{color:#8b5cf6}
+/* ══ Header ══ */
+.hdr{position:sticky;top:0;z-index:40;padding:10px 13px 9px;
+  background:linear-gradient(180deg,rgba(7,12,26,.96),rgba(4,7,15,.88));
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(80,105,165,.18)}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.hdr-title{font-size:19px;font-weight:900;
+  background:linear-gradient(100deg,#e9d5ff,#a855f7 45%,#60a5fa);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hdr-sub{font-size:9.5px;color:#5b6b86;margin-top:1px;font-weight:700}
+.back-btn{font-size:11px;color:#a5b4d0;text-decoration:none;background:rgba(15,24,45,.9);border:1px solid #24365c;border-radius:10px;padding:7px 12px;font-weight:800;white-space:nowrap;box-shadow:0 3px 10px rgba(0,0,0,.4)}
 
-/* add box */
-.add-wrap{padding:10px 13px 4px}
-.add-card{background:linear-gradient(135deg,#140b2e,#0a0514);border:1px solid #3b2a63;border-radius:14px;padding:12px}
-.add-card .row{display:flex;gap:7px;align-items:stretch}
-.mic{width:48px;border:none;border-radius:11px;background:#1e293b;color:#fff;font-size:19px;cursor:pointer;flex-shrink:0;font-family:inherit}
-.mic.rec{background:#dc2626;animation:pulse 1s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
-.btn-p{width:100%;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;font-size:14px;font-weight:900;font-family:inherit;cursor:pointer;margin-top:9px;box-shadow:0 3px 12px rgba(139,92,246,.4)}
-.hint{font-size:9.5px;color:#5b6b86;margin-top:7px;line-height:1.5}
+/* ══ AI add card ══ */
+.add-wrap{padding:12px 13px 2px;position:relative;z-index:1}
+.add-card{position:relative;border-radius:18px;padding:13px;
+  background:linear-gradient(160deg,rgba(38,22,74,.85),rgba(12,8,28,.95));
+  border:1px solid rgba(139,92,246,.35);
+  box-shadow:0 16px 38px -14px rgba(124,58,237,.45), inset 0 1px 0 rgba(255,255,255,.08)}
+.add-card .row{display:flex;gap:8px;align-items:stretch}
+.mic{width:50px;border:none;border-radius:12px;background:linear-gradient(160deg,#1c2947,#111a30);color:#fff;font-size:20px;cursor:pointer;flex-shrink:0;font-family:inherit;border:1px solid #2a3d66;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+.mic.rec{background:linear-gradient(160deg,#dc2626,#7f1d1d);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.btn-p{width:100%;padding:13px;border:none;border-radius:13px;
+  background:linear-gradient(120deg,#7c3aed,#a855f7 55%,#c084fc);color:#fff;
+  font-size:14.5px;font-weight:900;font-family:inherit;cursor:pointer;margin-top:10px;
+  box-shadow:0 8px 22px -6px rgba(168,85,247,.65), inset 0 1px 0 rgba(255,255,255,.3);
+  transition:transform .12s}
+.btn-p:active{transform:scale(.96)}
+.hint{font-size:9.5px;color:#6b7a99;margin-top:7px;line-height:1.55}
 
-/* day groups */
-.grp{padding:6px 13px 0}
-.grp-h{font-size:11px;font-weight:900;color:#64748b;letter-spacing:.5px;margin:14px 2px 7px;display:flex;align-items:center;gap:7px}
-.grp-h .cnt{background:#1e293b;color:#94a3b8;border-radius:20px;padding:1px 8px;font-size:10px}
-.grp-h.late{color:#f87171}.grp-h.late .cnt{background:#3b1213;color:#fca5a5}
+/* ══ Timeline ══ */
+.grp{padding:2px 13px 0 13px;position:relative;z-index:1}
+.grp-h{font-size:12px;font-weight:900;color:#7d8db0;letter-spacing:.5px;margin:16px 2px 10px;display:flex;align-items:center;gap:8px}
+.grp-h .cnt{background:linear-gradient(160deg,#1d2b4d,#131d38);color:#9fb2d8;border:1px solid #2b3f6b;border-radius:20px;padding:1px 9px;font-size:10px;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+.grp-h.late{color:#f87171}.grp-h.late .cnt{background:linear-gradient(160deg,#471015,#2a090c);color:#fca5a5;border-color:#7f1d1d}
+.rail{position:relative;padding-left:19px}
+.rail::before{content:'';position:absolute;left:6px;top:6px;bottom:6px;width:2px;border-radius:2px;
+  background:linear-gradient(180deg,rgba(139,92,246,.55),rgba(59,130,246,.25) 60%,transparent)}
 
-.it{display:flex;gap:10px;background:#0b1424;border:1px solid #17233b;border-left-width:4px;border-radius:12px;padding:10px 11px;margin-bottom:8px;align-items:flex-start}
-.it.late{border-left-color:#ef4444}
-.it .tm{flex-shrink:0;text-align:center;min-width:52px}
-.it .tm .t1{font-size:15px;font-weight:900;color:#e2e8f0;line-height:1.1;font-variant-numeric:tabular-nums}
-.it .tm .t2{font-size:9px;color:#64748b;font-weight:700;margin-top:1px}
-.it .tm .dur{font-size:8.5px;color:#475569;margin-top:2px}
-.it .bd{flex:1;min-width:0}
-.it .nm{font-size:14px;font-weight:800;color:#f1f5f9;display:flex;align-items:center;gap:5px}
-.it .tk{font-size:11.5px;color:#94a3b8;margin-top:2px;line-height:1.45;word-break:break-word}
-.it .late-tag{font-size:9px;font-weight:900;color:#fca5a5;background:#3b1213;border-radius:6px;padding:1px 6px;margin-left:4px}
-.calst{font-size:9.5px;font-weight:800;margin-top:5px;display:inline-block;border-radius:6px;padding:2px 7px}
-.calst.ok{color:#86efac;background:#04200f;border:1px solid #15803d}
-.calst.wait{color:#fcd34d;background:#1c1403;border:1px solid #a16207}
-.acts{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
-.act{font-size:11px;font-weight:800;font-family:inherit;border-radius:8px;padding:6px 10px;cursor:pointer;border:1px solid #1e3a5f;background:#0d1526;color:#cbd5e1}
-.act.snz{border-color:#a16207;color:#fcd34d;background:#1c1403}
-.act.done{border-color:#15803d;color:#86efac;background:#04200f}
-.act.rm{border-color:#7f1d1d;color:#fca5a5;background:#1c0606}
+/* 3D card */
+.tcard{position:relative;margin-bottom:11px;border-radius:19px;padding:12px 12px 11px;cursor:pointer;
+  background:linear-gradient(163deg,rgba(26,38,70,.92) 0%,rgba(10,16,32,.97) 55%,rgba(7,11,22,.98) 100%);
+  border:1px solid rgba(82,108,170,.28);
+  box-shadow:0 18px 36px -16px rgba(0,0,0,.85), 0 4px 14px -6px rgba(0,0,0,.6),
+             inset 0 1px 0 rgba(255,255,255,.075), inset 0 -10px 22px -16px rgba(0,0,0,.85);
+  transition:transform .16s ease, box-shadow .16s;transform-style:preserve-3d}
+.tcard:active{transform:perspective(700px) rotateX(4.5deg) scale(.972)}
+.tcard::before{content:'';position:absolute;inset:0;border-radius:19px;padding:1.2px;pointer-events:none;
+  background:linear-gradient(140deg,var(--c,#8b5cf6) 0%,transparent 32%,transparent 68%,rgba(96,165,250,.5) 100%);
+  opacity:.55;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude}
+.tcard .dot{position:absolute;left:-17px;top:24px;width:10px;height:10px;border-radius:50%;
+  background:var(--c,#8b5cf6);box-shadow:0 0 12px var(--c,#8b5cf6),0 0 3px #fff inset}
+.tcard.late{border-color:rgba(239,68,68,.42);animation:lateGlow 2.4s ease-in-out infinite}
+.tcard.late::before{background:linear-gradient(140deg,#ef4444 0%,transparent 36%,transparent 66%,rgba(239,68,68,.55) 100%)}
+.tcard.late .dot{background:#ef4444;box-shadow:0 0 14px #ef4444}
+@keyframes lateGlow{0%,100%{box-shadow:0 18px 36px -16px rgba(0,0,0,.85),0 0 0 0 rgba(239,68,68,0)}
+  50%{box-shadow:0 18px 36px -16px rgba(0,0,0,.85),0 0 22px -4px rgba(239,68,68,.4)}}
 
-.empty{text-align:center;color:#475569;font-size:12px;padding:26px 20px;line-height:1.7}
+.tc-top{display:flex;gap:11px;align-items:center}
+.av{width:47px;height:47px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:23px;flex-shrink:0;position:relative;background:radial-gradient(circle at 35% 30%,#182642,#0a1120);
+  box-shadow:0 6px 16px -4px rgba(0,0,0,.7), inset 0 2px 4px rgba(255,255,255,.09)}
+.av::before{content:'';position:absolute;inset:-3px;border-radius:50%;z-index:-1;
+  background:conic-gradient(from 200deg,var(--c,#8b5cf6),transparent 42%,var(--c,#8b5cf6) 75%,transparent 92%);
+  filter:blur(.4px);opacity:.9}
+.tc-time{flex-shrink:0;text-align:center;min-width:54px}
+.tc-time .t1{font-size:17px;font-weight:900;line-height:1.05;font-variant-numeric:tabular-nums;
+  background:linear-gradient(180deg,#fff,#93c5fd);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.tc-time .t2{font-size:9px;color:#7d8db0;font-weight:800;margin-top:2px}
+.tc-time .dur{font-size:8.5px;color:#54648a;margin-top:2px;font-variant-numeric:tabular-nums}
+.tc-bd{flex:1;min-width:0}
+.tc-nm{font-size:14.5px;font-weight:900;color:#f4f7ff;display:flex;align-items:center;gap:6px;text-shadow:0 1px 3px rgba(0,0,0,.6)}
+.tc-tk{font-size:11.5px;color:#93a3c4;margin-top:2px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
+.tc-sub{font-size:9.5px;color:#5f7096;margin-top:2px;font-weight:700}
+.late-tag{font-size:9px;font-weight:900;color:#fca5a5;background:rgba(127,29,29,.5);border:1px solid rgba(239,68,68,.4);border-radius:6px;padding:1px 6px}
+.tc-foot{display:flex;align-items:center;gap:6px;margin-top:9px;flex-wrap:wrap}
+.calst{font-size:9px;font-weight:800;border-radius:7px;padding:2.5px 8px}
+.calst.ok{color:#86efac;background:rgba(4,32,15,.8);border:1px solid rgba(21,128,61,.6)}
+.calst.wait{color:#fcd34d;background:rgba(28,20,3,.8);border:1px solid rgba(161,98,7,.6)}
+.fbtn{font-size:10.5px;font-weight:900;font-family:inherit;border-radius:9px;padding:6px 11px;cursor:pointer;
+  border:1px solid #2a3d66;background:linear-gradient(160deg,#16223f,#0d1526);color:#c7d4ef;
+  box-shadow:0 3px 8px -2px rgba(0,0,0,.5);transition:transform .1s}
+.fbtn:active{transform:scale(.93)}
+.fbtn.snz{border-color:rgba(161,98,7,.55);color:#fcd34d;background:linear-gradient(160deg,#241a04,#140e02)}
+.fbtn.done{border-color:rgba(21,128,61,.55);color:#86efac;background:linear-gradient(160deg,#052613,#031508)}
+.tsk-tag{font-size:9px;font-weight:800;color:#c4b5fd;background:rgba(76,29,149,.35);border:1px solid rgba(139,92,246,.4);border-radius:6px;padding:1px 7px}
+
+.empty{text-align:center;color:#5b6b86;font-size:12.5px;padding:30px 22px;line-height:1.8;position:relative;z-index:1}
 
 /* unscheduled */
-.us{display:flex;gap:9px;align-items:center;background:#0a1120;border:1px dashed #23324d;border-radius:11px;padding:9px 11px;margin-bottom:7px}
+.us{display:flex;gap:10px;align-items:center;margin-bottom:8px;border-radius:14px;padding:9px 11px;cursor:pointer;
+  background:linear-gradient(163deg,rgba(15,23,44,.75),rgba(8,12,24,.9));
+  border:1px dashed rgba(80,105,165,.4);transition:transform .12s}
+.us:active{transform:scale(.97)}
+.us .em{font-size:21px;width:34px;text-align:center;flex-shrink:0}
 .us .bd{flex:1;min-width:0}
-.us .nm{font-size:13px;font-weight:800;color:#cbd5e1}
-.us .tk{font-size:11px;color:#7c8aa3;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.us .set{flex-shrink:0;font-size:11px;font-weight:800;font-family:inherit;border:none;border-radius:9px;padding:8px 11px;background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff;cursor:pointer}
+.us .nm{font-size:13px;font-weight:800;color:#d4def3}
+.us .tk{font-size:10.5px;color:#7488ab;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.us .set{flex-shrink:0;font-size:11px;font-weight:900;font-family:inherit;border:none;border-radius:10px;padding:9px 12px;
+  background:linear-gradient(120deg,#1d4ed8,#3b82f6);color:#fff;cursor:pointer;box-shadow:0 5px 14px -4px rgba(59,130,246,.6)}
 
-/* modal */
-.mbg{position:fixed;inset:0;background:rgba(2,6,14,.9);z-index:200;display:none;align-items:flex-start;justify-content:center;padding:14px;overflow-y:auto;backdrop-filter:blur(3px)}
-.mbg.open{display:flex}
-.mbox{background:#0b1220;border:1px solid #1e3a5f;border-radius:16px;padding:16px;width:100%;max-width:440px;margin-top:6dvh}
-.mtitle{display:flex;align-items:center;justify-content:space-between;font-size:15px;font-weight:900;color:#e2e8f0;margin-bottom:13px}
-.mx{font-size:20px;color:#475569;cursor:pointer;padding:4px}
+/* ══ Bottom sheet popup ══ */
+.sheet-bg{position:fixed;inset:0;background:rgba(2,5,12,.72);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:290;opacity:0;pointer-events:none;transition:opacity .25s}
+.sheet-bg.open{opacity:1;pointer-events:auto}
+.sheet{position:fixed;bottom:0;left:50%;transform:translate(-50%,106%);width:100%;max-width:480px;z-index:300;
+  background:linear-gradient(180deg,#131e3a 0%,#0a101f 30%,#070b16 100%);
+  border:1px solid rgba(99,127,190,.35);border-bottom:none;border-radius:24px 24px 0 0;
+  box-shadow:0 -24px 70px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.08);
+  max-height:92dvh;overflow-y:auto;padding:8px 15px 30px;
+  transition:transform .32s cubic-bezier(.2,.9,.25,1)}
+.sheet.open{transform:translate(-50%,0)}
+.handle{width:46px;height:5px;border-radius:3px;background:#31446b;margin:5px auto 13px}
+.p-head{display:flex;gap:12px;align-items:center;margin-bottom:12px}
+.p-name{font-size:17px;font-weight:900;color:#f4f7ff;line-height:1.25;word-break:break-word}
+.p-name .ed{font-size:12px;opacity:.7;cursor:pointer;margin-left:4px}
+.p-ph{font-size:12.5px;color:#60a5fa;font-weight:800;margin-top:2px;cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}
+.p-x{font-size:21px;color:#54648a;cursor:pointer;padding:5px;flex-shrink:0}
+.p-sec{background:rgba(7,12,25,.8);border:1px solid rgba(64,88,140,.3);border-radius:15px;padding:11px 12px;margin-bottom:10px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.045)}
+.p-sec-h{font-size:9.5px;font-weight:900;color:#7d8db0;text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px}
+.trow{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px dashed rgba(64,88,140,.2)}
+.trow:last-of-type{border-bottom:none}
+.tchk{width:21px;height:21px;border-radius:50%;border:2.2px solid #f59e0b;flex-shrink:0;cursor:pointer;margin-top:1px;transition:all .15s;box-shadow:0 0 8px -2px rgba(245,158,11,.5)}
+.tchk:active{transform:scale(.85)}
+.ttxt{flex:1;min-width:0;font-size:13.5px;font-weight:700;color:#fbbf24;line-height:1.45;word-break:break-word}
+.ttime{font-size:9.5px;font-weight:800;color:#93c5fd;background:rgba(30,58,138,.35);border:1px solid rgba(59,130,246,.4);border-radius:7px;padding:2px 7px;margin-top:3px;display:inline-block}
+.tbtn{flex-shrink:0;width:30px;height:28px;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;
+  border:1px dashed rgba(100,116,139,.4);border-radius:8px;background:rgba(13,21,38,.6)}
+.dline{display:flex;align-items:center;gap:7px;padding:4px 0}
+.dline .tx{flex:1;font-size:12px;color:#64748b;text-decoration:line-through;word-break:break-word}
+.dline .ub{font-size:13px;cursor:pointer;padding:3px 7px;border:1px solid #2a3d66;border-radius:7px;background:#0d1526}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
-.chip{font-size:12px;font-weight:800;font-family:inherit;border:1.5px solid #1e3a5f;background:#0d1526;color:#94a3b8;border-radius:9px;padding:7px 12px;cursor:pointer}
-.chip.on{border-color:#a855f7;background:#2a1a4a;color:#e9d5ff}
-.btn-save{width:100%;padding:13px;border:none;border-radius:12px;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;font-size:14px;font-weight:900;font-family:inherit;cursor:pointer;margin-top:13px}
-.fg{margin-bottom:12px}
+.chip{font-size:11.5px;font-weight:800;font-family:inherit;border:1.5px solid #24365c;background:rgba(13,21,38,.8);color:#9fb2d8;border-radius:9px;padding:7px 12px;cursor:pointer;transition:all .15s}
+.chip.on{border-color:#a855f7;background:rgba(76,29,149,.4);color:#e9d5ff;box-shadow:0 0 10px -3px rgba(168,85,247,.6)}
+.pbtn{width:100%;padding:12px;border:none;border-radius:12px;font-size:13.5px;font-weight:900;font-family:inherit;cursor:pointer;margin-top:8px;transition:transform .12s;box-shadow:0 6px 16px -6px rgba(0,0,0,.6)}
+.pbtn:active{transform:scale(.97)}
+.pbtn.violet{background:linear-gradient(120deg,#7c3aed,#a855f7);color:#fff}
+.pbtn.green{background:linear-gradient(120deg,#059669,#22c55e);color:#fff}
+.pbtn.ghost{background:rgba(13,21,38,.85);border:1px solid #2a3d66;color:#c7d4ef}
+.pbtn.warn{background:rgba(28,20,3,.9);border:1px solid rgba(161,98,7,.6);color:#fcd34d}
+.pbtn.red{background:rgba(28,6,6,.9);border:1px solid rgba(127,29,29,.7);color:#fca5a5}
+.prow{display:flex;gap:7px}
+.prow .pbtn{margin-top:8px}
+.wamsg{font-size:11px;color:#94a3b8;background:rgba(6,13,26,.8);border:1px solid rgba(30,58,95,.7);border-radius:10px;padding:9px 11px;margin-top:8px;white-space:pre-wrap;max-height:130px;overflow-y:auto;line-height:1.55}
 
-.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(120px);background:#111c30;border:1px solid #2b3f5f;color:#e2e8f0;padding:11px 17px;border-radius:12px;font-size:13px;font-weight:700;z-index:400;transition:transform .3s;max-width:90%;text-align:center;box-shadow:0 8px 28px rgba(0,0,0,.5)}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(130px);background:linear-gradient(160deg,#182644,#0d1526);border:1px solid #33477a;color:#e8eefc;padding:12px 18px;border-radius:13px;font-size:13px;font-weight:800;z-index:500;transition:transform .3s;max-width:90%;text-align:center;box-shadow:0 12px 34px rgba(0,0,0,.65)}
 .toast.show{transform:translateX(-50%) translateY(0)}
-.gate{display:flex;align-items:center;justify-content:center;min-height:100dvh;color:#64748b;font-size:13px;padding:30px;text-align:center;line-height:1.8}
+.gate{display:flex;align-items:center;justify-content:center;min-height:100dvh;color:#64748b;font-size:13px;padding:30px;text-align:center;line-height:1.9}
 </style>
 </head>
 <body>
@@ -99,56 +186,57 @@ body{
     <div class="hdr-top">
       <div>
         <div class="hdr-title">📅 मेरा दिन</div>
-        <div class="hdr-sub" id="hsub">आज का समय-सारिणी</div>
+        <div class="hdr-sub" id="hsub">आपकी समय-सारिणी · vikram7charan@gmail.com से जुड़ी</div>
       </div>
-      <a href="./call-tracker.html" class="back-btn">← Call Tracker</a>
+      <a href="./call-tracker.html" class="back-btn">← Tracker</a>
     </div>
-    <div class="synced">🔄 यह सीधे आपके <b>vikram7charan@gmail.com</b> के Google Calendar से जुड़ा है — यहाँ जोड़ेंगे वो calendar में जाएगा, <b>बंद/हटाएँगे तो calendar से भी हटेगा</b>। हर काम पर नीचे उसका calendar status दिखता है।</div>
   </div>
 
-  <!-- Add -->
   <div class="add-wrap">
     <div class="add-card">
-      <label class="lbl">➕ नया काम — बोलें या लिखें</label>
+      <label class="lbl" style="color:#b7a3e8">🎙️ नया काम — बोलें या लिखें</label>
       <div class="row">
         <input class="inp" id="ai-inp" placeholder="जैसे: आज शाम 6 बजे जालीपा जाना" style="flex:1"
                onkeydown="if(event.key==='Enter')aiPreview()">
         <button class="mic" id="mic" onclick="aiMic()" title="बोलें">🎤</button>
       </div>
-      <div class="hint">उदाहरण: "कल सुबह 10 बजे बैंक" · "2 घंटे में मनोज को फ़ोन" · "परसों दोपहर मीटिंग"</div>
       <button class="btn-p" onclick="aiPreview()">✨ समझो और जोड़ो</button>
+      <div class="hint">"कल सुबह 10 बजे बैंक" · "2 घंटे में मनोज को फ़ोन" · "परसों दोपहर मीटिंग"</div>
     </div>
   </div>
 
   <div id="lists"></div>
 </div>
 
-<!-- Edit / schedule modal -->
-<div class="mbg" id="m-edit">
-  <div class="mbox">
-    <div class="mtitle"><span id="me-title">⏰ समय लगाएँ</span><span class="mx" onclick="closeEdit()">✕</span></div>
-    <div class="fg">
-      <label class="lbl">📝 काम</label>
-      <input class="inp" id="me-task" placeholder="काम...">
-    </div>
-    <div class="fg">
-      <label class="lbl">⏰ कब?</label>
-      <input class="inp" type="datetime-local" id="me-when">
-    </div>
-    <div class="fg">
-      <label class="lbl">⏳ कितनी देर लगेगी?</label>
-      <div class="chips" id="me-durs"></div>
-    </div>
-    <button class="btn-save" onclick="saveEdit()">✅ Calendar में लगाओ</button>
+<!-- नया काम (जब AI समय न समझे) -->
+<div class="sheet-bg" id="nw-bg" onclick="closeNew()"></div>
+<div class="sheet" id="nw" style="max-height:70dvh">
+  <div class="handle"></div>
+  <div class="p-head" style="margin-bottom:8px">
+    <div class="p-name" style="flex:1">⏰ समय चुनें</div>
+    <span class="p-x" onclick="closeNew()">✕</span>
+  </div>
+  <div class="p-sec">
+    <label class="lbl">📝 काम</label>
+    <input class="inp" id="nw-task" placeholder="काम...">
+    <label class="lbl" style="margin-top:11px">⏰ कब?</label>
+    <input class="inp" type="datetime-local" id="nw-when">
+    <label class="lbl" style="margin-top:11px">⏳ कितनी देर?</label>
+    <div class="chips" id="nw-durs"></div>
+    <button class="pbtn violet" onclick="saveNew()">✅ जोड़ो — अलार्म + Calendar</button>
   </div>
 </div>
+
+<!-- मुख्य popup -->
+<div class="sheet-bg" id="pp-bg" onclick="closePop()"></div>
+<div class="sheet" id="pp"><div id="pp-in"></div></div>
 
 <div class="toast" id="toast"></div>
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { initializeFirestore, persistentLocalCache, persistentSingleTabManager, collection, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { initializeFirestore, persistentLocalCache, persistentSingleTabManager, collection, doc, setDoc, deleteDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 const FB_CFG = {
   apiKey:'AIzaSyBCe5DKNKcthOl4umprfRm2QBfbVaFORg8',
@@ -161,17 +249,23 @@ const FB_CFG = {
 const APPROVED_UID = 'tjkS5tg2vMflpndGHSQRjFYgRv03';
 const DUR_OPTS = [15,30,45,60,90,120];
 
-// call-tracker वाला ही app-name — ताकि वही login session मिल जाए (अलग नाम = अलग session)
+// call-tracker वाला ही app-name — वही login session मिलता है
 const app = initializeApp(FB_CFG, 'call-tracker');
 const auth = getAuth(app);
 const db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentSingleTabManager() }) });
 const CT_COL = collection(db, 'vbe_call_tracker');
 
-let items = [];      // सारे docs (contacts + tasks)
-let editingId = null;
-let editDur = 30;
+let items = [];
+let settings = {};
+let popId = null;       // खुले popup वाला doc id
+let popDur = 30;
+let newDur = 30;
+let editTIdx = -1;      // कौन-सा topic inline edit हो रहा है
 
-function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2600); }
+function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2600); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+function genId(){ return 'CT'+Date.now().toString(36).toUpperCase()+Math.random().toString(36).slice(2,4).toUpperCase(); }
+function genTid(){ return 'tp'+Math.random().toString(36).slice(2,9); }
 function normTopics(c){
   if(Array.isArray(c.topics)&&c.topics.length) return c.topics.map(x=>typeof x==='string'?{t:x,done:false}:x);
   return c.note?[{t:c.note,done:false}]:[];
@@ -180,200 +274,489 @@ function pendingTopics(c){ return normTopics(c).filter(x=>!x.done); }
 function pendingText(c){ return pendingTopics(c).map(x=>x.t).join(' · '); }
 
 /* ── auth ── */
-onAuthStateChanged(auth, (user)=>{
+onAuthStateChanged(auth,(user)=>{
   const g=document.getElementById('gate');
   if(!user){
-    g.innerHTML='🔒 पहले <b style="color:#a855f7">Call Tracker</b> खोलकर login करें,<br>फिर यह पेज खुलेगा।<br><br><a href="./call-tracker.html" style="color:#60a5fa;font-weight:800;text-decoration:none;border:1px solid #1e3a5f;border-radius:10px;padding:9px 16px;display:inline-block">← Call Tracker खोलें</a>';
+    g.innerHTML='🔒 पहले <b style="color:#a855f7">Call Tracker</b> में login करें।<br><br><a href="./call-tracker.html" style="color:#60a5fa;font-weight:800;text-decoration:none;border:1px solid #24365c;border-radius:10px;padding:9px 16px;display:inline-block">← Call Tracker खोलें</a>';
     return;
   }
   if(user.uid!==APPROVED_UID){ g.textContent='⛔ अनुमति नहीं'; return; }
   g.style.display='none';
   document.getElementById('app').style.display='block';
-  startSync();
-});
-
-function startSync(){
-  onSnapshot(CT_COL, (snap)=>{
-    items=[];
-    snap.forEach(d=>{ if(d.id==='_settings') return; items.push({ id:d.id, ...d.data() }); });
+  onSnapshot(CT_COL,(snap)=>{
+    items=[]; settings={};
+    snap.forEach(d=>{ if(d.id==='_settings'){ settings=d.data()||{}; return; } items.push({id:d.id,...d.data()}); });
     render();
-  }, ()=>toast('⚠️ Sync error — net देखें'));
-}
+    if(popId) renderPop(); // popup खुला हो तो ताज़ा करो
+  },()=>toast('⚠️ Sync error — net देखें'));
+});
 
 /* ── date helpers ── */
 function fmtTime(d){ return new Intl.DateTimeFormat('en-IN',{hour:'2-digit',minute:'2-digit',hour12:false}).format(d); }
-function fmtAMPM(d){ const h=d.getHours(); return h<12?'सुबह':(h<16?'दोपहर':(h<19?'शाम':'रात')); }
+function fmtPart(d){ const h=d.getHours(); return h<12?'सुबह':(h<16?'दोपहर':(h<19?'शाम':'रात')); }
+function fmtFull(d){ return new Intl.DateTimeFormat('hi-IN',{weekday:'short',day:'numeric',month:'short',hour:'numeric',minute:'2-digit',hour12:true}).format(d); }
 function dayKeyOf(d){ const x=new Date(d); x.setHours(0,0,0,0); return x.getTime(); }
-function _toLocalInput(d){ const p=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes()); }
+function toLocalInput(d){ const p=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes()); }
 function dayLabel(key){
   const today=dayKeyOf(new Date());
   const diff=Math.round((key-today)/86400000);
-  if(diff===0) return 'आज';
-  if(diff===1) return 'कल';
-  if(diff===2) return 'परसों';
-  if(diff===-1) return 'बीता कल';
-  const d=new Date(key);
-  return new Intl.DateTimeFormat('hi-IN',{weekday:'short',day:'numeric',month:'short'}).format(d);
+  if(diff===0) return 'आज'; if(diff===1) return 'कल'; if(diff===2) return 'परसों'; if(diff===-1) return 'बीता कल';
+  return new Intl.DateTimeFormat('hi-IN',{weekday:'short',day:'numeric',month:'short'}).format(new Date(key));
 }
 
-/* ── render ── */
+/* ── rows: contact-level + task-level ── */
+function buildRows(){
+  const rows=[];
+  for(const c of items){
+    if(c.active===false) continue;
+    const pend=pendingTopics(c);
+    if(c.nextCallAt && pend.length){
+      const t=new Date(c.nextCallAt).getTime();
+      if(!isNaN(t)) rows.push({kind:'c',c,t});
+    }
+    normTopics(c).forEach((x,i)=>{
+      if(x.done||!x.at) return;
+      const t=new Date(x.at).getTime();
+      if(!isNaN(t)) rows.push({kind:'t',c,x,i,t});
+    });
+  }
+  rows.sort((a,b)=>a.t-b.t);
+  return rows;
+}
+
+/* ── render timeline ── */
 function render(){
   const now=Date.now();
-  const scheduled=items.filter(c=>c.active!==false && c.nextCallAt && pendingTopics(c).length)
-    .map(c=>({c, t:new Date(c.nextCallAt).getTime()}))
-    .filter(x=>!isNaN(x.t))
-    .sort((a,b)=>a.t-b.t);
-
-  const late=scheduled.filter(x=>x.t<=now);
-  const upcoming=scheduled.filter(x=>x.t>now);
-
+  const rows=buildRows();
+  const late=rows.filter(r=>r.t<=now);
+  const up=rows.filter(r=>r.t>now);
   document.getElementById('hsub').textContent =
-    scheduled.length? `${scheduled.length} काम कैलेंडर पर${late.length?` · ${late.length} की देर`:''}` : 'अभी कोई समय-बद्ध काम नहीं';
+    rows.length? `${rows.length} काम समय पर लगे${late.length?` · ${late.length} की देर`:''} · Google Calendar से जुड़ा` : 'Google Calendar से जुड़ा · अभी कोई समय-बद्ध काम नहीं';
 
   let html='';
-  // Late group
   if(late.length){
-    html+=`<div class="grp"><div class="grp-h late">🔴 देर हो गई — आगे बढ़ाएँ या पूरा करें <span class="cnt">${late.length}</span></div>`;
-    late.forEach(x=>html+=itemHTML(x.c,x.t,true));
-    html+=`</div>`;
+    html+=`<div class="grp"><div class="grp-h late">🔴 देर हो गई <span class="cnt">${late.length}</span></div><div class="rail">`;
+    late.forEach(r=>html+=rowHTML(r,true));
+    html+=`</div></div>`;
   }
-  // Upcoming grouped by day
-  if(upcoming.length){
-    let curKey=null;
-    upcoming.forEach(x=>{
-      const k=dayKeyOf(new Date(x.t));
-      if(k!==curKey){
-        if(curKey!==null) html+=`</div>`;
-        html+=`<div class="grp"><div class="grp-h">📆 ${dayLabel(k)}</div>`;
-        curKey=k;
+  if(up.length){
+    let cur=null;
+    up.forEach(r=>{
+      const k=dayKeyOf(new Date(r.t));
+      if(k!==cur){
+        if(cur!==null) html+=`</div></div>`;
+        html+=`<div class="grp"><div class="grp-h">🗓️ ${dayLabel(k)}</div><div class="rail">`;
+        cur=k;
       }
-      html+=itemHTML(x.c,x.t,false);
+      html+=rowHTML(r,false);
     });
-    html+=`</div>`;
+    html+=`</div></div>`;
   }
-  if(!scheduled.length){
-    html+=`<div class="empty">अभी कोई काम कैलेंडर पर नहीं है।<br>ऊपर बोलकर या नीचे किसी काम को <b>समय लगाकर</b> जोड़ें — Google Calendar पर अपने-आप चला जाएगा। 🔔</div>`;
-  }
+  if(!rows.length) html+=`<div class="empty">अभी कोई काम समय पर नहीं लगा।<br>ऊपर बोलकर जोड़ें या नीचे किसी काम को <b style="color:#93c5fd">समय</b> दें —<br>Google Calendar पर अपने-आप चला जाएगा 🔔</div>`;
 
-  // Unscheduled (pending tasks, no time)
-  const unsched=items.filter(c=>c.active!==false && !c.nextCallAt && pendingTopics(c).length)
+  const unsched=items.filter(c=>c.active!==false && !c.nextCallAt && pendingTopics(c).some(x=>!x.at))
     .sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));
   if(unsched.length){
-    html+=`<div class="grp"><div class="grp-h">⏳ बिना समय वाले काम — समय लगाएँ <span class="cnt">${unsched.length}</span></div>`;
+    html+=`<div class="grp"><div class="grp-h">⏳ बिना समय वाले <span class="cnt">${unsched.length}</span></div>`;
     unsched.slice(0,60).forEach(c=>{
-      html+=`<div class="us">
-        <div style="font-size:20px">${c.emoji||'📌'}</div>
+      html+=`<div class="us" onclick="openPop('${c.id}')">
+        <div class="em">${c.emoji||'📌'}</div>
         <div class="bd"><div class="nm">${esc(c.name||'—')}</div><div class="tk">${esc(pendingText(c))||'—'}</div></div>
-        <button class="set" onclick="openEdit('${c.id}')">⏰ समय</button>
+        <button class="set" onclick="event.stopPropagation();openPop('${c.id}')">⏰ समय</button>
       </div>`;
     });
     html+=`</div>`;
   }
-
   document.getElementById('lists').innerHTML=html;
 }
 
-function itemHTML(c,t,isLate){
-  const d=new Date(t);
-  const dur=c.durationMins||15;
-  const endD=new Date(t+dur*60000);
-  return `<div class="it ${isLate?'late':''}">
-    <div class="tm">
-      <div class="t1">${fmtTime(d)}</div>
-      <div class="t2">${fmtAMPM(d)}</div>
-      <div class="dur">→ ${fmtTime(endD)}</div>
-    </div>
-    <div class="bd">
-      <div class="nm">${c.emoji||'📅'} ${esc(c.name||'—')}${isLate?'<span class="late-tag">देर</span>':''}</div>
-      <div class="tk">${esc(pendingText(c))||'—'}</div>
-      ${(c.calSynced===true && c.calEventFor===c.nextCallAt)
-        ? '<div class="calst ok">✅ Google Calendar पर है</div>'
-        : '<div class="calst wait">⏳ Calendar में जा रहा है… (कुछ मिनट)</div>'}
-      <div class="acts">
-        <button class="act snz" onclick="snooze('${c.id}',30)">⏰ +30 मिनट</button>
-        <button class="act snz" onclick="snooze('${c.id}',60)">+1 घंटा</button>
-        <button class="act" onclick="openEdit('${c.id}')">🗓️ बदलें</button>
-        <button class="act done" onclick="markDone('${c.id}')">✓ हो गया</button>
-        <button class="act rm" onclick="removeFromCal('${c.id}')">🔕 हटाओ</button>
+function rowHTML(r,isLate){
+  const d=new Date(r.t);
+  const c=r.c;
+  const col=c.color||'#8b5cf6';
+  const syncBadge=(k)=>k?'<span class="calst ok">✅ Calendar पर</span>':'<span class="calst wait">⏳ Calendar में जा रहा…</span>';
+  if(r.kind==='c'){
+    const dur=Number(c.durationMins)>0?Number(c.durationMins):15;
+    const synced=c.calSynced===true && c.calEventFor===c.nextCallAt;
+    return `<div class="tcard ${isLate?'late':''}" style="--c:${col}" onclick="openPop('${c.id}')">
+      <span class="dot"></span>
+      <div class="tc-top">
+        <div class="tc-time"><div class="t1">${fmtTime(d)}</div><div class="t2">${fmtPart(d)}</div><div class="dur">${dur} मिनट</div></div>
+        <div class="av" style="--c:${col}">${c.emoji||'📅'}</div>
+        <div class="tc-bd">
+          <div class="tc-nm">${esc(c.name||'—')} ${isLate?'<span class="late-tag">देर</span>':''}</div>
+          <div class="tc-tk">${esc(pendingText(c))||'—'}</div>
+        </div>
       </div>
+      <div class="tc-foot" onclick="event.stopPropagation()">
+        ${syncBadge(synced)}
+        <span style="flex:1"></span>
+        <button class="fbtn snz" onclick="snoozeC('${c.id}',30)">+30m</button>
+        <button class="fbtn snz" onclick="snoozeC('${c.id}',60)">+1h</button>
+        <button class="fbtn done" onclick="doneAllC('${c.id}')">✓</button>
+        <button class="fbtn" onclick="openPop('${c.id}')">खोलें →</button>
+      </div>
+    </div>`;
+  }
+  // task-level row
+  const x=r.x;
+  const synced=!!(c.calTopicsSynced && c.calTopicsSynced[x.tid]===x.at);
+  return `<div class="tcard ${isLate?'late':''}" style="--c:${col}" onclick="openPop('${c.id}')">
+    <span class="dot"></span>
+    <div class="tc-top">
+      <div class="tc-time"><div class="t1">${fmtTime(d)}</div><div class="t2">${fmtPart(d)}</div></div>
+      <div class="av" style="--c:${col}">⏰</div>
+      <div class="tc-bd">
+        <div class="tc-nm" style="font-size:13px;color:#fbbf24">${esc(x.t)}</div>
+        <div class="tc-sub">📌 ${esc(c.name||'')} ${isLate?'· <span class="late-tag">देर</span>':''} <span class="tsk-tag">काम का अपना समय</span></div>
+      </div>
+    </div>
+    <div class="tc-foot" onclick="event.stopPropagation()">
+      ${syncBadge(synced)}
+      <span style="flex:1"></span>
+      <button class="fbtn snz" onclick="snoozeT('${c.id}',${r.i},30)">+30m</button>
+      <button class="fbtn snz" onclick="snoozeT('${c.id}',${r.i},60)">+1h</button>
+      <button class="fbtn done" onclick="doneT('${c.id}',${r.i})">✓</button>
     </div>
   </div>`;
 }
-function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
 
-/* ── writes ── */
-async function patch(id, fields){
-  try{ await setDoc(doc(db,'vbe_call_tracker',id), fields, {merge:true}); }
+/* ── Firestore writes ── */
+async function patch(id,fields){
+  try{ await setDoc(doc(db,'vbe_call_tracker',id),fields,{merge:true}); }
   catch(e){ toast('⚠️ Save error — net देखें'); }
 }
-window.snooze=function(id, mins){
-  const c=items.find(x=>x.id===id); if(!c) return;
+function local(id){ return items.find(x=>x.id===id); }
+
+window.snoozeC=function(id,mins){
+  const c=local(id); if(!c) return;
   const base=Math.max(Date.now(), c.nextCallAt?new Date(c.nextCallAt).getTime():Date.now());
   const nt=new Date(base+mins*60000);
-  patch(id,{nextCallAt:nt.toISOString()});
-  toast('⏰ आगे बढ़ा — '+fmtTime(nt)+' '+fmtAMPM(nt));
+  c.nextCallAt=nt.toISOString(); render();
+  patch(id,{nextCallAt:c.nextCallAt});
+  toast('⏰ आगे बढ़ाया — '+fmtTime(nt)+' '+fmtPart(nt));
 };
-window.removeFromCal=function(id){
-  const c=items.find(x=>x.id===id); if(!c) return;
-  patch(id,{nextCallAt:null});
-  toast('🔕 कैलेंडर से हटा दिया');
-};
-window.markDone=function(id){
-  const c=items.find(x=>x.id===id); if(!c) return;
+window.doneAllC=function(id){
+  const c=local(id); if(!c) return;
   const tp=normTopics(c).map(x=>x.done?x:({...x,done:true,doneAt:new Date().toISOString()}));
-  const log=(c.callLog||[]).concat([{at:new Date().toISOString(),note:'✅ schedule से पूरा'}]);
+  const log=(c.callLog||[]).concat([{at:new Date().toISOString(),note:'✅ मेरा दिन से पूरा'}]);
+  Object.assign(c,{topics:tp,nextCallAt:null}); render();
   patch(id,{topics:tp,nextCallAt:null,lastCallAt:new Date().toISOString(),callLog:log});
-  toast('✅ पूरा — कैलेंडर से भी हटेगा');
+  toast('✅ पूरा! Calendar से भी हट जाएगा');
+};
+window.snoozeT=function(id,i,mins){
+  const c=local(id); if(!c) return;
+  const tp=normTopics(c);
+  if(!tp[i]) return;
+  const base=Math.max(Date.now(), tp[i].at?new Date(tp[i].at).getTime():Date.now());
+  tp[i]={...tp[i], at:new Date(base+mins*60000).toISOString(), tid:tp[i].tid||genTid()};
+  c.topics=tp; render();
+  patch(id,{topics:tp});
+  toast('⏰ काम आगे बढ़ाया');
+};
+window.doneT=function(id,i){
+  const c=local(id); if(!c) return;
+  const tp=normTopics(c);
+  if(!tp[i]) return;
+  tp[i]={...tp[i],done:true,doneAt:new Date().toISOString()};
+  c.topics=tp; render();
+  patch(id,{topics:tp});
+  toast('✅ काम पूरा — Calendar से भी हटेगा');
 };
 
-/* ── edit / add-time modal ── */
-function renderDurs(){
-  document.getElementById('me-durs').innerHTML = DUR_OPTS.map(m=>
-    `<button class="chip ${m===editDur?'on':''}" onclick="pickDur(${m})">${m<60?m+'m':(m/60)+(m%60?'.5':'')+'h'}</button>`).join('');
-}
-window.pickDur=function(m){ editDur=m; renderDurs(); };
-window.openEdit=function(id){
-  const c=items.find(x=>x.id===id); if(!c) return;
-  editingId=id;
-  editDur=c.durationMins||30;
-  document.getElementById('me-title').textContent='⏰ '+(c.name||'काम')+' — समय';
-  document.getElementById('me-task').value=pendingText(c)||c.name||'';
-  const base=c.nextCallAt?new Date(c.nextCallAt):new Date(Date.now()+60*60000);
-  document.getElementById('me-when').value=_toLocalInput(base);
-  renderDurs();
-  document.getElementById('m-edit').classList.add('open');
+/* ══════ मुख्य POPUP ══════ */
+window.openPop=function(id){
+  popId=id; editTIdx=-1;
+  const c=local(id);
+  popDur=(c&&Number(c.durationMins)>0)?Number(c.durationMins):30;
+  renderPop();
+  document.getElementById('pp-bg').classList.add('open');
+  document.getElementById('pp').classList.add('open');
 };
-window.closeEdit=function(){ document.getElementById('m-edit').classList.remove('open'); editingId=null; };
-window.saveEdit=function(){
-  const wv=document.getElementById('me-when').value;
+window.closePop=function(){
+  popId=null;
+  document.getElementById('pp-bg').classList.remove('open');
+  document.getElementById('pp').classList.remove('open');
+};
+function renderPop(){
+  const c=local(popId);
+  if(!c){ closePop(); return; }
+  const col=c.color||'#8b5cf6';
+  const tp=normTopics(c);
+  const pend=tp.map((x,i)=>({...x,i})).filter(x=>!x.done);
+  const done=tp.map((x,i)=>({...x,i})).filter(x=>x.done);
+  const ph=(c.phone||'').replace(/[^0-9]/g,'');
+  const waN=((c.waPhone||c.phone)||'').replace(/[^0-9]/g,'');
+  const when=c.nextCallAt?new Date(c.nextCallAt):new Date(Date.now()+60*60000);
+  const synced=c.calSynced===true && c.calEventFor===c.nextCallAt;
+
+  let taskRows='';
+  pend.forEach(x=>{
+    if(x.i===editTIdx){
+      taskRows+=`<div class="trow">
+        <input class="inp" id="te-inp" value="${esc(x.t)}" style="flex:1;padding:8px 10px;font-size:13px">
+        <button class="tbtn" style="border-style:solid;border-color:#22c55e;color:#86efac" onclick="tEditSave(${x.i})">💾</button>
+      </div>`;
+      return;
+    }
+    taskRows+=`<div class="trow">
+      <span class="tchk" onclick="doneT('${c.id}',${x.i});"></span>
+      <span style="flex:1;min-width:0">
+        <span class="ttxt">${esc(x.t)}</span>
+        ${x.at?`<br><span class="ttime" onclick="tTime(${x.i})">⏰ ${fmtFull(new Date(x.at))}</span>`:''}
+      </span>
+      <span class="tbtn" title="इस काम का अपना समय" onclick="tTime(${x.i})">${x.at?'🔁':'⏰'}</span>
+      <span class="tbtn" title="बदलें" onclick="tEdit(${x.i})">✏️</span>
+      <span class="tbtn" title="मिटाओ" style="border-color:rgba(127,29,29,.5)" onclick="tDel(${x.i})">🗑</span>
+    </div>`;
+  });
+  if(done.length){
+    taskRows+=`<div style="border-top:1.5px dashed rgba(100,116,139,.35);margin-top:6px;padding-top:6px">
+      <div style="font-size:9px;font-weight:800;color:#4ade80;margin-bottom:3px">✅ पूरे हुए (${done.length})</div>
+      ${done.map(x=>`<div class="dline"><span class="tx">${esc(x.t)}</span><span class="ub" onclick="tUndo(${x.i})">↩️</span></div>`).join('')}
+    </div>`;
+  }
+
+  document.getElementById('pp-in').innerHTML=`
+    <div class="handle"></div>
+    <div class="p-head">
+      <div class="av" style="--c:${col};width:52px;height:52px;font-size:26px">${c.emoji||'📅'}</div>
+      <div style="flex:1;min-width:0">
+        <div class="p-name">${esc(c.name||'—')} <span class="ed" onclick="pNameEdit()">✏️</span></div>
+        ${c.phone?`<div class="p-ph" onclick="pCall()">📱 ${esc(c.phone)}</div>`:''}
+      </div>
+      <span class="p-x" onclick="closePop()">✕</span>
+    </div>
+    ${ph?`<div class="prow" style="margin-bottom:10px">
+      <button class="pbtn green" style="margin-top:0" onclick="pCall()">📞 Call</button>
+      ${waN?`<button class="pbtn ghost" style="margin-top:0;color:#4ade80;border-color:rgba(34,197,94,.5)" onclick="pWA()">💬 WA</button>`:''}
+      <button class="pbtn ghost" style="margin-top:0" onclick="pSMS()">✉️ SMS</button>
+    </div>`:''}
+    <div class="p-sec">
+      <div class="p-sec-h">🗣️ काम — ⏰ से हर काम का अपना समय/अलार्म</div>
+      ${taskRows||'<div style="font-size:12px;color:#5b6b86;padding:4px 0">कोई काम बाकी नहीं</div>'}
+      <div style="display:flex;gap:7px;margin-top:9px">
+        <input class="inp" id="pp-new" placeholder="➕ नया काम..." style="flex:1;padding:9px 11px;font-size:12.5px" onkeydown="if(event.key==='Enter')pAddTask()">
+        <button class="pbtn violet" style="margin-top:0;width:auto;padding:0 16px" onclick="pAddTask()">💾</button>
+      </div>
+    </div>
+    <div class="p-sec">
+      <div class="p-sec-h">⏰ मुख्य समय — Google Calendar event ${synced?'<span class="calst ok" style="margin-left:5px">✅ Calendar पर</span>':(c.nextCallAt?'<span class="calst wait" style="margin-left:5px">⏳ जा रहा…</span>':'')}</div>
+      <input class="inp" type="datetime-local" id="pp-when" value="${toLocalInput(when)}" style="font-size:14px">
+      <label class="lbl" style="margin-top:10px">⏳ कितनी देर?</label>
+      <div class="chips" id="pp-durs">${DUR_OPTS.map(m=>`<button class="chip ${m===popDur?'on':''}" onclick="pDur(${m})">${m<60?m+'m':(m/60)+'h'}</button>`).join('')}</div>
+      <div class="prow">
+        <button class="pbtn violet" onclick="pSaveTime()">✅ समय लगाओ</button>
+        ${c.nextCallAt?`<button class="pbtn warn" style="width:auto;padding:12px 14px" onclick="snoozeC('${c.id}',30);renderPop()">+30m</button>
+        <button class="pbtn warn" style="width:auto;padding:12px 14px" onclick="snoozeC('${c.id}',60);renderPop()">+1h</button>`:''}
+      </div>
+    </div>
+    ${pend.length?`<div class="p-sec">
+      <div class="p-sec-h">💬 Message</div>
+      ${c.lastWaSentAt?`<div style="font-size:10.5px;color:#94a3b8;margin-bottom:6px">🕘 पिछली बार भेजा: ${esc(agoText(c.lastWaSentAt))}</div>`:''}
+      ${waN?`<button class="pbtn green" style="margin-top:0" onclick="pSendWA()">${(c.waMsg&&c.waMsgAt&&(Date.now()-new Date(c.waMsgAt).getTime())<6*60*60*1000)?'🤖 AI message WhatsApp पर भेजो':'📤 सारे काम WhatsApp पर भेजो'}</button>`:''}
+      ${settings.n8nUrl?`<button class="pbtn ghost" style="color:#c4b5fd;border-color:rgba(139,92,246,.45)" onclick="pFreshAI()">✨ नया AI message बनाओ</button>`:''}
+      <button class="pbtn ghost" style="color:#4ade80;border-color:rgba(34,197,94,.45)" onclick="pCopy()">📋 message copy करो</button>
+      ${c.waMsg?`<div class="wamsg">${esc(c.waMsg)}</div>`:''}
+    </div>`:''}
+    <div class="prow">
+      <button class="pbtn green" onclick="doneAllC('${c.id}');closePop()">✓ सब हो गया</button>
+      ${c.nextCallAt?`<button class="pbtn warn" onclick="pRemoveCal()">🔕 Calendar से हटाओ</button>`:''}
+    </div>
+    ${c.aiQuick?`<button class="pbtn red" onclick="pDelete()">🗑 यह काम पूरी तरह मिटाओ</button>`:''}
+  `;
+}
+function agoText(iso){
+  const ms=Date.now()-new Date(iso).getTime();
+  const m=Math.floor(ms/60000);
+  if(m<60) return m+' मिनट पहले';
+  const h=Math.floor(m/60);
+  if(h<24) return h+' घंटे पहले';
+  return Math.floor(h/24)+' दिन पहले';
+}
+
+/* popup ops */
+window.pDur=function(m){ popDur=m; renderPop(); };
+window.pNameEdit=function(){
+  const c=local(popId); if(!c) return;
+  const v=prompt('नाम बदलें:', c.name||'');
+  if(v===null) return;
+  const nm=v.trim(); if(!nm) return;
+  c.name=nm; render(); renderPop();
+  patch(popId,{name:nm});
+};
+window.pAddTask=function(){
+  const c=local(popId); if(!c) return;
+  const inp=document.getElementById('pp-new');
+  const v=(inp.value||'').trim();
+  if(!v){ toast('⚠️ पहले काम लिखें'); return; }
+  const tp=normTopics(c);
+  const act=tp.filter(x=>!x.done), don=tp.filter(x=>x.done);
+  c.topics=[...act,{t:v,done:false,doneAt:null,cat:'',assignTo:''},...don];
+  c.note=[...act.map(x=>x.t),v].join(' · ');
+  render(); renderPop();
+  patch(popId,{topics:c.topics,note:c.note});
+  toast('✅ काम जुड़ गया');
+};
+window.tEdit=function(i){ editTIdx=i; renderPop(); setTimeout(()=>{const e=document.getElementById('te-inp'); if(e){e.focus();}},80); };
+window.tEditSave=function(i){
+  const c=local(popId); if(!c) return;
+  const v=(document.getElementById('te-inp').value||'').trim();
+  editTIdx=-1;
+  if(!v){ renderPop(); return; }
+  const tp=normTopics(c);
+  if(tp[i]) tp[i]={...tp[i],t:v};
+  c.topics=tp; c.note=tp.filter(x=>!x.done).map(x=>x.t).join(' · ');
+  render(); renderPop();
+  patch(popId,{topics:tp,note:c.note});
+  toast('✏️ काम बदल गया');
+};
+window.tDel=function(i){
+  const c=local(popId); if(!c) return;
+  if(!confirm('यह काम मिटाएँ?')) return;
+  const tp=normTopics(c);
+  tp.splice(i,1);
+  c.topics=tp; c.note=tp.filter(x=>!x.done).map(x=>x.t).join(' · ');
+  render(); renderPop();
+  patch(popId,{topics:tp,note:c.note});
+  toast('🗑 काम मिटा — Calendar से भी हटेगा');
+};
+window.tUndo=function(i){
+  const c=local(popId); if(!c) return;
+  const tp=normTopics(c);
+  if(tp[i]) tp[i]={...tp[i],done:false,doneAt:null};
+  c.topics=tp; render(); renderPop();
+  patch(popId,{topics:tp});
+};
+window.tTime=function(i){
+  const c=local(popId); if(!c) return;
+  const tp=normTopics(c);
+  if(!tp[i]) return;
+  const cur=tp[i].at?new Date(tp[i].at):new Date(Date.now()+60*60000);
+  const v=prompt('इस काम का समय (YYYY-MM-DD HH:MM):', toLocalInput(cur).replace('T',' '));
+  if(v===null) return;
+  if(v.trim()===''){ // खाली = समय हटाओ
+    tp[i]={...tp[i]}; delete tp[i].at;
+    c.topics=tp; render(); renderPop(); patch(popId,{topics:tp});
+    toast('🔕 काम का समय हटाया'); return;
+  }
+  const d=new Date(v.trim().replace(' ','T'));
+  if(isNaN(d.getTime())){ toast('⚠️ समय समझ नहीं आया'); return; }
+  tp[i]={...tp[i],at:d.toISOString(),tid:tp[i].tid||genTid()};
+  c.topics=tp; render(); renderPop();
+  patch(popId,{topics:tp});
+  toast('⏰ काम का अलार्म — '+fmtFull(d));
+};
+window.pSaveTime=function(){
+  const c=local(popId); if(!c) return;
+  const wv=document.getElementById('pp-when').value;
   const when=wv?new Date(wv):null;
   if(!when||isNaN(when.getTime())){ toast('⚠️ समय सही नहीं'); return; }
-  const taskTxt=(document.getElementById('me-task').value||'').trim();
-  if(editingId){
-    // मौजूदा काम को समय/अवधि दो (या बदलो)
-    const c=items.find(x=>x.id===editingId);
-    const fields={nextCallAt:when.toISOString(), durationMins:editDur};
-    if(taskTxt && c){
-      const tp=normTopics(c);
-      const pend=tp.filter(x=>!x.done);
-      if(pend.length<=1){ // एक ही pending topic हो तो उसका text भी update
-        const done=tp.filter(x=>x.done);
-        fields.topics=[{t:taskTxt,done:false,doneAt:null,cat:(pend[0]&&pend[0].cat)||'',assignTo:(pend[0]&&pend[0].assignTo)||''},...done];
-        if(!c.name) fields.name=taskTxt.slice(0,44);
-      }
-    }
-    patch(editingId, fields);
-    toast('✅ लग गया — '+fmtTime(when)+' '+fmtAMPM(when));
+  c.nextCallAt=when.toISOString(); c.durationMins=popDur;
+  render(); renderPop();
+  patch(popId,{nextCallAt:c.nextCallAt,durationMins:popDur});
+  toast('✅ लग गया — '+fmtFull(when));
+};
+window.pRemoveCal=function(){
+  const c=local(popId); if(!c) return;
+  c.nextCallAt=null; render(); renderPop();
+  patch(popId,{nextCallAt:null});
+  toast('🔕 Calendar से हट जाएगा');
+};
+window.pDelete=async function(){
+  const c=local(popId); if(!c) return;
+  if(!confirm('"'+(c.name||'')+'" पूरी तरह मिटाएँ?')) return;
+  try{ await deleteDoc(doc(db,'vbe_call_tracker',popId)); toast('🗑 मिट गया'); }
+  catch(e){ toast('⚠️ Delete error'); }
+  closePop();
+};
+window.pCall=function(){ const c=local(popId); if(c&&c.phone) location.href='tel:+91'+c.phone.replace(/[^0-9]/g,''); };
+window.pSMS=function(){ const c=local(popId); if(c&&c.phone) location.href='sms:+91'+c.phone.replace(/[^0-9]/g,''); };
+
+/* message बनाओ/भेजो/copy — call-tracker जैसा */
+function buildMsg(c){
+  if(c.waMsg&&c.waMsgAt&&(Date.now()-new Date(c.waMsgAt).getTime())<6*60*60*1000) return c.waMsg;
+  const tasks=pendingTopics(c).map((x,i)=>(i+1)+'. '+x.t).join('\n');
+  return `🙏 राम राम ${c.name||''} जी,\n\nआपसे इन कामों के बारे में बात करनी है:\n${tasks}\n\nसमय मिलते ही बताइएगा। धन्यवाद 🙏\n— विक्रम, Vande Bharat Enterprises`;
+}
+function copyText(t){
+  if(navigator.clipboard&&navigator.clipboard.writeText) return navigator.clipboard.writeText(t).then(()=>true).catch(()=>fallbackCopy(t));
+  return Promise.resolve(fallbackCopy(t));
+}
+function fallbackCopy(t){
+  const ta=document.createElement('textarea');
+  ta.value=t; ta.style.cssText='position:fixed;left:-9999px;top:0';
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  let ok=false; try{ ok=document.execCommand('copy'); }catch(e){}
+  document.body.removeChild(ta); return ok;
+}
+window.pCopy=async function(){
+  const c=local(popId); if(!c) return;
+  await copyText(buildMsg(c));
+  toast('📋 message copy हो गया');
+};
+window.pSendWA=async function(){
+  const c=local(popId); if(!c) return;
+  const raw=(c.waPhone||c.phone||'').replace(/[^0-9]/g,'');
+  if(!raw){ toast('⚠️ नंबर नहीं है'); return; }
+  const num=raw.length===10?'91'+raw:raw;
+  const msg=buildMsg(c);
+  c.lastWaSentAt=new Date().toISOString();
+  patch(popId,{lastWaSentAt:c.lastWaSentAt});
+  if(msg.length<=1000){
+    location.href='whatsapp://send?phone='+num+'&text='+encodeURIComponent(msg);
   } else {
-    // नया काम बनाओ (जब AI समय न समझ पाए, user ने खुद चुना)
-    aiAddEntry(taskTxt||'काम', when, editDur);
+    await copyText(msg);
+    toast('📋 लंबा message copy हुआ — WhatsApp में paste करें');
+    setTimeout(()=>{ location.href='whatsapp://send?phone='+num; },700);
   }
-  closeEdit();
+};
+window.pFreshAI=async function(){
+  const c=local(popId); if(!c) return;
+  if(!settings.n8nUrl){ toast('⚙️ n8n URL नहीं मिला'); return; }
+  toast('✨ AI message बन रहा है…');
+  try{
+    const r=await fetch(settings.n8nUrl,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name:c.name||'',tasks:pendingTopics(c).map(x=>x.t)})
+    });
+    const j=await r.json().catch(()=>null);
+    const msg=j&&(j.message||j.msg||j.text||(j[0]&&(j[0].message||j[0].text)));
+    if(!msg) throw new Error('no msg');
+    c.waMsg=String(msg).trim(); c.waMsgAt=new Date().toISOString();
+    renderPop();
+    patch(popId,{waMsg:c.waMsg,waMsgAt:c.waMsgAt});
+    toast('✅ नया AI message तैयार!');
+  }catch(e){ toast('⚠️ AI message नहीं बना — फिर कोशिश करें'); }
 };
 
-/* ── create new (from AI box) ── */
-function genId(){ return 'CT'+Date.now().toString(36).toUpperCase()+Math.random().toString(36).slice(2,4).toUpperCase(); }
-window.aiAddEntry=function(task, when, dur){
+/* ══════ नया काम (AI समय न समझे तो) ══════ */
+function renderNewDurs(){
+  document.getElementById('nw-durs').innerHTML=DUR_OPTS.map(m=>
+    `<button class="chip ${m===newDur?'on':''}" onclick="nDur(${m})">${m<60?m+'m':(m/60)+'h'}</button>`).join('');
+}
+window.nDur=function(m){ newDur=m; renderNewDurs(); };
+window.closeNew=function(){
+  document.getElementById('nw-bg').classList.remove('open');
+  document.getElementById('nw').classList.remove('open');
+};
+function openNew(task){
+  newDur=30;
+  document.getElementById('nw-task').value=task||'';
+  document.getElementById('nw-when').value=toLocalInput(new Date(Date.now()+60*60000));
+  renderNewDurs();
+  document.getElementById('nw-bg').classList.add('open');
+  document.getElementById('nw').classList.add('open');
+}
+window.saveNew=function(){
+  const wv=document.getElementById('nw-when').value;
+  const when=wv?new Date(wv):null;
+  if(!when||isNaN(when.getTime())){ toast('⚠️ समय सही नहीं'); return; }
+  const task=(document.getElementById('nw-task').value||'').trim()||'काम';
+  aiAddEntry(task,when,newDur);
+  closeNew();
+};
+function aiAddEntry(task,when,dur){
   const entry={
     id:genId(), name:task.slice(0,44), phone:'', waPhone:'', note:task,
     topics:[{t:task,done:false,doneAt:null,cat:'',assignTo:''}],
@@ -381,11 +764,11 @@ window.aiAddEntry=function(task, when, dur){
     durationMins:dur||30, lastCallAt:null, nextCallAt:when.toISOString(),
     callLog:[], pinned:false, createdAt:new Date().toISOString(), aiQuick:true
   };
-  patch(entry.id, entry);
-  toast('✅ जुड़ गया — 🔔 '+fmtTime(when)+' '+fmtAMPM(when));
-};
+  patch(entry.id,entry);
+  toast('✅ जुड़ गया — 🔔 '+fmtFull(when));
+}
 
-/* ── voice ── */
+/* ══════ voice + समय parser ══════ */
 let _rec=null;
 window.aiMic=function(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -394,15 +777,13 @@ window.aiMic=function(){
   if(_rec){ try{_rec.stop();}catch(e){} _rec=null; return; }
   const r=new SR(); r.lang='hi-IN'; r.interimResults=false; r.maxAlternatives=1;
   btn.textContent='🔴'; btn.classList.add('rec');
-  r.onresult=e=>{ document.getElementById('ai-inp').value=e.results[0][0].transcript; setTimeout(aiPreview,250); };
+  r.onresult=e=>{ document.getElementById('ai-inp').value=e.results[0][0].transcript; setTimeout(window.aiPreview,250); };
   r.onend=()=>{ btn.textContent='🎤'; btn.classList.remove('rec'); _rec=null; };
   r.onerror=ev=>{ btn.textContent='🎤'; btn.classList.remove('rec'); _rec=null;
     if(ev.error==='not-allowed') toast('⚠️ Mic permission दें (या टाइप करें)');
     else if(ev.error!=='aborted') toast('⚠️ आवाज़ समझ नहीं आई — फिर बोलें'); };
   _rec=r; try{ r.start(); }catch(e){ btn.textContent='🎤'; btn.classList.remove('rec'); _rec=null; }
 };
-
-/* ── Hindi/Hinglish/English समय parser ── */
 function parseWhen(raw){
   const s=' '+String(raw).toLowerCase()+' '; const now=new Date(); let m;
   if(m=s.match(/(\d+)\s*(मिनट|minute|min)/)) return new Date(now.getTime()+parseInt(m[1])*60000);
@@ -456,20 +837,9 @@ window.aiPreview=function(){
   if(!raw){ toast('⚠️ पहले बोलें या लिखें'); return; }
   const when=parseWhen(raw);
   const task=cleanTask(raw);
-  if(!when){
-    // समय न समझ आए → editor खोलो (editingId=null → saveEdit नया बनाएगा)
-    editingId=null; editDur=30;
-    document.getElementById('me-title').textContent='⏰ समय चुनें';
-    document.getElementById('me-task').value=task;
-    document.getElementById('me-when').value=_toLocalInput(new Date(Date.now()+60*60000));
-    renderDurs();
-    document.getElementById('m-edit').classList.add('open');
-    document.getElementById('ai-inp').value='';
-    toast('⏰ समय समझ नहीं आया — खुद चुन लें');
-    return;
-  }
-  aiAddEntry(task, when, 30);
   document.getElementById('ai-inp').value='';
+  if(!when){ openNew(task); toast('⏰ समय समझ नहीं आया — खुद चुन लें'); return; }
+  aiAddEntry(task,when,30);
 };
 </script>
 </body>

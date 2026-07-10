@@ -44,16 +44,10 @@ jobs:
         env:
           FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
         run: printf '%s' "$FIREBASE_SA" > "$RUNNER_TEMP/sa.json"
-      - name: Put API key in Secret Manager
+      - name: Write .env (key deploy-time function env में जाती है, repo में नहीं)
         env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/sa.json
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: |
-          printf '%s' "$ANTHROPIC_API_KEY" > "$RUNNER_TEMP/key.txt"
-          npx firebase-tools@latest functions:secrets:set ANTHROPIC_API_KEY \
-            --data-file "$RUNNER_TEMP/key.txt" \
-            --project vbe-order-tracker-60324 --non-interactive --force
-          rm -f "$RUNNER_TEMP/key.txt"
+        run: printf 'ANTHROPIC_API_KEY=%s\n' "$ANTHROPIC_API_KEY" > kharcha-functions/.env
       - name: Deploy function (सिर्फ kharcha codebase — बाकी functions untouched)
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/sa.json

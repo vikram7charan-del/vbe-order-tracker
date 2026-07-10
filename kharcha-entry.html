@@ -16,7 +16,10 @@ body{background:#f1f5f9;color:#0f172a;font-family:'Noto Sans Devanagari',sans-se
 .topbar{background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#fff;padding:14px 16px;border-radius:0 0 18px 18px;box-shadow:0 4px 14px rgba(29,78,216,.25)}
 .topbar h1{font-size:17px;font-weight:900}
 .topbar .sub{font-size:11px;opacity:.85;margin-top:2px}
-.card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:14px;margin:12px 12px 0;box-shadow:0 1px 4px rgba(15,23,42,.05)}
+.card{background:linear-gradient(180deg,#ffffff,#fbfcfe);border:1px solid #e2e8f0;border-radius:16px;padding:14px;margin:14px 12px 0;box-shadow:0 10px 24px -12px rgba(15,23,42,.22),0 2px 6px rgba(15,23,42,.06)}
+.btn:active{transform:translateY(1px) scale(.99)}
+.chip:active{transform:scale(.95)}
+.btn,.chip{transition:transform .1s ease}
 .lbl{font-size:12px;color:#475569;font-weight:800;margin-bottom:6px;display:block}
 .inp{background:#fff;border:1.5px solid #cbd5e1;color:#0f172a;border-radius:10px;padding:12px 13px;font-size:15px;font-family:inherit;width:100%;outline:none}
 .inp:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.12)}
@@ -81,8 +84,8 @@ h2.sec-title{font-size:14px;font-weight:900;color:#1e293b;margin-bottom:10px}
         <h1>🧾 खर्चा एंट्री</h1>
         <div class="sub"><span id="h-date"></span> · <span id="h-user"></span> <span class="badge" id="h-role"></span></div>
       </div>
-      <div style="display:flex;gap:6px;align-items:center">
-        <a href="./kharcha-dashboard.html" id="lnk-dash" style="display:none;color:#fff;text-decoration:none;font-size:18px" title="Dashboard">📊</a>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="vbe-menu-btn" onclick="vbeMenu(1)">☰ मेनू</button>
         <a href="#" onclick="doLogout();return false" style="color:#fff;text-decoration:none;font-size:16px" title="Logout">🚪</a>
       </div>
     </div>
@@ -102,8 +105,9 @@ h2.sec-title{font-size:14px;font-weight:900;color:#1e293b;margin-bottom:10px}
 
   <!-- My pending entries -->
   <div class="card" id="pend-card" style="display:none">
-    <h2 class="sec-title">🔴 आपकी अधूरी entries (details भरें)</h2>
+    <h2 class="sec-title">🔴 अधूरी entries (details या bill बाकी)</h2>
     <div id="pend-list"></div>
+    <input type="file" id="bill-attach-input" accept="image/*" style="display:none" onchange="onBillAttach(event)">
   </div>
 
   <!-- AI Auto Entry -->
@@ -113,7 +117,7 @@ h2.sec-title{font-size:14px;font-weight:900;color:#1e293b;margin-bottom:10px}
     <div class="sec"><label class="lbl">🏢 Firm (किस business का खर्च)</label><select class="inp" id="auto-firm"></select></div>
     <button class="btn" style="background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;box-shadow:0 4px 14px rgba(124,58,237,.3)" id="auto-btn"
       onclick="document.getElementById('auto-photo').click()">📸 Photo लो → Entry अपने आप बनेगी</button>
-    <input type="file" id="auto-photo" accept="image/*" capture="environment" style="display:none" onchange="autoEntry(event)">
+    <input type="file" id="auto-photo" accept="image/*" style="display:none" onchange="autoEntry(event)">
     <div id="auto-status" class="mini" style="margin-top:8px;min-height:16px;font-weight:700"></div>
     <div id="auto-result" style="display:none;background:#f0fdf4;border:1.5px solid #86efac;border-radius:11px;padding:11px 13px;margin-top:8px;font-size:13px;line-height:1.8"></div>
   </div>
@@ -159,7 +163,7 @@ h2.sec-title{font-size:14px;font-weight:900;color:#1e293b;margin-bottom:10px}
         <span id="photo-hint">📷 Photo लें या Gallery से चुनें (auto-compress ≤1MB)</span>
         <img id="photo-prev" style="display:none">
       </div>
-      <input type="file" id="f-photo" accept="image/*" capture="environment" style="display:none" onchange="onPhotoPick(event)">
+      <input type="file" id="f-photo" accept="image/*" style="display:none" onchange="onPhotoPick(event)">
       <button class="ai-btn" id="ai-btn" onclick="aiReadBill()" disabled>🤖 AI से Bill पढ़ें (items auto-fill)</button>
       <div class="mini" id="ai-status" style="margin-top:4px"></div>
     </div>
@@ -188,6 +192,39 @@ h2.sec-title{font-size:14px;font-weight:900;color:#1e293b;margin-bottom:10px}
     </details>
   </div>
 </div>
+
+
+<!-- ═══ VBE Apps Menu (सब pages में एक जैसा) ═══ -->
+<div id="vbe-menu" style="display:none;position:fixed;inset:0;z-index:120;background:rgba(15,23,42,.45)" onclick="if(event.target===this)vbeMenu(0)">
+  <div style="background:#fff;border-radius:0 0 24px 24px;padding:16px 14px 18px;max-width:480px;margin:0 auto;box-shadow:0 18px 40px rgba(15,23,42,.35);animation:vbeSlide .18s ease">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <b style="font-size:15px;color:#0f172a;font-family:'Noto Sans Devanagari',sans-serif">🏢 VBE Apps</b>
+      <button onclick="vbeMenu(0)" style="border:none;background:#f1f5f9;border-radius:8px;padding:6px 12px;font-weight:900;cursor:pointer;font-size:13px">✕</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+      <a class="vbe-tile" href="./kharcha-entry.html" style="background:linear-gradient(135deg,#1d4ed8,#3b82f6)"><span class="ic">🧾</span>खर्चा एंट्री</a>
+      <a class="vbe-tile" href="./payments.html" style="background:linear-gradient(135deg,#3730a3,#6366f1)"><span class="ic">💳</span>पेमेंट</a>
+      <a class="vbe-tile" href="./pricebook.html" style="background:linear-gradient(135deg,#047857,#10b981)"><span class="ic">📗</span>प्राइसबुक</a>
+      <a class="vbe-tile" href="./marwar-rasoi.html" style="background:linear-gradient(135deg,#b91c1c,#ef4444)"><span class="ic">🍽️</span>मारवाड़ रसोई</a>
+      <a class="vbe-tile" href="./unit-receivables.html" style="background:linear-gradient(135deg,#166534,#22c55e)"><span class="ic">🎖️</span>Unit पैसा</a>
+      <a class="vbe-tile" href="./kharcha-dashboard.html" style="background:linear-gradient(135deg,#0e7490,#06b6d4)"><span class="ic">📊</span>Dashboard</a>
+      <a class="vbe-tile" href="./" style="background:linear-gradient(135deg,#334155,#64748b)"><span class="ic">📦</span>Order App</a>
+    </div>
+  </div>
+</div>
+<style>
+@keyframes vbeSlide{from{transform:translateY(-14px);opacity:.5}to{transform:translateY(0);opacity:1}}
+.vbe-tile{display:flex;flex-direction:column;align-items:center;gap:7px;text-decoration:none;padding:14px 4px;border-radius:16px;color:#fff;font-weight:800;font-size:11.5px;font-family:'Noto Sans Devanagari',sans-serif;box-shadow:0 10px 20px -8px rgba(15,23,42,.4);text-align:center}
+.vbe-tile .ic{font-size:30px;filter:drop-shadow(0 4px 8px rgba(0,0,0,.28))}
+.vbe-tile:active{transform:scale(.95)}
+.vbe-tile.cur{outline:3px solid rgba(255,255,255,.75);outline-offset:-3px}
+.vbe-menu-btn{border:none;background:rgba(255,255,255,.2);color:#fff;font-size:16px;border-radius:9px;padding:7px 12px;font-weight:900;cursor:pointer;font-family:inherit}
+</style>
+<script>
+function vbeMenu(v){document.getElementById('vbe-menu').style.display=v?'block':'none'}
+(function(){var p=location.pathname.split('/').pop()||'index.html';
+document.querySelectorAll('.vbe-tile').forEach(function(a){var h=a.getAttribute('href').replace('./','');if(h===p)a.classList.add('cur')})})();
+</script>
 
 <div class="toast" id="toast"></div>
 
@@ -218,7 +255,7 @@ const CATEGORIES = [
 const DEFAULT_ACCOUNTS = ['Google Pay 1 (Vikram)','Google Pay 2','Google Pay 3','BharatPe (Sushila Kanwar)','Cash (नकद)','Bank Transfer'];
 const UNITS_HINT = {kg:'kg', pcs:'पीस', ltr:'लीटर', gm:'ग्राम', box:'बॉक्स', bag:'बोरी'};
 
-const app = initializeApp(FB_CFG, 'kharcha-entry');
+const app = initializeApp(FB_CFG, 'vbe-kharcha');
 const auth = getAuth(app);
 // Offline-first: internet जाए तो भी writes queue होकर बाद में Firebase पहुंचती हैं
 let db;
@@ -695,34 +732,68 @@ function resetForm(){
   document.getElementById('ai-status').textContent='';
 }
 
-// ── Pending entries (staff fills details) ──
+// ── Pending entries (details बाकी या bill photo बाकी) ──
+let BILL_ATTACH_ID = null;
 async function loadPending(){
   try{
-    let q1;
-    if(ME.role==='admin'){
-      q1 = query(collection(db,'vbe_expenses'), where('entryStatus','==','pending'));
-    } else {
-      q1 = query(collection(db,'vbe_expenses'), where('entryStatus','==','pending'), where('staffUid','==',ME.uid));
-    }
-    const snap = await getDocs(q1);
+    const mine = ME.role==='admin' ? [] : [where('staffUid','==',ME.uid)];
+    const [detSnap, billSnap] = await Promise.all([
+      getDocs(query(collection(db,'vbe_expenses'), where('entryStatus','==','pending'), ...mine)),
+      getDocs(query(collection(db,'vbe_expenses'), where('billStatus','==','pending'), ...mine))
+    ]);
     const list = document.getElementById('pend-list');
     const card = document.getElementById('pend-card');
-    if(snap.empty){ card.style.display='none'; return; }
-    card.style.display='block';
     list.innerHTML='';
-    snap.forEach(d=>{
-      const x=d.data();
+    let n=0;
+    detSnap.forEach(d=>{
+      const x=d.data(); n++;
       const hrs = Math.round((Date.now()-new Date(x.createdAt).getTime())/36e5);
       const div=document.createElement('div');
       div.className='pend';
       div.innerHTML=`<div><div class="amt">₹${(x.total||0).toLocaleString('hi-IN')}</div>
-        <div class="meta">${x.firm||''} · ${x.staffName||''} · ${hrs} घंटे पहले</div></div>
+        <div class="meta">${x.firm||''} · ${x.staffName||''} · ${hrs} घंटे पहले · details बाकी</div></div>
         <button data-id="${x.id}">भरें ✍️</button>`;
       div.querySelector('button').onclick=()=>fillPending(x);
       list.appendChild(div);
     });
+    billSnap.forEach(d=>{
+      const x=d.data();
+      if(x.entryStatus==='pending') return; // ऊपर वाली list में already है
+      n++;
+      const div=document.createElement('div');
+      div.className='pend';
+      div.style.background='#fffbeb'; div.style.borderColor='#fde68a';
+      div.innerHTML=`<div><div class="amt" style="color:#b45309">₹${(x.total||0).toLocaleString('hi-IN')}</div>
+        <div class="meta">${esc(x.vendor||x.firm||'')} · ${x.date||''} · सिर्फ bill photo बाकी</div></div>
+        <button style="background:#d97706">📷 Bill जोड़ें</button>`;
+      div.querySelector('button').onclick=()=>{
+        BILL_ATTACH_ID = x.id;
+        document.getElementById('bill-attach-input').click();
+      };
+      list.appendChild(div);
+    });
+    card.style.display = n ? 'block' : 'none';
   }catch(e){}
 }
+
+// Bill photo सीधे attach (camera या gallery — chooser अपने आप आएगा)
+window.onBillAttach = async function(ev){
+  const file = ev.target.files[0];
+  ev.target.value='';
+  if(!file || !BILL_ATTACH_ID) return;
+  const id = BILL_ATTACH_ID; BILL_ATTACH_ID = null;
+  try{
+    toast('📷 Photo upload हो रही है...');
+    let blob = await compressImage(file, 1280, 0.8);
+    for(let q=0.65; blob.size>1024*1024 && q>=0.4; q-=0.15) blob = await compressImage(file, 1280, q);
+    const r = sRef(storage, 'kharcha_bills/'+id+'.jpg');
+    await uploadBytes(r, blob, {contentType:'image/jpeg'});
+    const url = await getDownloadURL(r);
+    await updateDoc(doc(db,'vbe_expenses',id), {billPhotoUrl:url, billStatus:'ok', updatedAt:new Date().toISOString()});
+    toast('✅ Bill जुड़ गया!');
+    loadPending();
+  }catch(e){ toast('❌ '+e.message,'err'); }
+};
 
 function fillPending(x){
   FILL_PENDING_ID = x.id;

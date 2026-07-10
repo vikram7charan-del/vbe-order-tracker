@@ -13,15 +13,16 @@
  * फिर deployed URL को kharcha-entry.html के "AI Settings → Proxy URL" में डालें।
  */
 const { onRequest } = require("firebase-functions/v2/https");
-const { defineSecret } = require("firebase-functions/params");
 const admin = require("firebase-admin");
 const Anthropic = require("@anthropic-ai/sdk");
 
 admin.initializeApp();
-const ANTHROPIC_API_KEY = defineSecret("ANTHROPIC_API_KEY");
+// Key deploy-time .env से function के env में जाती है (deploy workflow लिखता है) —
+// repo/client में कभी नहीं। Secret Manager इसलिए नहीं: FIREBASE_SA के पास उसकी
+// permission नहीं है।
 
 exports.aiBillExtract = onRequest(
-  { secrets: [ANTHROPIC_API_KEY], region: "asia-south1", cors: true, memory: "512MiB", timeoutSeconds: 120 },
+  { region: "asia-south1", cors: true, memory: "512MiB", timeoutSeconds: 120 },
   async (req, res) => {
     if (req.method !== "POST") {
       res.status(405).json({ error: "POST only" });
@@ -50,27 +51,35 @@ exports.aiBillExtract = onRequest(
         return;
       }
 
-      // 3. Input
-      const { imageBase64, mediaType, prompt } = req.body || {};
-      if (!imageBase64 || !mediaType) {
-        res.status(400).json({ error: "imageBase64 और mediaType जरूरी" });
+      // 3. Input — image (bill/receipt) या PDF (bank/UPI statement)
+      const { imageBase64, documentBase64, mediaType, prompt, maxTokens } = req.body || {};
+      const data = imageBase64 || documentBase64;
+      if (!data || !mediaType) {
+        res.status(400).json({ error: "imageBase64/documentBase64 और mediaType जरूरी" });
         return;
       }
-      if (imageBase64.length > 6 * 1024 * 1024) {
-        res.status(413).json({ error: "Image बहुत बड़ी है (max ~4MB)" });
+      if (data.length > 14 * 1024 * 1024) {
+        res.status(413).json({ error: "File बहुत बड़ी है (max ~10MB)" });
         return;
       }
+      const block = documentBase64
+        ? { type: "document", source: { type: "base64", media_type: "application/pdf", data: documentBase64 } }
+        : { type: "image", source: { type: "base64", media_type: mediaType, data: imageBase64 } };
 
       // 4. Anthropic vision call
-      const client = new Anthropic({ apiKey: ANTHROPIC_API_KEY.value() });
+      if (!process.env.ANTHROPIC_API_KEY) {
+        res.status(500).json({ error: "ANTHROPIC_API_KEY function env में नहीं है — deploy workflow से deploy करें" });
+        return;
+      }
+      const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
       const message = await client.messages.create({
         model: "claude-sonnet-4-6",
-        max_tokens: 2048,
+        max_tokens: Math.min(+maxTokens || 2048, 8192),
         messages: [
           {
             role: "user",
             content: [
-              { type: "image", source: { type: "base64", media_type: mediaType, data: imageBase64 } },
+              block,
               { type: "text", text: prompt || "Extract vendor, date, items (name/qty/unit/rate/amount) and total from this bill as JSON only." },
             ],
           },

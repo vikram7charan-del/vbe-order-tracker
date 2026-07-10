@@ -105,14 +105,16 @@ async function main() {
     }
 
     const start = new Date(t);
-    const end = new Date(t + 15 * 60 * 1000);
+    const durMin = Number(d.durationMins) > 0 ? Number(d.durationMins) : 15;
+    const end = new Date(t + durMin * 60 * 1000);
     const desc = active.map((x, i) =>
       `${i + 1}. ${x.cat && TASK_CATS[x.cat] ? TASK_CATS[x.cat] + ' ' : ''}${x.t}`
     ).join('\n') + `\n\n📱 ${d.phone || ''}\n— VBE Call Tracker`;
 
     const body = {
       id: evId,
-      summary: '📞 Call: ' + (d.name || '?'),
+      // खुद के task (aiQuick) पर 📅, contact call पर 📞 Call:
+      summary: (d.aiQuick ? ((d.emoji || '📅') + ' ') : '📞 Call: ') + (d.name || '?'),
       description: desc,
       start: { dateTime: start.toISOString(), timeZone: 'Asia/Kolkata' },
       end: { dateTime: end.toISOString(), timeZone: 'Asia/Kolkata' },

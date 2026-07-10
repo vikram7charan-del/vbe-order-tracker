@@ -85,8 +85,7 @@ h2.sec-title{font-size:14px;font-weight:900;color:#1e293b;margin-bottom:10px}
         <div class="sub"><span id="h-date"></span> · <span id="h-user"></span> <span class="badge" id="h-role"></span></div>
       </div>
       <div style="display:flex;gap:8px;align-items:center">
-        <a href="./payments.html" style="color:#fff;text-decoration:none;font-size:18px" title="पेमेंट/स्टेटमेंट">💳</a>
-        <a href="./kharcha-dashboard.html" id="lnk-dash" style="display:none;color:#fff;text-decoration:none;font-size:18px" title="Dashboard">📊</a>
+        <button class="vbe-menu-btn" onclick="vbeMenu(1)">☰ मेनू</button>
         <a href="#" onclick="doLogout();return false" style="color:#fff;text-decoration:none;font-size:16px" title="Logout">🚪</a>
       </div>
     </div>
@@ -194,6 +193,39 @@ h2.sec-title{font-size:14px;font-weight:900;color:#1e293b;margin-bottom:10px}
   </div>
 </div>
 
+
+<!-- ═══ VBE Apps Menu (सब pages में एक जैसा) ═══ -->
+<div id="vbe-menu" style="display:none;position:fixed;inset:0;z-index:120;background:rgba(15,23,42,.45)" onclick="if(event.target===this)vbeMenu(0)">
+  <div style="background:#fff;border-radius:0 0 24px 24px;padding:16px 14px 18px;max-width:480px;margin:0 auto;box-shadow:0 18px 40px rgba(15,23,42,.35);animation:vbeSlide .18s ease">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <b style="font-size:15px;color:#0f172a;font-family:'Noto Sans Devanagari',sans-serif">🏢 VBE Apps</b>
+      <button onclick="vbeMenu(0)" style="border:none;background:#f1f5f9;border-radius:8px;padding:6px 12px;font-weight:900;cursor:pointer;font-size:13px">✕</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+      <a class="vbe-tile" href="./kharcha-entry.html" style="background:linear-gradient(135deg,#1d4ed8,#3b82f6)"><span class="ic">🧾</span>खर्चा एंट्री</a>
+      <a class="vbe-tile" href="./payments.html" style="background:linear-gradient(135deg,#3730a3,#6366f1)"><span class="ic">💳</span>पेमेंट</a>
+      <a class="vbe-tile" href="./pricebook.html" style="background:linear-gradient(135deg,#047857,#10b981)"><span class="ic">📗</span>प्राइसबुक</a>
+      <a class="vbe-tile" href="./marwar-rasoi.html" style="background:linear-gradient(135deg,#b91c1c,#ef4444)"><span class="ic">🍽️</span>मारवाड़ रसोई</a>
+      <a class="vbe-tile" href="./unit-receivables.html" style="background:linear-gradient(135deg,#166534,#22c55e)"><span class="ic">🎖️</span>Unit पैसा</a>
+      <a class="vbe-tile" href="./kharcha-dashboard.html" style="background:linear-gradient(135deg,#0e7490,#06b6d4)"><span class="ic">📊</span>Dashboard</a>
+      <a class="vbe-tile" href="./" style="background:linear-gradient(135deg,#334155,#64748b)"><span class="ic">📦</span>Order App</a>
+    </div>
+  </div>
+</div>
+<style>
+@keyframes vbeSlide{from{transform:translateY(-14px);opacity:.5}to{transform:translateY(0);opacity:1}}
+.vbe-tile{display:flex;flex-direction:column;align-items:center;gap:7px;text-decoration:none;padding:14px 4px;border-radius:16px;color:#fff;font-weight:800;font-size:11.5px;font-family:'Noto Sans Devanagari',sans-serif;box-shadow:0 10px 20px -8px rgba(15,23,42,.4);text-align:center}
+.vbe-tile .ic{font-size:30px;filter:drop-shadow(0 4px 8px rgba(0,0,0,.28))}
+.vbe-tile:active{transform:scale(.95)}
+.vbe-tile.cur{outline:3px solid rgba(255,255,255,.75);outline-offset:-3px}
+.vbe-menu-btn{border:none;background:rgba(255,255,255,.2);color:#fff;font-size:16px;border-radius:9px;padding:7px 12px;font-weight:900;cursor:pointer;font-family:inherit}
+</style>
+<script>
+function vbeMenu(v){document.getElementById('vbe-menu').style.display=v?'block':'none'}
+(function(){var p=location.pathname.split('/').pop()||'index.html';
+document.querySelectorAll('.vbe-tile').forEach(function(a){var h=a.getAttribute('href').replace('./','');if(h===p)a.classList.add('cur')})})();
+</script>
+
 <div class="toast" id="toast"></div>
 
 <script type="module">
@@ -223,7 +255,7 @@ const CATEGORIES = [
 const DEFAULT_ACCOUNTS = ['Google Pay 1 (Vikram)','Google Pay 2','Google Pay 3','BharatPe (Sushila Kanwar)','Cash (नकद)','Bank Transfer'];
 const UNITS_HINT = {kg:'kg', pcs:'पीस', ltr:'लीटर', gm:'ग्राम', box:'बॉक्स', bag:'बोरी'};
 
-const app = initializeApp(FB_CFG, 'kharcha-entry');
+const app = initializeApp(FB_CFG, 'vbe-kharcha');
 const auth = getAuth(app);
 // Offline-first: internet जाए तो भी writes queue होकर बाद में Firebase पहुंचती हैं
 let db;

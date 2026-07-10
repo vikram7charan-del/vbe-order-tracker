@@ -52,6 +52,19 @@ function eventId(id) {
   // Google event id: सिर्फ़ a-v, 0-9 — sha1 hex (0-9a-f) safe है
   return 'vbe' + crypto.createHash('sha1').update(String(id)).digest('hex');
 }
+const APP_URL = 'https://vbe-order-tracker-60324.web.app/call-tracker.html';
+/* event description के नीचे Call/WhatsApp/App के सीधे link —
+   Google Calendar में नंबर और URL अपने-आप tap करने लायक बन जाते हैं */
+function contactLinks(id, d) {
+  const ph = (d.phone || '').replace(/[^0-9]/g, '');
+  const wa = ((d.waPhone || d.phone) || '').replace(/[^0-9]/g, '');
+  let s = '\n';
+  if (ph) s += `\n📞 Call: +91 ${ph}`;
+  if (wa) s += `\n💬 WhatsApp: https://wa.me/${wa.length === 10 ? '91' + wa : wa}`;
+  s += `\n🔗 App में खोलें: ${APP_URL}?open=${id}`;
+  s += '\n— VBE Call Tracker';
+  return s;
+}
 
 async function main() {
   const saJson = process.env.FIREBASE_SA;
@@ -111,7 +124,7 @@ async function main() {
     const end = new Date(t + durMin * 60 * 1000);
     const desc = active.map((x, i) =>
       `${i + 1}. ${x.cat && TASK_CATS[x.cat] ? TASK_CATS[x.cat] + ' ' : ''}${x.t}`
-    ).join('\n') + `\n\n📱 ${d.phone || ''}\n— VBE Call Tracker`;
+    ).join('\n') + contactLinks(c.id, d);
 
     const body = {
       id: evId,
@@ -173,7 +186,7 @@ async function main() {
       const tb = {
         id: evTid,
         summary: '⏰ ' + String(x.t).slice(0, 80) + (d.aiQuick ? '' : ' — ' + (d.name || '')),
-        description: (x.t || '') + `\n\n📌 ${d.name || ''}\n📱 ${d.phone || ''}\n— VBE Call Tracker (काम का अपना समय)`,
+        description: (x.t || '') + `\n\n📌 ${d.name || ''}` + contactLinks(c.id, d),
         start: { dateTime: new Date(tt).toISOString(), timeZone: 'Asia/Kolkata' },
         end: { dateTime: new Date(tt + 15 * 60000).toISOString(), timeZone: 'Asia/Kolkata' },
         reminders: {

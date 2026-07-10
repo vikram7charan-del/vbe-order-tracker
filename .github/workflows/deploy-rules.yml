@@ -1,0 +1,42 @@
+# ══════════════════════════════════════════════════════════
+# VBE — Firestore + Storage rules deploy (हाथ से dispatch)
+# खर्चा ट्रैकर या किसी भी rules बदलाव के बाद Actions से
+# "Run workflow" दबाओ — terminal की ज़रूरत नहीं।
+#
+# ⚠️ ज़रूरी: repo secret FIREBASE_SA (service account JSON),
+#    उसी के पास Firestore/Storage rules deploy permission हो
+#    (deploy-hosting.yml वाला ही secret चलेगा)।
+# ══════════════════════════════════════════════════════════
+name: 🔐 Deploy Rules
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'किस branch की rules deploy करनी हैं'
+        required: true
+        default: 'claude/vande-bharat-firebase-jo82rc'
+
+concurrency:
+  group: deploy-rules
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Write service account
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
+        run: printf '%s' "$FIREBASE_SA" > "$RUNNER_TEMP/sa.json"
+      - name: Deploy Firestore + Storage rules
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/sa.json
+        run: npx firebase-tools@latest deploy --only firestore:rules,storage --project vbe-order-tracker-60324 --non-interactive

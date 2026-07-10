@@ -73,6 +73,15 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // vbe_receipts — payment receipts (UTR, party, account) — payments.html
+    match /vbe_receipts/{id} {
+      allow read: if isAdminOrStaff();
+      allow create: if isAdminOrStaff()
+        && request.resource.data.amount is number
+        && request.resource.data.amount >= 0;
+      allow update, delete: if isAdmin();
+    }
+
     // vbe_pricebook — auto-populate हर expense से; merge सिर्फ admin
     match /vbe_pricebook/{id} {
       allow read, create: if isAdminOrStaff();

@@ -50,27 +50,31 @@ exports.aiBillExtract = onRequest(
         return;
       }
 
-      // 3. Input
-      const { imageBase64, mediaType, prompt } = req.body || {};
-      if (!imageBase64 || !mediaType) {
-        res.status(400).json({ error: "imageBase64 और mediaType जरूरी" });
+      // 3. Input — image (bill/receipt) या PDF (bank/UPI statement)
+      const { imageBase64, documentBase64, mediaType, prompt, maxTokens } = req.body || {};
+      const data = imageBase64 || documentBase64;
+      if (!data || !mediaType) {
+        res.status(400).json({ error: "imageBase64/documentBase64 और mediaType जरूरी" });
         return;
       }
-      if (imageBase64.length > 6 * 1024 * 1024) {
-        res.status(413).json({ error: "Image बहुत बड़ी है (max ~4MB)" });
+      if (data.length > 14 * 1024 * 1024) {
+        res.status(413).json({ error: "File बहुत बड़ी है (max ~10MB)" });
         return;
       }
+      const block = documentBase64
+        ? { type: "document", source: { type: "base64", media_type: "application/pdf", data: documentBase64 } }
+        : { type: "image", source: { type: "base64", media_type: mediaType, data: imageBase64 } };
 
       // 4. Anthropic vision call
       const client = new Anthropic({ apiKey: ANTHROPIC_API_KEY.value() });
       const message = await client.messages.create({
         model: "claude-sonnet-4-6",
-        max_tokens: 2048,
+        max_tokens: Math.min(+maxTokens || 2048, 8192),
         messages: [
           {
             role: "user",
             content: [
-              { type: "image", source: { type: "base64", media_type: mediaType, data: imageBase64 } },
+              block,
               { type: "text", text: prompt || "Extract vendor, date, items (name/qty/unit/rate/amount) and total from this bill as JSON only." },
             ],
           },

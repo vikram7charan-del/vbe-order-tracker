@@ -1,0 +1,63 @@
+# ══════════════════════════════════════════════════════════
+# VBE — Admin PIN reset (हाथ से dispatch)
+# नया PIN repo secret VBE_NEW_PIN से आता है (public logs/inputs में
+# कभी नहीं दिखता)। Account न हो तो बना देता है + admin बना देता है।
+# ══════════════════════════════════════════════════════════
+name: 🔑 Admin PIN Reset
+
+on:
+  workflow_dispatch:
+    inputs:
+      mobile:
+        description: 'किस mobile का PIN reset करना है'
+        required: true
+        default: '9887401741'
+
+jobs:
+  reset:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install firebase-admin
+        run: npm install --no-audit --no-fund firebase-admin@12
+      - name: Write service account
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
+        run: printf '%s' "$FIREBASE_SA" > "$RUNNER_TEMP/sa.json"
+      - name: Reset PIN
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/sa.json
+          NEW_PIN: ${{ secrets.VBE_NEW_PIN }}
+          MOBILE: ${{ inputs.mobile }}
+        run: |
+          node - <<'EOF'
+          const admin = require('firebase-admin');
+          admin.initializeApp({ credential: admin.credential.applicationDefault() });
+          const pin = process.env.NEW_PIN || '';
+          const mobile = (process.env.MOBILE || '').replace(/[^0-9]/g, '');
+          (async () => {
+            if (pin.length < 6) throw new Error('VBE_NEW_PIN secret कम से कम 6 characters का होना चाहिए (या secret बना ही नहीं)');
+            if (mobile.length !== 10) throw new Error('Mobile 10 अंक का होना चाहिए');
+            const email = mobile + '@vbe-tracker.local';
+            const auth = admin.auth();
+            let uid, action;
+            try {
+              const u = await auth.getUserByEmail(email);
+              uid = u.uid;
+              await auth.updateUser(uid, { password: pin });
+              action = 'PIN updated';
+            } catch (e) {
+              if (e.code !== 'auth/user-not-found') throw e;
+              const u = await auth.createUser({ email, password: pin });
+              uid = u.uid;
+              action = 'Account created';
+            }
+            await admin.firestore().doc('vbe_admins/' + uid).set({
+              uid, role: 'admin', updatedAt: new Date().toISOString(), via: 'pin-reset-workflow'
+            }, { merge: true });
+            console.log(`✅ ${action} for ${mobile} (uid ${uid.slice(0, 8)}...) + admin role ensured`);
+          })().catch(e => { console.error('❌ ' + e.message); process.exit(1); });
+          EOF

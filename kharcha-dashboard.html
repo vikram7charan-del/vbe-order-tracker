@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#1d4ed8">
+<meta name="robots" content="noindex,nofollow">
+<title>VBE खर्चा Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#f1f5f9;color:#0f172a;font-family:'Noto Sans Devanagari',sans-serif;min-height:100dvh;max-width:480px;margin:0 auto;padding-bottom:50px}
+.topbar{background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#fff;padding:14px 16px;border-radius:0 0 18px 18px}
+.topbar h1{font-size:17px;font-weight:900}
+.topbar .sub{font-size:11px;opacity:.85;margin-top:2px}
+.navlinks{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.navlinks a{color:#fff;text-decoration:none;font-size:11px;font-weight:800;background:rgba(255,255,255,.15);padding:6px 10px;border-radius:8px}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:14px;margin:12px 12px 0;box-shadow:0 1px 4px rgba(15,23,42,.05)}
+.lbl{font-size:12px;color:#475569;font-weight:800;margin-bottom:6px;display:block}
+.inp{background:#fff;border:1.5px solid #cbd5e1;border-radius:10px;padding:11px 12px;font-size:14px;font-family:inherit;width:100%;outline:none}
+.inp:focus{border-color:#2563eb}
+.btn{width:100%;padding:13px;border:none;border-radius:11px;font-size:14px;font-weight:900;cursor:pointer;font-family:inherit;background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff}
+.btn:disabled{opacity:.55}
+.btn-ghost{background:#eff6ff;color:#1d4ed8;border:1.5px solid #bfdbfe;font-size:13px;padding:10px}
+.sec{margin-bottom:12px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.big-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.big{background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:12px 6px;text-align:center}
+.big .v{font-size:16px;font-weight:900;color:#1d4ed8}
+.big .l{font-size:10px;color:#64748b;font-weight:700;margin-top:2px}
+.bar-row{margin-bottom:9px}
+.bar-top{display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:3px}
+.bar-top .amt{color:#1d4ed8;font-weight:900}
+.bar-bg{background:#f1f5f9;border-radius:6px;height:10px;overflow:hidden}
+.bar-fill{background:linear-gradient(90deg,#3b82f6,#60a5fa);height:100%;border-radius:6px}
+.alert{border-radius:11px;padding:11px 13px;margin-bottom:8px;font-size:13px;font-weight:700;border:1.5px solid}
+.alert.red{background:#fef2f2;border-color:#fecaca;color:#b91c1c}
+.alert.yellow{background:#fffbeb;border-color:#fde68a;color:#92400e}
+.exp-row{display:flex;justify-content:space-between;align-items:center;padding:10px 4px;border-bottom:1px solid #f1f5f9;cursor:pointer}
+.exp-row .amt{font-weight:900;color:#1d4ed8;font-size:14px}
+.exp-row .meta{font-size:11px;color:#64748b}
+.exp-row .name{font-weight:800;font-size:13px}
+h2.sec-title{font-size:14px;font-weight:900;margin-bottom:10px}
+.mini{font-size:11px;color:#64748b}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#16a34a;color:#fff;padding:11px 22px;border-radius:12px;font-size:13px;font-weight:800;opacity:0;transition:opacity .25s;pointer-events:none;z-index:999;max-width:90%;text-align:center}
+.toast.show{opacity:1}.toast.err{background:#dc2626}
+.login-note{text-align:center;padding:60px 20px;color:#64748b;font-size:14px}
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:flex-end;justify-content:center;z-index:100}
+.modal.show{display:flex}
+.modal-box{background:#fff;border-radius:18px 18px 0 0;max-width:480px;width:100%;max-height:85dvh;overflow-y:auto;padding:18px}
+.modal-box img{max-width:100%;border-radius:10px;margin-top:10px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;color:#64748b;font-size:10px;text-transform:uppercase;padding:5px 4px;border-bottom:1.5px solid #e2e8f0}
+td{padding:7px 4px;border-bottom:1px solid #f1f5f9}
+.acc-row{display:flex;justify-content:space-between;align-items:center;padding:8px 4px;border-bottom:1px solid #f1f5f9;font-size:13px}
+.acc-row button{border:none;border-radius:7px;padding:5px 10px;font-family:inherit;font-weight:800;font-size:11px;cursor:pointer}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>📊 खर्चा Dashboard</h1>
+  <div class="sub" id="h-sub">सिर्फ Admin · <span id="h-date"></span></div>
+  <div class="navlinks">
+    <a href="./kharcha-entry.html">🧾 एंट्री</a>
+    <a href="./pricebook.html">📗 प्राइसबुक</a>
+    <a href="./marwar-rasoi.html">🍽️ मारवाड़ रसोई</a>
+    <a href="./unit-receivables.html">🎖️ Unit Receivables</a>
+  </div>
+</div>
+
+<div id="s-wait" class="login-note">⏳ Login check...<br><br><a href="./kharcha-entry.html" style="color:#1d4ed8">Login करने के लिए खर्चा एंट्री page पर जाएं</a></div>
+
+<div id="s-app" style="display:none">
+
+  <!-- Alerts -->
+  <div class="card" id="alerts-card" style="display:none">
+    <h2 class="sec-title">🚨 Alerts</h2>
+    <div id="alerts"></div>
+  </div>
+
+  <!-- Big numbers -->
+  <div class="card">
+    <h2 class="sec-title">कुल खर्च</h2>
+    <div class="big-grid">
+      <div class="big"><div class="v" id="b-today">—</div><div class="l">आज</div></div>
+      <div class="big"><div class="v" id="b-week">—</div><div class="l">इस हफ्ते</div></div>
+      <div class="big"><div class="v" id="b-month">—</div><div class="l">इस महीने</div></div>
+    </div>
+  </div>
+
+  <!-- Date range filter -->
+  <div class="card">
+    <h2 class="sec-title">📅 Date Range</h2>
+    <div class="two-col sec">
+      <div><label class="lbl">से</label><input class="inp" type="date" id="r-from" onchange="applyRange()"></div>
+      <div><label class="lbl">तक</label><input class="inp" type="date" id="r-to" onchange="applyRange()"></div>
+    </div>
+    <button class="btn btn-ghost" onclick="exportCsv()">⬇️ CSV Export (range की entries)</button>
+  </div>
+
+  <!-- Breakdowns -->
+  <div class="card"><h2 class="sec-title">🏢 Firm-wise खर्च</h2><div id="bars-firm"></div></div>
+  <div class="card"><h2 class="sec-title">👤 Staff-wise खर्च</h2><div id="bars-staff"></div></div>
+  <div class="card"><h2 class="sec-title">💳 Payment Source-wise</h2><div id="bars-pay"></div></div>
+
+  <!-- Entries -->
+  <div class="card">
+    <h2 class="sec-title">🧾 Entries <span class="mini" id="e-count"></span></h2>
+    <div id="exp-list"></div>
+    <button class="btn btn-ghost" id="more-btn" onclick="showMore()" style="display:none;margin-top:8px">और दिखाएं</button>
+  </div>
+
+  <!-- Staff accounts -->
+  <div class="card">
+    <h2 class="sec-title">👥 Staff Accounts</h2>
+    <div id="staff-list" style="margin-bottom:10px"></div>
+    <details>
+      <summary style="font-size:13px;font-weight:800;color:#1d4ed8;cursor:pointer">＋ नया Staff Account बनाएं</summary>
+      <div style="margin-top:10px">
+        <div class="sec"><label class="lbl">नाम</label><input class="inp" id="ns-name" placeholder="Manoj Charan"></div>
+        <div class="two-col sec">
+          <div><label class="lbl">Mobile (login ID)</label><input class="inp" id="ns-phone" type="tel" maxlength="10" inputmode="numeric"></div>
+          <div><label class="lbl">PIN (min 6)</label><input class="inp" id="ns-pin" maxlength="12"></div>
+        </div>
+        <button class="btn" onclick="createStaff()" id="ns-btn">👤 Account बनाएं</button>
+        <div class="mini" style="margin-top:6px">Staff इसी mobile+PIN से kharcha-entry.html पर login करेगा। WhatsApp reminders इसी mobile number पर जाएंगे।</div>
+      </div>
+    </details>
+  </div>
+
+  <!-- Payment accounts master -->
+  <div class="card">
+    <details>
+      <summary style="font-size:13px;font-weight:800;color:#475569;cursor:pointer">💳 Payment Accounts Manage करें</summary>
+      <div style="margin-top:10px">
+        <div id="acc-list"></div>
+        <div class="two-col sec" style="margin-top:10px">
+          <input class="inp" id="new-acc" placeholder="नया account नाम">
+          <button class="btn btn-ghost" onclick="addAccount()" style="padding:11px">＋ जोड़ें</button>
+        </div>
+      </div>
+    </details>
+  </div>
+</div>
+
+<!-- Entry detail modal -->
+<div class="modal" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <h2 class="sec-title" style="margin:0" id="m-title"></h2>
+      <button onclick="closeModal()" style="border:none;background:#f1f5f9;border-radius:8px;padding:6px 12px;font-weight:900;cursor:pointer">✕</button>
+    </div>
+    <div id="m-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp, deleteApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signOut as signOut2 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const FB_CFG = {
+  apiKey:'AIzaSyBCe5DKNKcthOl4umprfRm2QBfbVaFORg8',
+  authDomain:'vbe-order-tracker-60324.firebaseapp.com',
+  projectId:'vbe-order-tracker-60324',
+  storageBucket:'vbe-order-tracker-60324.firebasestorage.app',
+  messagingSenderId:'894023456122',
+  appId:'1:894023456122:web:6ee548f0913c887c67f2c3'
+};
+const CAT_LABELS={kaccha:'कच्चा माल',fuel:'पेट्रोल-डीज़ल',army:'Army Unit खरीद',repair:'Repair-Maintenance',salary:'सैलरी/Advance',other:'अन्य खर्च','':'—'};
+
+const app=initializeApp(FB_CFG,'kharcha-dash');
+const auth=getAuth(app);
+const db=getFirestore(app);
+
+let ME=null, EXP=[], RANGE_EXP=[], RECV=[], MR_STAFF=[], SHOW_N=30;
+
+function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function fmt(n){ return '₹'+Math.round(+(n||0)).toLocaleString('hi-IN'); }
+function esc(s){ return String(s??'').replace(/</g,'&lt;'); }
+function daysSince(d){ return Math.floor((Date.now()-new Date(d).getTime())/864e5); }
+
+onAuthStateChanged(auth, async u=>{
+  if(!u) return;
+  const a=await getDoc(doc(db,'vbe_admins',u.uid));
+  if(!a.exists()){ document.getElementById('s-wait').textContent='❌ सिर्फ Admin access — यह मालिक का dashboard है'; return; }
+  ME={uid:u.uid};
+  document.getElementById('s-wait').style.display='none';
+  document.getElementById('s-app').style.display='block';
+  document.getElementById('h-date').textContent=new Date().toLocaleDateString('hi-IN',{day:'numeric',month:'long'});
+  // default range = this month
+  const t=todayStr();
+  document.getElementById('r-from').value=t.slice(0,8)+'01';
+  document.getElementById('r-to').value=t;
+  await loadAll();
+});
+
+async function loadAll(){
+  const [expSnap, recvSnap, mrSnap] = await Promise.all([
+    getDocs(collection(db,'vbe_expenses')),
+    getDocs(collection(db,'unit_receivables')).catch(()=>({forEach:()=>{}})),
+    getDocs(collection(db,'mr_staff_ledger')).catch(()=>({forEach:()=>{}}))
+  ]);
+  EXP=[]; expSnap.forEach(d=>EXP.push(d.data()));
+  EXP.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+  RECV=[]; recvSnap.forEach(d=>RECV.push(d.data()));
+  MR_STAFF=[]; mrSnap.forEach(d=>MR_STAFF.push(d.data()));
+  renderBig(); renderAlerts(); applyRange();
+  loadStaffAccounts(); loadAccounts();
+}
+
+// ── Big numbers ──
+function renderBig(){
+  const t=todayStr(), m=t.slice(0,7);
+  const weekAgo=new Date(Date.now()-6*864e5).toISOString().slice(0,10);
+  let dt=0,dw=0,dm=0;
+  EXP.forEach(e=>{
+    const a=+e.total||0;
+    if(e.date===t)dt+=a;
+    if(e.date>=weekAgo)dw+=a;
+    if(e.date&&e.date.startsWith(m))dm+=a;
+  });
+  document.getElementById('b-today').textContent=fmt(dt);
+  document.getElementById('b-week').textContent=fmt(dw);
+  document.getElementById('b-month').textContent=fmt(dm);
+}
+
+// ── Alerts ──
+function renderAlerts(){
+  const alerts=[];
+  const pendBill=EXP.filter(e=>e.entryStatus==='pending'||e.billStatus==='pending');
+  const stale=pendBill.filter(e=>e.entryStatus==='pending'&&(Date.now()-new Date(e.createdAt).getTime())>24*36e5);
+  if(stale.length) alerts.push({cls:'red', txt:`🔴 ${stale.length} pending entries 24+ घंटे से अधूरी — staff से details भरवाओ`});
+  else if(pendBill.length) alerts.push({cls:'yellow', txt:`🟡 ${pendBill.length} entries में bill photo/details बाकी`});
+  const old=RECV.filter(r=>r.status!=='paid'&&daysSince(r.purchaseDate)>=30);
+  if(old.length){
+    const amt=old.reduce((a,b)=>a+(+b.amount||0),0);
+    alerts.push({cls:'red', txt:`🔴 ${fmt(amt)} — ${old.length} unit receivables 30+ दिन पुराने!`});
+  }
+  const m=todayStr().slice(0,7);
+  let salaryDue=0;
+  MR_STAFF.forEach(s=>{
+    const att=s.attendance?.[m]||{};
+    let days=0; Object.values(att).forEach(v=>{if(v==='P')days+=1;else if(v==='H')days+=0.5;});
+    const adv=(s.advances||[]).filter(a=>a.date&&a.date.startsWith(m)).reduce((a,b)=>a+(+b.amount||0),0);
+    salaryDue+=Math.max(0, days*(+s.perDay||0)-adv);
+  });
+  if(salaryDue>0) alerts.push({cls:'yellow', txt:`🟡 मारवाड़ रसोई staff सैलरी बकाया (इस महीने): ${fmt(salaryDue)}`});
+  const card=document.getElementById('alerts-card');
+  if(!alerts.length){ card.style.display='none'; return; }
+  card.style.display='block';
+  document.getElementById('alerts').innerHTML=alerts.map(a=>`<div class="alert ${a.cls}">${a.txt}</div>`).join('');
+}
+
+// ── Range + breakdowns ──
+window.applyRange=function(){
+  const from=document.getElementById('r-from').value||'0000';
+  const to=document.getElementById('r-to').value||'9999';
+  RANGE_EXP=EXP.filter(e=>e.date>=from&&e.date<=to);
+  SHOW_N=30;
+  renderBars('bars-firm', groupSum(RANGE_EXP, e=>e.firm||'—'));
+  renderBars('bars-staff', groupSum(RANGE_EXP, e=>e.staffName||'—'));
+  renderBars('bars-pay', groupSum(RANGE_EXP, e=>e.paymentSource||'—'));
+  renderList();
+};
+function groupSum(arr, keyFn){
+  const g={};
+  arr.forEach(e=>{ const k=keyFn(e); g[k]=(g[k]||0)+(+e.total||0); });
+  return Object.entries(g).sort((a,b)=>b[1]-a[1]);
+}
+function renderBars(id, entries){
+  const max=entries.length?entries[0][1]:1;
+  document.getElementById(id).innerHTML=entries.map(([k,v])=>`
+    <div class="bar-row">
+      <div class="bar-top"><span>${esc(k)}</span><span class="amt">${fmt(v)}</span></div>
+      <div class="bar-bg"><div class="bar-fill" style="width:${Math.max(3,Math.round(v/max*100))}%"></div></div>
+    </div>`).join('') || '<div class="mini">कोई data नहीं</div>';
+}
+
+// ── Entries list ──
+function renderList(){
+  document.getElementById('e-count').textContent='('+RANGE_EXP.length+')';
+  const box=document.getElementById('exp-list');
+  box.innerHTML='';
+  RANGE_EXP.slice(0,SHOW_N).forEach(e=>{
+    const div=document.createElement('div');
+    div.className='exp-row';
+    const flag=e.entryStatus==='pending'?'🔴 ':(e.billStatus==='pending'?'🟡 ':'');
+    div.innerHTML=`<div><div class="name">${flag}${esc(e.vendor||CAT_LABELS[e.category]||'खर्चा')}</div>
+      <div class="meta">${e.date} · ${esc(e.staffName||'')} · ${esc((e.firm||'').slice(0,20))}</div></div>
+      <div class="amt">${fmt(e.total)}</div>`;
+    div.onclick=()=>openDetail(e);
+    box.appendChild(div);
+  });
+  document.getElementById('more-btn').style.display=RANGE_EXP.length>SHOW_N?'block':'none';
+}
+window.showMore=function(){ SHOW_N+=30; renderList(); };
+
+// ── Detail modal ──
+window.closeModal=()=>document.getElementById('modal').classList.remove('show');
+function openDetail(e){
+  document.getElementById('m-title').textContent=fmt(e.total)+' — '+(e.vendor||CAT_LABELS[e.category]||'');
+  const itemsHtml=(e.items||[]).length?`
+    <table style="margin-top:8px"><thead><tr><th>Item</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead>
+    <tbody>${e.items.map(it=>`<tr><td>${esc(it.name)}</td><td>${it.qty} ${esc(it.unit||'')}</td><td>${fmt(it.rate)}</td><td>${fmt(it.amount)}</td></tr>`).join('')}</tbody></table>`
+    :'<div class="mini" style="margin-top:8px">Items details नहीं भरे गए</div>';
+  document.getElementById('m-body').innerHTML=`
+    <div class="mini" style="line-height:2">
+      📅 ${e.date} · 🏢 ${esc(e.firm)} · 📁 ${CAT_LABELS[e.category]||'—'}<br>
+      👤 ${esc(e.staffName)} · 💳 ${esc(e.paymentSource||'—')}<br>
+      Status: ${e.entryStatus==='pending'?'🔴 अधूरी (details pending)':(e.billStatus==='pending'?'🟡 bill photo pending':'✅ complete')}
+      ${e.notes?('<br>📝 '+esc(e.notes)):''}
+    </div>
+    ${itemsHtml}
+    ${e.billPhotoUrl?`<img src="${e.billPhotoUrl}" alt="bill">`:''}
+    <button class="btn btn-ghost" style="margin-top:12px;border-color:#fecaca;background:#fef2f2;color:#b91c1c" id="m-del">🗑️ Entry Delete करें</button>`;
+  document.getElementById('m-del').onclick=()=>delEntry(e);
+  document.getElementById('modal').classList.add('show');
+}
+async function delEntry(e){
+  if(!confirm('पक्का delete करें? ('+fmt(e.total)+')')) return;
+  try{
+    await setDoc(doc(db,'_audit_logs','al_'+Date.now().toString(36)),{
+      action:'delete', collection:'vbe_expenses', docId:e.id,
+      byUid:ME.uid, before:e, at:new Date().toISOString()
+    });
+    await deleteDoc(doc(db,'vbe_expenses',e.id));
+    EXP=EXP.filter(x=>x.id!==e.id);
+    closeModal(); renderBig(); applyRange();
+    toast('🗑️ Delete हुआ (audit log में record है)');
+  }catch(err){ toast('❌ '+err.message,'err'); }
+}
+
+// ── CSV export ──
+window.exportCsv=function(){
+  const rows=[['Date','Firm','Category','Vendor','Staff','Payment Source','Total','Items','Status','Notes']];
+  RANGE_EXP.forEach(e=>{
+    rows.push([e.date, e.firm, CAT_LABELS[e.category]||'', e.vendor||'', e.staffName||'', e.paymentSource||'',
+      e.total, (e.items||[]).map(it=>`${it.name} ${it.qty}${it.unit}@${it.rate}=${it.amount}`).join('; '),
+      e.entryStatus==='pending'?'PENDING':(e.billStatus==='pending'?'BILL_PENDING':'OK'), e.notes||'']);
+  });
+  const csv='﻿'+rows.map(r=>r.map(c=>'"'+String(c??'').replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download='vbe-kharcha-'+document.getElementById('r-from').value+'-to-'+document.getElementById('r-to').value+'.csv';
+  a.click();
+  toast('⬇️ CSV download हुई');
+};
+
+// ── Staff accounts ──
+async function loadStaffAccounts(){
+  const snap=await getDocs(collection(db,'vbe_users'));
+  const box=document.getElementById('staff-list');
+  const arr=[]; snap.forEach(d=>{const x=d.data(); if(x.role==='staff') arr.push(x);});
+  box.innerHTML=arr.map(s=>`<div class="acc-row"><span>👤 ${esc(s.name)} <span class="mini">(${esc(s.phone)})</span></span></div>`).join('')
+    || '<div class="mini">अभी कोई staff account नहीं</div>';
+}
+window.createStaff=async function(){
+  const name=(document.getElementById('ns-name').value||'').trim();
+  const phone=(document.getElementById('ns-phone').value||'').trim();
+  const pin=(document.getElementById('ns-pin').value||'').trim();
+  if(!name||phone.length!==10||pin.length<6){ toast('⚠️ नाम, 10-digit mobile, min 6 char PIN','err'); return; }
+  const btn=document.getElementById('ns-btn'); btn.disabled=true; btn.textContent='⏳ बन रहा है...';
+  let app2=null;
+  try{
+    // secondary app: admin logged-in रहता है
+    app2=initializeApp(FB_CFG,'staff-create-'+Date.now());
+    const auth2=getAuth(app2);
+    const cred=await createUserWithEmailAndPassword(auth2, phone+'@vbe-tracker.local', pin);
+    const uid=cred.user.uid;
+    await signOut2(auth2);
+    await setDoc(doc(db,'vbe_users',uid),{
+      uid, role:'staff', name, phone, createdAt:new Date().toISOString(), createdBy:ME.uid
+    });
+    toast('✅ '+name+' का account बन गया — '+phone+' + PIN से login');
+    document.getElementById('ns-name').value=''; document.getElementById('ns-phone').value=''; document.getElementById('ns-pin').value='';
+    loadStaffAccounts();
+  }catch(e){
+    toast('❌ '+(e.code==='auth/email-already-in-use'?'यह mobile पहले से registered है':e.message),'err');
+  }finally{
+    if(app2) try{ await deleteApp(app2); }catch(_){}
+    btn.disabled=false; btn.textContent='👤 Account बनाएं';
+  }
+};
+
+// ── Payment accounts master ──
+let ACCOUNTS=[];
+async function loadAccounts(){
+  ACCOUNTS=[];
+  const snap=await getDocs(collection(db,'vbe_payment_accounts'));
+  snap.forEach(d=>ACCOUNTS.push({docId:d.id, ...d.data()}));
+  ACCOUNTS.sort((a,b)=>(a.order||0)-(b.order||0));
+  const box=document.getElementById('acc-list');
+  box.innerHTML=ACCOUNTS.map((a,i)=>`
+    <div class="acc-row">
+      <span>${a.active!==false?'💳':'🚫'} ${esc(a.name)}</span>
+      <button style="background:${a.active!==false?'#fef2f2;color:#b91c1c':'#f0fdf4;color:#166534'}" data-i="${i}">${a.active!==false?'बंद करें':'चालू करें'}</button>
+    </div>`).join('') || '<div class="mini">Accounts खर्चा एंट्री page खोलने पर auto-seed होंगे</div>';
+  box.querySelectorAll('button').forEach(b=>b.onclick=async()=>{
+    const a=ACCOUNTS[+b.dataset.i];
+    await updateDoc(doc(db,'vbe_payment_accounts',a.docId),{active:a.active===false});
+    loadAccounts();
+  });
+}
+window.addAccount=async function(){
+  const name=(document.getElementById('new-acc').value||'').trim();
+  if(!name){ toast('⚠️ नाम डालें','err'); return; }
+  try{
+    await setDoc(doc(db,'vbe_payment_accounts','acc_'+Date.now().toString(36)),{name, active:true, order:ACCOUNTS.length});
+    document.getElementById('new-acc').value='';
+    toast('✅ Account जुड़ा'); loadAccounts();
+  }catch(e){ toast('❌ '+e.message,'err'); }
+};
+
+function toast(msg,type){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast show'+(type==='err'?' err':'');
+  clearTimeout(t._tm); t._tm=setTimeout(()=>t.classList.remove('show'),3200);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#1d4ed8">
+<meta name="robots" content="noindex,nofollow">
+<title>Army Unit Receivables</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#f1f5f9;color:#0f172a;font-family:'Noto Sans Devanagari',sans-serif;min-height:100dvh;max-width:480px;margin:0 auto;padding-bottom:50px}
+.topbar{background:linear-gradient(135deg,#166534,#22c55e);color:#fff;padding:14px 16px;border-radius:0 0 18px 18px}
+.topbar h1{font-size:17px;font-weight:900}
+.topbar .sub{font-size:11px;opacity:.9;margin-top:2px}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:14px;margin:12px 12px 0;box-shadow:0 1px 4px rgba(15,23,42,.05)}
+.lbl{font-size:12px;color:#475569;font-weight:800;margin-bottom:6px;display:block}
+.inp{background:#fff;border:1.5px solid #cbd5e1;border-radius:10px;padding:11px 12px;font-size:15px;font-family:inherit;width:100%;outline:none}
+.inp:focus{border-color:#16a34a}
+.btn{width:100%;padding:13px;border:none;border-radius:11px;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;background:linear-gradient(135deg,#166534,#22c55e);color:#fff}
+.btn:disabled{opacity:.55}
+.btn-ghost{background:#f0fdf4;color:#166534;border:1.5px solid #bbf7d0;font-size:13px;padding:10px}
+.sec{margin-bottom:12px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat{border-radius:10px;padding:11px;text-align:center;border:1px solid #e2e8f0;background:#f8fafc}
+.stat .v{font-size:17px;font-weight:900}
+.stat .l{font-size:10px;color:#64748b;font-weight:700;margin-top:2px}
+.rec{border:1.5px solid #e2e8f0;border-radius:12px;padding:12px;margin-bottom:9px;background:#fff}
+.rec.red{border-color:#fca5a5;background:#fef2f2}
+.rec .top{display:flex;justify-content:space-between;align-items:center}
+.rec .unit{font-weight:900;font-size:14px}
+.rec .amt{font-weight:900;font-size:16px;color:#166534}
+.rec.red .amt{color:#b91c1c}
+.rec .meta{font-size:11px;color:#64748b;margin-top:3px}
+.steps{display:flex;gap:4px;margin-top:9px}
+.step{flex:1;text-align:center;font-size:9px;font-weight:800;padding:6px 2px;border-radius:7px;background:#f1f5f9;color:#94a3b8;border:1px solid #e2e8f0}
+.step.done{background:#dcfce7;color:#15803d;border-color:#86efac}
+.step.next{background:#fff;border:1.5px dashed #16a34a;color:#166534;cursor:pointer}
+.days-badge{font-size:10px;font-weight:900;border-radius:6px;padding:2px 7px;background:#f1f5f9;color:#475569}
+.days-badge.warn{background:#fef3c7;color:#b45309}
+.days-badge.red{background:#fee2e2;color:#b91c1c}
+h2.sec-title{font-size:14px;font-weight:900;margin-bottom:10px}
+.mini{font-size:11px;color:#64748b}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#16a34a;color:#fff;padding:11px 22px;border-radius:12px;font-size:13px;font-weight:800;opacity:0;transition:opacity .25s;pointer-events:none;z-index:999;max-width:90%;text-align:center}
+.toast.show{opacity:1}.toast.err{background:#dc2626}
+.login-note{text-align:center;padding:60px 20px;color:#64748b;font-size:14px}
+.filter-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.fchip{border:1.5px solid #cbd5e1;background:#fff;color:#475569;border-radius:9px;padding:7px 11px;font-size:11px;font-weight:800;font-family:inherit;cursor:pointer}
+.fchip.on{background:#dcfce7;border-color:#16a34a;color:#166534}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <div><h1>🎖️ Army Unit Receivables</h1><div class="sub">पैसा डूबने से बचाओ — खरीद → चालान → बिल → payment</div></div>
+    <a href="./kharcha-dashboard.html" style="color:#fff;text-decoration:none;font-size:11px;background:rgba(255,255,255,.15);padding:6px 10px;border-radius:8px">📊</a>
+  </div>
+</div>
+
+<div id="s-wait" class="login-note">⏳ Login check...<br><br><a href="./kharcha-entry.html" style="color:#1d4ed8">Login करने के लिए खर्चा एंट्री page पर जाएं</a></div>
+
+<div id="s-app" style="display:none">
+
+  <!-- Aging summary -->
+  <div class="card">
+    <h2 class="sec-title">💰 Units में फंसा पैसा</h2>
+    <div class="stat-grid">
+      <div class="stat" style="grid-column:1/3;background:#f0fdf4;border-color:#bbf7d0"><div class="v" style="color:#166534;font-size:22px" id="ag-total">—</div><div class="l">कुल pending (payment नहीं आया)</div></div>
+      <div class="stat"><div class="v" id="ag-0" style="color:#475569">—</div><div class="l">0–15 दिन</div></div>
+      <div class="stat"><div class="v" id="ag-15" style="color:#b45309">—</div><div class="l">15–30 दिन</div></div>
+      <div class="stat" style="grid-column:1/3;background:#fef2f2;border-color:#fecaca"><div class="v" id="ag-30" style="color:#b91c1c">—</div><div class="l">🔴 30+ दिन पुराना — तुरंत follow-up करो!</div></div>
+    </div>
+  </div>
+
+  <!-- New entry -->
+  <div class="card">
+    <h2 class="sec-title">➕ नई Unit खरीद</h2>
+    <div class="sec"><label class="lbl">🎖️ Unit</label>
+      <select class="inp" id="f-unit"></select></div>
+    <div class="sec"><label class="lbl">📦 Item / सामान</label>
+      <input class="inp" id="f-item" placeholder="Fridge 190L, AC 1.5 ton..."></div>
+    <div class="two-col sec">
+      <div><label class="lbl">₹ खरीद Amount</label><input class="inp" type="number" inputmode="decimal" id="f-amt"></div>
+      <div><label class="lbl">📅 खरीद तारीख</label><input class="inp" type="date" id="f-date"></div>
+    </div>
+    <div class="sec"><label class="lbl">🏢 हमारी Firm (किससे बिल जाएगा)</label>
+      <select class="inp" id="f-firm"></select></div>
+    <button class="btn" onclick="saveRec()" id="f-btn">💾 Entry Save करें</button>
+  </div>
+
+  <!-- Unit master -->
+  <div class="card">
+    <details>
+      <summary style="font-size:13px;font-weight:800;color:#475569;cursor:pointer">⚙️ Unit List Manage करें (<span id="unit-count">0</span> units)</summary>
+      <div style="margin-top:10px">
+        <div class="two-col sec">
+          <input class="inp" id="new-unit" placeholder="Unit नाम (177 MH...)">
+          <select class="inp" id="new-unit-loc"><option>Jalipa</option><option>Jaisalmer</option></select>
+        </div>
+        <button class="btn btn-ghost" onclick="addUnit()">＋ Unit जोड़ें</button>
+        <div class="mini" id="unit-list-view" style="margin-top:8px;line-height:2"></div>
+      </div>
+    </details>
+  </div>
+
+  <!-- Records -->
+  <div class="card">
+    <h2 class="sec-title">📋 सभी Entries</h2>
+    <div class="filter-chips">
+      <button class="fchip on" data-f="pending" onclick="setFilter('pending',this)">⏳ Pending</button>
+      <button class="fchip" data-f="paid" onclick="setFilter('paid',this)">✅ Paid</button>
+      <button class="fchip" data-f="all" onclick="setFilter('all',this)">सब</button>
+    </div>
+    <div id="rec-list"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const FB_CFG = {
+  apiKey:'AIzaSyBCe5DKNKcthOl4umprfRm2QBfbVaFORg8',
+  authDomain:'vbe-order-tracker-60324.firebaseapp.com',
+  projectId:'vbe-order-tracker-60324',
+  storageBucket:'vbe-order-tracker-60324.firebasestorage.app',
+  messagingSenderId:'894023456122',
+  appId:'1:894023456122:web:6ee548f0913c887c67f2c3'
+};
+const FIRMS=['Vande Bharat Enterprises','177 Wet Canteen','MES Canteen','मारवाड़ रसोई','Sabji Express','Best Choice Traders','Bright India Enterprises','Ujjwal Bharat Infratech','Shri Hinglaj Infratech'];
+const STATUS_FLOW=[
+  {id:'purchased', label:'खरीदा'},
+  {id:'challan', label:'चालान बना'},
+  {id:'billed', label:'बिल submit'},
+  {id:'paid', label:'💰 Payment आया'}
+];
+
+const app=initializeApp(FB_CFG,'unit-recv');
+const auth=getAuth(app);
+const db=getFirestore(app);
+
+let UNITS=[], RECS=[], FILTER='pending';
+
+function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function fmt(n){ return '₹'+(+(n||0)).toLocaleString('hi-IN'); }
+function esc(s){ return String(s).replace(/</g,'&lt;'); }
+function daysSince(d){ return Math.floor((Date.now()-new Date(d).getTime())/864e5); }
+
+onAuthStateChanged(auth, async u=>{
+  if(!u) return;
+  const a=await getDoc(doc(db,'vbe_admins',u.uid));
+  if(!a.exists()){ document.getElementById('s-wait').textContent='❌ सिर्फ Admin access'; return; }
+  document.getElementById('s-wait').style.display='none';
+  document.getElementById('s-app').style.display='block';
+  document.getElementById('f-date').value=todayStr();
+  document.getElementById('f-firm').innerHTML=FIRMS.map(f=>`<option>${f}</option>`).join('');
+  await loadUnits(); await loadRecs();
+  render();
+});
+
+// ── Units master ──
+async function loadUnits(){
+  UNITS=[];
+  const snap=await getDocs(collection(db,'vbe_kharcha_units'));
+  snap.forEach(d=>UNITS.push(d.data()));
+  UNITS.sort((a,b)=>(a.location||'').localeCompare(b.location||'')||(a.name||'').localeCompare(b.name||''));
+  renderUnits();
+}
+function renderUnits(){
+  document.getElementById('unit-count').textContent=UNITS.length;
+  document.getElementById('f-unit').innerHTML =
+    (UNITS.length?UNITS.map(u=>`<option>${esc(u.name)} (${esc(u.location)})</option>`).join(''):'<option value="">पहले नीचे से unit जोड़ें</option>');
+  document.getElementById('unit-list-view').innerHTML=UNITS.map(u=>`• ${esc(u.name)} <span style="color:#94a3b8">(${esc(u.location)})</span>`).join('<br>')||'अभी कोई unit नहीं — 21 Jalipa + 4 Jaisalmer units जोड़ें';
+}
+window.addUnit=async function(){
+  const name=(document.getElementById('new-unit').value||'').trim();
+  const loc=document.getElementById('new-unit-loc').value;
+  if(!name){ toast('⚠️ Unit नाम डालें','err'); return; }
+  const id='unit_'+Date.now().toString(36);
+  try{
+    await setDoc(doc(db,'vbe_kharcha_units',id),{id,name,location:loc,createdAt:new Date().toISOString()});
+    UNITS.push({id,name,location:loc});
+    renderUnits();
+    document.getElementById('new-unit').value='';
+    toast('✅ '+name+' जुड़ गया');
+  }catch(e){ toast('❌ '+e.message,'err'); }
+};
+
+// ── Records ──
+async function loadRecs(){
+  RECS=[];
+  const snap=await getDocs(collection(db,'unit_receivables'));
+  snap.forEach(d=>RECS.push(d.data()));
+  RECS.sort((a,b)=>(a.purchaseDate||'').localeCompare(b.purchaseDate||''));
+}
+window.saveRec=async function(){
+  const unit=document.getElementById('f-unit').value;
+  const item=(document.getElementById('f-item').value||'').trim();
+  const amt=parseFloat(document.getElementById('f-amt').value)||0;
+  if(!unit){ toast('⚠️ पहले unit जोड़ें/चुनें','err'); return; }
+  if(!item||!amt){ toast('⚠️ Item और amount जरूरी','err'); return; }
+  const btn=document.getElementById('f-btn'); btn.disabled=true;
+  try{
+    const id='ur_'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+    const now=new Date().toISOString();
+    const rec={
+      id, unit, item, amount:amt,
+      purchaseDate:document.getElementById('f-date').value||todayStr(),
+      firm:document.getElementById('f-firm').value,
+      status:'purchased', challanNo:'',
+      statusLog:[{status:'purchased', date:todayStr()}],
+      createdAt:now, updatedAt:now
+    };
+    await setDoc(doc(db,'unit_receivables',id),rec);
+    RECS.push(rec);
+    toast('✅ '+fmt(amt)+' की entry बनी — भूलेंगे नहीं!');
+    document.getElementById('f-item').value=''; document.getElementById('f-amt').value='';
+    render();
+  }catch(e){ toast('❌ '+e.message,'err'); }
+  finally{ btn.disabled=false; }
+};
+
+window.setFilter=function(f,el){
+  FILTER=f;
+  document.querySelectorAll('.fchip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  render();
+};
+
+function render(){
+  // aging (pending = status != paid)
+  const pending=RECS.filter(r=>r.status!=='paid');
+  let t=0,b0=0,b15=0,b30=0;
+  pending.forEach(r=>{
+    const d=daysSince(r.purchaseDate), a=+r.amount||0;
+    t+=a;
+    if(d<15)b0+=a; else if(d<30)b15+=a; else b30+=a;
+  });
+  document.getElementById('ag-total').textContent=fmt(t);
+  document.getElementById('ag-0').textContent=fmt(b0);
+  document.getElementById('ag-15').textContent=fmt(b15);
+  document.getElementById('ag-30').textContent=fmt(b30);
+
+  // list
+  let list=RECS;
+  if(FILTER==='pending') list=pending;
+  else if(FILTER==='paid') list=RECS.filter(r=>r.status==='paid');
+  list=[...list].sort((a,b)=>daysSince(b.purchaseDate)-daysSince(a.purchaseDate));
+  const box=document.getElementById('rec-list');
+  box.innerHTML='';
+  if(!list.length){ box.innerHTML='<div class="mini">कोई entry नहीं</div>'; return; }
+  list.forEach(r=>{
+    const d=daysSince(r.purchaseDate);
+    const stIdx=STATUS_FLOW.findIndex(s=>s.id===r.status);
+    const div=document.createElement('div');
+    div.className='rec'+(r.status!=='paid'&&d>=30?' red':'');
+    const badgeCls=d>=30?'red':(d>=15?'warn':'');
+    div.innerHTML=`
+      <div class="top"><span class="unit">${esc(r.unit)}</span><span class="amt">${fmt(r.amount)}</span></div>
+      <div class="meta">${esc(r.item)} · ${esc(r.firm)} · खरीदा ${r.purchaseDate}
+        ${r.status!=='paid'?`<span class="days-badge ${badgeCls}">${d} दिन pending</span>`:'<span class="days-badge" style="background:#dcfce7;color:#15803d">✅ Paid</span>'}
+        ${r.challanNo?` · 🧾 ${esc(r.challanNo)}`:''}</div>
+      <div class="steps">${STATUS_FLOW.map((s,i)=>
+        `<div class="step ${i<=stIdx?'done':(i===stIdx+1?'next':'')}" data-i="${i}">${s.label}</div>`).join('')}</div>`;
+    const next=div.querySelector('.step.next');
+    if(next) next.onclick=()=>advance(r, +next.dataset.i);
+    box.appendChild(div);
+  });
+}
+
+async function advance(r, toIdx){
+  const target=STATUS_FLOW[toIdx];
+  let challanNo=r.challanNo;
+  if(target.id==='challan'){
+    challanNo=prompt('चालान नंबर डालें (TCH/26-27/xxx):', r.challanNo||'TCH/26-27/');
+    if(challanNo===null) return;
+  } else {
+    if(!confirm(`"${target.label}" mark करें?`)) return;
+  }
+  try{
+    const log=[...(r.statusLog||[]), {status:target.id, date:todayStr()}];
+    await updateDoc(doc(db,'unit_receivables',r.id),{
+      status:target.id, challanNo:challanNo||'', statusLog:log, updatedAt:new Date().toISOString()
+    });
+    r.status=target.id; r.challanNo=challanNo||''; r.statusLog=log;
+    toast('✅ '+target.label);
+    render();
+  }catch(e){ toast('❌ '+e.message,'err'); }
+}
+
+function toast(msg,type){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast show'+(type==='err'?' err':'');
+  clearTimeout(t._tm); t._tm=setTimeout(()=>t.classList.remove('show'),3000);
+}
+</script>
+</body>
+</html>

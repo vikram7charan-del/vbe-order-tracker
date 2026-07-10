@@ -55,6 +55,18 @@ The same Firebase config object is duplicated in every HTML file:
 | `mrk_bills` | Udhari bills (Marwad Rasoi — separate business) |
 | `mrk_cash` | Cash ledger (Marwad Rasoi) |
 | `mrk_staff` | Staff (Marwad Rasoi) |
+| `vbe_expenses` | खर्चा ट्रैकर — expense entries (staff + admin quick entry) |
+| `vbe_pricebook` | खर्चा ट्रैकर — per-item price history (auto-populated from expenses) |
+| `vbe_payment_accounts` | खर्चा ट्रैकर — editable payment-source master (GPay/BharatPe/Cash) |
+| `vbe_users` | खर्चा ट्रैकर — staff role accounts (`role: 'staff'`; admins live in `vbe_admins`) |
+| `vbe_kharcha_units` | खर्चा ट्रैकर — army unit master (Jalipa/Jaisalmer, editable) |
+| `unit_receivables` | खर्चा ट्रैकर — unit purchases: खरीदा → चालान → बिल → paid, with aging |
+| `mr_daily` / `mr_udhari` / `mr_staff_ledger` | Marwar Rasoi daily management (marwar-rasoi.html — separate from legacy `mrk_*`) |
+| `notification_queue` | खर्चा ट्रैकर — WhatsApp reminder queue consumed by n8n (`n8n-kharcha-workflow.json`) |
+| `_audit_logs` | Delete/edit audit trail (create-only) |
+
+### खर्चा ट्रैकर (Expense Tracker) Sub-system
+Pages: `kharcha-entry.html` (staff form + admin quick entry + AI bill reading), `kharcha-dashboard.html` (admin-only analytics, staff account creation, payment-account master, CSV export), `pricebook.html`, `marwar-rasoi.html`, `unit-receivables.html`. Light blue/white theme (unlike the dark main app). Roles: admin = `vbe_admins` doc exists; staff = `vbe_users` doc with `role:'staff'` (created from dashboard via a secondary Firebase app instance). Bill photos go to Storage `kharcha_bills/{expenseId}.jpg` (client-compressed ≤1MB). AI bill extraction calls Anthropic vision via the `kharcha-functions/` Cloud Function proxy (preferred) or a localStorage API key fallback. Firms/categories are hardcoded consts duplicated in each kharcha page.
 
 ## Order Domain Model
 

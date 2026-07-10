@@ -49,11 +49,13 @@ body{
 .hdr-title{font-size:15px;font-weight:900;color:#f59e0b;letter-spacing:.2px}
 .hdr-sub{font-size:9px;color:#475569;margin-top:1px}
 /* छोटी पहचान पट्टी — बड़ा नाम हटाया, screenshot में पता चले भर */
+/* ऊपर पतली पट्टी: बाएँ छोटा नाम, दाएँ छोटा ← App बटन (कोई अलग row नहीं) */
+.app-tag-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-bottom:5px}
 .app-tag{font-size:9px;font-weight:800;color:#f59e0b;opacity:.75;letter-spacing:.4px;
-  padding:0 2px 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1}
 .app-tag-sub{color:#475569;font-weight:700}
 /* icon बटन: बाईं तरफ से, स्क्रीन के अंदर ही — ज़्यादा हों तो नीचे wrap */
-.hdr-btns{display:flex;flex-wrap:wrap;gap:5px;align-items:center;justify-content:flex-start;margin-bottom:7px}
+.hdr-btns{display:flex;flex-wrap:wrap;gap:5px;align-items:center;justify-content:flex-start;margin-bottom:6px}
 .btn-add{
   width:33px;height:33px;border-radius:50%;
   background:linear-gradient(135deg,#f59e0b,#ef4444);
@@ -77,7 +79,7 @@ body{
 .hdr-row2{display:flex;align-items:center;gap:8px;margin-bottom:6px}
 .stats{display:flex;gap:4px;flex:1;min-width:0}
 .stat{
-  flex:1;border-radius:9px;padding:4px 2px;text-align:center;
+  flex:1;border-radius:9px;padding:3px 2px;text-align:center;
   background:linear-gradient(135deg,#090f20,#0c1528);
   border:1px solid rgba(30,58,95,.65);
 }
@@ -85,7 +87,7 @@ body{
 .stat-n.red{color:#f87171}.stat-n.amber{color:#fbbf24}.stat-n.green{color:#4ade80}.stat-n.blue{color:#60a5fa}
 .stat-l{font-size:6.5px;color:#475569;margin-top:1px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
 .btn-add-big{
-  flex-shrink:0;height:44px;padding:0 18px;border:none;border-radius:14px;
+  flex-shrink:0;height:40px;padding:0 16px;border:none;border-radius:13px;
   background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;
   font-size:14.5px;font-weight:900;font-family:inherit;cursor:pointer;
   box-shadow:0 4px 16px rgba(239,68,68,.45),inset 0 1px 0 rgba(255,255,255,.25);
@@ -534,7 +536,10 @@ body.th-geo .btn-add-big{background:linear-gradient(135deg,#6366f1,#a855f7);box-
 
   <!-- Sticky Header -->
   <div class="app-hdr">
-    <div class="app-tag">📞 Call Tracker <span id="hdr-sub" class="app-tag-sub">· Follow-up</span></div>
+    <div class="app-tag-row">
+      <div class="app-tag">📞 Call Tracker <span id="hdr-sub" class="app-tag-sub">· Follow-up</span></div>
+      <a href="./" class="btn-back" title="पुरानी VBE ऐप">← App</a>
+    </div>
     <div class="hdr-btns">
         <button class="btn-icon" onclick="openBroadcast()" title="भेजो Mode — सबको एक-एक करके WhatsApp" style="cursor:pointer;font-family:inherit">📤</button>
         <button class="btn-icon" onclick="openHub()" title="श्रेणी Hub — category-wise सारे काम" style="cursor:pointer;font-family:inherit">🗂️</button>
@@ -544,10 +549,9 @@ body.th-geo .btn-add-big{background:linear-gradient(135deg,#6366f1,#a855f7);box-
         <button class="btn-icon" onclick="unhideAll()" title="Swipe किए हुए सब वापस लाओ" style="cursor:pointer;font-family:inherit">👁️</button>
         <button class="btn-icon" onclick="setN8nUrl()" title="n8n webhook URL (on-demand AI)" style="cursor:pointer;font-family:inherit">⚙️</button>
         <a href="./quick-add.html" class="btn-icon" title="Quick Order Add">📦</a>
-        <button class="btn-icon btn-new-top" onclick="openAddModal()" title="नया contact जोड़ें" style="cursor:pointer;font-family:inherit">➕ नया</button>
       </div>
 
-    <!-- Stats (compact) — पूरी चौड़ाई -->
+    <!-- Stats (compact) + ➕ नया दाईं तरफ (पुराना सही स्थान) -->
     <div class="hdr-row2">
       <div class="stats">
         <div class="stat"><div class="stat-n blue" id="st-total">0</div><div class="stat-l">Contacts</div></div>
@@ -555,6 +559,7 @@ body.th-geo .btn-add-big{background:linear-gradient(135deg,#6366f1,#a855f7);box-
         <div class="stat"><div class="stat-n amber" id="st-due">0</div><div class="stat-l">⏰ जल्दी</div></div>
         <div class="stat"><div class="stat-n green" id="st-today">0</div><div class="stat-l">✅ आज</div></div>
       </div>
+      <button class="btn-add-big" onclick="openAddModal()">➕ नया</button>
     </div>
   </div>
 
@@ -564,7 +569,7 @@ body.th-geo .btn-add-big{background:linear-gradient(135deg,#6366f1,#a855f7);box-
   </div>
 
   <!-- Search bar — scroll के साथ ऊपर चली जाती है -->
-  <div style="padding:8px 13px 4px;position:relative">
+  <div style="padding:5px 13px 4px;position:relative">
     <input class="inp" id="search-inp" style="padding:9px 34px 9px 12px;font-size:13px;border-radius:10px"
            placeholder="🔍 नाम या नंबर खोजें..." oninput="onSearchInput(this.value)">
     <span id="search-clear" onclick="clearSearch()" style="display:none;position:absolute;right:22px;top:50%;transform:translateY(-50%);font-size:15px;color:#64748b;cursor:pointer;padding:4px">✕</span>

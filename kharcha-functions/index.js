@@ -13,15 +13,16 @@
  * फिर deployed URL को kharcha-entry.html के "AI Settings → Proxy URL" में डालें।
  */
 const { onRequest } = require("firebase-functions/v2/https");
-const { defineSecret } = require("firebase-functions/params");
 const admin = require("firebase-admin");
 const Anthropic = require("@anthropic-ai/sdk");
 
 admin.initializeApp();
-const ANTHROPIC_API_KEY = defineSecret("ANTHROPIC_API_KEY");
+// Key deploy-time .env से function के env में जाती है (deploy workflow लिखता है) —
+// repo/client में कभी नहीं। Secret Manager इसलिए नहीं: FIREBASE_SA के पास उसकी
+// permission नहीं है।
 
 exports.aiBillExtract = onRequest(
-  { secrets: [ANTHROPIC_API_KEY], region: "asia-south1", cors: true, memory: "512MiB", timeoutSeconds: 120 },
+  { region: "asia-south1", cors: true, memory: "512MiB", timeoutSeconds: 120 },
   async (req, res) => {
     if (req.method !== "POST") {
       res.status(405).json({ error: "POST only" });
@@ -66,7 +67,11 @@ exports.aiBillExtract = onRequest(
         : { type: "image", source: { type: "base64", media_type: mediaType, data: imageBase64 } };
 
       // 4. Anthropic vision call
-      const client = new Anthropic({ apiKey: ANTHROPIC_API_KEY.value() });
+      if (!process.env.ANTHROPIC_API_KEY) {
+        res.status(500).json({ error: "ANTHROPIC_API_KEY function env में नहीं है — deploy workflow से deploy करें" });
+        return;
+      }
+      const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
       const message = await client.messages.create({
         model: "claude-sonnet-4-6",
         max_tokens: Math.min(+maxTokens || 2048, 8192),

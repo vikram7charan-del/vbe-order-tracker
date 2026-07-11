@@ -67,8 +67,8 @@ h2.sec-title{font-size:14px;font-weight:900;margin-bottom:8px}
 
   <!-- 📄 Statement import -->
   <div class="card">
-    <h2 class="sec-title">📄 Statement Import (PhonePe/GPay/Bank)</h2>
-    <div class="mini" style="margin-bottom:10px">PDF statement या screenshot डालें — AI सारी payments पढ़ेगा, जो entries <b>पहले से हैं उन्हें छोड़ देगा</b> (कोई double entry नहीं), और नई entries अपने आप बना देगा। जिनका bill नहीं है वे 🧾 एंट्री page पर "Bill जोड़ें" list में दिखेंगी।</div>
+    <h2 class="sec-title">📄 Statement Import (Bank / PhonePe / GPay)</h2>
+    <div class="mini" style="margin-bottom:10px">बैंक का PDF statement डालें — पूरा (हज़ारों transactions भी), <b>बिना AI, 100% सही</b> पढ़ा जाता है और balance से अपने-आप जाँचा जाता है ✓। 💸 गया पैसा खर्च में, 💰 आया पैसा आमदनी में जाता है। <b>UTR</b> से पहले वाली entries छोड़ देता है — बैंक और PhonePe दोनों statement दें तो भी कोई double नहीं। PhonePe/GPay screenshot या दूसरे बैंक का statement AI से पढ़ता है।</div>
     <div class="sec"><label class="lbl">🏢 इन payments की firm</label><select class="inp" id="st-firm"></select></div>
     <button class="btn btn-ghost" id="st-btn" onclick="document.getElementById('st-file').click()">📄 Statement चुनें (PDF या photo)</button>
     <input type="file" id="st-file" accept="application/pdf,image/*" style="display:none" onchange="onStatement(event)">
@@ -132,10 +132,20 @@ document.querySelectorAll('.vbe-tile').forEach(function(a){var h=a.getAttribute(
 
 <div class="toast" id="toast"></div>
 
+<!-- pdf.js — बैंक statement (text PDF) को बिना AI, 100% सही, पूरा (हज़ारों txn) पढ़ने के लिए -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.mjs" type="module"></script>
+<script type="module">
+try{
+  const pdfjs = await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.mjs');
+  pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.mjs';
+  window._pdfjsLib = pdfjs;
+}catch(e){ console.warn('pdf.js load fail', e); }
+</script>
+
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, collection, doc, getDoc, getDocs, setDoc, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, writeBatch, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
 
 const FB_CFG = {
@@ -153,7 +163,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-let ME=null, AI_PROXY_DB='', ACCOUNTS=[], RECEIPTS=[], EXPENSES=[], PARSED=null;
+let ME=null, AI_PROXY_DB='', ACCOUNTS=[], RECEIPTS=[], EXPENSES=[], PARTIES=[], PARSED=null;
 
 function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function fmt(n){ return '₹'+(+(n||0)).toLocaleString('hi-IN'); }
@@ -181,15 +191,27 @@ onAuthStateChanged(auth, async u=>{
 });
 
 async function loadAll(){
-  const [accSnap, rcSnap, exSnap] = await Promise.all([
+  const [accSnap, rcSnap, exSnap, ptSnap] = await Promise.all([
     getDocs(collection(db,'vbe_payment_accounts')).catch(()=>({forEach:()=>{}})),
     getDocs(collection(db,'vbe_receipts')).catch(()=>({forEach:()=>{}})),
-    getDocs(collection(db,'vbe_expenses')).catch(()=>({forEach:()=>{}}))
+    getDocs(collection(db,'vbe_expenses')).catch(()=>({forEach:()=>{}})),
+    getDocs(collection(db,'vbe_parties')).catch(()=>({forEach:()=>{}}))
   ]);
   ACCOUNTS=[]; accSnap.forEach(d=>ACCOUNTS.push(d.data()));
   RECEIPTS=[]; rcSnap.forEach(d=>RECEIPTS.push(d.data()));
   EXPENSES=[]; exSnap.forEach(d=>EXPENSES.push(d.data()));
+  PARTIES=[]; ptSnap.forEach(d=>PARTIES.push(d.data()));
   renderParties();
+}
+
+// पार्टी नाम को master (vbe_parties) से मिलाकर साफ़ करो — statement के टूटे नाम ठीक हों
+function canonParty(raw){
+  const key = String(raw||'').toLowerCase().replace(/[^a-z0-9ऀ-ॿ]/g,'');
+  if(!key) return '';
+  for(const p of PARTIES){
+    if(String(p.name||'').toLowerCase().replace(/[^a-z0-9ऀ-ॿ]/g,'')===key) return p.name;
+  }
+  return String(raw||'').replace(/\s+/g,' ').trim();
 }
 
 // account के आखिरी अंकों से नाम पहचानो (dashboard में हर account पर last4 set होता है)
@@ -294,6 +316,69 @@ window.onReceipt = async function(ev){
   finally{ btn.disabled=false; }
 };
 
+// ═══ 📄 बैंक Statement — text PDF का deterministic parser (बिना AI, पूरा, मुफ़्त) ═══
+// pdf.js से items के x/y निर्देशांक लेकर columns (दिनांक|narration|reference|रकम) अलग करते हैं।
+// हर transaction: anchor row (दिनांक + debit/credit/balance) + उसके y-zone की narration.
+// सटीकता running-balance से अपने-आप जँचती है (0 error = 100% सही)।
+const _MON={Jan:'01',Feb:'02',Mar:'03',Apr:'04',May:'05',Jun:'06',Jul:'07',Aug:'08',Sep:'09',Oct:'10',Nov:'11',Dec:'12'};
+const _num=s=>{s=String(s).trim();return (s==='-'||s==='')?0:parseFloat(s.replace(/,/g,''));};
+const _isAmt=s=>/^-$|^[\d,]+\.\d{2}$/.test(String(s).trim());
+const _DATE=/^\d{2} [A-Z][a-z]{2} \d{4}$/;
+async function parseBankPdf(file){
+  const lib=window._pdfjsLib; if(!lib) throw new Error('pdf.js लोड नहीं हुआ');
+  const buf=await file.arrayBuffer();
+  const pdf=await lib.getDocument({data:buf}).promise;
+  const txns=[]; let last4='';
+  for(let pg=1;pg<=pdf.numPages;pg++){
+    const page=await pdf.getPage(pg); const tc=await page.getTextContent();
+    const rows={};
+    for(const it of tc.items){ const s=(it.str||'').trim(); if(!s) continue;
+      const y=Math.round(it.transform[5]), x=Math.round(it.transform[4]);
+      (rows[y]=rows[y]||[]).push({x,s}); }
+    if(pg===1){ // account last4 पहले page से
+      for(const y of Object.keys(rows)){ const line=rows[y].map(o=>o.s).join(' ');
+        const m=line.match(/Account Number\D*(\d{8,})/); if(m){ last4=m[1].slice(-4); break; } } }
+    const ys=Object.keys(rows).map(Number).sort((a,b)=>b-a);
+    const anchors=[], narr=[], refs=[];
+    for(const y of ys){
+      const line=rows[y].sort((a,b)=>a.x-b.x);
+      const dateTok=line.find(o=>o.x<120 && _DATE.test(o.s));
+      const amtToks=line.filter(o=>o.x>=380 && _isAmt(o.s));
+      if(dateTok && amtToks.length>=3){
+        const [d,c,b]=amtToks.slice(0,3).map(o=>o.s);
+        anchors.push({y, date:dateTok.s, debit:_num(d), credit:_num(c), balance:_num(b)});
+      }
+      for(const o of line){ if(o.x>=130 && o.x<250) narr.push({y,s:o.s}); else if(o.x>=250 && o.x<380) refs.push({y,s:o.s}); }
+    }
+    anchors.sort((a,b)=>b.y-a.y);
+    const GAP=10;
+    for(let k=0;k<anchors.length;k++){
+      const upper=anchors[k].y+GAP, lower=(k+1<anchors.length)?anchors[k+1].y+GAP:-Infinity;
+      anchors[k].narr=narr.filter(n=>n.y<=upper&&n.y>lower).sort((a,b)=>b.y-a.y).map(n=>n.s).join(' ');
+      anchors[k].ref =refs.filter(n=>n.y<=upper&&n.y>lower).sort((a,b)=>b.y-a.y).map(n=>n.s).join('');
+    }
+    for(const a of anchors){
+      const dir=(a.credit>0&&a.debit===0)?'in':'out'; const amount=dir==='in'?a.credit:a.debit;
+      if(amount<=0) continue;
+      const dm=a.date.match(/(\d{2}) ([A-Z][a-z]{2}) (\d{4})/);
+      const iso=dm?`${dm[3]}-${_MON[dm[2]]}-${dm[1]}`:a.date;
+      const nz=(a.narr||'').replace(/\s+/g,'');
+      let utr='', party='';
+      const mu=nz.match(/UPI\/[A-Z]{2}\/(\d{9,18})/);
+      if(mu){ utr=mu[1]; const mp=nz.match(/UPI\/[A-Z]{2}\/\d+\/(.*?)\/[A-Z]{3,4}\//); if(mp) party=mp[1]; }
+      else if(/BYCLG/.test(nz)){ const mp=(a.narr||'').match(/BARMER\s+(.+)$/); if(mp) party=mp[1].trim(); const mr=(a.ref||'').match(/(\d{6,})/); if(mr) utr=mr[1]; }
+      else if(/(?:NEFT|IMPS)CR-/.test(nz)){ const mp=nz.match(/CR-[A-Z0-9]+-?(.+?)-SBIN/); if(mp) party=mp[1].replace(/(.+?)\1$/,'$1'); const mr=nz.match(/((?:SBINN|AUBLN)\d+)/); if(mr) utr=mr[1]; }
+      else if(/NEFTDR-/.test(nz)){ const mp=nz.match(/NEFTDR-[A-Z0-9]+-?(.+?)-SBIN/); if(mp) party=mp[1]; const mr=nz.match(/((?:SBINN|AUBLN)\d+)/); if(mr) utr=mr[1]; }
+      else { const mr=nz.match(/(\d{9,})/); if(mr) utr=mr[1]; const mr2=(a.ref||'').match(/(\d{6,})/); if(!utr&&mr2) utr=mr2[1]; }
+      txns.push({date:iso, amount, direction:dir, utr, party:canonParty(party), balance:a.balance});
+    }
+  }
+  // reconcile
+  let run=null, runOk=0, runErr=0;
+  for(const t of txns){ if(run===null) run=t.balance; else { run=t.direction==='in'?run+t.amount:run-t.amount; if(Math.abs(run-t.balance)>0.5){runErr++; run=t.balance;} else runOk++; } }
+  return {last4, txns, runOk, runErr};
+}
+
 // ═══ 📄 Statement import ═══
 window.onStatement = async function(ev){
   const file = ev.target.files[0]; ev.target.value='';
@@ -302,22 +387,41 @@ window.onStatement = async function(ev){
   btn.disabled=true;
   document.getElementById('st-review').style.display='none';
   try{
-    const prompt=`यह UPI/bank statement है। इसमें से सारी transactions निकालो — पैसा गया (debit) और पैसा आया (credit) दोनों। सिर्फ यह JSON दो:
+    let acctName='', acctLast4='', txns=null, balanceNote='';
+    // 1) PDF हो और pdf.js तैयार हो → पहले deterministic local parse (बिना AI, पूरा)
+    if(file.type==='application/pdf' && window._pdfjsLib){
+      st.textContent='📄 बैंक statement पढ़ रहा है (पूरा, बिना AI)...';
+      try{
+        const r = await parseBankPdf(file);
+        if(r.txns.length>=3){
+          txns = r.txns.map(t=>({date:t.date, amount:t.amount, party:t.party, type:t.direction==='in'?'credit':'debit', utr:t.utr}));
+          acctLast4 = (r.last4||'').replace(/[^0-9]/g,'').slice(-4);
+          acctName = matchAccount(r.last4);
+          balanceNote = r.runErr? ` · ⚠️ balance ${r.runErr} जगह मेल नहीं` : ' · ✓ balance से 100% मिलान';
+          st.textContent=`📄 ${txns.length} transactions पढ़ीं${balanceNote}`;
+        }
+      }catch(e){ console.warn('local parse fail, AI fallback', e); }
+    }
+    // 2) fallback — image या local parse न चला तो AI
+    if(!txns){
+      const prompt=`यह UPI/bank statement है। इसमें से सारी transactions निकालो — पैसा गया (debit) और पैसा आया (credit) दोनों। सिर्फ यह JSON दो:
 {"accountLast4":"statement जिस account का है उसके आखिरी 4 अंक या null","transactions":[{"date":"YYYY-MM-DD","amount":संख्या,"party":"सामने वाली party का नाम","type":"debit या credit","utr":"UTR/ref no या null"}]}
 ज्यादा से ज्यादा 80 transactions। UTR/reference number जरूर निकालना जहां दिखे।`;
-    let payload;
-    if(file.type==='application/pdf'){
-      if(file.size>8*1024*1024) throw new Error('PDF 8MB से छोटी रखें');
-      st.textContent='🤖 AI statement (PDF) पढ़ रहा है... (30-60 sec)';
-      payload={documentBase64: await blobToB64(file), mediaType:'application/pdf', prompt, maxTokens:8000};
-    } else {
-      st.textContent='🤖 AI statement (photo) पढ़ रहा है...';
-      let blob = await compressImage(file, 1600, 0.85);
-      payload={imageBase64: await blobToB64(blob), mediaType:'image/jpeg', prompt, maxTokens:8000};
+      let payload;
+      if(file.type==='application/pdf'){
+        if(file.size>8*1024*1024) throw new Error('PDF 8MB से छोटी रखें');
+        st.textContent='🤖 AI statement (PDF) पढ़ रहा है... (30-60 sec)';
+        payload={documentBase64: await blobToB64(file), mediaType:'application/pdf', prompt, maxTokens:8000};
+      } else {
+        st.textContent='🤖 AI statement (photo) पढ़ रहा है...';
+        let blob = await compressImage(file, 1600, 0.85);
+        payload={imageBase64: await blobToB64(blob), mediaType:'image/jpeg', prompt, maxTokens:8000};
+      }
+      const data = await aiCall(payload);
+      acctName = matchAccount(data.accountLast4);
+      acctLast4 = (data.accountLast4||'').toString().replace(/[^0-9]/g,'').slice(-4);
+      txns = (data.transactions||[]).filter(t=>t && (+t.amount)>0);
     }
-    const data = await aiCall(payload);
-    const acctName = matchAccount(data.accountLast4);
-    const txns = (data.transactions||[]).filter(t=>t && (+t.amount)>0);
     if(!txns.length) throw new Error('Statement में कोई transaction नहीं मिली');
     // Dedupe — UTR किसी भी collection में पहले से हो (bank + PhonePe statement overlap),
     // या same date+amount उसी दिशा में पहले से हो
@@ -332,18 +436,19 @@ window.onStatement = async function(ev){
         || (kind==='out' ? dateAmtOut.has((t.date||'')+'|'+(+t.amount)) : dateAmtIn.has((t.date||'')+'|'+(+t.amount)));
       if(utr) seenUtr.add(utr);
       return {date:t.date||todayStr(), amount:+t.amount, party:(t.party||'').trim(), utr, dup, kind,
-        paymentSource: acctName, accountLast4:(data.accountLast4||'').toString().replace(/[^0-9]/g,'').slice(-4)};
+        paymentSource: acctName, accountLast4: acctLast4};
     });
     const nNew = PARSED.filter(t=>!t.dup).length;
     const nIn = PARSED.filter(t=>t.kind==='in').length;
-    st.textContent = `${txns.length} transactions — 💸 ${txns.length-nIn} गया · 💰 ${nIn} आया — ${nNew} नई, ${txns.length-nNew} पहले से ${acctName?('· 🏦 '+acctName):''}`;
-    document.getElementById('st-rows').innerHTML = PARSED.map(t=>`
+    st.textContent = `${txns.length} transactions — 💸 ${txns.length-nIn} गया · 💰 ${nIn} आया — ${nNew} नई, ${txns.length-nNew} पहले से ${acctName?('· 🏦 '+acctName):''}${balanceNote}`;
+    const CAP=80; // बड़े statement में फोन हल्का रहे — पहली 80 दिखाओ, import सब होगा
+    document.getElementById('st-rows').innerHTML = PARSED.slice(0,CAP).map(t=>`
       <div class="txn">
         <div style="min-width:0"><b>${t.kind==='in'?'💰':'💸'} ${esc(t.party||'—')}</b><br>
           <span class="mini">${t.date} ${t.utr?('· '+esc(t.utr)):''}</span></div>
         <span class="amt" ${t.kind==='in'?'style="color:#047857"':''}>${t.kind==='in'?'+':''}${fmt(t.amount)}</span>
         <span class="txn-chip ${t.dup?'chip-dup':'chip-new'}">${t.dup?'पहले से':'🆕 नई'}</span>
-      </div>`).join('');
+      </div>`).join('') + (PARSED.length>CAP?`<div class="mini" style="text-align:center;padding:8px">…और ${PARSED.length-CAP} transactions (सब import होंगी)</div>`:'');
     document.getElementById('st-add-btn').textContent = nNew?('➕ '+nNew+' नई entries जोड़ें'):'✅ सब पहले से हैं';
     document.getElementById('st-add-btn').disabled = !nNew;
     document.getElementById('st-review').style.display='block';
@@ -355,41 +460,44 @@ window.addStatementEntries = async function(){
   if(!PARSED) return;
   const firm = document.getElementById('st-firm').value;
   const btn = document.getElementById('st-add-btn');
-  btn.disabled=true; btn.textContent='⏳ जुड़ रही हैं...';
+  const st = document.getElementById('st-status');
+  btn.disabled=true;
   let n=0, nIn=0;
+  const todo = PARSED.filter(t=>!t.dup);
   try{
-    for(const t of PARSED){
-      if(t.dup) continue;
+    // बड़े statement के लिए writeBatch (500/batch) — हज़ार entries भी सेकंडों में
+    let batch = writeBatch ? writeBatch(db) : null, inBatch=0, done=0;
+    const flush = async ()=>{ if(batch && inBatch){ await batch.commit(); batch=writeBatch(db); inBatch=0; } };
+    for(const t of todo){
       const now = new Date().toISOString();
       if(t.kind==='in'){
-        // पैसा आया → vbe_receipts (direction:'in')
         const id = newId('rcpt');
-        const rec = {
-          id, direction:'in', party:t.party, partyKey:partyKey(t.party),
+        const rec = { id, direction:'in', party:t.party, partyKey:partyKey(t.party),
           amount:t.amount, date:t.date, utr:t.utr||'', accountLast4:t.accountLast4||'',
           method:'Statement', paymentSource:t.paymentSource||'', photoUrl:'',
-          notes:'📄 Statement import', createdAt:now, createdBy:ME.uid, createdByName:ME.name
-        };
-        await setDoc(doc(db,'vbe_receipts',id), rec);
+          notes:'📄 Statement import', createdAt:now, createdBy:ME.uid, createdByName:ME.name };
+        if(batch){ batch.set(doc(db,'vbe_receipts',id), rec); inBatch++; } else await setDoc(doc(db,'vbe_receipts',id), rec);
         RECEIPTS.push(rec); nIn++;
       }else{
         const id = newId('exp');
-        const exp = {
-          id, date:t.date, firm, category:'other', vendor:t.party,
+        const exp = { id, date:t.date, firm, category:'other', vendor:t.party,
           items:[], total:t.amount, paymentSource:t.paymentSource||'',
           utr:t.utr||'', accountLast4:t.accountLast4||'',
           billPhotoUrl:'', billStatus:'pending', entryStatus:'complete',
           staffUid:ME.uid, staffName:ME.name, staffPhone:'',
           notes:'📄 Statement import', createdAt:now, updatedAt:now,
-          createdBy:ME.uid, createdByName:ME.name
-        };
-        await setDoc(doc(db,'vbe_expenses',id), exp);
+          createdBy:ME.uid, createdByName:ME.name };
+        if(batch){ batch.set(doc(db,'vbe_expenses',id), exp); inBatch++; } else await setDoc(doc(db,'vbe_expenses',id), exp);
         EXPENSES.push(exp); n++;
       }
+      done++;
+      if(inBatch>=450) await flush();
+      if(done%50===0) btn.textContent=`⏳ ${done}/${todo.length} जुड़ रही हैं...`;
     }
+    await flush();
     toast(`✅ ${n} खर्च + ${nIn} आमदनी entries बनीं`);
     btn.textContent=`✅ ${n} खर्च · ${nIn} आमदनी जुड़ गईं`;
-    document.getElementById('st-status').textContent='जिनका bill है वह 🧾 एंट्री page पर "📷 Bill जोड़ें" से डाल दें';
+    st.textContent='जिनका bill है वह 🧾 एंट्री page पर "📷 Bill जोड़ें" से डाल दें';
     renderParties();
   }catch(e){ toast('❌ '+e.message,'err'); btn.disabled=false; }
 };

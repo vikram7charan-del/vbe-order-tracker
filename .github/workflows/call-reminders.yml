@@ -29,9 +29,17 @@ jobs:
           node-version: 20
 
       - name: Install firebase-admin
-        run: npm install firebase-admin@13 --no-save --no-audit --no-fund # v14 ने पुराना API हटाया
+        run: npm install firebase-admin@13 googleapis --no-save --no-audit --no-fund # v14 ने पुराना API हटाया
 
       - name: Send due call reminders
         env:
           FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
         run: node scripts/call-reminders.js
+
+      # Calendar भी यहीं से हर 5 मिनट sync — नई चीज़ जल्दी calendar में दिखे
+      # (अलग calendar-sync.yml भी है, पर GitHub उसका cron घंटों टाल देता था)
+      - name: Sync Google Calendar too
+        continue-on-error: true
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
+        run: node scripts/calendar-sync.js

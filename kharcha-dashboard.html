@@ -142,6 +142,20 @@ td{padding:7px 4px;border-bottom:1px solid #f1f5f9}
       </div>
     </details>
   </div>
+
+  <!-- Legacy data import -->
+  <div class="card">
+    <details>
+      <summary style="font-size:13px;font-weight:800;color:#475569;cursor:pointer">📥 पुराना डेटा Import (JSON file)</summary>
+      <div style="margin-top:10px">
+        <div class="mini" style="margin-bottom:8px">पुरानी app (My Business / Vyapar) से बनी import file यहाँ चुनें। दोबारा import करने पर double entry <b>नहीं</b> बनती — पुरानी entries वैसी की वैसी overwrite होती हैं।</div>
+        <input class="inp" type="file" id="imp-file" accept=".json,application/json" onchange="legacyFile(this)">
+        <div id="imp-preview" style="display:none;margin-top:10px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:12px;padding:10px;font-size:13px"></div>
+        <button class="btn" id="imp-btn" onclick="runLegacyImport()" style="display:none;margin-top:10px">📥 Import शुरू करें</button>
+        <div id="imp-status" class="mini" style="margin-top:8px"></div>
+      </div>
+    </details>
+  </div>
 </div>
 
 <!-- Entry detail modal -->
@@ -381,6 +395,98 @@ window.exportCsv=function(){
   a.download='vbe-kharcha-'+document.getElementById('r-from').value+'-to-'+document.getElementById('r-to').value+'.csv';
   a.click();
   toast('⬇️ CSV download हुई');
+};
+
+// ── Legacy data import (पुरानी app का JSON) ──
+let IMP_DATA=null;
+window.legacyFile=function(input){
+  const f=input.files&&input.files[0]; if(!f) return;
+  const pv=document.getElementById('imp-preview'), btn=document.getElementById('imp-btn');
+  const fr=new FileReader();
+  fr.onload=()=>{
+    try{
+      const d=JSON.parse(fr.result);
+      if(!Array.isArray(d.expenses)) throw new Error('file में expenses नहीं मिले');
+      IMP_DATA=d;
+      const tot=d.expenses.reduce((a,e)=>a+(+e.total||0),0);
+      pv.innerHTML=`<b>📄 File पढ़ ली:</b><br>
+        🏦 ${ (d.accounts||[]).length } payment accounts<br>
+        👥 ${ (d.parties||[]).length } parties<br>
+        🧾 ${ d.expenses.length } entries — कुल <b>₹${Math.round(tot).toLocaleString('hi-IN')}</b><br>
+        <span style="color:#64748b">${esc(d.source||'')}</span>`;
+      pv.style.display='block'; btn.style.display='block';
+    }catch(e){ IMP_DATA=null; pv.style.display='block'; btn.style.display='none';
+      pv.innerHTML='❌ File पढ़ नहीं पाए: '+esc(e.message); }
+  };
+  fr.readAsText(f);
+};
+window.runLegacyImport=async function(){
+  if(!IMP_DATA||!ME) return;
+  const btn=document.getElementById('imp-btn'), st=document.getElementById('imp-status');
+  btn.disabled=true;
+  const now=new Date().toISOString();
+  const norm=s=>String(s||'').toLowerCase().replace(/[^\p{L}\p{M}\p{N}]/gu,'');
+  try{
+    // 1. Payment accounts — नाम या last4 से match, नहीं मिले तो बनाएं
+    st.textContent='🏦 Accounts import हो रहे हैं...';
+    const accSnap=await getDocs(collection(db,'vbe_payment_accounts'));
+    const existing=[]; accSnap.forEach(d=>existing.push({ref:d.id, ...d.data()}));
+    let accNew=0, accUpd=0;
+    for(const a of (IMP_DATA.accounts||[])){
+      if(!a||!a.name) continue;
+      const match=existing.find(x=> norm(x.name)===norm(a.name) || (a.last4 && x.last4===a.last4));
+      if(match){
+        if(a.last4 && !match.last4){ await updateDoc(doc(db,'vbe_payment_accounts',match.ref),{last4:a.last4,bank:a.bank||match.bank||''}); accUpd++; }
+      }else{
+        const id='acc_imp_'+norm(a.name).slice(0,24);
+        await setDoc(doc(db,'vbe_payment_accounts',id),{name:a.name,bank:a.bank||'',last4:a.last4||'',active:true,order:100+accNew});
+        accNew++;
+      }
+    }
+    // 2. Parties — vbe_parties में (phone सहित), deterministic id = दोबारा चलाने पर double नहीं
+    st.textContent='👥 Parties import हो रही हैं...';
+    let ptCount=0;
+    for(const p of (IMP_DATA.parties||[])){
+      if(!p||!p.name||norm(p.name).length<3) continue;
+      const id='party_'+norm(p.name).slice(0,40);
+      await setDoc(doc(db,'vbe_parties',id),{name:p.name,phones:p.phones||[],source:'legacy-import',updatedAt:now},{merge:true});
+      ptCount++;
+    }
+    // 3. Expenses — deterministic imp_ id: दोबारा import = same doc overwrite, double कभी नहीं
+    let exCount=0, pbCount=0;
+    for(const e of IMP_DATA.expenses){
+      if(!e||!e.id||!(+e.total>0)) continue;
+      st.textContent=`🧾 Entry ${exCount+1}/${IMP_DATA.expenses.length} जा रही है...`;
+      const items=(Array.isArray(e.items)?e.items:[]).map(it=>({
+        name:String(it.name||''), qty:+it.qty||0, unit:String(it.unit||'पीस'), rate:+it.rate||0, amount:+it.amount||0 }));
+      await setDoc(doc(db,'vbe_expenses',e.id),{
+        id:e.id, date:String(e.date||''), firm:String(e.firm||''), category:e.category||'other',
+        vendor:String(e.vendor||''), items, total:+e.total,
+        paymentSource:String(e.paymentSource||''), utr:String(e.utr||''),
+        billPhotoUrl:'', billStatus:'na', entryStatus:'complete',
+        staffUid:ME.uid, staffName:'📥 Import', staffPhone:'',
+        payStatus:e.payStatus||'', notes:String(e.notes||'📥 पुरानी app से import'),
+        createdAt:now, updatedAt:now, createdBy:ME.uid, createdByName:ME.name||'Admin'
+      });
+      exCount++;
+      // pricebook भी deterministic id से — rates history बने
+      for(let i=0;i<items.length;i++){
+        const it=items[i];
+        if(!it.name||!it.rate) continue;
+        const pid='impb_'+e.id.slice(4)+'_'+i;
+        try{ await setDoc(doc(db,'vbe_pricebook',pid),{
+          id:pid,item_name:it.name,item_key:norm(it.name),date:String(e.date||''),
+          rate:it.rate,qty:it.qty,unit:it.unit,vendor:String(e.vendor||''),firm:String(e.firm||''),
+          expense_id:e.id,createdAt:now}); pbCount++; }catch(_){ }
+      }
+    }
+    st.innerHTML=`✅ <b>Import पूरा!</b> ${exCount} entries · ${ptCount} parties · ${accNew} नए accounts${accUpd?` · ${accUpd} में last4 जुड़ा`:''} · ${pbCount} pricebook rates`;
+    toast('📥 पुराना डेटा import हो गया!');
+    loadAccounts(); loadAll();
+  }catch(err){
+    st.textContent='❌ '+err.message;
+    toast('❌ '+err.message,'err');
+  }finally{ btn.disabled=false; }
 };
 
 // ── Staff accounts ──

@@ -204,38 +204,46 @@ window._fbAnonSignIn = async function(){
   }
 };
 
-let _autoLoginAttempt = 0;
-function _tryAutoLogin(){
-  _autoLoginAttempt++;
-  const txt = document.getElementById('load-auth-txt');
-  if(txt && _autoLoginAttempt > 1) txt.textContent = '🔄 Connecting... (attempt ' + _autoLoginAttempt + ')';
-  signInWithEmailAndPassword(auth,'9887401741@vbe-tracker.local','88990011')
-    .catch(e=>{
-      console.error('auto-login attempt', _autoLoginAttempt, ':', e.code, e.message);
-      if(txt) txt.textContent = '⚠️ ' + (e.code||e.message) + ' — Retrying...';
-      if(_autoLoginAttempt < 5) setTimeout(_tryAutoLogin, 4000);
-    });
+// Customer mode = tracking link (?track= / #track=) या #customer hash
+function _isCustomerMode(){
+  if(new URLSearchParams(location.search).get('track')) return true;
+  if((location.hash||'').match(/track=([A-Z0-9]+)/i)) return true;
+  return location.hash === '#customer';
 }
+
+// Login नहीं है → spinner हटाकर login screen दिखाओ (कोई background retry नहीं —
+// password अब code में नहीं है, Firebase server पर ही verify होता है)
+function _showLoginScreen(){
+  const loadEl = document.getElementById('loading');
+  if(loadEl) loadEl.style.display = 'none';
+  const ls = document.getElementById('login-screen');
+  if(ls) ls.classList.add('show');
+}
+
 onAuthStateChanged(auth, user => {
-  // अगर user है लेकिन admin नहीं (anonymous या wrong user) तो sign out करो
-  if(!user || user.uid !== APPROVED_UID){
-    if(user){
-      // Wrong/anonymous user cached — sign out and re-login as admin
-      signOut(auth).then(_tryAutoLogin);
-    } else {
-      _tryAutoLogin();
-    }
-    return;
-  }
-  // ✅ Correct admin user
-  window._fbUID = user.uid;
-  window._fbIsSupplier = true;
+  window._fbUID = user ? user.uid : null;
+  window._fbIsSupplier = (user && user.uid === APPROVED_UID);
   window._signOut = () => signOut(auth);
 
   const dot = document.getElementById('load-auth-dot');
   const txt = document.getElementById('load-auth-txt');
-  if(dot) dot.style.background = '#10b981';
-  if(txt) txt.textContent = '✅ Secure Auth Connected';
+
+  if(window._fbIsSupplier){
+    // ✅ Admin user (एक बार login के बाद device पर persist रहता है)
+    if(dot) dot.style.background = '#10b981';
+    if(txt) txt.textContent = '✅ Secure Auth Connected';
+    const ls = document.getElementById('login-screen');
+    if(ls) ls.classList.remove('show');
+  } else if(_isCustomerMode()){
+    // Customer tracking view — anonymous auth काफ़ी है
+    if(!user){ window._fbAnonSignIn(); return; } // sign-in के बाद यह listener दोबारा चलेगा
+    if(dot) dot.style.background = '#10b981';
+    if(txt) txt.textContent = '✅ Connected';
+  } else {
+    // Supplier page, login नहीं — login screen दिखाओ, बस।
+    _showLoginScreen();
+    return;
+  }
 
   // App boot — सिर्फ़ पहली बार
   if(!window._fbReady){
@@ -2387,14 +2395,19 @@ async function doLogin(){
     document.getElementById('login-pass').value='';
     if(result.code === 'auth/network-request-failed'){
       showErr('🔴 Internet नहीं है — connect करके फिर try करें');
+    } else if(result.code === 'auth/too-many-requests'){
+      showErr('⏳ बहुत ज़्यादा प्रयास हो गए — Firebase ने कुछ देर के लिए रोका है। 15-30 मिनट रुक कर फिर try करें');
     } else {
       showErr('❌ गलत Mobile या PIN — फिर try करें');
     }
-    setTimeout(hideErr, 3000);
+    setTimeout(hideErr, 6000);
   }
 }
 
 function showSupplier(){
+  // doLogin और fbReady boot दोनों इसे call कर सकते हैं — listeners double न लगें
+  if(window._supplierShown) return;
+  window._supplierShown = true;
   document.getElementById('supplier').style.display='block';
   showSkeleton();
   listenOrders();

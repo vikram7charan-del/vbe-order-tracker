@@ -449,7 +449,7 @@ window.runLegacyImport=async function(){
     for(const p of (IMP_DATA.parties||[])){
       if(!p||!p.name||norm(p.name).length<3) continue;
       const id='party_'+norm(p.name).slice(0,40);
-      await setDoc(doc(db,'vbe_parties',id),{name:p.name,phones:p.phones||[],source:'legacy-import',updatedAt:now},{merge:true});
+      await setDoc(doc(db,'vbe_parties',id),{name:p.name,phones:p.phones||[],address:p.address||'',source:'legacy-import',updatedAt:now},{merge:true});
       ptCount++;
     }
     // 3. Expenses — deterministic imp_ id: दोबारा import = same doc overwrite, double कभी नहीं

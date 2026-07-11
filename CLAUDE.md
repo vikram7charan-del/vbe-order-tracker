@@ -127,3 +127,29 @@ When an order is pushed to Time Master, `vbe_tasks` gets a new document and the 
 ## Deployment
 
 No build step — push HTML files to GitHub. The site is hosted via GitHub Pages (or Firebase Hosting). `firebase-messaging-sw.js` must remain at the repository root for the FCM service worker scope to work.
+
+## VBE खर्चा ट्रैकर — Business Structure (owner's working model)
+
+Learned from the owner's legacy "My Business Cloud Systems" report (Jan–Feb 2026) and his own description. Use this as ground truth when improving kharcha pages.
+
+### Firms / business units (money is tracked per-firm)
+- **Vande Bharat Enterprises** — main army-supply business (most expenses)
+- **मारवाड़ रसोई (Marwar Rasoi)** — restaurant; has its own module (`marwar-rasoi.html`, `mr_*` collections)
+- **Sabji Express** — vegetable-supply unit operating under Marwar Rasoi
+- **177 Wet Canteen / MES Canteen / MH Vet Canteen** — army canteen units (customers/receivables)
+- Best Choice Traders, Bright India Enterprises, Ujjwal Bharat Infratech, Shri Hinglaj Infratech — other firms in `FIRMS` list (kharcha-entry.html)
+
+### Payment accounts (`vbe_payment_accounts`, `last4` drives auto-detect in payments.html)
+| Account | Bank | last4 | Usage pattern |
+|---|---|---|---|
+| Ujjwal Bharat | AU Small Finance Bank | (pending from owner) | **Most-used** account, pays for all firms |
+| Bogra Army Traders | SBI | 7089 | Second most-used, business account |
+| Kamla Kanwar Personal | AU Small Finance Bank | 4382 | Family personal a/c, also used for business |
+| Sushila Kanwar | AU Small Finance Bank | 0481 | Family personal a/c (also BharatPe) |
+| Vikram Charan Personal | SBI | 0499 | Owner's personal a/c, rarely for business |
+| Cash (नकद) | — | — | Salaries, home expenses |
+
+### Owner's workflow preferences (explicit)
+- **Bills/transactions come from statements, not manual entry**: owner uploads bank/BharatPe/PhonePe statements → `payments.html` statement import creates entries (dedupe by UTR + date|amount). Do NOT bulk-import historical bills from legacy reports — owner declined this; only master data (parties/accounts) was imported.
+- **Party master**: `vbe_parties/{party_<normalized>}` docs `{name, phones[], address, source}` — written by dashboard 📥 legacy import; party search in payments.html groups receipts+expenses by `partyKey`.
+- Owner is non-technical, Hindi-speaking, wants one-click links and automation-first flows.

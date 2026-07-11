@@ -145,14 +145,16 @@ td{padding:7px 4px;border-bottom:1px solid #f1f5f9}
 
   <!-- Legacy data import -->
   <div class="card">
-    <details>
-      <summary style="font-size:13px;font-weight:800;color:#475569;cursor:pointer">📥 पुराना डेटा Import (JSON file)</summary>
+    <h2 class="sec-title">📥 पुराना डेटा भरें</h2>
+    <div class="mini" style="margin-bottom:10px">आपकी पुरानी app की <b>31 पार्टियाँ</b> (मोबाइल+पता सहित) और <b>5 बैंक खाते</b> (last-4 सहित) पहले से यहाँ तैयार हैं। बस नीचे का बटन दबाएँ — कोई file नहीं चाहिए। दोबारा दबाने पर भी double नहीं बनता।</div>
+    <button class="btn" id="seed-btn" onclick="runEmbeddedImport()">📥 एक क्लिक में डेटा भरें (31 पार्टी + 5 खाते)</button>
+    <div id="imp-status" class="mini" style="margin-top:8px"></div>
+    <details style="margin-top:12px">
+      <summary style="font-size:12px;font-weight:700;color:#94a3b8;cursor:pointer">या JSON file से import करें (advanced)</summary>
       <div style="margin-top:10px">
-        <div class="mini" style="margin-bottom:8px">पुरानी app (My Business / Vyapar) से बनी import file यहाँ चुनें। दोबारा import करने पर double entry <b>नहीं</b> बनती — पुरानी entries वैसी की वैसी overwrite होती हैं।</div>
         <input class="inp" type="file" id="imp-file" accept=".json,application/json" onchange="legacyFile(this)">
         <div id="imp-preview" style="display:none;margin-top:10px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:12px;padding:10px;font-size:13px"></div>
         <button class="btn" id="imp-btn" onclick="runLegacyImport()" style="display:none;margin-top:10px">📥 Import शुरू करें</button>
-        <div id="imp-status" class="mini" style="margin-top:8px"></div>
       </div>
     </details>
   </div>
@@ -398,6 +400,14 @@ window.exportCsv=function(){
 };
 
 // ── Legacy data import (पुरानी app का JSON) ──
+// पुरानी app का master data page में ही embedded — non-technical owner को file नहीं चाहिए
+const EMBEDDED_IMPORT = {"source":"My Business Cloud Systems report (01/07/2025–31/07/2026) — सिर्फ master data, बिल नहीं","generated":"2026-07-11","accounts":[{"name":"Bogra Army Traders (SBI-7089)","bank":"SBI","last4":"7089"},{"name":"Vikram Charan Personal (SBI-0499)","bank":"SBI","last4":"0499"},{"name":"Kamla Kanwar Personal (AU-4382)","bank":"AU Small Finance Bank","last4":"4382"},{"name":"Sushila Kanwar (AU-0481)","bank":"AU Small Finance Bank","last4":"0481"},{"name":"Ujjwal Bharat (AU Bank)","bank":"AU Small Finance Bank","last4":"0628"}],"parties":[{"name":"Madhur Enterprises","phones":["9928124598"]},{"name":"Mohit Fruit Bhandar","phones":["7014471676","8003189578"]},{"name":"Yogender Gas (Laxmi Nagar)","phones":["6376552628"]},{"name":"Dev Enterprises","phones":[]},{"name":"Swaroop Chand Mali","phones":[]},{"name":"Dharma Ram","phones":[]},{"name":"Mahalaxmi (Railway Station Barmer)","phones":[],"address":"Railway Station, Barmer"},{"name":"Parasmal Vimal Kumar","phones":[],"address":"Barmer"},{"name":"VANKAL AGENCY (मुकेश कुमार खत्री)","phones":[],"address":"Barmer"},{"name":"R K Fish Center","phones":[]},{"name":"Ganpati Disposal","phones":[]},{"name":"Devi Lal Suthar","phones":[]},{"name":"Bhura Ram","phones":[]},{"name":"सरवन जी","phones":[]},{"name":"Minaxi Agency","phones":[]},{"name":"Mahesh Provision Store","phones":[]},{"name":"Totamal Khub Chand","phones":[]},{"name":"Frontline Solutions","phones":[]},{"name":"Lokendra Singh","phones":[]},{"name":"Pankaj Trading Company","phones":[]},{"name":"Anil Kumar","phones":[]},{"name":"GANESH ENTERPRISES (Mahaveer Nagar Barmer)","phones":[],"address":"Shop No. 48, Ground Floor, City Center, Mahaveer Nagar, Barmer"},{"name":"Majisha Disposal and Trading","phones":[]},{"name":"Naman Enterprises","phones":[]},{"name":"Santosh Kanwar","phones":[]},{"name":"J M SABJI BHANDAR","phones":[]},{"name":"SUKHDEV S/O MEDHA RAM","phones":[]},{"name":"Health Plus Pharmacy","phones":[]},{"name":"Tara Bhushan Singh","phones":[]},{"name":"SUMIT","phones":[]},{"name":"कैलाश (कोयला — भियाड़)","phones":[]}],"expenses":[]};
+window.runEmbeddedImport = function(){
+  IMP_DATA = EMBEDDED_IMPORT;
+  const btn = document.getElementById('imp-btn');
+  // runLegacyImport imp-btn को toggle करता है — यहाँ seed-btn वाला flow चलाओ
+  runLegacyImport('seed-btn');
+};
 let IMP_DATA=null;
 window.legacyFile=function(input){
   const f=input.files&&input.files[0]; if(!f) return;
@@ -420,10 +430,10 @@ window.legacyFile=function(input){
   };
   fr.readAsText(f);
 };
-window.runLegacyImport=async function(){
+window.runLegacyImport=async function(btnId){
   if(!IMP_DATA||!ME) return;
-  const btn=document.getElementById('imp-btn'), st=document.getElementById('imp-status');
-  btn.disabled=true;
+  const btn=document.getElementById(btnId||'imp-btn'), st=document.getElementById('imp-status');
+  if(btn) btn.disabled=true;
   const now=new Date().toISOString();
   const norm=s=>String(s||'').toLowerCase().replace(/[^\p{L}\p{M}\p{N}]/gu,'');
   try{
@@ -480,13 +490,16 @@ window.runLegacyImport=async function(){
           expense_id:e.id,createdAt:now}); pbCount++; }catch(_){ }
       }
     }
-    st.innerHTML=`✅ <b>Import पूरा!</b> ${exCount} entries · ${ptCount} parties · ${accNew} नए accounts${accUpd?` · ${accUpd} में last4 जुड़ा`:''} · ${pbCount} pricebook rates`;
-    toast('📥 पुराना डेटा import हो गया!');
+    const parts=[`${ptCount} पार्टियाँ`, `${accNew} नए खाते`];
+    if(accUpd) parts.push(`${accUpd} में last4 जुड़ा`);
+    if(exCount) parts.push(`${exCount} entries`);
+    st.innerHTML=`✅ <b>पूरा हो गया!</b> ${parts.join(' · ')} — अब party search व खातों में दिखेंगे।`;
+    toast('📥 पुराना डेटा भर गया!');
     loadAccounts(); loadAll();
   }catch(err){
     st.textContent='❌ '+err.message;
     toast('❌ '+err.message,'err');
-  }finally{ btn.disabled=false; }
+  }finally{ if(btn) btn.disabled=false; }
 };
 
 // ── Staff accounts ──

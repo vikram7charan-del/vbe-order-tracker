@@ -551,8 +551,12 @@ body.th-geo .btn-add-big{background:linear-gradient(135deg,#6366f1,#a855f7);box-
 .dv-sub{font-size:9.5px;color:#5f7096;margin-top:2px;font-weight:700}
 .dv-late-tag{font-size:9px;font-weight:900;color:#fca5a5;background:rgba(127,29,29,.5);border:1px solid rgba(239,68,68,.4);border-radius:6px;padding:1px 6px;flex-shrink:0}
 .dv-tasks{margin-top:8px;background:rgba(6,13,26,.75);border:1px solid rgba(30,58,95,.55);border-radius:11px;padding:7px 10px}
-.dv-task{font-size:11.5px;color:#c8d4ee;line-height:1.5;display:flex;gap:6px;align-items:flex-start}
+.dv-task{font-size:11.5px;color:#c8d4ee;line-height:1.5;display:flex;gap:6px;align-items:center;padding:2px 0}
 .dv-task .b{color:var(--c,#8b5cf6);flex-shrink:0}
+.dv-task.has-at{color:#93c5fd;font-weight:700}
+.dv-task-at{display:block;font-size:9px;color:#60a5fa;font-weight:800;margin-top:1px}
+.dv-task-clk{flex-shrink:0;font-size:13px;cursor:pointer;border:1px dashed rgba(100,116,139,.4);border-radius:7px;padding:2px 7px;background:rgba(13,21,38,.6);touch-action:manipulation}
+.dv-task.has-at .dv-task-clk{border-color:rgba(59,130,246,.6)}
 .dv-more{font-size:10px;color:#5f7096;font-weight:800;margin-top:2px}
 .dvc-foot{display:flex;align-items:center;gap:5px;margin-top:9px;flex-wrap:wrap}
 .dv-cd{font-size:10px;font-weight:900;font-variant-numeric:tabular-nums}
@@ -578,6 +582,9 @@ body.th-geo .btn-add-big{background:linear-gradient(135deg,#6366f1,#a855f7);box-
 .sk-prev{font-size:13.5px;font-weight:900;color:#c4b5fd;background:rgba(76,29,149,.25);border:1px solid rgba(139,92,246,.4);border-radius:11px;padding:10px 13px;text-align:center;margin-top:11px}
 .sk-prev.bad{color:#fca5a5;background:rgba(127,29,29,.25);border-color:rgba(239,68,68,.4)}
 /* ऊपर के बटन fold — सिर्फ़ filters/stats ज़रूरत की चीज़ें रहें */
+.f-chip.fc-mic{background:linear-gradient(120deg,#7c3aed,#a855f7);color:#fff;border-color:transparent;font-weight:900;box-shadow:0 2px 8px rgba(139,92,246,.45)}
+.f-chip.fc-day{background:linear-gradient(120deg,#0ea5e9,#3b82f6);color:#fff;border-color:transparent;font-weight:900}
+.f-chip.fc-day.on{background:linear-gradient(120deg,#a855f7,#ec4899)}
 body.hdr-folded .hdr-btns>*:not(#hdr-fold){display:none}
 body.hdr-folded .hdr-row2{display:none}
 body.hdr-folded #hdr-fold{transform:rotate(180deg)}
@@ -1270,6 +1277,8 @@ function updateViewBtn(){
   if(b) b.textContent=_view==='smart'?'📋':'🔲';
   const d=document.getElementById('day-btn');
   if(d){ d.style.background=_view==='day'?'linear-gradient(135deg,#7c3aed,#a855f7)':''; d.style.color=_view==='day'?'#fff':''; d.style.borderColor=_view==='day'?'transparent':''; }
+  const fd=document.getElementById('fc-day');
+  if(fd) fd.classList.toggle('on',_view==='day');
 }
 /* ऊपर के बटन एक click में छुपाओ — filters/खोज हमेशा रहें */
 window.foldHdr=function(){
@@ -1979,7 +1988,7 @@ function dayCard(r,isLate){
   const sync=(ok)=>ok?'<span class="dv-sync ok">✅ Calendar</span>':'<span class="dv-sync wait">⏳ Calendar…</span>';
   const ph=(c.phone||'').replace(/[^0-9]/g,'');
   if(r.k==='c'){
-    const pend=normTopics(c).filter(x=>!x.done);
+    const pend=normTopics(c).map((x,i)=>({...x,_i:i})).filter(x=>!x.done);
     const dur=Number(c.durationMins)>0?Number(c.durationMins):15;
     const okS=c.calSynced===true&&c.calEventFor===c.nextCallAt;
     return `<div class="dvc ${isLate?'late':''}" style="--c:${col}" onclick="openSmartPop('${c.id}')">
@@ -1992,7 +2001,13 @@ function dayCard(r,isLate){
           <div class="dv-sub">${ph?'📱 '+escH(c.phone):''}</div>
         </div>
       </div>
-      <div class="dv-tasks">${pend.slice(0,3).map(x=>`<div class="dv-task"><span class="b">•</span><span>${escH(x.t)}</span></div>`).join('')}${pend.length>3?`<div class="dv-more">+${pend.length-3} और काम — खोलकर देखें</div>`:''}</div>
+      <div class="dv-tasks" onclick="event.stopPropagation()">${pend.slice(0,4).map(x=>
+        `<div class="dv-task ${x.at?'has-at':''}">
+          <span class="b">${x.at?'📅':'•'}</span>
+          <span style="flex:1;min-width:0">${escH(x.t)}${x.at?`<span class="dv-task-at">${schedLabel(x.at)}</span>`:''}</span>
+          <span class="dv-task-clk" onclick="openSchedPick('t','${c.id}',${x._i})" title="इस काम को उसके समय पर Calendar में डालो">${x.at?'🔁':'⏰'}</span>
+        </div>`
+      ).join('')}${pend.length>4?`<div class="dv-more" onclick="openSmartPop('${c.id}')">+${pend.length-4} और काम — खोलें</div>`:''}</div>
       <div class="dvc-foot" onclick="event.stopPropagation()">
         <span class="dv-cd" data-t="${r.t}"></span>${sync(okS)}
         <span style="flex:1"></span>
@@ -3036,7 +3051,9 @@ function renderFilterBar(){
   const el=document.getElementById('filter-bar');
   if(!el) return;
   const hn=hiddenIds().length;
-  el.innerHTML=`<div class="f-chip" data-f="" onclick="setFilter('')">🔍 सब</div>`
+  el.innerHTML=`<div class="f-chip fc-mic" onclick="openAiAdd()" title="बोलकर काम जोड़ें">🎙️ बोलो</div>`
+    + `<div class="f-chip fc-day" id="fc-day" onclick="gotoDay()" title="📅 मेरा दिन">📅 दिन</div>`
+    + `<div class="f-chip" data-f="" onclick="setFilter('')">🔍 सब</div>`
     + TAG_LIST.map(t=>
       `<div class="f-chip" data-f="${t.k}" onclick="setFilter('${t.k}')">${escH(t.label)}</div>`).join('')
     + TASK_CATS.map(tc=>

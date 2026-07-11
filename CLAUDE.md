@@ -130,14 +130,26 @@ Learned from the owner's legacy "My Business Cloud Systems" report (Jan–Feb 20
 ### Payment accounts (`vbe_payment_accounts`, `last4` drives auto-detect in payments.html)
 | Account | Bank | last4 | Usage pattern |
 |---|---|---|---|
-| Ujjwal Bharat | AU Small Finance Bank | (pending from owner) | **Most-used** account, pays for all firms |
+| Ujjwal Bharat (Infratech) | AU Small Finance Bank | 0628 | **Most-used**, pays for all firms; owner also does direct-bank RTGS to parties from it (only in bank statement, not PhonePe) |
 | Bogra Army Traders | SBI | 7089 | Second most-used, business account |
 | Kamla Kanwar Personal | AU Small Finance Bank | 4382 | Family personal a/c, also used for business |
-| Sushila Kanwar | AU Small Finance Bank | 0481 | Family personal a/c (also BharatPe) |
-| Vikram Charan Personal | SBI | 0499 | Owner's personal a/c, rarely for business |
+| Sushila Kanwar (wife) | AU Small Finance Bank | 0481 | **Marwar Rasoi income lands here via BharatPe**; also pays expenses sometimes |
+| Vikram Charan Personal | SBI | 0499 | Owner's personal a/c — money in & out regularly |
 | Cash (नकद) | — | — | Salaries, home expenses |
 
+### Money flows (owner's own description, July 2026)
+- Marwar Rasoi restaurant income → BharatPe → **Sushila Kanwar AU-0481**.
+- Owner gives BOTH bank statements AND PhonePe/GPay statements for the same account/period — they overlap. **UTR is the cross-source dedupe key** (bank statement UTR == UPI statement UTR); statement import must never create the same transaction twice even from two different documents.
+- RTGS payments to parties go straight from the bank (visible only in bank statement).
+- After statement entries exist, owner fills in "what was it for" + attaches bill photo per entry.
+
+### Owner's 2-month goals (drive feature decisions toward these)
+1. Ask "आलू क्या रेट आ रहे हैं?" → app answers last purchase rates instantly (pricebook history).
+2. Anomaly alert when paying a party: if today's payment pattern differs from that party's history, warn the owner (चूना/fraud protection).
+3. Money-flow analysis: every rupee out should be traceable to what it earns back ("₹1 जाए तो 10-20 पैसे वापस लाए").
+4. Owner must be able to answer any हिसाब question about his firms on the spot.
+
 ### Owner's workflow preferences (explicit)
-- **Bills/transactions come from statements, not manual entry**: owner uploads bank/BharatPe/PhonePe statements → `payments.html` statement import creates entries (dedupe by UTR + date|amount). Do NOT bulk-import historical bills from legacy reports — owner declined this; only master data (parties/accounts) was imported.
+- **Bills/transactions come from statements, not manual entry**: owner uploads bank/BharatPe/PhonePe statements → `payments.html` statement import creates entries — debits → `vbe_expenses`, credits → `vbe_receipts` with `direction:'in'` (dedupe by UTR across both collections + date|amount per direction). Do NOT bulk-import historical bills from legacy reports — owner declined this; only master data (parties/accounts) was imported.
 - **Party master**: `vbe_parties/{party_<normalized>}` docs `{name, phones[], address, source}` — written by dashboard 📥 legacy import; party search in payments.html groups receipts+expenses by `partyKey`.
 - Owner is non-technical, Hindi-speaking, wants one-click links and automation-first flows.

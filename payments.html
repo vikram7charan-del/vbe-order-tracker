@@ -302,9 +302,9 @@ window.onStatement = async function(ev){
   btn.disabled=true;
   document.getElementById('st-review').style.display='none';
   try{
-    const prompt=`यह UPI/bank statement है। इसमें से सारी DEBIT (पैसा गया) transactions निकालो। सिर्फ यह JSON दो:
-{"accountLast4":"statement जिस account का है उसके आखिरी 4 अंक या null","transactions":[{"date":"YYYY-MM-DD","amount":संख्या,"party":"जिसको गया","utr":"UTR/ref no या null"}]}
-सिर्फ debit शामिल करो (credit/received नहीं)। ज्यादा से ज्यादा 60 transactions।`;
+    const prompt=`यह UPI/bank statement है। इसमें से सारी transactions निकालो — पैसा गया (debit) और पैसा आया (credit) दोनों। सिर्फ यह JSON दो:
+{"accountLast4":"statement जिस account का है उसके आखिरी 4 अंक या null","transactions":[{"date":"YYYY-MM-DD","amount":संख्या,"party":"सामने वाली party का नाम","type":"debit या credit","utr":"UTR/ref no या null"}]}
+ज्यादा से ज्यादा 80 transactions। UTR/reference number जरूर निकालना जहां दिखे।`;
     let payload;
     if(file.type==='application/pdf'){
       if(file.size>8*1024*1024) throw new Error('PDF 8MB से छोटी रखें');
@@ -318,23 +318,30 @@ window.onStatement = async function(ev){
     const data = await aiCall(payload);
     const acctName = matchAccount(data.accountLast4);
     const txns = (data.transactions||[]).filter(t=>t && (+t.amount)>0);
-    if(!txns.length) throw new Error('Statement में कोई payment नहीं मिली');
-    // Dedupe — UTR match या same date+amount वाली expense पहले से
+    if(!txns.length) throw new Error('Statement में कोई transaction नहीं मिली');
+    // Dedupe — UTR किसी भी collection में पहले से हो (bank + PhonePe statement overlap),
+    // या same date+amount उसी दिशा में पहले से हो
     const utrSet = new Set([...EXPENSES.map(e=>e.utr), ...RECEIPTS.map(r=>r.utr)].filter(Boolean));
-    const dateAmt = new Set(EXPENSES.map(e=>e.date+'|'+(+e.total)));
+    const dateAmtOut = new Set(EXPENSES.map(e=>e.date+'|'+(+e.total)));
+    const dateAmtIn = new Set(RECEIPTS.filter(r=>r.direction==='in').map(r=>r.date+'|'+(+r.amount)));
+    const seenUtr = new Set(); // एक ही statement के अंदर repeat UTR भी पकड़ो
     PARSED = txns.map(t=>{
       const utr=(t.utr||'').toString().trim();
-      const dup = (utr && utrSet.has(utr)) || dateAmt.has((t.date||'')+'|'+(+t.amount));
-      return {date:t.date||todayStr(), amount:+t.amount, party:(t.party||'').trim(), utr, dup,
+      const kind = (String(t.type||'').toLowerCase()==='credit') ? 'in' : 'out';
+      const dup = (utr && (utrSet.has(utr) || seenUtr.has(utr)))
+        || (kind==='out' ? dateAmtOut.has((t.date||'')+'|'+(+t.amount)) : dateAmtIn.has((t.date||'')+'|'+(+t.amount)));
+      if(utr) seenUtr.add(utr);
+      return {date:t.date||todayStr(), amount:+t.amount, party:(t.party||'').trim(), utr, dup, kind,
         paymentSource: acctName, accountLast4:(data.accountLast4||'').toString().replace(/[^0-9]/g,'').slice(-4)};
     });
     const nNew = PARSED.filter(t=>!t.dup).length;
-    st.textContent = `${txns.length} payments मिलीं — ${nNew} नई, ${txns.length-nNew} पहले से हैं ${acctName?('· 🏦 '+acctName):''}`;
+    const nIn = PARSED.filter(t=>t.kind==='in').length;
+    st.textContent = `${txns.length} transactions — 💸 ${txns.length-nIn} गया · 💰 ${nIn} आया — ${nNew} नई, ${txns.length-nNew} पहले से ${acctName?('· 🏦 '+acctName):''}`;
     document.getElementById('st-rows').innerHTML = PARSED.map(t=>`
       <div class="txn">
-        <div style="min-width:0"><b>${esc(t.party||'—')}</b><br>
+        <div style="min-width:0"><b>${t.kind==='in'?'💰':'💸'} ${esc(t.party||'—')}</b><br>
           <span class="mini">${t.date} ${t.utr?('· '+esc(t.utr)):''}</span></div>
-        <span class="amt">${fmt(t.amount)}</span>
+        <span class="amt" ${t.kind==='in'?'style="color:#047857"':''}>${t.kind==='in'?'+':''}${fmt(t.amount)}</span>
         <span class="txn-chip ${t.dup?'chip-dup':'chip-new'}">${t.dup?'पहले से':'🆕 नई'}</span>
       </div>`).join('');
     document.getElementById('st-add-btn').textContent = nNew?('➕ '+nNew+' नई entries जोड़ें'):'✅ सब पहले से हैं';
@@ -349,26 +356,39 @@ window.addStatementEntries = async function(){
   const firm = document.getElementById('st-firm').value;
   const btn = document.getElementById('st-add-btn');
   btn.disabled=true; btn.textContent='⏳ जुड़ रही हैं...';
-  let n=0;
+  let n=0, nIn=0;
   try{
     for(const t of PARSED){
       if(t.dup) continue;
-      const id = newId('exp');
       const now = new Date().toISOString();
-      const exp = {
-        id, date:t.date, firm, category:'other', vendor:t.party,
-        items:[], total:t.amount, paymentSource:t.paymentSource||'',
-        utr:t.utr||'', accountLast4:t.accountLast4||'',
-        billPhotoUrl:'', billStatus:'pending', entryStatus:'complete',
-        staffUid:ME.uid, staffName:ME.name, staffPhone:'',
-        notes:'📄 Statement import', createdAt:now, updatedAt:now,
-        createdBy:ME.uid, createdByName:ME.name
-      };
-      await setDoc(doc(db,'vbe_expenses',id), exp);
-      EXPENSES.push(exp); n++;
+      if(t.kind==='in'){
+        // पैसा आया → vbe_receipts (direction:'in')
+        const id = newId('rcpt');
+        const rec = {
+          id, direction:'in', party:t.party, partyKey:partyKey(t.party),
+          amount:t.amount, date:t.date, utr:t.utr||'', accountLast4:t.accountLast4||'',
+          method:'Statement', paymentSource:t.paymentSource||'', photoUrl:'',
+          notes:'📄 Statement import', createdAt:now, createdBy:ME.uid, createdByName:ME.name
+        };
+        await setDoc(doc(db,'vbe_receipts',id), rec);
+        RECEIPTS.push(rec); nIn++;
+      }else{
+        const id = newId('exp');
+        const exp = {
+          id, date:t.date, firm, category:'other', vendor:t.party,
+          items:[], total:t.amount, paymentSource:t.paymentSource||'',
+          utr:t.utr||'', accountLast4:t.accountLast4||'',
+          billPhotoUrl:'', billStatus:'pending', entryStatus:'complete',
+          staffUid:ME.uid, staffName:ME.name, staffPhone:'',
+          notes:'📄 Statement import', createdAt:now, updatedAt:now,
+          createdBy:ME.uid, createdByName:ME.name
+        };
+        await setDoc(doc(db,'vbe_expenses',id), exp);
+        EXPENSES.push(exp); n++;
+      }
     }
-    toast('✅ '+n+' entries बनीं — bill जोड़ने के लिए 🧾 एंट्री page देखें');
-    btn.textContent='✅ '+n+' entries जुड़ गईं';
+    toast(`✅ ${n} खर्च + ${nIn} आमदनी entries बनीं`);
+    btn.textContent=`✅ ${n} खर्च · ${nIn} आमदनी जुड़ गईं`;
     document.getElementById('st-status').textContent='जिनका bill है वह 🧾 एंट्री page पर "📷 Bill जोड़ें" से डाल दें';
     renderParties();
   }catch(e){ toast('❌ '+e.message,'err'); btn.disabled=false; }
@@ -378,19 +398,20 @@ window.addStatementEntries = async function(){
 window.renderParties = function(){
   const q = partyKey(document.getElementById('p-search').value);
   const groups = {};
-  RECEIPTS.forEach(r=>{ const k=r.partyKey||partyKey(r.party); if(!k)return; (groups[k]=groups[k]||{name:r.party,pays:[],buys:[]}).pays.push(r); });
-  EXPENSES.forEach(e=>{ const k=partyKey(e.vendor); if(!k)return; (groups[k]=groups[k]||{name:e.vendor,pays:[],buys:[]}).buys.push(e); });
+  const mk = n => ({name:n,pays:[],buys:[],recv:[]});
+  RECEIPTS.forEach(r=>{ const k=r.partyKey||partyKey(r.party); if(!k)return;
+    const g=(groups[k]=groups[k]||mk(r.party)); (r.direction==='in'?g.recv:g.pays).push(r); });
+  EXPENSES.forEach(e=>{ const k=partyKey(e.vendor); if(!k)return; (groups[k]=groups[k]||mk(e.vendor)).buys.push(e); });
   const keys = Object.keys(groups).filter(k=>!q||k.includes(q))
     .sort((a,b)=> sum(groups[b])-sum(groups[a]));
-  function sum(g){ return g.pays.reduce((x,y)=>x+(+y.amount||0),0)+g.buys.reduce((x,y)=>x+(+y.total||0),0); }
+  function sum(g){ return g.pays.reduce((x,y)=>x+(+y.amount||0),0)+g.buys.reduce((x,y)=>x+(+y.total||0),0)+g.recv.reduce((x,y)=>x+(+y.amount||0),0); }
   const box=document.getElementById('p-list');
   box.innerHTML='';
   keys.slice(0,50).forEach(k=>{
     const g=groups[k];
-    const total = g.pays.reduce((x,y)=>x+(+y.amount||0),0) + g.buys.reduce((x,y)=>x+(+y.total||0),0);
     const div=document.createElement('div');
     div.className='party';
-    div.innerHTML=`<span>${esc(g.name)} <span class="mini">(${g.pays.length} pay · ${g.buys.length} खरीद)</span></span><span class="amt">${fmt(total)}</span>`;
+    div.innerHTML=`<span>${esc(g.name)} <span class="mini">(${g.pays.length} pay · ${g.buys.length} खरीद${g.recv.length?(' · 💰'+g.recv.length):''})</span></span><span class="amt">${fmt(sum(g))}</span>`;
     div.onclick=()=>showParty(k,g);
     box.appendChild(div);
   });
@@ -401,10 +422,15 @@ function showParty(k,g){
   document.getElementById('pd-name').textContent='👤 '+g.name;
   const payTotal=g.pays.reduce((x,y)=>x+(+y.amount||0),0);
   const buyTotal=g.buys.reduce((x,y)=>x+(+y.total||0),0);
-  document.getElementById('pd-summary').textContent=`कुल payment ${fmt(payTotal)} · कुल खरीद ${fmt(buyTotal)}`;
-  document.getElementById('pd-pays').innerHTML = g.pays.sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(p=>`
-    <div class="pay-row"><b>${fmt(p.amount)}</b> · ${p.date} · ${esc(p.method||'')} ${p.paymentSource?('· 🏦 '+esc(p.paymentSource)):''}
-    <br><span class="u">UTR: ${esc(p.utr||'—')}</span></div>`).join('') || '<div class="mini">कोई receipt नहीं</div>';
+  const recvTotal=(g.recv||[]).reduce((x,y)=>x+(+y.amount||0),0);
+  document.getElementById('pd-summary').textContent=`कुल payment ${fmt(payTotal)} · कुल खरीद ${fmt(buyTotal)}${recvTotal?(' · 💰 आया '+fmt(recvTotal)):''}`;
+  const row = (p,inn) => `
+    <div class="pay-row"><b ${inn?'style="color:#047857"':''}>${inn?'💰 +':''}${fmt(p.amount)}</b> · ${p.date} · ${esc(p.method||'')} ${p.paymentSource?('· 🏦 '+esc(p.paymentSource)):''}
+    <br><span class="u">UTR: ${esc(p.utr||'—')}</span></div>`;
+  document.getElementById('pd-pays').innerHTML =
+    [...(g.recv||[]).sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(p=>row(p,true)),
+     ...g.pays.sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(p=>row(p,false))].join('')
+    || '<div class="mini">कोई receipt नहीं</div>';
   document.getElementById('pd-buys').innerHTML = g.buys.sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,15).map(e=>`
     <div class="pay-row"><b>${fmt(e.total)}</b> · ${e.date} · ${esc(e.firm||'')}
     ${e.items&&e.items.length?('<br><span class="u">'+e.items.slice(0,3).map(it=>esc(it.name)+' ₹'+it.rate).join(' · ')+'</span>'):''}

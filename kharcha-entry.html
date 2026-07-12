@@ -98,6 +98,7 @@ h2.sec-title{font-size:14px;font-weight:900;color:#1e293b;margin-bottom:10px}
       <div><label class="lbl">₹ Amount</label><input class="inp" id="q-amt" type="number" inputmode="decimal" placeholder="500"></div>
       <div><label class="lbl">Staff</label><select class="inp" id="q-staff"></select></div>
     </div>
+    <div class="sec"><input class="inp" id="q-staff-name" placeholder="…या staff का नाम यहाँ लिखें (जैसे: रविंद्र जी)" style="font-size:13px"></div>
     <div class="sec"><label class="lbl">Firm</label><select class="inp" id="q-firm"></select></div>
     <button class="btn btn-ghost" onclick="saveQuick()" id="q-btn" style="background:#fef3c7;border-color:#fcd34d;color:#92400e">⚡ Pending Entry बनाएं</button>
     <div class="mini" style="margin-top:6px">Staff को details + bill photo भरना होगा। 24 घंटे में न भरे तो dashboard पर लाल alert।</div>
@@ -153,8 +154,13 @@ h2.sec-title{font-size:14px;font-weight:900;color:#1e293b;margin-bottom:10px}
     <div class="sec total-bar"><span>कुल Total</span><span class="amt" id="f-total">₹0</span></div>
 
     <div class="sec">
-      <label class="lbl">💳 Payment Source (पैसा कहां से गया)</label>
+      <label class="lbl">💳 पेमेंट कैसे हुआ?</label>
+      <select class="inp" id="f-paymode" onchange="fillPayAccounts()" style="margin-bottom:7px"></select>
       <select class="inp" id="f-pay"></select>
+      <input class="inp" id="f-pay-other" placeholder="किसने दिया? (जैसे: रविंद्र जी ने खुद से)" style="display:none;margin-top:7px">
+      <label style="display:flex;align-items:center;gap:8px;margin-top:9px;font-size:13px;font-weight:800;color:#b45309;cursor:pointer">
+        <input type="checkbox" id="f-udhaar" style="width:18px;height:18px"> 🟠 उधार — पेमेंट अभी नहीं हुआ (बाद में होगा)
+      </label>
     </div>
 
     <div class="sec">
@@ -319,7 +325,7 @@ async function initApp(){
   document.getElementById('h-date').textContent = new Date().toLocaleDateString('hi-IN',{day:'numeric',month:'long',year:'numeric'});
   if(ME.role==='admin'){
     document.getElementById('quick-card').style.display='block';
-    document.getElementById('lnk-dash').style.display='inline';
+    const ld=document.getElementById('lnk-dash'); if(ld) ld.style.display='inline';
   }
   // firm dropdowns
   const opts = FIRMS.map(f=>`<option>${f}</option>`).join('');
@@ -351,22 +357,64 @@ async function initApp(){
 
 function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 
+// ── पेमेंट modes — owner का असली ढांचा ──
+const PAY_MODES = [
+  {id:'vikram',  label:'📱 विक्रम के मोबाइल से (UPI)'},
+  {id:'sushila', label:'📱 सुशीला के मोबाइल से (UPI/BharatPe)'},
+  {id:'bank',    label:'🏦 बैंक से (RTGS/NEFT/Cheque)'},
+  {id:'cash',    label:'💵 Cash (नकद)'},
+  {id:'other',   label:'🤝 अन्य (स्टाफ/किसी और ने दिया)'}
+];
+// हर mode के default खाते — master (vbe_payment_accounts) में mode field से;
+// dashboard से नाम edit/नए जोड़ सकते हैं
+const MODE_DEFAULTS = {
+  vikram: ['Ujjwal Bharat (AU-0628)','Bogra Army Traders (SBI-7089)','Vikram Charan Personal (SBI-0499)','Kamla Kanwar Personal (AU-4382)'],
+  sushila:['Sushila Kanwar (AU-0481)'],
+  bank:   ['Ujjwal Bharat (AU-0628)','Bogra Army Traders (SBI-7089)','Best Choice Traders','Bright India Enterprises','Shri Hinglaj Infratech','Vikram Charan Personal (SBI-0499)','Charan Kanchan Nakhatdan Personal'],
+  cash:   ['Cash (नकद)','विक्रम की जेब से','मनोज की जेब से','रविंद्र जी की जेब से','घर से','MH Canteen गल्ले से','मारवाड़ रसोई गल्ले से'],
+  other:  []
+};
+let PAY_ACCOUNTS = []; // [{name, mode}]
 async function loadPayAccounts(){
-  let names = [];
+  PAY_ACCOUNTS = [];
   try{
-    const snap = await getDocs(query(collection(db,'vbe_payment_accounts'), orderBy('order')));
-    snap.forEach(d=>{ if(d.data().active!==false) names.push(d.data().name); });
+    const snap = await getDocs(collection(db,'vbe_payment_accounts'));
+    snap.forEach(d=>{ const x=d.data(); if(x.active!==false) PAY_ACCOUNTS.push({name:x.name, mode:x.mode||''}); });
   }catch(e){}
-  if(!names.length){
-    names = DEFAULT_ACCOUNTS;
-    // admin: seed master collection once
-    if(ME.role==='admin'){
-      try{ for(let i=0;i<DEFAULT_ACCOUNTS.length;i++){
-        await setDoc(doc(db,'vbe_payment_accounts','acc_'+i), {name:DEFAULT_ACCOUNTS[i], active:true, order:i});
-      } }catch(e){}
-    }
+  // पुराने खातों पर mode लगाओ + missing खाते बनाओ (admin, एक बार — deterministic id = double नहीं)
+  if(ME.role==='admin'){
+    try{
+      for(const mode of Object.keys(MODE_DEFAULTS)){
+        for(const nm of MODE_DEFAULTS[mode]){
+          const norm = s2=>String(s2).toLowerCase().replace(/[^\p{L}\p{M}\p{N}]/gu,'');
+          const hit = PAY_ACCOUNTS.find(a=>norm(a.name)===norm(nm) || (nm.match(/\d{4}/) && a.name.includes(nm.match(/\d{4}/)[0])));
+          if(hit){ if(!hit.mode){ hit.mode=mode; /* mode बाद में dashboard से भी बदल सकते हैं */ } continue; }
+          const id='acc_md_'+mode+'_'+norm(nm).slice(0,22);
+          await setDoc(doc(db,'vbe_payment_accounts',id),{name:nm, mode, active:true, order:50});
+          PAY_ACCOUNTS.push({name:nm, mode});
+        }
+      }
+    }catch(e){}
   }
-  document.getElementById('f-pay').innerHTML = names.map(n=>`<option>${n}</option>`).join('');
+  const pm=document.getElementById('f-paymode');
+  if(pm && !pm.options.length) pm.innerHTML = PAY_MODES.map(m=>`<option value="${m.id}">${m.label}</option>`).join('');
+  fillPayAccounts();
+}
+window.fillPayAccounts = function(){
+  const mode = val('f-paymode')||'vikram';
+  const sel = document.getElementById('f-pay');
+  const oth = document.getElementById('f-pay-other');
+  if(mode==='other'){ sel.style.display='none'; if(oth) oth.style.display='block'; return; }
+  sel.style.display='block'; if(oth) oth.style.display='none';
+  let names = PAY_ACCOUNTS.filter(a=>a.mode===mode).map(a=>a.name);
+  if(!names.length) names = MODE_DEFAULTS[mode]||[];
+  if(!names.length) names = PAY_ACCOUNTS.map(a=>a.name);
+  sel.innerHTML = names.map(n=>`<option>${n}</option>`).join('');
+};
+function payValue(){
+  const mode = val('f-paymode')||'';
+  if(mode==='other') return (val('f-pay-other')||'').trim()||'अन्य';
+  return val('f-pay')||'';
 }
 
 // ── Category chips ──
@@ -430,7 +478,7 @@ function saveDraft(){
   try{
     localStorage.setItem(DRAFT_KEY, JSON.stringify({
       date:val('f-date'), firm:val('f-firm'), cat:CAT, vendor:val('f-vendor'),
-      pay:val('f-pay'), notes:val('f-notes'), items:readItems()
+      pay:payValue(), notes:val('f-notes'), items:readItems()
     }));
   }catch(e){}
 }
@@ -506,7 +554,7 @@ window.saveAiSettings = function(){
   toast('✅ AI settings saved');
 };
 const AI_PROMPT = `यह एक खरीदारी का bill/receipt है। इसमें से data निकालकर सिर्फ यह JSON दो (कोई और text नहीं):
-{"vendor":"दुकान का नाम या null","date":"YYYY-MM-DD या null","category":"kaccha/fuel/army/repair/salary/other में से एक","items":[{"name":"item नाम","qty":संख्या,"unit":"kg/पीस/लीटर/ग्राम/बॉक्स/बोरी","rate":संख्या,"amount":संख्या}],"total":संख्या}
+{"vendor":"दुकान का नाम या null","date":"YYYY-MM-DD या null","category":"kaccha/fuel/army/repair/salary/other में से एक","items":[{"name":"item नाम","qty":संख्या,"unit":"kg/पीस/लीटर/ग्राम/बॉक्स/बोरी","rate":संख्या,"amount":संख्या}],"total":संख्या,"party":{"phone":"दुकान का mobile/phone या null","gstin":"GSTIN या null","address":"पता या null"}}
 category ऐसे चुनो: खाने-पीने/राशन/सब्ज़ी/dairy का सामान=kaccha, petrol/diesel=fuel, fridge/AC/electronics जैसी army unit supply=army, repair/spare parts=repair, salary/advance=salary, बाकी=other।
 जो field साफ न दिखे उसे null/0 रखो। Hindi item names ठीक वैसे ही रखो जैसे bill पर हैं।`;
 
@@ -519,10 +567,13 @@ async function aiExtract(b64){
   const proxy = (localStorage.getItem('vbe_ai_proxy_url')||'') || AI_PROXY_DB;
   const key = localStorage.getItem('vbe_ai_key')||'';
   if(!proxy && !key) throw new Error('AI अभी setup नहीं हुआ — Vikram को बताएं');
+  const ac = new AbortController();
+  const tm = setTimeout(()=>ac.abort(), 60000); // 60s से ज्यादा कभी न लटके
   let text;
+  try{
   if(proxy){
     const idToken = await auth.currentUser.getIdToken();
-    const r = await fetch(proxy, {
+    const r = await fetch(proxy, { signal: ac.signal,
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+idToken},
       body: JSON.stringify({imageBase64:b64, mediaType:'image/jpeg', prompt:AI_PROMPT})
@@ -531,6 +582,7 @@ async function aiExtract(b64){
     text = (await r.json()).text;
   } else {
     const r = await fetch('https://api.anthropic.com/v1/messages',{
+      signal: ac.signal,
       method:'POST',
       headers:{
         'Content-Type':'application/json',
@@ -539,8 +591,8 @@ async function aiExtract(b64){
         'anthropic-dangerous-direct-browser-access':'true'
       },
       body: JSON.stringify({
-        model:'claude-sonnet-4-6',
-        max_tokens:2048,
+        model:'claude-haiku-4-5-20251001',
+        max_tokens:1500,
         messages:[{role:'user',content:[
           {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},
           {type:'text',text:AI_PROMPT}
@@ -551,6 +603,8 @@ async function aiExtract(b64){
     const j = await r.json();
     text = (j.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
   }
+  }catch(e){ if(e.name==='AbortError') throw new Error('AI बहुत धीमा था (60s) — दोबारा try करें'); throw e; }
+  finally{ clearTimeout(tm); }
   const m = text.match(/\{[\s\S]*\}/);
   if(!m) throw new Error('AI से JSON नहीं मिला');
   return JSON.parse(m[0]);
@@ -571,6 +625,7 @@ window.aiReadBill = async function(){
       data.items.forEach(it=>addItemRow({name:it.name||'', qty:it.qty||0, unit:it.unit||'पीस', rate:it.rate||0, amount:it.amount||0}));
       calcTotal();
     }
+    savePartyFromBill((data.vendor||'').trim(), data.party);
     st.textContent='✅ AI ने भर दिया — verify करके save करें';
     toast('✅ Bill पढ़ लिया — check करें!');
     saveDraft();
@@ -589,7 +644,7 @@ window.autoEntry = async function(ev){
   btn.disabled=true; res.style.display='none';
   try{
     st.textContent='📷 Photo compress हो रही है...';
-    let blob = await compressImage(file, 1280, 0.8);
+    let blob = await compressImage(file, 1100, 0.72);
     for(let q=0.65; blob.size>1024*1024 && q>=0.4; q-=0.15) blob = await compressImage(file, 1280, q);
     st.textContent='🤖 AI bill पढ़ रहा है... (10-20 sec)';
     const data = await aiExtract(await blobToB64(blob));
@@ -601,9 +656,9 @@ window.autoEntry = async function(ev){
     if(!total) throw new Error('AI को amount समझ नहीं आया — नीचे वाले form से manually भरें');
     st.textContent='💾 Entry बन रही है...';
     const id = 'exp_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
-    const r = sRef(storage, 'kharcha_bills/'+id+'.jpg');
-    await uploadBytes(r, blob, {contentType:'image/jpeg'});
-    const billPhotoUrl = await getDownloadURL(r);
+    st.textContent='📤 Photo upload...';
+    const billPhotoUrl = await safeUpload('kharcha_bills/'+id+'.jpg', blob);
+    if(!billPhotoUrl) toast('⚠️ Photo upload नहीं हुई (Storage चालू करें) — entry फिर भी बन रही है');
     const now = new Date().toISOString();
     const cat = CATEGORIES.some(c=>c.id===data.category) ? data.category : 'other';
     const exp = {
@@ -613,14 +668,15 @@ window.autoEntry = async function(ev){
       category: cat,
       vendor: (data.vendor||'').trim(),
       items, total,
-      paymentSource: val('f-pay')||'',
-      billPhotoUrl, billStatus:'ok', entryStatus:'complete',
+      paymentSource: payValue()||'', payMode: val('f-paymode')||'',
+      billPhotoUrl, billStatus: billPhotoUrl?'ok':'pending', entryStatus:'complete',
       staffUid: ME.uid, staffName: ME.name, staffPhone: ME.phone,
       notes: '🤖 AI Auto Entry',
       createdAt: now, updatedAt: now, createdBy: ME.uid, createdByName: ME.name
     };
     await setDoc(doc(db,'vbe_expenses',id), exp);
     await logPricebook(id, exp);
+    savePartyFromBill(exp.vendor, data.party);
     st.textContent='';
     const catLabel = (CATEGORIES.find(c=>c.id===cat)||{}).label||cat;
     res.innerHTML = `✅ <b>₹${total.toLocaleString('hi-IN')}</b> की entry बन गई!<br>
@@ -636,6 +692,15 @@ window.autoEntry = async function(ev){
     toast('❌ '+e.message,'err');
   }finally{ btn.disabled=false; }
 };
+
+// Photo upload — 20s timeout: Storage चालू न हो तो entry बिना photo के बने, कभी अटके नहीं
+async function safeUpload(path, blob){
+  try{
+    const r = sRef(storage, path);
+    const up = (async()=>{ await uploadBytes(r, blob, {contentType:'image/jpeg'}); return await getDownloadURL(r); })();
+    return await Promise.race([up, new Promise((_,rej)=>setTimeout(()=>rej(new Error('photo-timeout')),20000))]);
+  }catch(e){ console.warn('photo upload fail', e); return ''; }
+}
 function blobToB64(blob){
   return new Promise((res,rej)=>{
     const fr=new FileReader();
@@ -644,6 +709,21 @@ function blobToB64(blob){
   });
 }
 
+
+// Bill पर party की details (phone/GSTIN/पता) मिलें तो master में अपने-आप जुड़ जाएँ
+async function savePartyFromBill(vendor, party){
+  try{
+    if(!vendor || !party) return;
+    const key = String(vendor).toLowerCase().replace(/[^\p{L}\p{M}\p{N}]/gu,'').slice(0,40);
+    if(key.length<3) return;
+    const patch = {name:vendor, source:'bill-ai', updatedAt:new Date().toISOString()};
+    if(party.phone && /^[6-9]\d{9}$/.test(String(party.phone).replace(/\D/g,'').slice(-10)))
+      patch.phones = [String(party.phone).replace(/\D/g,'').slice(-10)];
+    if(party.gstin) patch.gstin = String(party.gstin).trim();
+    if(party.address) patch.address = String(party.address).trim();
+    await setDoc(doc(db,'vbe_parties','party_'+key), patch, {merge:true});
+  }catch(e){}
+}
 // ── Pricebook logging ──
 function itemKey(name){ return name.toLowerCase().trim().replace(/[^\p{L}\p{M}\p{N}]/gu,''); }
 async function logPricebook(expenseId, exp){
@@ -674,9 +754,8 @@ window.saveExpense = async function(){
     const id = FILL_PENDING_ID || ('exp_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6));
     let billPhotoUrl = '';
     if(PHOTO_BLOB){
-      const r = sRef(storage, 'kharcha_bills/'+id+'.jpg');
-      await uploadBytes(r, PHOTO_BLOB, {contentType:'image/jpeg'});
-      billPhotoUrl = await getDownloadURL(r);
+      billPhotoUrl = await safeUpload('kharcha_bills/'+id+'.jpg', PHOTO_BLOB);
+      if(!billPhotoUrl) toast('⚠️ Photo upload नहीं हुई — entry बिना photo बनी, बाद में जोड़ें');
     }
     const now = new Date().toISOString();
     const exp = {
@@ -686,7 +765,8 @@ window.saveExpense = async function(){
       category: CAT,
       vendor: val('f-vendor').trim(),
       items, total,
-      paymentSource: val('f-pay'),
+      paymentSource: document.getElementById('f-udhaar')?.checked ? 'उधार (बाकी)' : payValue(),
+      payMode: val('f-paymode')||'', payStatus: document.getElementById('f-udhaar')?.checked ? 'udhaar' : '',
       billPhotoUrl,
       billStatus: billPhotoUrl?'ok':'pending',
       entryStatus: 'complete',
@@ -786,11 +866,10 @@ window.onBillAttach = async function(ev){
   const id = BILL_ATTACH_ID; BILL_ATTACH_ID = null;
   try{
     toast('📷 Photo upload हो रही है...');
-    let blob = await compressImage(file, 1280, 0.8);
+    let blob = await compressImage(file, 1100, 0.72);
     for(let q=0.65; blob.size>1024*1024 && q>=0.4; q-=0.15) blob = await compressImage(file, 1280, q);
-    const r = sRef(storage, 'kharcha_bills/'+id+'.jpg');
-    await uploadBytes(r, blob, {contentType:'image/jpeg'});
-    const url = await getDownloadURL(r);
+    const url = await safeUpload('kharcha_bills/'+id+'_bill.jpg', blob);
+    if(!url) throw new Error('Photo upload नहीं हुई — Firebase Storage चालू करें (Console → Storage → Get Started)');
     await updateDoc(doc(db,'vbe_expenses',id), {billPhotoUrl:url, billStatus:'ok', updatedAt:new Date().toISOString()});
     toast('✅ Bill जुड़ गया!');
     loadPending();
@@ -824,10 +903,12 @@ async function loadStaffList(){
 
 window.saveQuick = async function(){
   const amt = parseFloat(val('q-amt'))||0;
-  const staffUid = val('q-staff');
+  const typed = (val('q-staff-name')||'').trim();
+  const staffUid = typed ? '' : val('q-staff');
   if(!amt){ toast('⚠️ Amount डालें','err'); return; }
-  if(!staffUid){ toast('⚠️ पहले dashboard से staff account बनाएं','err'); return; }
-  const staff = STAFF_LIST.find(s=>s.uid===staffUid);
+  if(!staffUid && !typed){ toast('⚠️ Staff चुनें या नाम लिखें','err'); return; }
+  const staff = staffUid ? STAFF_LIST.find(s=>s.uid===staffUid) : {name:typed, phone:''};
+  if(!staff){ toast('⚠️ Staff चुनें या नाम लिखें','err'); return; }
   const btn=document.getElementById('q-btn'); btn.disabled=true;
   try{
     const id='exp_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
@@ -836,7 +917,7 @@ window.saveQuick = async function(){
       id, date:todayStr(), firm:val('q-firm'), category:'', vendor:'',
       items:[], total:amt, paymentSource:'',
       billPhotoUrl:'', billStatus:'pending', entryStatus:'pending',
-      staffUid, staffName:staff.name, staffPhone:staff.phone||'',
+      staffUid: staffUid||'', staffName:staff.name, staffPhone:staff.phone||'',
       notes:'Quick Entry (Vikram)', createdAt:now, updatedAt:now,
       createdBy:ME.uid, createdByName:ME.name
     });
@@ -851,6 +932,7 @@ window.saveQuick = async function(){
     });
     toast('⚡ Pending entry बनी — '+staff.name+' को भरना है');
     document.getElementById('q-amt').value='';
+    document.getElementById('q-staff-name').value='';
     loadPending();
   }catch(e){ toast('❌ '+e.message,'err'); }
   finally{ btn.disabled=false; }

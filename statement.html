@@ -170,7 +170,7 @@ async function loadAll(){
   TXNS=[];
   exSnap.forEach(d=>{ const e=d.data();
     TXNS.push({date:e.date||'', dir:'out', amount:+e.total||0, party:e.vendor||'—',
-      account:e.paymentSource||'', utr:e.utr||'', firm:e.firm||'', bill:e.billStatus==='pending', id:d.id}); });
+      account:e.paymentSource||'', utr:e.utr||'', firm:e.firm||'', bill:e.billStatus==='pending', udhaar:e.payStatus==='udhaar', id:d.id}); });
   rcSnap.forEach(d=>{ const r=d.data(); if(r.direction!=='in') return;
     TXNS.push({date:r.date||'', dir:'in', amount:+r.amount||0, party:r.party||'—',
       account:r.paymentSource||'', utr:r.utr||'', firm:'', bill:false, id:d.id}); });
@@ -240,7 +240,7 @@ function render(){
           <div class="row3d">
             <div class="ic3d ${t.dir==='in'?'ic-in':'ic-out'}">${t.dir==='in'?'💰':'💸'}</div>
             <div class="mid">
-              <div class="party">${esc(t.party)}${t.bill?'<span class="tag tag-bill">bill बाकी</span>':''}</div>
+              <div class="party">${esc(t.party)}${t.udhaar?'<span class="tag" style="background:#ffedd5;color:#c2410c">उधार</span>':''}${t.bill?'<span class="tag tag-bill">bill बाकी</span>':''}</div>
               <div class="meta">${t.account?('🏦 '+esc(t.account)):(t.firm?esc(t.firm):'—')}${t.utr?(' · '+esc(t.utr)):''}</div>
             </div>
             <div class="amt ${t.dir==='in'?'amt-in':'amt-out'}">${t.dir==='in'?'+':'−'}${fmt(t.amount)}</div>

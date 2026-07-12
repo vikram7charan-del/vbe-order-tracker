@@ -123,6 +123,7 @@ td{padding:7px 4px;border-bottom:1px solid #f1f5f9}
           <div><label class="lbl">Mobile (login ID)</label><input class="inp" id="ns-phone" type="tel" maxlength="10" inputmode="numeric"></div>
           <div><label class="lbl">PIN (min 6)</label><input class="inp" id="ns-pin" maxlength="12"></div>
         </div>
+        <div class="sec"><label class="lbl">WhatsApp number (अगर mobile से अलग है — reminders इसी पर जाएंगे)</label><input class="inp" id="ns-wa" type="tel" maxlength="10" inputmode="numeric" placeholder="खाली छोड़ें तो mobile ही"></div>
         <button class="btn" onclick="createStaff()" id="ns-btn">👤 Account बनाएं</button>
         <div class="mini" style="margin-top:6px">Staff इसी mobile+PIN से kharcha-entry.html पर login करेगा। WhatsApp reminders इसी mobile number पर जाएंगे।</div>
       </div>
@@ -540,7 +541,9 @@ window.createStaff=async function(){
     const uid=cred.user.uid;
     await signOut2(auth2);
     await setDoc(doc(db,'vbe_users',uid),{
-      uid, role:'staff', name, phone, createdAt:new Date().toISOString(), createdBy:ME.uid
+      uid, role:'staff', name, phone,
+      whatsapp:(document.getElementById('ns-wa')?.value||'').trim()||phone,
+      createdAt:new Date().toISOString(), createdBy:ME.uid
     });
     toast('✅ '+name+' का account बन गया — '+phone+' + PIN से login');
     document.getElementById('ns-name').value=''; document.getElementById('ns-phone').value=''; document.getElementById('ns-pin').value='';

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#1d4ed8">
+<meta name="robots" content="noindex,nofollow">
+<title>VBE खर्चा — मुख्य</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#eef2f6;color:#0f172a;font-family:'Noto Sans Devanagari',sans-serif;min-height:100dvh;max-width:480px;margin:0 auto;padding-bottom:30px}
+.hero{background:linear-gradient(150deg,#1d4ed8 0%,#3b82f6 60%,#0ea5e9 100%);color:#fff;padding:20px 18px 24px;border-radius:0 0 26px 26px;position:relative;overflow:hidden;box-shadow:0 14px 30px -12px rgba(29,78,216,.55)}
+.hero::after{content:"";position:absolute;top:-40%;right:-12%;width:190px;height:190px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.22),transparent 70%)}
+.hero h1{font-size:20px;font-weight:900}
+.hero .sub{font-size:12px;opacity:.92;margin-top:3px}
+.hero .safe{margin-top:12px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:9px 12px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:7px}
+.today{margin:-14px 14px 0;position:relative;z-index:2;background:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 12px 26px -14px rgba(15,23,42,.3);display:flex;justify-content:space-around;text-align:center}
+.today .k{font-size:10.5px;color:#64748b;font-weight:700}
+.today .v{font-size:16px;font-weight:900;margin-top:2px}
+.big-actions{padding:16px 14px 0;display:flex;flex-direction:column;gap:13px}
+.act{display:flex;align-items:center;gap:14px;text-decoration:none;color:#0f172a;border-radius:20px;padding:18px 16px;position:relative;overflow:hidden;
+  box-shadow:0 14px 28px -14px rgba(15,23,42,.4),inset 0 1px 0 rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.5)}
+.act:active{transform:scale(.98)}
+.act .emoji{flex:0 0 auto;width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;
+  box-shadow:0 8px 16px -6px rgba(15,23,42,.35),inset 0 1px 0 rgba(255,255,255,.5)}
+.act .txt{flex:1}
+.act .t1{font-size:17px;font-weight:900}
+.act .t2{font-size:11.5px;color:#475569;margin-top:2px;font-weight:600}
+.act .arrow{font-size:20px;color:#94a3b8;font-weight:900}
+.a-stmt{background:linear-gradient(180deg,#eff6ff,#dbeafe)}
+.a-stmt .emoji{background:linear-gradient(145deg,#93c5fd,#2563eb);color:#fff}
+.a-photo{background:linear-gradient(180deg,#f5f3ff,#ede9fe)}
+.a-photo .emoji{background:linear-gradient(145deg,#c4b5fd,#7c3aed);color:#fff}
+.a-bahi{background:linear-gradient(180deg,#f0fdfa,#ccfbf1)}
+.a-bahi .emoji{background:linear-gradient(145deg,#5eead4,#0d9488);color:#fff}
+.more-wrap{padding:20px 14px 0;text-align:center}
+.more-btn{background:#e2e8f0;color:#334155;border:none;border-radius:14px;padding:13px 22px;font-size:14px;font-weight:900;font-family:inherit;cursor:pointer}
+.login-note{text-align:center;padding:70px 20px;color:#64748b;font-size:14px}
+/* menu */
+.vbe-tile{display:flex;flex-direction:column;align-items:center;gap:7px;text-decoration:none;padding:14px 4px;border-radius:16px;color:#fff;font-weight:800;font-size:11.5px;font-family:'Noto Sans Devanagari',sans-serif;box-shadow:0 10px 20px -8px rgba(15,23,42,.4);text-align:center}
+.vbe-tile .ic{font-size:30px;filter:drop-shadow(0 4px 8px rgba(0,0,0,.28))}
+.vbe-tile:active{transform:scale(.95)}
+@keyframes vbeSlide{from{transform:translateY(-14px);opacity:.5}to{transform:translateY(0);opacity:1}}
+.mini{font-size:11px;color:#64748b}
+</style>
+</head>
+<body>
+
+<div id="s-wait" class="login-note">⏳ Login check...<br><br><a href="./kharcha-entry.html" style="color:#1d4ed8">Login करने के लिए यहाँ tap करें</a></div>
+
+<div id="s-app" style="display:none">
+  <div class="hero">
+    <h1>🙏 राम राम, विक्रम जी</h1>
+    <div class="sub" id="hero-date">आपका खर्चा-हिसाब — एकदम आसान</div>
+    <div class="safe">🔒 आपका पूरा डेटा Google पर सुरक्षित है — कभी कुछ नहीं खोएगा।</div>
+  </div>
+
+  <div class="today">
+    <div><div class="k">आज खर्च 💸</div><div class="v" id="t-out" style="color:#e11d48">—</div></div>
+    <div><div class="k">आज आया 💰</div><div class="v" id="t-in" style="color:#059669">—</div></div>
+    <div><div class="k">इस महीने खर्च</div><div class="v" id="t-month" style="color:#1d4ed8">—</div></div>
+  </div>
+
+  <div class="big-actions">
+    <a class="act a-stmt" href="./payments.html">
+      <div class="emoji">📄</div>
+      <div class="txt"><div class="t1">बैंक Statement डालो</div><div class="t2">PDF डालें — पूरा हिसाब अपने-आप बन जाएगा</div></div>
+      <div class="arrow">›</div>
+    </a>
+    <a class="act a-photo" href="./kharcha-entry.html">
+      <div class="emoji">📸</div>
+      <div class="txt"><div class="t1">फोटो से खर्चा जोड़ो</div><div class="t2">बिल की फोटो लो — AI खुद entry बना देगा</div></div>
+      <div class="arrow">›</div>
+    </a>
+    <a class="act a-bahi" href="./statement.html">
+      <div class="emoji">📖</div>
+      <div class="txt"><div class="t1">बही देखो</div><div class="t2">तारीख-वार · खाते के हिसाब से पूरा हिसाब</div></div>
+      <div class="arrow">›</div>
+    </a>
+  </div>
+
+  <div class="more-wrap">
+    <button class="more-btn" onclick="vbeMenu(1)">☰ बाकी सब (Dashboard, पार्टी, प्राइसबुक…)</button>
+    <div class="mini" style="margin-top:14px">रोज़ बस ऊपर के 3 बटन काफी हैं 👍</div>
+  </div>
+</div>
+
+
+<!-- ═══ VBE Apps Menu ═══ -->
+<div id="vbe-menu" style="display:none;position:fixed;inset:0;z-index:120;background:rgba(15,23,42,.45)" onclick="if(event.target===this)vbeMenu(0)">
+  <div style="background:#fff;border-radius:0 0 24px 24px;padding:16px 14px 18px;max-width:480px;margin:0 auto;box-shadow:0 18px 40px rgba(15,23,42,.35);animation:vbeSlide .18s ease">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <b style="font-size:15px;color:#0f172a">🏢 VBE Apps</b>
+      <button onclick="vbeMenu(0)" style="border:none;background:#f1f5f9;border-radius:8px;padding:6px 12px;font-weight:900;cursor:pointer;font-size:13px">✕</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+      <a class="vbe-tile" href="./home.html" style="background:linear-gradient(135deg,#0369a1,#0ea5e9)"><span class="ic">🏠</span>होम</a>
+      <a class="vbe-tile" href="./kharcha-entry.html" style="background:linear-gradient(135deg,#1d4ed8,#3b82f6)"><span class="ic">🧾</span>खर्चा एंट्री</a>
+      <a class="vbe-tile" href="./payments.html" style="background:linear-gradient(135deg,#3730a3,#6366f1)"><span class="ic">💳</span>पेमेंट</a>
+      <a class="vbe-tile" href="./statement.html" style="background:linear-gradient(135deg,#0f766e,#14b8a6)"><span class="ic">📖</span>बही</a>
+      <a class="vbe-tile" href="./pricebook.html" style="background:linear-gradient(135deg,#047857,#10b981)"><span class="ic">📗</span>प्राइसबुक</a>
+      <a class="vbe-tile" href="./marwar-rasoi.html" style="background:linear-gradient(135deg,#b91c1c,#ef4444)"><span class="ic">🍽️</span>मारवाड़ रसोई</a>
+      <a class="vbe-tile" href="./unit-receivables.html" style="background:linear-gradient(135deg,#166534,#22c55e)"><span class="ic">🎖️</span>Unit पैसा</a>
+      <a class="vbe-tile" href="./kharcha-dashboard.html" style="background:linear-gradient(135deg,#0e7490,#06b6d4)"><span class="ic">📊</span>Dashboard</a>
+      <a class="vbe-tile" href="./" style="background:linear-gradient(135deg,#334155,#64748b)"><span class="ic">📦</span>Order App</a>
+    </div>
+  </div>
+</div>
+
+<script>function vbeMenu(v){document.getElementById('vbe-menu').style.display=v?'block':'none'}</script>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, collection, doc, getDoc, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+const FB_CFG = { apiKey:'AIzaSyBCe5DKNKcthOl4umprfRm2QBfbVaFORg8', authDomain:'vbe-order-tracker-60324.firebaseapp.com', projectId:'vbe-order-tracker-60324', storageBucket:'vbe-order-tracker-60324.firebasestorage.app', messagingSenderId:'894023456122', appId:'1:894023456122:web:6ee548f0913c887c67f2c3' };
+const app = initializeApp(FB_CFG, 'vbe-kharcha');
+const auth = getAuth(app); const db = getFirestore(app);
+const fmt=n=>'₹'+Math.round(+(n||0)).toLocaleString('hi-IN');
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+
+onAuthStateChanged(auth, async u=>{
+  if(!u) return;
+  const a=await getDoc(doc(db,'vbe_admins',u.uid));
+  let ok=a.exists();
+  if(!ok){ const s=await getDoc(doc(db,'vbe_users',u.uid)); ok=s.exists()&&s.data().role==='staff'; }
+  if(!ok){ document.getElementById('s-wait').innerHTML='❌ सिर्फ admin/staff'; return; }
+  document.getElementById('s-wait').style.display='none';
+  document.getElementById('s-app').style.display='block';
+  const d=new Date(); document.getElementById('hero-date').textContent = d.toLocaleDateString('hi-IN',{weekday:'long',day:'numeric',month:'long'})+' · आपका खर्चा-हिसाब';
+  try{
+    const t=today(), m=t.slice(0,7);
+    const [exSnap, rcSnap]=await Promise.all([
+      getDocs(collection(db,'vbe_expenses')).catch(()=>({forEach:()=>{}})),
+      getDocs(collection(db,'vbe_receipts')).catch(()=>({forEach:()=>{}}))
+    ]);
+    let tout=0, tin=0, mout=0;
+    exSnap.forEach(x=>{const e=x.data(); if(e.date===t) tout+=+e.total||0; if((e.date||'').slice(0,7)===m) mout+=+e.total||0;});
+    rcSnap.forEach(x=>{const r=x.data(); if(r.direction==='in'&&r.date===t) tin+=+r.amount||0;});
+    document.getElementById('t-out').textContent=fmt(tout);
+    document.getElementById('t-in').textContent=fmt(tin);
+    document.getElementById('t-month').textContent=fmt(mout);
+  }catch(e){}
+});
+</script>
+</body>
+</html>

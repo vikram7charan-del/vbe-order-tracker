@@ -2090,12 +2090,19 @@ renderFocusBar();
 
 /* ══════════ 📤 WhatsApp भाग-भाग में + श्रेणी चुनकर ══════════
    28-काम की limit खत्म: 500 काम भी भाग 1/2/3… में पूरे जाते हैं।
-   _spMsgCat से सिर्फ़ चुनी श्रेणी (💻/🏆/🛒/🏪) के काम भेजो। */
-let _spMsgCat='';
-window.spMsgCat=function(k){ _spMsgCat=k; renderSmartPop(); };
+   _spMsgCats से चुनी श्रेणियाँ (💻/🏆/🛒/🏪 — एक से ज़्यादा) के काम भेजो। */
+let _spMsgCats=[]; // खाली = सब; ['golden','market'] = सिर्फ़ ये दोनों
+window.spMsgCat=function(k){
+  if(k===''){ _spMsgCats=[]; }
+  else{
+    const at=_spMsgCats.indexOf(k);
+    if(at>=0) _spMsgCats.splice(at,1); else _spMsgCats.push(k);
+  }
+  renderSmartPop();
+};
 function spMsgLines(c){
   let tps=groupedActive(c), asg=assignedTo(c.id);
-  if(_spMsgCat){ tps=tps.filter(x=>x.cat===_spMsgCat); asg=asg.filter(x=>x.cat===_spMsgCat); }
+  if(_spMsgCats.length){ tps=tps.filter(x=>_spMsgCats.includes(x.cat)); asg=asg.filter(x=>_spMsgCats.includes(x.cat)); }
   const lines=[];
   tps.forEach(x=>{ const ci=catInfo(x.cat); lines.push({s:`${ci?ci.logo+' ':''}${x.t}`,main:true}); });
   asg.forEach(x=>{ const ci=catInfo(x.cat); lines.push({s:`${ci?ci.logo+' ':''}${x.t} (📌 ${x.srcName})`,main:false}); });
@@ -2109,7 +2116,7 @@ function spMsgParts(c){
   const chunks=[]; let cur=[], curLen=0;
   lines.forEach(l=>{
     const ln=l.s.length+8;
-    if(curLen+ln>LIMIT && cur.length){ chunks.push(cur); cur=[]; curLen=0; }
+    if((curLen+ln>LIMIT || cur.length>=25) && cur.length){ chunks.push(cur); cur=[]; curLen=0; }
     cur.push(l); curLen+=ln;
   });
   if(cur.length) chunks.push(cur);
@@ -2130,7 +2137,10 @@ window.spSendPart=function(k){
   const rawPh=c.waPhone||c.phone;
   if(!rawPh){ toast('⚠️ नंबर नहीं है','err'); return; }
   const ph=rawPh.replace(/[^0-9]/g,'');
-  openWhatsApp(ph.length===10?'91'+ph:ph, parts[k].msg);
+  // सब-श्रेणी + एक ही भाग + ताज़ा AI message हो तो वही सुंदर message जाए
+  let msg=parts[k].msg;
+  if(!_spMsgCats.length && parts.length===1 && c.waMsg && c.waMsgAt && (Date.now()-new Date(c.waMsgAt).getTime())<6*60*60*1000) msg=c.waMsg;
+  openWhatsApp(ph.length===10?'91'+ph:ph, msg);
   markWaSent(c); renderSmartPop();
 };
 window.spCopyPart=async function(k){
@@ -2724,14 +2734,15 @@ function renderSmartPop(){
     ${(tps.length||asg.length)?(()=>{
       // श्रेणी चुनकर भेजो + लंबा हो तो भाग 1/2/3… (28-काम limit खत्म)
       const cats=[{k:'',l:'सब'},...TASK_CATS.map(t=>({k:t.k,l:t.logo}))];
+      const isOn=(k)=>k===''?!_spMsgCats.length:_spMsgCats.includes(k);
       const chips=`<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:7px;align-items:center">
-        <span style="font-size:9px;font-weight:800;color:#64748b">भेजना:</span>
-        ${cats.map(t=>`<span onclick="spMsgCat('${t.k}')" style="cursor:pointer;font-size:11px;font-weight:800;padding:4px 10px;border-radius:8px;border:1.5px solid ${_spMsgCat===t.k?'#a855f7':'rgba(30,58,95,.8)'};background:${_spMsgCat===t.k?'rgba(76,29,149,.4)':'#060d1a'};color:${_spMsgCat===t.k?'#e9d5ff':'#94a3b8'}">${t.l}</span>`).join('')}
+        <span style="font-size:9px;font-weight:800;color:#64748b">भेजना (एक से ज़्यादा चुनें):</span>
+        ${cats.map(t=>`<span onclick="spMsgCat('${t.k}')" style="cursor:pointer;font-size:11px;font-weight:800;padding:4px 10px;border-radius:8px;border:1.5px solid ${isOn(t.k)?'#a855f7':'rgba(30,58,95,.8)'};background:${isOn(t.k)?'rgba(76,29,149,.4)':'#060d1a'};color:${isOn(t.k)?'#e9d5ff':'#94a3b8'}">${isOn(t.k)?'✓ ':''}${t.l}</span>`).join('')}
       </div>`;
       const parts=spMsgParts(c);
       if(!parts.length) return chips+`<div style="font-size:10.5px;color:#64748b;margin-bottom:7px">इस श्रेणी में कोई काम नहीं</div>`;
       if(parts.length===1&&hasWA)
-        return chips+`<button class="qd-btn qd-wa" style="width:100%;margin-bottom:7px;padding:10px" onclick="spSendPart(0)">${(!_spMsgCat&&c.waMsg&&c.waMsgAt&&(Date.now()-new Date(c.waMsgAt).getTime())<6*60*60*1000)?'🤖 AI message WhatsApp पर भेजो':'📤 सारे काम WhatsApp पर भेजो ('+parts[0].count+')'}</button>`;
+        return chips+`<button class="qd-btn qd-wa" style="width:100%;margin-bottom:7px;padding:10px" onclick="spSendPart(0)">${(!_spMsgCats.length&&c.waMsg&&c.waMsgAt&&(Date.now()-new Date(c.waMsgAt).getTime())<6*60*60*1000)?'🤖 AI message WhatsApp पर भेजो':'📤 सारे काम WhatsApp पर भेजो ('+parts[0].count+')'}</button>`;
       return chips+parts.map((p,k)=>`<div style="display:flex;gap:6px;margin-bottom:6px">
         ${hasWA?`<button class="qd-btn qd-wa" style="flex:1;padding:9px" onclick="spSendPart(${k})">📤 भाग ${k+1}/${parts.length} भेजो (${p.count} काम)</button>`:''}
         <button class="qd-btn sp-sec" style="width:auto;padding:9px 12px;color:#4ade80;border-color:rgba(34,197,94,.4)" onclick="spCopyPart(${k})">📋</button>
@@ -2926,8 +2937,10 @@ window.spSendTasks=function(){
 window.spFreshAI=async function(){
   const c=contacts.find(x=>x.id===_spId);
   if(!c) return;
-  const tps=groupedActive(c), asg=assignedTo(c.id);
-  if(!tps.length&&!asg.length){ toast('⚠️ कोई बाकी काम नहीं','warn'); return; }
+  let tps=groupedActive(c), asg=assignedTo(c.id);
+  // 'भेजना' में श्रेणी चुनी हो तो AI message भी उन्हीं कामों का बने
+  if(_spMsgCats.length){ tps=tps.filter(x=>_spMsgCats.includes(x.cat)); asg=asg.filter(x=>_spMsgCats.includes(x.cat)); }
+  if(!tps.length&&!asg.length){ toast('⚠️ इस श्रेणी में कोई बाकी काम नहीं','warn'); return; }
   if(!window._n8nUrl){ toast('⚙️ पहले n8n URL डालें (ऊपर ⚙️ button)','warn'); return; }
   const tasks=[...tps.map(x=>(catInfo(x.cat)?catInfo(x.cat).logo+' ':'')+x.t),
                ...asg.map(x=>(catInfo(x.cat)?catInfo(x.cat).logo+' ':'')+x.t+' ('+x.srcName+')')];

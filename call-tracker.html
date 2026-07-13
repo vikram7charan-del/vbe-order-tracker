@@ -605,26 +605,29 @@ body.th-geo .btn-add-big{background:linear-gradient(135deg,#6366f1,#a855f7);box-
 .dv-zig .dvc:active{transform:perspective(700px) rotateX(4deg) scale(.972)}
 
 /* 🎯 Focus mode — गोल घड़ी graphics, ऊपर sticky पट्टी */
-#focus-bar,#focus-bar-d{display:none;position:sticky;top:0;z-index:45;padding:7px 13px;gap:9px;overflow-x:auto;
+#focus-bar,#focus-bar-d{display:none;position:sticky;top:0;z-index:45;padding:6px 11px;gap:6px;
+  flex-wrap:wrap;max-height:132px;overflow-y:auto;
   background:linear-gradient(180deg,rgba(10,6,26,.97),rgba(5,4,14,.94));backdrop-filter:blur(10px);
   border-bottom:1px solid rgba(139,92,246,.35);scrollbar-width:none}
 #focus-bar.on,#focus-bar-d.on{display:flex}
-#focus-bar-d{border-bottom-color:rgba(245,158,11,.4);background:linear-gradient(180deg,rgba(26,18,4,.97),rgba(14,9,2,.94))}
+#focus-bar-d{border-bottom-color:rgba(34,211,238,.4);background:linear-gradient(180deg,rgba(3,24,28,.97),rgba(2,12,14,.94))}
 .fc-owner{flex-shrink:0;writing-mode:vertical-rl;text-orientation:mixed;font-size:8.5px;font-weight:900;letter-spacing:.5px;color:#a78bfa;display:flex;align-items:center}
 #focus-bar-d .fc-owner{color:#fbbf24}
-.fc-item.d{background:linear-gradient(160deg,rgba(90,60,8,.7),rgba(32,20,4,.95));border-color:rgba(245,158,11,.55);
-  box-shadow:0 8px 20px -8px rgba(245,158,11,.5),inset 0 1px 0 rgba(255,255,255,.1)}
-.fc-item.d .fc-ring{background:conic-gradient(var(--fc,#f59e0b) var(--p,0%), rgba(80,55,10,.5) 0)}
-.fc-item.d .fc-ring .tm{color:#fde68a}
-.fc-item{display:flex;align-items:center;gap:9px;flex-shrink:0;max-width:270px;
-  background:linear-gradient(160deg,rgba(46,26,90,.8),rgba(15,8,32,.95));
-  border:1px solid rgba(139,92,246,.5);border-radius:16px;padding:7px 11px 7px 7px;
-  box-shadow:0 8px 20px -8px rgba(124,58,237,.6),inset 0 1px 0 rgba(255,255,255,.1)}
-.fc-ring{width:48px;height:48px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;position:relative;
+.fc-item.d{background:linear-gradient(160deg,rgba(4,60,58,.85),rgba(2,20,22,.96));border-color:rgba(34,211,238,.6);
+  box-shadow:0 7px 16px -7px rgba(34,211,238,.5),inset 0 1px 0 rgba(255,255,255,.12)}
+.fc-item.d .fc-ring{background:conic-gradient(var(--fc,#22d3ee) var(--p,0%), rgba(8,60,66,.55) 0)}
+.fc-item.d .fc-ring::before{background:#04181c}
+.fc-item.d .fc-ring .tm{color:#a5f3fc}
+#focus-bar-d .fc-owner{color:#22d3ee}
+.fc-item{display:flex;align-items:center;gap:7px;flex-shrink:0;max-width:225px;
+  background:linear-gradient(160deg,rgba(46,26,90,.85),rgba(15,8,32,.96));
+  border:1px solid rgba(139,92,246,.55);border-radius:14px;padding:5px 9px 5px 5px;
+  box-shadow:0 7px 16px -7px rgba(124,58,237,.65),inset 0 1px 0 rgba(255,255,255,.12)}
+.fc-ring{width:38px;height:38px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;position:relative;
   background:conic-gradient(var(--fc,#a855f7) var(--p,0%), rgba(50,40,90,.5) 0)}
-.fc-ring::before{content:'';position:absolute;inset:4px;border-radius:50%;background:#0c0820}
-.fc-ring .tm{position:relative;font-size:10.5px;font-weight:900;color:#e9d5ff;font-variant-numeric:tabular-nums}
-.fc-task{font-size:11px;font-weight:800;color:#e2e8f0;line-height:1.3;max-width:160px;
+.fc-ring::before{content:'';position:absolute;inset:3px;border-radius:50%;background:#0c0820}
+.fc-ring .tm{position:relative;font-size:8.5px;font-weight:900;color:#e9d5ff;font-variant-numeric:tabular-nums}
+.fc-task{font-size:9.5px;font-weight:800;color:#e2e8f0;line-height:1.3;max-width:135px;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .fc-x{font-size:14px;color:#8b7bb8;cursor:pointer;padding:4px;flex-shrink:0}
 .fc-item.over{animation:pulse 1s infinite;border-color:#ef4444}
@@ -711,7 +714,7 @@ body.hdr-folded #hdr-fold{transform:rotate(180deg)}
         <a href="./quick-add.html" class="btn-icon" title="Quick Order Add">📦</a>
         <button class="btn-icon" id="day-btn" onclick="gotoDay()" title="📅 मेरा दिन — इसी पेज पर timeline" style="cursor:pointer;font-family:inherit">📅 दिन</button>
         <button class="btn-icon" id="hdr-fold" onclick="foldHdr()" title="ऊपर के बटन छुपाओ/दिखाओ" style="cursor:pointer;font-family:inherit">⌃</button>
-        <span id="hdr-search" style="flex:1;min-width:160px;position:relative;display:flex">
+        <span id="hdr-search" style="flex:1;min-width:110px;max-width:230px;position:relative;display:flex">
           <input class="inp" id="search-inp" style="padding:7px 30px 7px 11px;font-size:12.5px;border-radius:9px;width:100%"
                  placeholder="🔍 नाम या नंबर खोजें..." oninput="onSearchInput(this.value)">
           <span id="search-clear" onclick="clearSearch()" style="display:none;position:absolute;right:9px;top:50%;transform:translateY(-50%);font-size:14px;color:#64748b;cursor:pointer;padding:4px">✕</span>
@@ -958,6 +961,19 @@ body.hdr-folded #hdr-fold{transform:rotate(180deg)}
   </div>
 </div>
 
+<!-- 🎯 Focus Dashboard — विक्रम + दिनेश के focus एक जगह + AI रिपोर्ट -->
+<div class="modal-bg" id="m-fdash" style="z-index:284">
+  <div class="modal-box">
+    <div class="modal-title">
+      <span>🎯 Focus Dashboard</span>
+      <span class="modal-x" onclick="closeModal('m-fdash')">✕</span>
+    </div>
+    <div id="fdash-body"></div>
+    <button class="btn-save" style="background:linear-gradient(120deg,#7c3aed,#a855f7)" onclick="fdashAI()">🤖 AI रिपोर्ट बनाओ</button>
+    <div id="fdash-ai" style="display:none;margin-top:11px;background:#0d1526;border:1px solid rgba(168,85,247,.5);border-radius:12px;padding:12px;font-size:12.5px;color:#fbbf24;font-weight:700;line-height:1.7;white-space:pre-wrap"></div>
+  </div>
+</div>
+
 <!-- 📋 सारे काम copy — batch में, बिना नंबर, टीम-क्रम में -->
 <div class="modal-bg" id="m-copy">
   <div class="modal-box">
@@ -1134,8 +1150,10 @@ function startFirestoreSync(){
     let settings=null;
     snap.docs.forEach(d=>{
       if(d.id==='_settings'){ settings=d.data(); return; }
+      if(d.id==='_focus'){ const it=(d.data()||{}).items; if(Array.isArray(it)){ _focus=it; localStorage.setItem('vbe_focus',JSON.stringify(it)); renderFocusBar(); } return; }
       contacts.push(d.data());
     });
+    window._settings=settings||{};
     if(settings){
       if(Array.isArray(settings.tagList)&&settings.tagList.length){
         TAG_LIST=settings.tagList;
@@ -1148,6 +1166,7 @@ function startFirestoreSync(){
       }
       rebuildTags();
       if(settings.n8nUrl) window._n8nUrl=settings.n8nUrl;
+      if(Array.isArray(settings.filterOrder)) window._filterOrder=settings.filterOrder;
     }
     renderFilterBar(); renderTagBtns(); render();
     if(window._pendingOpen){
@@ -2077,7 +2096,10 @@ window.addTaskTo=function(id){
 /* ══════════ 🎯 FOCUS MODE — गोल घड़ी, ऊपर pin, 5 तक एक साथ ══════════ */
 let _focus=[];
 try{ _focus=JSON.parse(localStorage.getItem('vbe_focus')||'[]'); }catch(e){ _focus=[]; }
-function saveFocus(){ localStorage.setItem('vbe_focus',JSON.stringify(_focus)); }
+function saveFocus(){
+  localStorage.setItem('vbe_focus',JSON.stringify(_focus));
+  try{ setDoc(doc(db,'vbe_call_tracker','_focus'),{id:'_focus',items:_focus}); }catch(e){}
+}
 function focusHas(id){ return _focus.some(f=>f.id===id); }
 let _fcPick=null, _fcOwn='v';
 window.fcOwner=function(o){
@@ -2120,8 +2142,9 @@ function fcItemHTML(f){
   const p=Math.min(100,Math.max(0,((Date.now()-f.start)/(f.until-f.start))*100));
   const mm=Math.floor(Math.abs(left)/60000), ss=Math.floor((Math.abs(left)%60000)/1000);
   const d=(f.own||'v')==='d';
+  const lateTxt=Math.abs(left)>=3600000?fmtCompact(Math.abs(left))+' लेट':mm+'m लेट'; // हर मिनट बढ़ती उल्टी गिनती
   return `<div class="fc-item ${d?'d':''} ${over?'over':''}" data-key="${f.key}" onclick="openSmartPop('${f.id}')">
-    <div class="fc-ring" style="--p:${p}%;--fc:${over?'#ef4444':(d?'#f59e0b':'#a855f7')}"><span class="tm">${over?'पूरा!':mm+':'+String(ss).padStart(2,'0')}</span></div>
+    <div class="fc-ring" style="--p:${p}%;--fc:${over?'#ef4444':(d?'#22d3ee':'#a855f7')}"><span class="tm">${over?lateTxt:mm+':'+String(ss).padStart(2,'0')}</span></div>
     <div class="fc-task">${escH(f.t)}<div style="font-size:8.5px;color:${d?'#b8963e':'#8b7bb8'};font-weight:800;margin-top:1px">🎯 ${f.mins} मिनट</div></div>
     <span class="fc-x" onclick="event.stopPropagation();stopFocus('${f.key}')">✕</span>
   </div>`;
@@ -2150,6 +2173,87 @@ setInterval(()=>{
   renderFocusBar();
 },1000);
 renderFocusBar();
+
+/* ══════════ 🎯 Focus Dashboard + 🤖 AI दिन-प्लान ══════════ */
+function firstPendIdx(c){ const tp=normTopics(c); for(let i=0;i<tp.length;i++) if(!tp[i].done) return i; return 0; }
+window.openFocusDash=function(){
+  const sec=(own,label,color)=>{
+    const fs=_focus.filter(f=>(f.own||'v')===own).sort((a,b)=>b.start-a.start);
+    const rows=fs.map(f=>{
+      const left=f.until-Date.now();
+      const st=left<=0?`<span style="color:#f87171">🔴 ${fmtCompact(-left)} लेट</span>`:`<span style="color:#4ade80">⏳ ${fmtCompact(left)}</span>`;
+      return `<div style="display:flex;gap:7px;align-items:center;padding:5px 0;border-bottom:1px dashed rgba(64,88,140,.25);cursor:pointer" onclick="closeModal('m-fdash');openSmartPop('${f.id}')">
+        <span style="flex:1;min-width:0;font-size:12px;font-weight:700;color:#fbbf24">${escH(f.t)}</span>
+        <span style="font-size:10px;font-weight:900">${st}</span>
+      </div>`;
+    }).join('');
+    return `<div style="background:#0a1120;border:1px solid ${color}55;border-radius:12px;padding:10px 12px;margin-bottom:10px">
+      <div style="font-size:10.5px;font-weight:900;color:${color};margin-bottom:5px">${label} — ${fs.length} focus</div>
+      ${rows||'<div style="font-size:11px;color:#5b6b86">कोई focus नहीं</div>'}
+    </div>`;
+  };
+  let doneToday=0; const tk0=(d=>{d.setHours(0,0,0,0);return d.getTime()})(new Date());
+  contacts.forEach(c=>normTopics(c).forEach(x=>{ if(x.done&&x.doneAt&&new Date(x.doneAt).getTime()>=tk0) doneToday++; }));
+  document.getElementById('fdash-body').innerHTML=
+    `<div style="font-size:11px;color:#94a3b8;margin-bottom:10px">आज ✅ ${doneToday} काम पूरे</div>`
+    +sec('v','🟣 विक्रम भाई','#a855f7')+sec('d','🔷 दिनेश जी रतकोड़िया','#22d3ee');
+  const a=document.getElementById('fdash-ai'); a.style.display='none'; a.textContent='';
+  document.getElementById('m-fdash').classList.add('open');
+};
+window.fdashAI=async function(){
+  const a=document.getElementById('fdash-ai');
+  a.style.display='block'; a.textContent='🤖 रिपोर्ट बन रही है…';
+  try{
+    let doneToday=[]; const tk0=(d=>{d.setHours(0,0,0,0);return d.getTime()})(new Date());
+    contacts.forEach(c=>normTopics(c).forEach(x=>{ if(x.done&&x.doneAt&&new Date(x.doneAt).getTime()>=tk0) doneToday.push(x.t); }));
+    const fl=_focus.map(f=>`[${(f.own||'v')==='d'?'दिनेश':'विक्रम'}] ${f.t} — ${f.until-Date.now()<=0?Math.round((Date.now()-f.until)/60000)+' min लेट':'चालू'}`);
+    a.textContent=await aiAsk(`तुम विक्रम भाई (Vande Bharat Enterprises) के काम-सलाहकार हो। छोटी, सीधी हिंदी रिपोर्ट दो (6-8 पंक्तियाँ): आज के focus कामों की हालत, कौन लेट है, विक्रम बनाम दिनेश की गति, और 2 सीधे सुझाव कि आगे 2 घंटे में क्या पहले करें।\n\nFocus सूची:\n${fl.join('\n')||'कोई नहीं'}\n\nआज पूरे हुए काम (${doneToday.length}): ${doneToday.slice(0,15).join(' · ')}`,700);
+  }catch(e){ a.textContent='⚠️ AI key नहीं मिली या net error — ⚙️ में key जाँचें'; }
+};
+/* 🤖 आज का AI प्लान — day view के ऊपर golden panel */
+window.genDayPlan=async function(){
+  toast('🤖 आज का प्लान बन रहा है…');
+  try{
+    const now=Date.now(), items=[];
+    contacts.forEach(c=>{
+      if(c.active===false) return;
+      const pend=normTopics(c).filter(x=>!x.done);
+      if(!pend.length) return;
+      const t=c.nextCallAt?new Date(c.nextCallAt).getTime():0;
+      items.push({id:c.id,name:c.name||'',time:t?new Date(t).toTimeString().slice(0,5):null,late:!!(t&&t<now),tasks:pend.slice(0,3).map(x=>x.t)});
+    });
+    items.sort((a,b)=>(b.late?1:0)-(a.late?1:0));
+    const txt=await aiAsk(`विक्रम भाई (army-supply व्यापारी, बाड़मेर) का आज का काम-प्लान बनाओ। दिन के हिस्से: 6-9 योजना, 9-14 जालीपा स्टेशन, 14-18 मार्केटिंग, 18-20 हिसाब, 20-24 परिवार।\nजवाब सिर्फ़ JSON: {"lines":[{"id":"contactId","txt":"छोटी पंक्ति — समय/देर + नाम + मुख्य काम (काम के शब्द हूबहू)"}]}\nनियम: सबसे ज़रूरी/देर वाले पहले, फिर समय-क्रम; ज़्यादा-से-ज़्यादा 14 पंक्तियाँ; हर txt 12 शब्दों में।\nDATA:\n${JSON.stringify(items.slice(0,40))}`,1300);
+    const m=txt.match(/\{[\s\S]*\}/);
+    const j=JSON.parse(m?m[0]:txt);
+    if(!Array.isArray(j.lines)) throw new Error('bad');
+    window._settings=window._settings||{};
+    window._settings.aiDayPlan={at:new Date().toISOString(),lines:j.lines.slice(0,16)};
+    await setDoc(doc(db,'vbe_call_tracker','_settings'),{id:'_settings',aiDayPlan:window._settings.aiDayPlan},{merge:true});
+    render();
+    toast('✅ AI प्लान तैयार — ऊपर golden panel में');
+  }catch(e){ toast('⚠️ AI प्लान नहीं बना — key/net जाँचें','err'); }
+};
+function aiPlanPanel(){
+  const pl=(window._settings||{}).aiDayPlan;
+  let inner;
+  if(pl&&Array.isArray(pl.lines)&&pl.lines.length){
+    inner=pl.lines.map(l=>{
+      const c=contacts.find(x=>x.id===l.id);
+      return `<div style="display:flex;gap:7px;align-items:center;padding:4px 0;border-bottom:1px dashed rgba(161,98,7,.25);${c?'cursor:pointer':''}" ${c?`onclick="openSmartPop('${l.id}')"`:''}>
+        <span style="flex:1;min-width:0;font-size:12.5px;font-weight:800;color:#fbbf24;line-height:1.45">${escH(l.txt)}</span>
+        ${c?`<span class="dv-task-clk" onclick="event.stopPropagation();openFocusPick('${l.id}',${firstPendIdx(c)})" title="🎯 Focus">🎯</span>`:''}
+      </div>`;
+    }).join('');
+  } else inner=`<div style="font-size:11px;color:#a08b45">अभी प्लान नहीं बना — "🤖 AI प्लान" दबाएँ</div>`;
+  return `<div style="margin:8px 0 4px;background:linear-gradient(160deg,rgba(60,42,6,.5),rgba(20,14,2,.85));border:1px solid rgba(245,158,11,.4);border-radius:15px;padding:11px 13px;box-shadow:0 10px 24px -12px rgba(245,158,11,.35),inset 0 1px 0 rgba(255,255,255,.06)">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+      <span style="font-size:11px;font-weight:900;color:#fcd34d;flex:1">🤖 आज का AI प्लान${pl&&pl.at?' · '+agoText(pl.at):''}</span>
+      <button class="dv-btn" style="border-color:rgba(245,158,11,.6);color:#fcd34d" onclick="genDayPlan()">🤖 नया प्लान</button>
+    </div>
+    ${inner}
+  </div>`;
+}
 
 /* ══════════ 📤 WhatsApp भाग-भाग में + श्रेणी चुनकर ══════════
    28-काम की limit खत्म: 500 काम भी भाग 1/2/3… में पूरे जाते हैं।
@@ -2213,6 +2317,40 @@ window.spCopyPart=async function(k){
   await copyToClip(parts[k].msg);
   toast('📋 भाग '+(k+1)+' copy हो गया');
 };
+
+/* ══════════ 🤖 AI core — Anthropic key (_settings.aiKey या localStorage vbe_ai_key) ══════════ */
+function aiKey(){ return (window._settings&&window._settings.aiKey)||localStorage.getItem('vbe_ai_key')||''; }
+async function aiAsk(prompt,maxTok){
+  const key=aiKey();
+  if(!key) throw new Error('no-key');
+  const ctl=new AbortController();
+  const to=setTimeout(()=>ctl.abort(),25000);
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',signal:ctl.signal,
+      headers:{'x-api-key':key,'anthropic-version':'2023-06-01','content-type':'application/json',
+               'anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:maxTok||1200,
+        messages:[{role:'user',content:prompt}]})});
+    const j=await r.json();
+    if(j.content&&j.content[0]&&j.content[0].text) return j.content[0].text.trim();
+    throw new Error(j.error?j.error.message:'no text');
+  } finally{ clearTimeout(to); }
+}
+/* विक्रम भाई के अंदाज़ का WhatsApp prompt — घिसा-पिटा नहीं, अपनापन+motivation */
+function vikramWaPrompt(name,tasks){
+  return `तुम विक्रम चारण (Vande Bharat Enterprises, जालीपा कैंट, बाड़मेर) हो — एक गर्मजोशी वाले, रिश्ते निभाने वाले व्यापारी। ${name} जी को खुद अपने हाथ से WhatsApp लिख रहे हो।
+
+काम (हूबहू यही शब्द, एक अक्षर भी मत काटो):
+${tasks.map((t,i)=>(i+1)+'. '+t).join('\n')}
+
+विक्रम भाई का अंदाज़ — इसी में लिखो:
+- शुरुआत: राम राम / जय श्री कृष्ण + नाम के साथ अपनापन ("आपसे बात करके हमेशा हौसला मिलता है" जैसी 1 सच्ची तारीफ़ — हर बार नई, बनावटी नहीं)
+- फिर: "आपके लिए ${tasks.length} निवेदन हैं 🙏" जैसी इज़्ज़तदार भाषा (निवेदन/अरज़ शब्द इस्तेमाल करो, 'काम करवाना है' जैसी रूखी नहीं)
+- हर निवेदन नंबर से, पूरा-का-पूरा, वही क्रम
+- अंत: हल्का motivation ("आप जैसे साथी की वजह से ही गाड़ी चलती है") + विनम्र धन्यवाद + "— आपका विक्रम, Vande Bharat Enterprises"
+- भाषा हर बार अलग-अलग हो — कभी शुद्ध हिंदी, कभी हल्की मारवाड़ी मिठास, कभी थोड़ी Hinglish; robot जैसा template कभी नहीं
+- थोड़े emoji ठीक, ज़्यादा नहीं। सिर्फ़ message लिखो — कोई heading/explanation नहीं।`;
+}
 
 /* सौंपा काम ⬆️ मुख्य कामों में — फिर calendar/श्रेणी सब लग सकता है */
 window.spPromoteAsg=function(srcId,i){
@@ -2379,7 +2517,8 @@ function renderDay(list){
       <button class="sg ${_dvSeg==='nocal'?'on':''}" onclick="dvSeg('nocal')">⏳ बिना Calendar</button>
       <button class="sg" onclick="dvZig()">${_dvZig?'📏 सीधा':'🐍 zigzag'}</button>
       <span class="dv-score">✓${doneToday} आज पूरे${late.length?` · 🔴${late.length} देर`:''}</span>
-    </div>`;
+    </div>
+    ${aiPlanPanel()}`;
   if(showCal&&late.length){
     h+=`<div class="dv-grp-h late">🔴 देर हो गई <span class="cnt">${late.length}</span></div><div class="dv-rail">`;
     late.forEach(r=>h+=dayCard(r,true));
@@ -3004,10 +3143,20 @@ window.spFreshAI=async function(){
   // 'भेजना' में श्रेणी चुनी हो तो AI message भी उन्हीं कामों का बने
   if(_spMsgCats.length){ tps=tps.filter(x=>_spMsgCats.includes(x.cat)); asg=asg.filter(x=>_spMsgCats.includes(x.cat)); }
   if(!tps.length&&!asg.length){ toast('⚠️ इस श्रेणी में कोई बाकी काम नहीं','warn'); return; }
-  if(!window._n8nUrl){ toast('⚙️ पहले n8n URL डालें (ऊपर ⚙️ button)','warn'); return; }
   const tasks=[...tps.map(x=>(catInfo(x.cat)?catInfo(x.cat).logo+' ':'')+x.t),
                ...asg.map(x=>(catInfo(x.cat)?catInfo(x.cat).logo+' ':'')+x.t+' ('+x.srcName+')')];
-  toast('🤖 नया message बन रहा है...');
+  toast('🤖 विक्रम-अंदाज़ का नया message बन रहा है...');
+  // पहला रास्ता: सीधा Anthropic (नया दमदार prompt)
+  if(aiKey()){
+    try{
+      const msg=await aiAsk(vikramWaPrompt(c.name||'जी',tasks),1400);
+      c.waMsg=msg; c.waMsgAt=new Date().toISOString();
+      render(); fbSave(c); renderSmartPop();
+      toast('✅ नया message तैयार — एकदम आपके अंदाज़ में!');
+      return;
+    }catch(e){ /* नीचे n8n fallback */ }
+  }
+  if(!window._n8nUrl){ toast('⚙️ AI key/_n8n नहीं मिला — ⚙️ से set करें','warn'); return; }
   try{
     const r=await fetch(window._n8nUrl,{
       method:'POST', headers:{'Content-Type':'application/json'},
@@ -3257,7 +3406,7 @@ window.openAiAdd=function(){
   const w=document.getElementById('ai-whentxt'); if(w) w.value='';
   const n=document.getElementById('ai-name'); if(n) n.value='';
   const p=document.getElementById('ai-phone'); if(p) p.value='';
-  _aiTag='';
+  _aiTag=''; window._aiCat='';
   const pv=document.getElementById('ai-preview'); pv.style.display='none'; pv.innerHTML='';
   document.getElementById('m-ai').classList.add('open');
   setTimeout(()=>{ const e=document.getElementById('ai-whentxt')||document.getElementById('ai-inp'); e.focus(); },150);
@@ -3365,7 +3514,7 @@ function renderAiTags(){
     TAG_LIST.map(t=>`<button class="sk-chip sm ${_aiTag===t.k?'on':''}" onclick="aiPickTag('${t.k}')">${escH(t.label)}</button>`).join('');
 }
 window.aiPickTag=function(k){ _aiTag=k; renderAiTags(); };
-window.aiPreview=function(){
+window.aiPreviewLocal=function(){
   const raw=(document.getElementById('ai-inp').value||'').trim();
   const whenRaw=((document.getElementById('ai-whentxt')||{}).value||'').trim();
   if(!raw&&!whenRaw){ toast('⚠️ पहले बोलें या लिखें','warn'); return; }
@@ -3377,9 +3526,13 @@ window.aiPreview=function(){
   const guessed=!!when;
   if(!when) when=new Date(Date.now()+60*60*1000); // समझ न आए तो 1 घंटा बाद, user खुद ठीक करे
   if(!task) task=whenRaw?_aiCleanTask(whenRaw):'काम';
+  showAiPreview(task,when,guessed,false);
+};
+function showAiPreview(task,when,guessed,ai){
   const pv=document.getElementById('ai-preview');
   pv.innerHTML=`
-    <div style="background:#0d1526;border:1px solid #1e3a5f;border-radius:12px;padding:13px">
+    <div style="background:#0d1526;border:1px solid ${ai?'rgba(168,85,247,.6)':'#1e3a5f'};border-radius:12px;padding:13px">
+      ${ai?'<div style="font-size:9px;font-weight:900;color:#c4b5fd;margin-bottom:5px">🤖 AI ने समझा — जाँच लें</div>':''}
       <div style="font-size:10px;color:#64748b;margin-bottom:3px">📝 काम</div>
       <div id="ai-ptask" contenteditable="true"
            style="font-size:15px;font-weight:800;color:#e2e8f0;margin-bottom:11px;outline:none;
@@ -3390,6 +3543,27 @@ window.aiPreview=function(){
       <button class="btn-confirm-call" onclick="aiConfirm()" style="margin-top:11px">✅ जोड़ो — अलार्म लग जाएगा</button>
     </div>`;
   pv.style.display='block';
+}
+window.aiPreview=async function(){
+  const raw=(document.getElementById('ai-inp').value||'').trim();
+  const whenRaw=((document.getElementById('ai-whentxt')||{}).value||'').trim();
+  if(!raw&&!whenRaw){ toast('⚠️ पहले बोलें या लिखें','warn'); return; }
+  if(!aiKey()||window._aiBusy){ window.aiPreviewLocal(); return; }
+  window._aiBusy=true; toast('🤖 AI समझ रहा है…');
+  try{
+    const now=new Date(), pd=n=>String(n).padStart(2,'0');
+    const nowS=now.getFullYear()+'-'+pd(now.getMonth()+1)+'-'+pd(now.getDate())+' '+pd(now.getHours())+':'+pd(now.getMinutes());
+    const txt=await aiAsk('अभी समय (IST): '+nowS+'\nबोले हुए वाक्य से जानकारी निकालो, जवाब सिर्फ़ JSON:\n{"task":"काम पूरा हूबहू (सिर्फ़ समय-शब्द हटाओ, बाकी एक शब्द मत बदलो)","when":"YYYY-MM-DD HH:MM (आने वाला समय; न हो तो null)","name":"व्यक्ति का नाम या null","cat":"golden|computer|market|jalipa या null"}\nसमय-वाक्य: '+(whenRaw||'—')+'\nकाम-वाक्य: '+(raw||'—'),240);
+    const m=txt.match(/\{[\s\S]*\}/);
+    const j=JSON.parse(m?m[0]:txt);
+    let when=j.when?new Date(String(j.when).replace(' ','T')):null;
+    if(when&&(isNaN(when.getTime())||when.getTime()<=Date.now())) when=null;
+    const task=(j.task||raw||whenRaw||'काम').trim();
+    if(j.name){ const ne=document.getElementById('ai-name'); if(ne&&!ne.value) ne.value=j.name; }
+    window._aiCat=(j.cat&&TASK_CATS.find(t=>t.k===j.cat))?j.cat:'';
+    showAiPreview(task, when||new Date(Date.now()+3600000), !!when, true);
+  }catch(e){ window.aiPreviewLocal(); }
+  finally{ window._aiBusy=false; }
 };
 window.aiConfirm=function(){
   const wv=document.getElementById('ai-when').value;
@@ -3402,7 +3576,7 @@ window.aiConfirm=function(){
   const ph=phRaw?normalizePhone(phRaw):'';
   const entry={
     id:genId(), name:nm||task.slice(0,44), phone:(ph&&ph.length>=10)?ph:'', waPhone:'', note:task,
-    topics:[{t:task,done:false,doneAt:null,cat:'',assignTo:''}],
+    topics:[{t:task,done:false,doneAt:null,cat:(window._aiCat||''),assignTo:''}],
     tag:_aiTag||'', color:'#a855f7', emoji:'📅', intervalMins:30, alarmTime:'',
     lastCallAt:null, nextCallAt:when.toISOString(), callLog:[], pinned:false,
     createdAt:new Date().toISOString(), aiQuick:true
@@ -3609,18 +3783,40 @@ function renderFilterBar(){
   const el=document.getElementById('filter-bar');
   if(!el) return;
   const hn=hiddenIds().length;
-  el.innerHTML=`<div class="f-chip fc-mic" onclick="openAiAdd()" title="बोलकर काम जोड़ें">🎙️ बोलो</div>`
-    + `<div class="f-chip fc-day" id="fc-day" onclick="gotoDay()" title="📅 मेरा दिन">📅 दिन</div>`
-    + `<div class="f-chip" style="border-color:rgba(245,158,11,.65);color:#fbbf24" onclick="openAddModal()" title="नया contact/काम — हर जगह से">➕</div>`
-    + `<div class="f-chip" data-f="" onclick="setFilter('')">🔍 सब</div>`
-    + TAG_LIST.map(t=>
-      `<div class="f-chip" data-f="${t.k}" onclick="setFilter('${t.k}')">${escH(t.label)}</div>`).join('')
-    + TASK_CATS.map(tc=>
-      `<div class="f-chip" data-f="cat:${tc.k}" onclick="setFilter('cat:${tc.k}')">${tc.logo} ${tc.label}</div>`).join('')
-    + `<div class="f-chip" data-f="_arch" onclick="setFilter('_arch')">📦 बंद</div>`
+  const items=filterItems();
+  el.innerHTML=orderedTokens().map(tok=>items[tok]||'').join('')
     + (hn?`<div class="f-chip" style="border-color:rgba(251,191,36,.65);color:#fbbf24" onclick="unhideAll()">🙈 ${hn} वापस लाओ</div>`:'')
-    + `<div class="f-chip" onclick="openTagEditor()" title="Filters edit / नए जोड़ें">✏️</div>`;
+    + `<div class="f-chip" onclick="openTagEditor()" title="Filters edit / क्रम बदलें">✏️</div>`;
   applyFilterStyles();
+}
+/* हर chip का HTML — token के हिसाब से; क्रम settings.filterOrder से */
+function filterItems(){
+  const m={
+    'mic':`<div class="f-chip fc-mic" onclick="openAiAdd()" title="बोलकर काम जोड़ें">🎙️ बोलो</div>`,
+    'day':`<div class="f-chip fc-day" id="fc-day" onclick="gotoDay()" title="📅 मेरा दिन">📅 दिन</div>`,
+    'add':`<div class="f-chip" style="border-color:rgba(245,158,11,.65);color:#fbbf24" onclick="openAddModal()" title="नया contact/काम">➕</div>`,
+    'fdash':`<div class="f-chip" style="border-color:rgba(34,211,238,.6);color:#67e8f9" onclick="openFocusDash()" title="🎯 Focus dashboard — विक्रम/दिनेश">🎯</div>`,
+    'all':`<div class="f-chip" data-f="" onclick="setFilter('')">🔍 सब</div>`,
+    'arch':`<div class="f-chip" data-f="_arch" onclick="setFilter('_arch')">📦 बंद</div>`
+  };
+  TAG_LIST.forEach(t=>{ m['t:'+t.k]=`<div class="f-chip" data-f="${t.k}" onclick="setFilter('${t.k}')">${escH(t.label)}</div>`; });
+  TASK_CATS.forEach(tc=>{ m['c:'+tc.k]=`<div class="f-chip" data-f="cat:${tc.k}" onclick="setFilter('cat:${tc.k}')">${tc.logo} ${tc.label}</div>`; });
+  return m;
+}
+function defaultOrder(){
+  return ['mic','day','add','fdash','all',...TAG_LIST.map(t=>'t:'+t.k),...TASK_CATS.map(tc=>'c:'+tc.k),'arch'];
+}
+function orderedTokens(){
+  const def=defaultOrder();
+  const saved=Array.isArray(window._filterOrder)?window._filterOrder.filter(t=>def.includes(t)):[];
+  return [...saved,...def.filter(t=>!saved.includes(t))];
+}
+function tokLabel(tok){
+  if(tok==='mic')return '🎙️ बोलो'; if(tok==='day')return '📅 दिन'; if(tok==='add')return '➕ नया';
+  if(tok==='fdash')return '🎯 Focus dash'; if(tok==='all')return '🔍 सब'; if(tok==='arch')return '📦 बंद';
+  if(tok.startsWith('t:')){ const t=TAG_LIST.find(x=>x.k===tok.slice(2)); return t?t.label:tok; }
+  if(tok.startsWith('c:')){ const t=TASK_CATS.find(x=>x.k===tok.slice(2)); return t?t.logo+' '+t.label:tok; }
+  return tok;
 }
 function applyFilterStyles(){
   document.querySelectorAll('#filter-bar .f-chip').forEach(ch=>{
@@ -3641,8 +3837,10 @@ window.setFilter=function(f){
 
 /* ── Tag editor — नाम/logo बदलो, ▲▼ से order, ➕ नए जोड़ो, ✕ हटाओ ── */
 let _teList=null;
+let _teOrder=[];
 window.openTagEditor=function(){
   _teList=TAG_LIST.map(t=>({...t}));
+  _teOrder=orderedTokens();
   renderTagEditor();
   document.getElementById('te-bg').style.display='block';
   const p=document.getElementById('te-popup');
@@ -3661,8 +3859,22 @@ function renderTagEditor(){
       <button class="tr-btn tr-del" type="button" onclick="teDel(${i})">✕</button>
     </div>`).join('')
     +`<button class="btn-add-topic" type="button" onclick="teAdd()">➕ नया filter जोड़ें</button>
-    <div style="font-size:9px;color:#475569;margin-top:6px">💡 नाम की शुरुआत में emoji = logo · 👥 दबाकर टीम वाला filter चुनें (काम उन्हीं को सौंपे जाएंगे)</div>`;
+    <div style="font-size:9px;color:#475569;margin-top:6px">💡 नाम की शुरुआत में emoji = logo · 👥 दबाकर टीम वाला filter चुनें (काम उन्हीं को सौंपे जाएंगे)</div>
+    <div style="font-size:10px;font-weight:900;color:#7d8db0;margin:14px 0 6px;text-transform:uppercase;letter-spacing:.5px">↕️ ऊपर की पूरी पंक्ति का क्रम (बोलो/दिन/➕/🎯 भी)</div>`
+    +_teOrder.map((tok,i)=>`
+    <div style="display:flex;align-items:center;gap:5px;margin-bottom:5px">
+      <span style="flex:1;min-width:0;font-size:12px;font-weight:800;color:#c7d4ef;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escH(tokLabel(tok))}</span>
+      <button class="tr-btn" type="button" onclick="teOMove(${i},-1)" ${i===0?'disabled':''}>◀</button>
+      <button class="tr-btn" type="button" onclick="teOMove(${i},1)" ${i===_teOrder.length-1?'disabled':''}>▶</button>
+    </div>`).join('');
 }
+window.teOMove=function(i,d){
+  teRead();
+  const j=i+d;
+  if(j<0||j>=_teOrder.length) return;
+  [_teOrder[i],_teOrder[j]]=[_teOrder[j],_teOrder[i]];
+  renderTagEditor();
+};
 function teRead(){
   document.querySelectorAll('.te-inp').forEach(inp=>{
     const i=+inp.dataset.i;
@@ -3707,8 +3919,13 @@ window.saveTagLabels=async function(){
   closeTagEditor();
   renderFilterBar(); renderTagBtns(); render();
   try{
-    await setDoc(doc(db,'vbe_call_tracker','_settings'), {id:'_settings', tagList:clean}, {merge:true});
-    toast('✅ Filters save हुए');
+    // नए/हटे tags के हिसाब से order sync करके save
+    const validT=clean.map(t=>'t:'+t.k);
+    let ord=_teOrder.filter(tok=>!tok.startsWith('t:')||validT.includes(tok));
+    validT.forEach(tok=>{ if(!ord.includes(tok)) ord.push(tok); });
+    window._filterOrder=ord;
+    await setDoc(doc(db,'vbe_call_tracker','_settings'), {id:'_settings', tagList:clean, filterOrder:ord}, {merge:true});
+    toast('✅ Filters + क्रम save हुए');
   } catch(e){ toast('⚠️ Save error','err'); }
 };
 

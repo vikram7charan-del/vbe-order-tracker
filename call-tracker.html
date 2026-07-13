@@ -605,10 +605,17 @@ body.th-geo .btn-add-big{background:linear-gradient(135deg,#6366f1,#a855f7);box-
 .dv-zig .dvc:active{transform:perspective(700px) rotateX(4deg) scale(.972)}
 
 /* 🎯 Focus mode — गोल घड़ी graphics, ऊपर sticky पट्टी */
-#focus-bar{display:none;position:sticky;top:0;z-index:45;padding:8px 13px;gap:9px;overflow-x:auto;
+#focus-bar,#focus-bar-d{display:none;position:sticky;top:0;z-index:45;padding:7px 13px;gap:9px;overflow-x:auto;
   background:linear-gradient(180deg,rgba(10,6,26,.97),rgba(5,4,14,.94));backdrop-filter:blur(10px);
   border-bottom:1px solid rgba(139,92,246,.35);scrollbar-width:none}
-#focus-bar.on{display:flex}
+#focus-bar.on,#focus-bar-d.on{display:flex}
+#focus-bar-d{border-bottom-color:rgba(245,158,11,.4);background:linear-gradient(180deg,rgba(26,18,4,.97),rgba(14,9,2,.94))}
+.fc-owner{flex-shrink:0;writing-mode:vertical-rl;text-orientation:mixed;font-size:8.5px;font-weight:900;letter-spacing:.5px;color:#a78bfa;display:flex;align-items:center}
+#focus-bar-d .fc-owner{color:#fbbf24}
+.fc-item.d{background:linear-gradient(160deg,rgba(90,60,8,.7),rgba(32,20,4,.95));border-color:rgba(245,158,11,.55);
+  box-shadow:0 8px 20px -8px rgba(245,158,11,.5),inset 0 1px 0 rgba(255,255,255,.1)}
+.fc-item.d .fc-ring{background:conic-gradient(var(--fc,#f59e0b) var(--p,0%), rgba(80,55,10,.5) 0)}
+.fc-item.d .fc-ring .tm{color:#fde68a}
 .fc-item{display:flex;align-items:center;gap:9px;flex-shrink:0;max-width:270px;
   background:linear-gradient(160deg,rgba(46,26,90,.8),rgba(15,8,32,.95));
   border:1px solid rgba(139,92,246,.5);border-radius:16px;padding:7px 11px 7px 7px;
@@ -629,7 +636,31 @@ body.th-geo .btn-add-big{background:linear-gradient(135deg,#6366f1,#a855f7);box-
 .f-chip.fc-mic{background:linear-gradient(120deg,#7c3aed,#a855f7);color:#fff;border-color:transparent;font-weight:900;box-shadow:0 2px 8px rgba(139,92,246,.45)}
 .f-chip.fc-day{background:linear-gradient(120deg,#0ea5e9,#3b82f6);color:#fff;border-color:transparent;font-weight:900}
 .f-chip.fc-day.on{background:linear-gradient(120deg,#a855f7,#ec4899)}
-body.hdr-folded .hdr-btns>*:not(#hdr-fold){display:none}
+/* ══ 💎 Premium 3D redesign — Card + Smart views ══
+   गहराई वाला gradient, कटा कोना, चमक-रेखा, दबाने पर तिरछा झुकाव */
+.card{
+  background:linear-gradient(163deg,rgba(24,36,66,.94) 0%,rgba(9,15,30,.98) 55%,rgba(6,10,20,.99) 100%);
+  border-radius:20px 20px 20px 7px;
+  border-color:rgba(82,108,170,.32);
+  box-shadow:0 16px 32px -15px rgba(0,0,0,.85),0 3px 12px -6px rgba(0,0,0,.6),
+             inset 0 1px 0 rgba(255,255,255,.07),inset 0 -10px 20px -16px rgba(0,0,0,.8);
+  position:relative;
+}
+.card::after{content:'';position:absolute;top:0;left:8%;right:35%;height:1px;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent)}
+.card:active{transform:perspective(800px) rotateX(2.5deg) scale(.988)}
+.card.overdue{box-shadow:0 16px 32px -15px rgba(0,0,0,.85),0 0 18px -4px rgba(239,68,68,.28),inset 0 1px 0 rgba(255,255,255,.07)}
+.card.pinned{box-shadow:0 16px 32px -15px rgba(0,0,0,.85),0 0 16px -4px rgba(251,191,36,.25),inset 0 1px 0 rgba(255,255,255,.07)}
+.sv-item{
+  background:linear-gradient(160deg,rgba(24,36,66,.94),rgba(8,13,26,.98));
+  box-shadow:0 10px 22px -12px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.07);
+  border-color:rgba(82,108,170,.3);
+}
+.sv-grid>.sv-item:nth-child(odd){border-radius:18px 18px 18px 6px}
+.sv-grid>.sv-item:nth-child(even){border-radius:18px 18px 6px 18px}
+.sv-item.overdue{box-shadow:0 10px 22px -12px rgba(0,0,0,.8),0 0 14px -4px rgba(239,68,68,.3),inset 0 1px 0 rgba(255,255,255,.07)}
+
+body.hdr-folded .hdr-btns>*:not(#hdr-fold):not(#hdr-search){display:none}
 body.hdr-folded .hdr-row2{display:none}
 body.hdr-folded #hdr-fold{transform:rotate(180deg)}
 </style>
@@ -680,6 +711,11 @@ body.hdr-folded #hdr-fold{transform:rotate(180deg)}
         <a href="./quick-add.html" class="btn-icon" title="Quick Order Add">📦</a>
         <button class="btn-icon" id="day-btn" onclick="gotoDay()" title="📅 मेरा दिन — इसी पेज पर timeline" style="cursor:pointer;font-family:inherit">📅 दिन</button>
         <button class="btn-icon" id="hdr-fold" onclick="foldHdr()" title="ऊपर के बटन छुपाओ/दिखाओ" style="cursor:pointer;font-family:inherit">⌃</button>
+        <span id="hdr-search" style="flex:1;min-width:160px;position:relative;display:flex">
+          <input class="inp" id="search-inp" style="padding:7px 30px 7px 11px;font-size:12.5px;border-radius:9px;width:100%"
+                 placeholder="🔍 नाम या नंबर खोजें..." oninput="onSearchInput(this.value)">
+          <span id="search-clear" onclick="clearSearch()" style="display:none;position:absolute;right:9px;top:50%;transform:translateY(-50%);font-size:14px;color:#64748b;cursor:pointer;padding:4px">✕</span>
+        </span>
       </div>
 
     <!-- Stats (compact) + ➕ नया दाईं तरफ (पुराना सही स्थान) -->
@@ -699,15 +735,10 @@ body.hdr-folded #hdr-fold{transform:rotate(180deg)}
     <div class="f-chip on" data-f="" onclick="setFilter('')">🔍 सब</div>
   </div>
 
-  <!-- 🎯 Focus mode पट्टी — चल रहे focus timers (गोल घड़ी) -->
+  <!-- 🎯 Focus mode — ऊपर विक्रम भाई (बैंगनी), नीचे दिनेश जी (golden) -->
   <div id="focus-bar"></div>
+  <div id="focus-bar-d"></div>
 
-  <!-- Search bar — scroll के साथ ऊपर चली जाती है -->
-  <div style="padding:5px 13px 4px;position:relative">
-    <input class="inp" id="search-inp" style="padding:9px 34px 9px 12px;font-size:13px;border-radius:10px"
-           placeholder="🔍 नाम या नंबर खोजें..." oninput="onSearchInput(this.value)">
-    <span id="search-clear" onclick="clearSearch()" style="display:none;position:absolute;right:22px;top:50%;transform:translateY(-50%);font-size:15px;color:#64748b;cursor:pointer;padding:4px">✕</span>
-  </div>
 
   <!-- Horizontal Strip -->
   <div class="strip" id="strip"></div>
@@ -830,6 +861,12 @@ body.hdr-folded #hdr-fold{transform:rotate(180deg)}
       <span class="modal-x" onclick="closeModal('m-focus')">✕</span>
     </div>
     <div id="fc-task-pv" style="font-size:12.5px;font-weight:800;color:#fbbf24;margin-bottom:12px;line-height:1.45;word-break:break-word"></div>
+    <label class="lbl">👤 किसके लिए focus?</label>
+    <div class="sk-chips" id="fc-owners" style="margin-bottom:12px">
+      <button class="sk-chip on" id="fc-own-v" onclick="fcOwner('v')">🟣 विक्रम भाई</button>
+      <button class="sk-chip" id="fc-own-d" onclick="fcOwner('d')">🟡 दिनेश जी रतकोड़िया</button>
+    </div>
+    <label class="lbl">⏱️ कितने मिनट?</label>
     <div class="sk-chips">
       <button class="sk-chip" onclick="startFocus(10)">10 मिनट</button>
       <button class="sk-chip" onclick="startFocus(15)">15 मिनट</button>
@@ -1875,14 +1912,22 @@ function hubCopyFallback(txt,cb){
   document.body.removeChild(ta);
 }
 /* श्रेणी के हिसाब से grouped active topics (गोल्डन → कंप्यूटर → मार्केट → जालीपा → बाकी) */
+/* ऊपर श्रेणी-filter (cat:) लगा हो तो हर जगह सिर्फ़ उसी श्रेणी के काम दिखें */
+function catViewFilter(arr){
+  if(_activeFilter&&_activeFilter.startsWith('cat:')){
+    const ck=_activeFilter.slice(4);
+    return arr.filter(x=>x.cat===ck);
+  }
+  return arr;
+}
 function groupedActive(c){
   const order={golden:0,computer:1,market:2,jalipa:3};
   return normTopics(c).map((x,i)=>({...x,i})).filter(x=>!x.done)
     .sort((a,b)=>((a.cat in order)?order[a.cat]:9)-((b.cat in order)?order[b.cat]:9));
 }
 function topicListHTML(c){
-  const act=groupedActive(c);
-  const asg=assignedTo(c.id);
+  const act=catViewFilter(groupedActive(c));
+  const asg=catViewFilter(assignedTo(c.id));
   if(!act.length&&!asg.length) return '';
   const multi=act.length>1;
   return `<div class="c-topics">${act.map((x,n)=>{
@@ -2034,45 +2079,63 @@ let _focus=[];
 try{ _focus=JSON.parse(localStorage.getItem('vbe_focus')||'[]'); }catch(e){ _focus=[]; }
 function saveFocus(){ localStorage.setItem('vbe_focus',JSON.stringify(_focus)); }
 function focusHas(id){ return _focus.some(f=>f.id===id); }
-let _fcPick=null;
+let _fcPick=null, _fcOwn='v';
+window.fcOwner=function(o){
+  _fcOwn=o;
+  document.getElementById('fc-own-v').classList.toggle('on',o==='v');
+  document.getElementById('fc-own-d').classList.toggle('on',o==='d');
+};
 window.openFocusPick=function(id,i){
-  if(_focus.length>=5){ toast('⚠️ 5 focus पहले से चल रहे — पहले एक पूरा करें','warn'); return; }
   const c=contacts.find(x=>x.id===id);
   const tp=c?normTopics(c):[];
   const taskTxt=(tp[i]&&tp[i].t)||(c&&c.name)||'काम';
   _fcPick={id,i,t:taskTxt};
   document.getElementById('fc-task-pv').textContent='📝 '+taskTxt;
+  window.fcOwner(_fcOwn||'v');
   document.getElementById('m-focus').classList.add('open');
 };
 window.startFocus=function(mins){
   if(!_fcPick) return;
+  const own=_fcOwn||'v';
+  if(_focus.filter(f=>(f.own||'v')===own).length>=50){ toast('⚠️ 50 focus पहले से — पहले कुछ पूरे करें','warn'); return; }
   _focus.push({key:_fcPick.id+'_'+_fcPick.i+'_'+Date.now(), id:_fcPick.id, i:_fcPick.i, t:_fcPick.t,
-    start:Date.now(), until:Date.now()+mins*60000, mins});
+    own, start:Date.now(), until:Date.now()+mins*60000, mins});
   saveFocus(); _fcPick=null;
   closeModal('m-focus');
   renderFocusBar(); render();
-  toast('🎯 Focus चालू — '+mins+' मिनट की घड़ी चल पड़ी!');
+  toast('🎯 Focus चालू ('+(own==='d'?'दिनेश जी':'विक्रम भाई')+') — '+mins+' मिनट!');
 };
 window.stopFocus=function(key){
+  // हटाने के लिए PIN — staff बिना PIN के delete नहीं कर सकता
+  const pw=prompt('🔒 Focus से हटाने का PIN:');
+  if(pw===null) return;
+  if(pw.trim()!=='2580'){ toast('⛔ गलत PIN','err'); return; }
   _focus=_focus.filter(f=>f.key!==key);
   saveFocus(); renderFocusBar(); render();
+  toast('🗑 Focus से हटा');
 };
+function fcItemHTML(f){
+  const left=f.until-Date.now();
+  const over=left<=0;
+  const p=Math.min(100,Math.max(0,((Date.now()-f.start)/(f.until-f.start))*100));
+  const mm=Math.floor(Math.abs(left)/60000), ss=Math.floor((Math.abs(left)%60000)/1000);
+  const d=(f.own||'v')==='d';
+  return `<div class="fc-item ${d?'d':''} ${over?'over':''}" data-key="${f.key}" onclick="openSmartPop('${f.id}')">
+    <div class="fc-ring" style="--p:${p}%;--fc:${over?'#ef4444':(d?'#f59e0b':'#a855f7')}"><span class="tm">${over?'पूरा!':mm+':'+String(ss).padStart(2,'0')}</span></div>
+    <div class="fc-task">${escH(f.t)}<div style="font-size:8.5px;color:${d?'#b8963e':'#8b7bb8'};font-weight:800;margin-top:1px">🎯 ${f.mins} मिनट</div></div>
+    <span class="fc-x" onclick="event.stopPropagation();stopFocus('${f.key}')">✕</span>
+  </div>`;
+}
 function renderFocusBar(){
-  const bar=document.getElementById('focus-bar');
-  if(!bar) return;
-  if(!_focus.length){ bar.classList.remove('on'); bar.innerHTML=''; return; }
-  bar.classList.add('on');
-  bar.innerHTML=_focus.map(f=>{
-    const left=f.until-Date.now();
-    const over=left<=0;
-    const p=Math.min(100,Math.max(0,((Date.now()-f.start)/(f.until-f.start))*100));
-    const mm=Math.floor(Math.abs(left)/60000), ss=Math.floor((Math.abs(left)%60000)/1000);
-    return `<div class="fc-item ${over?'over':''}" data-key="${f.key}" onclick="openSmartPop('${f.id}')">
-      <div class="fc-ring" style="--p:${p}%;--fc:${over?'#ef4444':'#a855f7'}"><span class="tm">${over?'पूरा!':mm+':'+String(ss).padStart(2,'0')}</span></div>
-      <div class="fc-task">${escH(f.t)}<div style="font-size:8.5px;color:#8b7bb8;font-weight:800;margin-top:1px">🎯 ${f.mins} मिनट focus</div></div>
-      <span class="fc-x" onclick="event.stopPropagation();stopFocus('${f.key}')">✕</span>
-    </div>`;
-  }).join('');
+  const bv=document.getElementById('focus-bar'), bd=document.getElementById('focus-bar-d');
+  if(!bv||!bd) return;
+  // latest सबसे आगे — नया focus हमेशा सामने, पुराने पीछे scroll में
+  const vs=_focus.filter(f=>(f.own||'v')!=='d').sort((a,b)=>b.start-a.start);
+  const ds=_focus.filter(f=>(f.own||'v')==='d').sort((a,b)=>b.start-a.start);
+  bv.classList.toggle('on',!!vs.length);
+  bd.classList.toggle('on',!!ds.length);
+  bv.innerHTML=vs.length?`<span class="fc-owner">विक्रम भाई · ${vs.length}</span>`+vs.map(fcItemHTML).join(''):'';
+  bd.innerHTML=ds.length?`<span class="fc-owner">दिनेश जी · ${ds.length}</span>`+ds.map(fcItemHTML).join(''):'';
 }
 setInterval(()=>{
   if(!_focus.length) return;
@@ -2653,9 +2716,9 @@ window.closeSmartPop=function(){
 function renderSmartPop(){
   const c=contacts.find(x=>x.id===_spId);
   if(!c){ closeSmartPop(); return; }
-  const tps=groupedActive(c);
+  const tps=catViewFilter(groupedActive(c)); // श्रेणी-filter लगा हो तो वही काम
   const doneT=normTopics(c).map((x,i)=>({...x,i})).filter(x=>x.done);
-  const asg=assignedTo(c.id); // इस व्यक्ति (staff) को सौंपे गए काम
+  const asg=catViewFilter(assignedTo(c.id)); // इस व्यक्ति (staff) को सौंपे गए काम
   const prev=(c.callLog||[]).filter(l=>l.note).slice(-1)[0];
   const hasWA=!!(c.waPhone||c.phone);
   // Filter chips — tap करके सीधे बदलो

@@ -151,5 +151,30 @@ Learned from the owner's legacy "My Business Cloud Systems" report (Jan–Feb 20
 
 ### Owner's workflow preferences (explicit)
 - **Bills/transactions come from statements, not manual entry**: owner uploads bank/BharatPe/PhonePe statements → `payments.html` statement import creates entries — debits → `vbe_expenses`, credits → `vbe_receipts` with `direction:'in'` (dedupe by UTR across both collections + date|amount per direction). Do NOT bulk-import historical bills from legacy reports — owner declined this; only master data (parties/accounts) was imported.
-- **Party master**: `vbe_parties/{party_<normalized>}` docs `{name, phones[], address, source}` — written by dashboard 📥 legacy import; party search in payments.html groups receipts+expenses by `partyKey`.
-- Owner is non-technical, Hindi-speaking, wants one-click links and automation-first flows.
+- **Party master**: `vbe_parties/{party_<normalized>}` docs `{name, phones[], address, gstin, source}` — written by dashboard 📥 legacy import AND auto-enriched from every AI-read bill (`savePartyFromBill`). Party search in payments.html groups receipts+expenses by `partyKey`.
+- Owner is non-technical, Hindi-speaking, wants one-click links and automation-first flows. Overwhelmed by complexity — keep it simple, add features one at a time.
+
+## Kharcha ट्रैकर — pages & flows (current)
+
+| Page | Role |
+|---|---|
+| `home.html` | **Simple landing** (owner's main page) — 3 big buttons: Statement डालो / फोटो से खर्चा / बही देखो; today's spend/income; rest hidden behind ☰ |
+| `kharcha-entry.html` | Expense entry — Quick Entry (admin, typed-or-select staff), 📸 AI Auto Entry, manual form |
+| `payments.html` | Receipts + **bank-statement PDF import** (pdf.js, no AI) + party search |
+| `statement.html` | **बही** — date-grouped ledger, account-filter chips (auto from `vbe_payment_accounts`), 3D; row tap → detail popup with items + bill photo |
+| `kharcha-dashboard.html` | Admin analytics + staff accounts (with `whatsapp` field) + payment-account manage + 📥 one-click embedded data import |
+
+### AI bill reading (`kharcha-entry.html`)
+- Only for **photo bills** (statements need no AI). Model `claude-sonnet-4-6`, image ≤1568px, 60s timeout.
+- **Never auto-saves**: `autoEntry`/`aiReadBill` → `applyBillData()` fills the *editable* form (item names/rates fixable) + shows GST-inclusive breakdown (`#gst-breakup`) reconciled against bill `grand_total`. Owner reviews then Saves.
+- **Rate = GST-inclusive per-unit** (owner gets no GST input credit, so incl-GST is his real cost). Wages/freight → `other_charges` (added as item rows). Expense stores `grandTotal`, `partyGstin/phone/address`.
+- AI config resolution: `localStorage vbe_ai_proxy_url` → `vbe_settings/kharcha_ai.proxyUrl` → `localStorage vbe_ai_key`. Claude Pro subscription CANNOT power the app (API ≠ Pro; told owner).
+
+### Payment mode (2-step) in entry form
+`f-paymode` (विक्रम मोबाइल / सुशीला मोबाइल / बैंक RTGS / Cash / अन्य) → `fillPayAccounts()` shows that mode's accounts from `vbe_payment_accounts.mode`. "अन्य" = free-text. Cash sources include जेब/गल्ला/घर. `payValue()` resolves final `paymentSource`; `payMode` stored. 🟠 उधार checkbox → `payStatus:'udhaar'`.
+
+### Photo upload safety
+`safeUpload()` — 20s timeout; if Firebase Storage not set up / slow, entry still saves (`billStatus:'pending'`), never hangs. **Storage must be enabled once** in Firebase Console for bill photos to persist.
+
+### Connectors roadmap (owner picked all 4; do ONE at a time to avoid overwhelm)
+1. ✅ Simple home. 2. 📊 Google Sheet mirror (= trust + backup; needs owner to share a Sheet with the FIREBASE_SA email). 3. 🔒 nightly backup (Sheet doubles as this). 4. 📱 WhatsApp via owner's n8n subscription (staff bill-reminders from `notification_queue`; staff `whatsapp` field). Owner also has Anthropic API credits + n8n; open to free connectors (Gemini etc.) if cost stays low.

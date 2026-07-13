@@ -605,8 +605,8 @@ body.th-geo .btn-add-big{background:linear-gradient(135deg,#6366f1,#a855f7);box-
 .dv-zig .dvc:active{transform:perspective(700px) rotateX(4deg) scale(.972)}
 
 /* 🎯 Focus mode — गोल घड़ी graphics, ऊपर sticky पट्टी */
-#focus-bar,#focus-bar-d{display:none;position:sticky;top:0;z-index:45;padding:6px 11px;gap:6px;
-  flex-wrap:wrap;max-height:132px;overflow-y:auto;
+#focus-bar,#focus-bar-d{display:none;position:sticky;top:0;z-index:45;padding:5px 11px;gap:6px;
+  flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;
   background:linear-gradient(180deg,rgba(10,6,26,.97),rgba(5,4,14,.94));backdrop-filter:blur(10px);
   border-bottom:1px solid rgba(139,92,246,.35);scrollbar-width:none}
 #focus-bar.on,#focus-bar-d.on{display:flex}
@@ -2129,9 +2129,7 @@ window.startFocus=function(mins){
 };
 window.stopFocus=function(key){
   // हटाने के लिए PIN — staff बिना PIN के delete नहीं कर सकता
-  const pw=prompt('🔒 Focus से हटाने का PIN:');
-  if(pw===null) return;
-  if(pw.trim()!=='2580'){ toast('⛔ गलत PIN','err'); return; }
+  if(!askPin('🔒 Focus से हटाने का PIN:')) return;
   _focus=_focus.filter(f=>f.key!==key);
   saveFocus(); renderFocusBar(); render();
   toast('🗑 Focus से हटा');
@@ -2188,7 +2186,10 @@ window.openFocusDash=function(){
       </div>`;
     }).join('');
     return `<div style="background:#0a1120;border:1px solid ${color}55;border-radius:12px;padding:10px 12px;margin-bottom:10px">
-      <div style="font-size:10.5px;font-weight:900;color:${color};margin-bottom:5px">${label} — ${fs.length} focus</div>
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">
+        <span style="flex:1;font-size:10.5px;font-weight:900;color:${color}">${label} — ${fs.length} focus</span>
+        ${fs.length?`<button class="dv-btn call" onclick="fdashWA('${own}')" style="padding:5px 10px">📤 WhatsApp</button>`:''}
+      </div>
       ${rows||'<div style="font-size:11px;color:#5b6b86">कोई focus नहीं</div>'}
     </div>`;
   };
@@ -2200,7 +2201,22 @@ window.openFocusDash=function(){
   const a=document.getElementById('fdash-ai'); a.style.display='none'; a.textContent='';
   document.getElementById('m-fdash').classList.add('open');
 };
+/* focus काम copy करके WhatsApp खोलो — कोई API खर्च नहीं, PIN नहीं */
+window.fdashWA=async function(own){
+  const fs=_focus.filter(f=>(f.own||'v')===own).sort((a,b)=>b.start-a.start);
+  if(!fs.length) return;
+  const who=own==='d'?'दिनेश जी':'विक्रम भाई';
+  const msg=`🎯 *${who} — Focus काम (${fs.length})*\n`+fs.map((f,i)=>{
+    const left=f.until-Date.now();
+    return `${i+1}. ${f.t}${left<=0?' 🔴 ('+fmtCompact(-left)+' लेट)':''}`;
+  }).join('\n')+'\n— VBE Call Tracker';
+  await copyToClip(msg);
+  toast('📋 copy हो गया — WhatsApp में paste/भेजें');
+  if(msg.length<=1000) location.href='whatsapp://send?text='+encodeURIComponent(msg);
+  else location.href='whatsapp://send';
+};
 window.fdashAI=async function(){
+  if(!askPinAI()) return;
   const a=document.getElementById('fdash-ai');
   a.style.display='block'; a.textContent='🤖 रिपोर्ट बन रही है…';
   try{
@@ -2212,6 +2228,7 @@ window.fdashAI=async function(){
 };
 /* 🤖 आज का AI प्लान — day view के ऊपर golden panel */
 window.genDayPlan=async function(){
+  if(!askPinAI()) return;
   toast('🤖 आज का प्लान बन रहा है…');
   try{
     const now=Date.now(), items=[];
@@ -2320,6 +2337,21 @@ window.spCopyPart=async function(k){
 
 /* ══════════ 🤖 AI core — Anthropic key (_settings.aiKey या localStorage vbe_ai_key) ══════════ */
 function aiKey(){ return (window._settings&&window._settings.aiKey)||localStorage.getItem('vbe_ai_key')||''; }
+/* 🔒 एक universal PIN — _settings.appPin (default 2580); Claude Code से बदलते ही हर जगह बदलेगा */
+function appPin(){ return String((window._settings&&window._settings.appPin)||'2580'); }
+function askPin(msg){
+  const v=prompt(msg||'🔒 PIN:');
+  if(v===null) return false;
+  if(v.trim()!==appPin()){ toast('⛔ गलत PIN','err'); return false; }
+  return true;
+}
+/* AI के लिए: एक बार सही PIN → इस session में दोबारा नहीं पूछेगा */
+function askPinAI(){
+  if(sessionStorage.getItem('vbe_ai_ok')==='1') return true;
+  if(!askPin('🤖 AI इस्तेमाल का PIN (टोकन बचाने के लिए):')) return false;
+  sessionStorage.setItem('vbe_ai_ok','1');
+  return true;
+}
 async function aiAsk(prompt,maxTok){
   const key=aiKey();
   if(!key) throw new Error('no-key');
@@ -2691,9 +2723,7 @@ window.dvClearTG=function(id,idxs){
 };
 /* 🧹 आज का पूरा schedule खाली (password 1234) — काम नहीं मिटते, सिर्फ़ समय हटता है */
 window.resetToday=function(){
-  const pw=prompt('🧹 आज के सारे समय हटेंगे (काम बने रहेंगे)।\nपासवर्ड डालें:');
-  if(pw===null) return;
-  if(pw.trim()!=='1234'){ toast('⛔ गलत पासवर्ड','err'); return; }
+  if(!askPin('🧹 आज के सारे समय हटेंगे (काम बने रहेंगे)। PIN:')) return;
   const eod=new Date(); eod.setHours(23,59,59,999);
   let n=0;
   contacts.forEach(c=>{
@@ -3158,6 +3188,7 @@ window.spFreshAI=async function(){
   if(!tps.length&&!asg.length){ toast('⚠️ इस श्रेणी में कोई बाकी काम नहीं','warn'); return; }
   const tasks=[...tps.map(x=>(catInfo(x.cat)?catInfo(x.cat).logo+' ':'')+x.t),
                ...asg.map(x=>(catInfo(x.cat)?catInfo(x.cat).logo+' ':'')+x.t+' ('+x.srcName+')')];
+  if(!askPinAI()) return;
   toast('🤖 विक्रम-अंदाज़ का नया message बन रहा है...');
   // पहला रास्ता: सीधा Anthropic (नया दमदार prompt)
   if(aiKey()){
@@ -3562,6 +3593,7 @@ window.aiPreview=async function(){
   const whenRaw=((document.getElementById('ai-whentxt')||{}).value||'').trim();
   if(!raw&&!whenRaw){ toast('⚠️ पहले बोलें या लिखें','warn'); return; }
   if(!aiKey()||window._aiBusy){ window.aiPreviewLocal(); return; }
+  if(sessionStorage.getItem('vbe_ai_ok')!=='1'){ if(!askPinAI()){ window.aiPreviewLocal(); return; } }
   window._aiBusy=true; toast('🤖 AI समझ रहा है…');
   try{
     const now=new Date(), pd=n=>String(n).padStart(2,'0');
@@ -3874,20 +3906,52 @@ function renderTagEditor(){
     +`<button class="btn-add-topic" type="button" onclick="teAdd()">➕ नया filter जोड़ें</button>
     <div style="font-size:9px;color:#475569;margin-top:6px">💡 नाम की शुरुआत में emoji = logo · 👥 दबाकर टीम वाला filter चुनें (काम उन्हीं को सौंपे जाएंगे)</div>
     <div style="font-size:10px;font-weight:900;color:#7d8db0;margin:14px 0 6px;text-transform:uppercase;letter-spacing:.5px">↕️ ऊपर की पूरी पंक्ति का क्रम (बोलो/दिन/➕/🎯 भी)</div>`
-    +_teOrder.map((tok,i)=>`
-    <div style="display:flex;align-items:center;gap:5px;margin-bottom:5px">
+    +`<div id="te-order">`+_teOrder.map((tok,i)=>`
+    <div class="teo-row" data-oi="${i}" style="display:flex;align-items:center;gap:6px;margin-bottom:5px;background:#0a1120;border:1px solid rgba(64,88,140,.35);border-radius:9px;padding:6px 8px">
+      <span class="teo-grip" data-oi="${i}" style="cursor:grab;font-size:14px;color:#64748b;padding:2px 6px;touch-action:none">≡</span>
       <span style="flex:1;min-width:0;font-size:12px;font-weight:800;color:#c7d4ef;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escH(tokLabel(tok))}</span>
-      <button class="tr-btn" type="button" onclick="teOMove(${i},-1)" ${i===0?'disabled':''}>◀</button>
-      <button class="tr-btn" type="button" onclick="teOMove(${i},1)" ${i===_teOrder.length-1?'disabled':''}>▶</button>
-    </div>`).join('');
+      <button class="tr-btn" type="button" onclick="teOMove(${i},-1)" ${i===0?'disabled':''}>▲</button>
+      <button class="tr-btn" type="button" onclick="teOMove(${i},1)" ${i===_teOrder.length-1?'disabled':''}>▼</button>
+    </div>`).join('')+`</div>`;
+  bindOrderDrag();
 }
 window.teOMove=function(i,d){
-  teRead();
+  try{ teRead(); }catch(e){}
   const j=i+d;
   if(j<0||j>=_teOrder.length) return;
   [_teOrder[i],_teOrder[j]]=[_teOrder[j],_teOrder[i]];
   renderTagEditor();
 };
+/* ≡ पकड़कर ऊपर-नीचे खिसकाओ (touch/pointer) */
+function bindOrderDrag(){
+  document.querySelectorAll('.teo-grip').forEach(g=>{
+    g.onpointerdown=(ev)=>{
+      ev.preventDefault();
+      const from=Number(g.dataset.oi);
+      let cur=from;
+      const rowH=g.closest('.teo-row').offsetHeight+5;
+      const startY=ev.clientY;
+      const row=g.closest('.teo-row');
+      row.style.opacity='.55'; row.style.borderColor='#a855f7';
+      const move=(e)=>{
+        const diff=Math.round((e.clientY-startY)/rowH);
+        let to=Math.max(0,Math.min(_teOrder.length-1,from+diff));
+        if(to!==cur){ cur=to; }
+      };
+      const up=()=>{
+        document.removeEventListener('pointermove',move);
+        document.removeEventListener('pointerup',up);
+        if(cur!==from){
+          const [x]=_teOrder.splice(from,1);
+          _teOrder.splice(cur,0,x);
+        }
+        renderTagEditor();
+      };
+      document.addEventListener('pointermove',move);
+      document.addEventListener('pointerup',up);
+    };
+  });
+}
 function teRead(){
   document.querySelectorAll('.te-inp').forEach(inp=>{
     const i=+inp.dataset.i;

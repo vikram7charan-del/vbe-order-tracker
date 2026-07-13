@@ -710,7 +710,7 @@ body.hdr-folded #hdr-fold{transform:rotate(180deg)}
         <button class="btn-icon" onclick="cycleTheme()" title="Theme बदलें" style="cursor:pointer;font-family:inherit">🎨</button>
         <button class="btn-icon" onclick="shuffleLooks()" title="सबके रंग और emoji बदलो — नयापन" style="cursor:pointer;font-family:inherit">🎲</button>
         <button class="btn-icon" onclick="unhideAll()" title="Swipe किए हुए सब वापस लाओ" style="cursor:pointer;font-family:inherit">👁️</button>
-        <button class="btn-icon" onclick="setN8nUrl()" title="n8n webhook URL (on-demand AI)" style="cursor:pointer;font-family:inherit">⚙️</button>
+        <button class="btn-icon" onclick="setAiKey()" title="🤖 Anthropic AI key डालें/बदलें" style="cursor:pointer;font-family:inherit">⚙️</button>
         <a href="./quick-add.html" class="btn-icon" title="Quick Order Add">📦</a>
         <button class="btn-icon" id="day-btn" onclick="gotoDay()" title="📅 मेरा दिन — इसी पेज पर timeline" style="cursor:pointer;font-family:inherit">📅 दिन</button>
         <button class="btn-icon" id="hdr-fold" onclick="foldHdr()" title="ऊपर के बटन छुपाओ/दिखाओ" style="cursor:pointer;font-family:inherit">⌃</button>
@@ -2833,6 +2833,19 @@ window.clearSchedPick=function(){
   toast('🔕 समय हटा — Calendar से भी हटेगा');
 };
 window.spSchedTask=function(id,i){ openSchedPick('t',id,i); };
+/* ⚙️ से AI key set — localStorage + _settings दोनों में (सब device) */
+window.setAiKey=async function(){
+  const cur=aiKey();
+  const v=prompt('🤖 Anthropic API key (sk-ant-...):', cur?cur.slice(0,14)+'…':'');
+  if(v===null) return;
+  const k=v.trim();
+  if(k&&!k.startsWith('sk-ant')){ toast('⚠️ key sk-ant से शुरू होती है','err'); return; }
+  if(k.includes('…')) return; // बिना बदले OK दबाया
+  localStorage.setItem('vbe_ai_key',k);
+  window._settings=window._settings||{}; window._settings.aiKey=k;
+  try{ await setDoc(doc(db,'vbe_call_tracker','_settings'),{id:'_settings',aiKey:k},{merge:true}); }catch(e){}
+  toast(k?'✅ AI key save — 🎙️/✨/🤖 सब AI चालू!':'AI key हटाई');
+};
 window.spSchedMain=function(){ openSchedPick('c',_spId); };
 
 let _spId=null;

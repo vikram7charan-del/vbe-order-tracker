@@ -43,3 +43,11 @@ jobs:
         env:
           FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
         run: node scripts/calendar-sync.js
+
+      # 🌅 सुबह 7:00-8:00 IST में एक बार आज का AI प्लान (Claude Haiku)
+      - name: Morning AI day plan
+        continue-on-error: true
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
+          ANTHROPIC_KEY: ${{ secrets.ANTHROPIC_KEY }}
+        run: node scripts/ai-day-plan.js

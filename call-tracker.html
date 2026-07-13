@@ -183,6 +183,7 @@ body{
 }
 /* Smart popup — ऊपर से शुरू, पूरा scroll (चाहे 100 काम हों) */
 #sp-popup{top:1.5dvh!important;bottom:auto!important;transform:translateX(-50%)!important;max-height:96dvh!important;overflow-y:auto;-webkit-overflow-scrolling:touch}
+#te-popup{top:2dvh!important;bottom:auto!important;max-height:94dvh!important;overflow-y:auto;-webkit-overflow-scrolling:touch}
 @keyframes popInTop{from{opacity:0;transform:translateX(-50%) scale(.93)}to{opacity:1;transform:translateX(-50%) scale(1)}}
 .qd-head{display:flex;align-items:center;gap:10px;margin-bottom:13px}
 .qd-av{width:42px;height:42px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#fff;letter-spacing:-.3px;text-align:center}
@@ -525,7 +526,7 @@ body.th-geo .btn-add-big{background:linear-gradient(135deg,#6366f1,#a855f7);box-
 .dv-blk .ln{flex:1;height:1px;background:linear-gradient(90deg,currentColor,transparent);opacity:.35}
 .dv-rail{position:relative;padding-left:18px}
 .dv-rail::before{content:'';position:absolute;left:5px;top:6px;bottom:6px;width:2px;border-radius:2px;background:linear-gradient(180deg,rgba(139,92,246,.55),rgba(59,130,246,.25) 60%,transparent)}
-.dvc{position:relative;margin-bottom:11px;border-radius:18px;padding:11px 11px 10px;cursor:pointer;
+.dvc{position:relative;margin-bottom:8px;border-radius:16px;padding:8px 10px 8px;cursor:pointer;
   background:linear-gradient(163deg,rgba(26,38,70,.92),rgba(10,16,32,.97) 55%,rgba(7,11,22,.98));
   border:1px solid rgba(82,108,170,.28);
   box-shadow:0 16px 32px -15px rgba(0,0,0,.85),0 4px 12px -6px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.075),inset 0 -10px 20px -16px rgba(0,0,0,.85);
@@ -540,27 +541,27 @@ body.th-geo .btn-add-big{background:linear-gradient(135deg,#6366f1,#a855f7);box-
 .dvc.late .dot{background:#ef4444;box-shadow:0 0 13px #ef4444}
 @keyframes dvGlow{0%,100%{box-shadow:0 16px 32px -15px rgba(0,0,0,.85)}50%{box-shadow:0 16px 32px -15px rgba(0,0,0,.85),0 0 20px -4px rgba(239,68,68,.4)}}
 .dvc-top{display:flex;gap:10px;align-items:center}
-.dv-av{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:21px;flex-shrink:0;position:relative;background:radial-gradient(circle at 35% 30%,#182642,#0a1120);box-shadow:0 5px 14px -4px rgba(0,0,0,.7),inset 0 2px 4px rgba(255,255,255,.09)}
+.dv-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:21px;flex-shrink:0;position:relative;background:radial-gradient(circle at 35% 30%,#182642,#0a1120);box-shadow:0 5px 14px -4px rgba(0,0,0,.7),inset 0 2px 4px rgba(255,255,255,.09)}
 .dv-av::before{content:'';position:absolute;inset:-3px;border-radius:50%;z-index:-1;opacity:.9;background:conic-gradient(from 200deg,var(--c,#8b5cf6),transparent 42%,var(--c,#8b5cf6) 75%,transparent 92%)}
 .dv-tm{flex-shrink:0;text-align:center;min-width:50px}
-.dv-tm .t1{font-size:16.5px;font-weight:900;line-height:1.05;font-variant-numeric:tabular-nums;background:linear-gradient(180deg,#fff,#93c5fd);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.dv-tm .t1{font-size:14px;font-weight:900;line-height:1.05;font-variant-numeric:tabular-nums;background:linear-gradient(180deg,#fff,#93c5fd);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .dv-tm .t2{font-size:9px;color:#7d8db0;font-weight:800;margin-top:2px}
 .dv-tm .dur{font-size:8.5px;color:#54648a;margin-top:2px}
 .dv-bd{flex:1;min-width:0}
-.dv-nm{font-size:14px;font-weight:900;color:#f4f7ff;display:flex;align-items:center;gap:6px;word-break:break-word}
+.dv-nm{font-size:12.5px;font-weight:900;color:#f4f7ff;display:flex;align-items:center;gap:6px;word-break:break-word}
 .dv-sub{font-size:9.5px;color:#5f7096;margin-top:2px;font-weight:700}
 .dv-late-tag{font-size:9px;font-weight:900;color:#fca5a5;background:rgba(127,29,29,.5);border:1px solid rgba(239,68,68,.4);border-radius:6px;padding:1px 6px;flex-shrink:0}
-.dv-tasks{margin-top:8px;background:rgba(6,13,26,.75);border:1px solid rgba(30,58,95,.55);border-radius:11px;padding:7px 10px}
-.dv-task{font-size:11.5px;color:#c8d4ee;line-height:1.5;display:flex;gap:6px;align-items:center;padding:2px 0}
+.dv-tasks{margin-top:6px;background:rgba(6,13,26,.75);border:1px solid rgba(30,58,95,.55);border-radius:11px;padding:7px 10px}
+.dv-task{font-size:10.5px;color:#c8d4ee;line-height:1.5;display:flex;gap:6px;align-items:center;padding:2px 0}
 .dv-task .b{color:var(--c,#8b5cf6);flex-shrink:0}
 .dv-task.has-at{color:#93c5fd;font-weight:700}
 .dv-task-at{display:block;font-size:9px;color:#60a5fa;font-weight:800;margin-top:1px}
 .dv-task-clk{flex-shrink:0;font-size:13px;cursor:pointer;border:1px dashed rgba(100,116,139,.4);border-radius:7px;padding:2px 7px;background:rgba(13,21,38,.6);touch-action:manipulation}
 .dv-task.has-at .dv-task-clk{border-color:rgba(59,130,246,.6)}
 .dv-more{font-size:10px;color:#5f7096;font-weight:800;margin-top:2px}
-.dvc-foot{display:flex;align-items:center;gap:5px;margin-top:9px;flex-wrap:wrap}
+.dvc-foot{display:flex;align-items:center;gap:4px;margin-top:6px;flex-wrap:wrap}
 .dv-cd{font-size:10px;font-weight:900;font-variant-numeric:tabular-nums}
-.dv-btn{font-size:10.5px;font-weight:900;font-family:inherit;border-radius:9px;padding:6px 10px;cursor:pointer;border:1px solid #2a3d66;background:linear-gradient(160deg,#16223f,#0d1526);color:#c7d4ef;transition:transform .1s;touch-action:manipulation}
+.dv-btn{font-size:9.5px;font-weight:900;font-family:inherit;border-radius:8px;padding:4px 8px;cursor:pointer;border:1px solid #2a3d66;background:linear-gradient(160deg,#16223f,#0d1526);color:#c7d4ef;transition:transform .1s;touch-action:manipulation}
 .dv-btn:active{transform:scale(.92)}
 .dv-btn.snz{border-color:rgba(161,98,7,.55);color:#fcd34d;background:linear-gradient(160deg,#241a04,#140e02)}
 .dv-btn.call{border-color:rgba(21,128,61,.55);color:#86efac;background:linear-gradient(160deg,#052613,#031508)}
@@ -611,6 +612,13 @@ body.th-geo .btn-add-big{background:linear-gradient(135deg,#6366f1,#a855f7);box-
   border-bottom:1px solid rgba(139,92,246,.35);scrollbar-width:none}
 #focus-bar.on,#focus-bar-d.on{display:flex}
 #focus-bar-d{border-bottom-color:rgba(34,211,238,.4);background:linear-gradient(180deg,rgba(3,24,28,.97),rgba(2,12,14,.94))}
+#focus-bar-k{border-bottom-color:rgba(34,197,94,.4);background:linear-gradient(180deg,rgba(4,26,12,.97),rgba(2,13,6,.94));padding:3px 11px}
+#focus-bar-k .fc-item{padding:3px 7px 3px 3px;border-radius:11px;max-width:185px;background:linear-gradient(160deg,rgba(6,50,24,.85),rgba(2,18,8,.96));border-color:rgba(34,197,94,.55);box-shadow:0 5px 12px -6px rgba(34,197,94,.45)}
+#focus-bar-k .fc-ring{width:26px;height:26px}
+#focus-bar-k .fc-ring::before{inset:2.5px;background:#03150a}
+#focus-bar-k .fc-ring .tm{font-size:6.5px;color:#bbf7d0}
+#focus-bar-k .fc-task{font-size:8px;max-width:110px;-webkit-line-clamp:1}
+#focus-bar-k .fc-owner{color:#4ade80}
 .fc-owner{flex-shrink:0;writing-mode:vertical-rl;text-orientation:mixed;font-size:8.5px;font-weight:900;letter-spacing:.5px;color:#a78bfa;display:flex;align-items:center}
 #focus-bar-d .fc-owner{color:#fbbf24}
 .fc-item.d{background:linear-gradient(160deg,rgba(4,60,58,.85),rgba(2,20,22,.96));border-color:rgba(34,211,238,.6);
@@ -630,8 +638,10 @@ body.th-geo .btn-add-big{background:linear-gradient(135deg,#6366f1,#a855f7);box-
 .fc-task{font-size:9.5px;font-weight:800;color:#e2e8f0;line-height:1.3;max-width:135px;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .fc-x{font-size:14px;color:#8b7bb8;cursor:pointer;padding:4px;flex-shrink:0}
-.fc-item.over{animation:pulse 1s infinite;border-color:#ef4444}
-.fc-item.over .fc-ring{background:conic-gradient(#ef4444 100%, #ef4444 0)}
+.fc-item.over{border-color:#ef4444;box-shadow:0 0 14px -3px rgba(239,68,68,.7)}
+.fc-item.over .fc-ring{background:conic-gradient(#ef4444 100%, #ef4444 0);animation:fcTick 1s steps(2) infinite}
+.fc-item.over .fc-ring .tm{color:#fecaca}
+@keyframes fcTick{0%{transform:scale(1)}50%{transform:scale(1.09) rotate(3deg)}100%{transform:scale(1)}}
 .dv-seg{display:flex;gap:6px;align-items:center;margin:6px 2px 2px;flex-wrap:wrap}
 .dv-seg .sg{font-size:10.5px;font-weight:900;font-family:inherit;border:1px solid #2a3d66;border-radius:9px;padding:6px 11px;cursor:pointer;background:linear-gradient(160deg,#16223f,#0d1526);color:#9fb2d8;touch-action:manipulation}
 .dv-seg .sg.on{border-color:#a855f7;color:#fff;background:linear-gradient(140deg,#7c3aed,#a855f7)}
@@ -663,7 +673,7 @@ body.th-geo .btn-add-big{background:linear-gradient(135deg,#6366f1,#a855f7);box-
 .sv-grid>.sv-item:nth-child(even){border-radius:18px 18px 6px 18px}
 .sv-item.overdue{box-shadow:0 10px 22px -12px rgba(0,0,0,.8),0 0 14px -4px rgba(239,68,68,.3),inset 0 1px 0 rgba(255,255,255,.07)}
 
-body.hdr-folded .hdr-btns>*:not(#hdr-fold):not(#hdr-search){display:none}
+body.hdr-folded .hdr-btns>*:not(#hdr-fold){display:none}
 body.hdr-folded .hdr-row2{display:none}
 body.hdr-folded #hdr-fold{transform:rotate(180deg)}
 </style>
@@ -741,6 +751,7 @@ body.hdr-folded #hdr-fold{transform:rotate(180deg)}
   <!-- 🎯 Focus mode — ऊपर विक्रम भाई (बैंगनी), नीचे दिनेश जी (golden) -->
   <div id="focus-bar"></div>
   <div id="focus-bar-d"></div>
+  <div id="focus-bar-k"></div>
 
 
   <!-- Horizontal Strip -->
@@ -867,7 +878,8 @@ body.hdr-folded #hdr-fold{transform:rotate(180deg)}
     <label class="lbl">👤 किसके लिए focus?</label>
     <div class="sk-chips" id="fc-owners" style="margin-bottom:12px">
       <button class="sk-chip on" id="fc-own-v" onclick="fcOwner('v')">🟣 विक्रम भाई</button>
-      <button class="sk-chip" id="fc-own-d" onclick="fcOwner('d')">🟡 दिनेश जी रतकोड़िया</button>
+      <button class="sk-chip" id="fc-own-d" onclick="fcOwner('d')">🔷 दिनेश जी रतकोड़िया</button>
+      <button class="sk-chip" id="fc-own-k" onclick="fcOwner('k')">🟢 कैलाश भाई</button>
     </div>
     <label class="lbl">⏱️ कितने मिनट?</label>
     <div class="sk-chips">
@@ -1467,6 +1479,7 @@ window.foldHdr=function(){
   const on=document.body.classList.toggle('hdr-folded');
   localStorage.setItem('vbe_hdr_fold',on?'1':'');
 };
+if(localStorage.getItem('vbe_hdr_fold')===null) localStorage.setItem('vbe_hdr_fold','1'); // पहली बार: ऊपर के बटन छुपे — ⌃ से खुलें
 if(localStorage.getItem('vbe_hdr_fold')==='1') document.body.classList.add('hdr-folded');
 
 /* Smart View — 2-column grid, पूरा नाम + छोटा गोल icon */
@@ -2104,8 +2117,7 @@ function focusHas(id){ return _focus.some(f=>f.id===id); }
 let _fcPick=null, _fcOwn='v';
 window.fcOwner=function(o){
   _fcOwn=o;
-  document.getElementById('fc-own-v').classList.toggle('on',o==='v');
-  document.getElementById('fc-own-d').classList.toggle('on',o==='d');
+  ['v','d','k'].forEach(x=>{ const e=document.getElementById('fc-own-'+x); if(e) e.classList.toggle('on',o===x); });
 };
 window.openFocusPick=function(id,i){
   const c=contacts.find(x=>x.id===id);
@@ -2139,10 +2151,10 @@ function fcItemHTML(f){
   const over=left<=0;
   const p=Math.min(100,Math.max(0,((Date.now()-f.start)/(f.until-f.start))*100));
   const mm=Math.floor(Math.abs(left)/60000), ss=Math.floor((Math.abs(left)%60000)/1000);
-  const d=(f.own||'v')==='d';
-  const lateTxt=Math.abs(left)>=3600000?fmtCompact(Math.abs(left))+' लेट':mm+'m लेट'; // हर मिनट बढ़ती उल्टी गिनती
+  const ow=(f.own||'v'); const d=ow==='d';
+  const lateTxt=Math.abs(left)>=3600000?fmtCompact(Math.abs(left))+' लेट':mm+'m '+String(ss).padStart(2,'0')+'s लेट'; // सेकंड-सेकंड टिकती घड़ी
   return `<div class="fc-item ${d?'d':''} ${over?'over':''}" data-key="${f.key}" onclick="openSmartPop('${f.id}')">
-    <div class="fc-ring" style="--p:${p}%;--fc:${over?'#ef4444':(d?'#22d3ee':'#a855f7')}"><span class="tm">${over?lateTxt:mm+':'+String(ss).padStart(2,'0')}</span></div>
+    <div class="fc-ring" style="--p:${p}%;--fc:${over?'#ef4444':(ow==='k'?'#22c55e':d?'#22d3ee':'#a855f7')}"><span class="tm">${over?lateTxt:mm+':'+String(ss).padStart(2,'0')}</span></div>
     <div class="fc-task">${escH(f.t)}<div style="font-size:8.5px;color:${d?'#b8963e':'#8b7bb8'};font-weight:800;margin-top:1px">🎯 ${f.mins} मिनट</div></div>
     <span class="fc-x" onclick="event.stopPropagation();stopFocus('${f.key}')">✕</span>
   </div>`;
@@ -2151,12 +2163,16 @@ function renderFocusBar(){
   const bv=document.getElementById('focus-bar'), bd=document.getElementById('focus-bar-d');
   if(!bv||!bd) return;
   // latest सबसे आगे — नया focus हमेशा सामने, पुराने पीछे scroll में
-  const vs=_focus.filter(f=>(f.own||'v')!=='d').sort((a,b)=>b.start-a.start);
+  const bk=document.getElementById('focus-bar-k');
+  const vs=_focus.filter(f=>!['d','k'].includes(f.own||'v')).sort((a,b)=>b.start-a.start);
   const ds=_focus.filter(f=>(f.own||'v')==='d').sort((a,b)=>b.start-a.start);
+  const ks=_focus.filter(f=>(f.own||'v')==='k').sort((a,b)=>b.start-a.start);
   bv.classList.toggle('on',!!vs.length);
   bd.classList.toggle('on',!!ds.length);
+  if(bk) bk.classList.toggle('on',!!ks.length);
   bv.innerHTML=vs.length?`<span class="fc-owner">विक्रम भाई · ${vs.length}</span>`+vs.map(fcItemHTML).join(''):'';
   bd.innerHTML=ds.length?`<span class="fc-owner">दिनेश जी · ${ds.length}</span>`+ds.map(fcItemHTML).join(''):'';
+  if(bk) bk.innerHTML=ks.length?`<span class="fc-owner">कैलाश · ${ks.length}</span>`+ks.map(fcItemHTML).join(''):'';
 }
 setInterval(()=>{
   if(!_focus.length) return;
@@ -2197,7 +2213,7 @@ window.openFocusDash=function(){
   contacts.forEach(c=>normTopics(c).forEach(x=>{ if(x.done&&x.doneAt&&new Date(x.doneAt).getTime()>=tk0) doneToday++; }));
   document.getElementById('fdash-body').innerHTML=
     `<div style="font-size:11px;color:#94a3b8;margin-bottom:10px">आज ✅ ${doneToday} काम पूरे</div>`
-    +sec('v','🟣 विक्रम भाई','#a855f7')+sec('d','🔷 दिनेश जी रतकोड़िया','#22d3ee');
+    +sec('v','🟣 विक्रम भाई','#a855f7')+sec('d','🔷 दिनेश जी रतकोड़िया','#22d3ee')+sec('k','🟢 कैलाश भाई','#22c55e');
   const a=document.getElementById('fdash-ai'); a.style.display='none'; a.textContent='';
   document.getElementById('m-fdash').classList.add('open');
 };
@@ -2205,7 +2221,7 @@ window.openFocusDash=function(){
 window.fdashWA=async function(own){
   const fs=_focus.filter(f=>(f.own||'v')===own).sort((a,b)=>b.start-a.start);
   if(!fs.length) return;
-  const who=own==='d'?'दिनेश जी':'विक्रम भाई';
+  const who=own==='d'?'दिनेश जी':own==='k'?'कैलाश भाई':'विक्रम भाई';
   const msg=`🎯 *${who} — Focus काम (${fs.length})*\n`+fs.map((f,i)=>{
     const left=f.until-Date.now();
     return `${i+1}. ${f.t}${left<=0?' 🔴 ('+fmtCompact(-left)+' लेट)':''}`;
@@ -2237,10 +2253,11 @@ window.genDayPlan=async function(){
       const pend=normTopics(c).filter(x=>!x.done);
       if(!pend.length) return;
       const t=c.nextCallAt?new Date(c.nextCallAt).getTime():0;
-      items.push({id:c.id,name:c.name||'',time:t?new Date(t).toTimeString().slice(0,5):null,late:!!(t&&t<now),tasks:pend.slice(0,3).map(x=>x.t)});
+      if(t && (t<now-7*864e5 || t>now+7*864e5)) return; // सिर्फ़ बीते 7 दिन से अगले 7 दिन
+      items.push({id:c.id,name:c.name||'',when:t?new Date(t).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',hour12:false}):null,late:!!(t&&t<now),tasks:pend.slice(0,3).map(x=>x.t)});
     });
     items.sort((a,b)=>(b.late?1:0)-(a.late?1:0));
-    const txt=await aiAsk(`विक्रम भाई (army-supply व्यापारी, बाड़मेर) का आज का काम-प्लान बनाओ। दिन के हिस्से: 6-9 योजना, 9-14 जालीपा स्टेशन, 14-18 मार्केटिंग, 18-20 हिसाब, 20-24 परिवार।\nजवाब सिर्फ़ JSON: {"lines":[{"id":"contactId","txt":"छोटी पंक्ति — समय/देर + नाम + मुख्य काम (काम के शब्द हूबहू)"}]}\nनियम: सबसे ज़रूरी/देर वाले पहले, फिर समय-क्रम; ज़्यादा-से-ज़्यादा 14 पंक्तियाँ; हर txt 12 शब्दों में।\nDATA:\n${JSON.stringify(items.slice(0,40))}`,1300);
+    const txt=await aiAsk(`विक्रम भाई (army-supply व्यापारी, बाड़मेर) का काम-प्लान बनाओ। दिन के हिस्से: 6-9 योजना, 9-14 जालीपा, 14-18 मार्केटिंग, 18-20 हिसाब।\nजवाब सिर्फ़ JSON: {"lines":[{"id":"contactId या null","txt":"छोटी पंक्ति"}]}\nतीन हिस्से बनाओ, हर हिस्से की पहली पंक्ति heading (id:null): '🔴 बीते 7 दिन के छूटे काम' (late वाले — review ज़रूरी), '📌 आज', '📅 अगले 7 दिन'। हर txt में समय/तारीख + नाम + मुख्य काम (शब्द हूबहू), 12 शब्द तक; कुल 20 पंक्तियाँ तक; late सबसे पहले।\nDATA:\n${JSON.stringify(items.slice(0,45))}`,1500);
     const m=txt.match(/\{[\s\S]*\}/);
     const j=JSON.parse(m?m[0]:txt);
     if(!Array.isArray(j.lines)) throw new Error('bad');
@@ -2257,6 +2274,7 @@ function aiPlanPanel(){
   if(pl&&Array.isArray(pl.lines)&&pl.lines.length){
     inner=pl.lines.map(l=>{
       const c=contacts.find(x=>x.id===l.id);
+      if(!c&&/बीते|आज|अगले/.test(l.txt)) return `<div style="font-size:10px;font-weight:900;color:#fcd34d;margin:7px 0 2px;letter-spacing:.4px">${escH(l.txt)}</div>`;
       return `<div style="display:flex;gap:7px;align-items:center;padding:4px 0;border-bottom:1px dashed rgba(161,98,7,.25);${c?'cursor:pointer':''}" ${c?`onclick="openSmartPop('${l.id}')"`:''}>
         <span style="flex:1;min-width:0;font-size:12.5px;font-weight:800;color:#fbbf24;line-height:1.45">${escH(l.txt)}</span>
         ${c?`<span class="dv-task-clk" onclick="event.stopPropagation();openFocusPick('${l.id}',${firstPendIdx(c)})" title="🎯 Focus">🎯</span>`:''}
@@ -2525,6 +2543,8 @@ function dayRows(list){
   return merged;
 }
 let _dvSeg='all';
+let _dvAI=false;
+window.dvAI=function(){ _dvAI=!_dvAI; render(); };
 let _dvZig=localStorage.getItem('vbe_dv_zig')==='1';
 window.dvSeg=function(s){ _dvSeg=s; render(); };
 window.dvZig=function(){ _dvZig=!_dvZig; localStorage.setItem('vbe_dv_zig',_dvZig?'1':''); render(); };
@@ -2548,9 +2568,10 @@ function renderDay(list){
       <button class="sg ${_dvSeg==='cal'?'on':''}" onclick="dvSeg('cal')">📅 Calendar वाले</button>
       <button class="sg ${_dvSeg==='nocal'?'on':''}" onclick="dvSeg('nocal')">⏳ बिना Calendar</button>
       <button class="sg" onclick="dvZig()">${_dvZig?'📏 सीधा':'🐍 zigzag'}</button>
+      <button class="sg ${_dvAI?'on':''}" onclick="dvAI()">🤖 AI प्लान</button>
       <span class="dv-score">✓${doneToday} आज पूरे${late.length?` · 🔴${late.length} देर`:''}</span>
     </div>
-    ${aiPlanPanel()}`;
+    ${_dvAI?aiPlanPanel():''}`;
   if(showCal&&late.length){
     h+=`<div class="dv-grp-h late">🔴 देर हो गई <span class="cnt">${late.length}</span></div><div class="dv-rail">`;
     late.forEach(r=>h+=dayCard(r,true));
@@ -3188,7 +3209,6 @@ window.spFreshAI=async function(){
   if(!tps.length&&!asg.length){ toast('⚠️ इस श्रेणी में कोई बाकी काम नहीं','warn'); return; }
   const tasks=[...tps.map(x=>(catInfo(x.cat)?catInfo(x.cat).logo+' ':'')+x.t),
                ...asg.map(x=>(catInfo(x.cat)?catInfo(x.cat).logo+' ':'')+x.t+' ('+x.srcName+')')];
-  if(!askPinAI()) return;
   toast('🤖 विक्रम-अंदाज़ का नया message बन रहा है...');
   // पहला रास्ता: सीधा Anthropic (नया दमदार prompt)
   if(aiKey()){
@@ -3839,7 +3859,8 @@ function filterItems(){
   const m={
     'mic':`<div class="f-chip fc-mic" onclick="openAiAdd()" title="बोलकर काम जोड़ें">🎙️ बोलो</div>`,
     'day':`<div class="f-chip fc-day" id="fc-day" onclick="gotoDay()" title="📅 मेरा दिन">📅 दिन</div>`,
-    'add':`<div class="f-chip" style="border-color:rgba(245,158,11,.65);color:#fbbf24" onclick="openAddModal()" title="नया contact/काम">➕</div>`,
+    'add':`<div class="f-chip" style="background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;border-color:transparent;font-weight:900;box-shadow:0 2px 8px rgba(239,68,68,.45)" onclick="openAddModal()" title="नया contact/काम">➕ नया</div>`,
+    'srch':`<div class="f-chip" onclick="fbSearchOpen()" title="🔍 नाम/नंबर खोजें">🔍</div>`,
     'fdash':`<div class="f-chip" style="border-color:rgba(34,211,238,.6);color:#67e8f9" onclick="openFocusDash()" title="🎯 Focus dashboard — विक्रम/दिनेश">🎯</div>`,
     'all':`<div class="f-chip" data-f="" onclick="setFilter('')">🔍 सब</div>`,
     'arch':`<div class="f-chip" data-f="_arch" onclick="setFilter('_arch')">📦 बंद</div>`
@@ -3849,15 +3870,19 @@ function filterItems(){
   return m;
 }
 function defaultOrder(){
-  return ['mic','day','add','fdash','all',...TAG_LIST.map(t=>'t:'+t.k),...TASK_CATS.map(tc=>'c:'+tc.k),'arch'];
+  return ['mic','day','add','srch','fdash','all',...TAG_LIST.map(t=>'t:'+t.k),...TASK_CATS.map(tc=>'c:'+tc.k),'arch'];
 }
 function orderedTokens(){
   const def=defaultOrder();
   const saved=Array.isArray(window._filterOrder)?window._filterOrder.filter(t=>def.includes(t)):[];
   return [...saved,...def.filter(t=>!saved.includes(t))];
 }
+window.fbSearchOpen=function(){
+  document.body.classList.remove('hdr-folded'); localStorage.setItem('vbe_hdr_fold','');
+  setTimeout(()=>{ const e=document.getElementById('search-inp'); if(e){ e.focus(); e.scrollIntoView({block:'center'}); } },100);
+};
 function tokLabel(tok){
-  if(tok==='mic')return '🎙️ बोलो'; if(tok==='day')return '📅 दिन'; if(tok==='add')return '➕ नया';
+  if(tok==='mic')return '🎙️ बोलो'; if(tok==='srch')return '🔍 खोज'; if(tok==='day')return '📅 दिन'; if(tok==='add')return '➕ नया';
   if(tok==='fdash')return '🎯 Focus dash'; if(tok==='all')return '🔍 सब'; if(tok==='arch')return '📦 बंद';
   if(tok.startsWith('t:')){ const t=TAG_LIST.find(x=>x.k===tok.slice(2)); return t?t.label:tok; }
   if(tok.startsWith('c:')){ const t=TASK_CATS.find(x=>x.k===tok.slice(2)); return t?t.logo+' '+t.label:tok; }

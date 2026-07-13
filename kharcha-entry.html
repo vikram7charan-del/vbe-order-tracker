@@ -114,10 +114,10 @@ h2.sec-title{font-size:14px;font-weight:900;color:#1e293b;margin-bottom:10px}
   <!-- AI Auto Entry -->
   <div class="card" style="border-color:#c4b5fd;background:linear-gradient(135deg,#faf5ff,#f5f3ff)">
     <h2 class="sec-title">🤖 फोटो से Auto Entry <span class="mini" style="font-weight:600">(सबसे तेज़ तरीका)</span></h2>
-    <div class="mini" style="margin-bottom:10px">Bill की photo लें — AI खुद items, rates, दुकान, category पढ़कर <b>पूरी entry बना देगा</b>। आपको कुछ नहीं भरना।</div>
+    <div class="mini" style="margin-bottom:10px">Bill की photo लें — AI नीचे form में items, rates (GST सहित), दुकान, GST नंबर, पता <b>खुद भर देगा</b>। आप सिर्फ एक नज़र देखकर <b>Save</b> दबाएं (गलत नाम खुद सुधार सकते हैं)।</div>
     <div class="sec"><label class="lbl">🏢 Firm (किस business का खर्च)</label><select class="inp" id="auto-firm"></select></div>
     <button class="btn" style="background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;box-shadow:0 4px 14px rgba(124,58,237,.3)" id="auto-btn"
-      onclick="document.getElementById('auto-photo').click()">📸 Photo लो → Entry अपने आप बनेगी</button>
+      onclick="document.getElementById('auto-photo').click()">📸 Photo लो → AI form भर देगा</button>
     <input type="file" id="auto-photo" accept="image/*" style="display:none" onchange="autoEntry(event)">
     <div id="auto-status" class="mini" style="margin-top:8px;min-height:16px;font-weight:700"></div>
     <div id="auto-result" style="display:none;background:#f0fdf4;border:1.5px solid #86efac;border-radius:11px;padding:11px 13px;margin-top:8px;font-size:13px;line-height:1.8"></div>
@@ -152,6 +152,7 @@ h2.sec-title{font-size:14px;font-weight:900;color:#1e293b;margin-bottom:10px}
     </div>
 
     <div class="sec total-bar"><span>कुल Total</span><span class="amt" id="f-total">₹0</span></div>
+    <div id="gst-breakup" style="display:none;font-size:12px;background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:10px 12px;margin:-6px 0 13px;line-height:1.75"></div>
 
     <div class="sec">
       <label class="lbl">💳 पेमेंट कैसे हुआ?</label>
@@ -519,9 +520,9 @@ async function loadAutocomplete(){
 window.onPhotoPick = function(ev){
   const file = ev.target.files[0];
   if(!file) return;
-  compressImage(file, 1280, 0.8).then(blob=>{
+  compressImage(file, 1568, 0.85).then(blob=>{
     // ensure ≤1MB: reduce quality if needed
-    const tryQ = (q)=> compressImage(file,1280,q).then(b=> b.size<=1024*1024||q<=0.4 ? b : tryQ(q-0.15));
+    const tryQ = (q)=> compressImage(file,1568,q).then(b=> b.size<=1024*1024||q<=0.4 ? b : tryQ(q-0.15));
     return blob.size<=1024*1024 ? blob : tryQ(0.65);
   }).then(blob=>{
     PHOTO_BLOB = blob;
@@ -553,10 +554,14 @@ window.saveAiSettings = function(){
   localStorage.setItem('vbe_ai_key', val('set-key').trim());
   toast('✅ AI settings saved');
 };
-const AI_PROMPT = `यह एक खरीदारी का bill/receipt है। इसमें से data निकालकर सिर्फ यह JSON दो (कोई और text नहीं):
-{"vendor":"दुकान का नाम या null","date":"YYYY-MM-DD या null","category":"kaccha/fuel/army/repair/salary/other में से एक","items":[{"name":"item नाम","qty":संख्या,"unit":"kg/पीस/लीटर/ग्राम/बॉक्स/बोरी","rate":संख्या,"amount":संख्या}],"total":संख्या,"party":{"phone":"दुकान का mobile/phone या null","gstin":"GSTIN या null","address":"पता या null"}}
-category ऐसे चुनो: खाने-पीने/राशन/सब्ज़ी/dairy का सामान=kaccha, petrol/diesel=fuel, fridge/AC/electronics जैसी army unit supply=army, repair/spare parts=repair, salary/advance=salary, बाकी=other।
-जो field साफ न दिखे उसे null/0 रखो। Hindi item names ठीक वैसे ही रखो जैसे bill पर हैं।`;
+const AI_PROMPT = `यह एक खरीदारी का bill / tax-invoice है। ध्यान से पढ़कर सिर्फ यह JSON दो (कोई और text नहीं):
+{"vendor":"दुकान/कंपनी का नाम","gstin":"GSTIN/UIN या null","phone":"दुकान का mobile या null","address":"दुकान का पता या null","date":"YYYY-MM-DD या null","category":"kaccha/fuel/army/repair/salary/other","items":[{"name":"सामान का सही नाम जैसा बिल पर छपा है","qty":संख्या,"unit":"kg/पीस/लीटर/ग्राम/बॉक्स/बोरी/crt","rate":GST-सहित-प्रति-यूनिट-रेट,"amount":qty×rate}],"other_charges":[{"label":"Wages/Freight/हम्माली/छूट आदि","amount":संख्या}],"tax_total":कुल-GST-राशि-या-0,"grand_total":बिल-का-आखिरी-कुल}
+जरूरी नियम:
+1. item का नाम बिल पर जैसा छपा है बिल्कुल वैसा पढ़ें — अंदाज़ा/guess मत लगाइए। ये अक्सर तेल/घी/राशन/सब्ज़ी/किराना के सामान होते हैं (जैसे Sarso=सरसों तेल, Soya=सोया तेल)।
+2. rate = प्रति-यूनिट **GST सहित** कीमत। अगर बिल में "Rate (Incl. of Tax)" कॉलम है तो वही लें; वरना base rate में CGST+SGST जोड़कर।
+3. amount = qty × (GST-सहित rate)। सारे items के amount + other_charges मिलकर grand_total के बराबर होने चाहिए।
+4. Wages/हम्माली/freight/packing जैसे extra को other_charges में डालें (item में नहीं)।
+5. जो field साफ़ न दिखे उसे null/0 रखें। Hindi नाम Devanagari में ही रखें अगर बिल पर हैं।`;
 
 function aiConfigured(){
   return AI_PROXY_DB || localStorage.getItem('vbe_ai_proxy_url') || localStorage.getItem('vbe_ai_key');
@@ -591,8 +596,8 @@ async function aiExtract(b64){
         'anthropic-dangerous-direct-browser-access':'true'
       },
       body: JSON.stringify({
-        model:'claude-haiku-4-5-20251001',
-        max_tokens:1500,
+        model:'claude-sonnet-4-6',
+        max_tokens:2500,
         messages:[{role:'user',content:[
           {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},
           {type:'text',text:AI_PROMPT}
@@ -610,23 +615,48 @@ async function aiExtract(b64){
   return JSON.parse(m[0]);
 }
 
+// AI का पढ़ा data → editable form में भरो (नाम/रेट सुधार सकें), GST-सहित हिसाब दिखाओ।
+// कभी सीधे save नहीं — हमेशा verify-then-save (गलत नाम कभी चुपचाप save न हो)।
+let AI_PARTY = null, AI_GRAND = 0;
+function applyBillData(data){
+  if(data.vendor) document.getElementById('f-vendor').value = data.vendor;
+  if(data.date && /^\d{4}-\d{2}-\d{2}$/.test(data.date)) document.getElementById('f-date').value = data.date;
+  if(data.category && CATEGORIES.some(c=>c.id===data.category)) setCat(data.category);
+  const items = (Array.isArray(data.items)?data.items:[]).filter(it=>it&&it.name);
+  const others = (Array.isArray(data.other_charges)?data.other_charges:[]).filter(o=>o&&(+o.amount));
+  document.getElementById('item-rows').innerHTML='';
+  items.forEach(it=>{ const q=+it.qty||0, r=+it.rate||0; addItemRow({name:String(it.name), qty:q, unit:it.unit||'पीस', rate:r, amount:+it.amount|| +(q*r).toFixed(2) }); });
+  others.forEach(o=>addItemRow({name:'➕ '+(o.label||'अन्य'), qty:1, unit:'—', rate:+o.amount||0, amount:+o.amount||0}));
+  if(!items.length && !others.length) addItemRow();
+  const formTotal = calcTotal();
+  // GST-सहित हिसाब का साफ़ box
+  const itemSum = items.reduce((a,it)=>a+(+it.amount|| ((+it.qty||0)*(+it.rate||0)) ),0);
+  const otherSum = others.reduce((a,o)=>a+(+o.amount||0),0);
+  const tax = +data.tax_total||0;
+  AI_GRAND = +data.grand_total||0;
+  const box = document.getElementById('gst-breakup');
+  let html = `🧾 <b>बिल का हिसाब (GST सहित लागत):</b><br>सामान ₹${Math.round(itemSum).toLocaleString('hi-IN')}`;
+  if(otherSum) html += ` + अन्य ₹${Math.round(otherSum).toLocaleString('hi-IN')}`;
+  html += ` = <b>₹${Math.round(formTotal).toLocaleString('hi-IN')}</b>`;
+  if(tax) html += `<br><span style="color:#92400e">इसमें GST ₹${Math.round(tax).toLocaleString('hi-IN')} शामिल है — आपको input credit नहीं मिलता, तो यही आपकी असली लागत है ✓</span>`;
+  if(AI_GRAND){ const ok=Math.abs(AI_GRAND-formTotal)<=2;
+    html += ok ? `<br><span style="color:#16a34a;font-weight:900">✓ बिल के कुल ₹${Math.round(AI_GRAND).toLocaleString('hi-IN')} से पूरा मेल खाता है</span>`
+               : `<br><span style="color:#dc2626;font-weight:900">⚠️ बिल पर ₹${Math.round(AI_GRAND).toLocaleString('hi-IN')} लिखा है (₹${Math.round(Math.abs(AI_GRAND-formTotal))} का फ़र्क) — items/रेट एक बार check कर लें</span>`; }
+  html += `<br><span class="mini">कोई नाम/रेट गलत लगे तो ऊपर सीधे बदल दें, फिर Save करें।</span>`;
+  box.innerHTML = html; box.style.display='block';
+  AI_PARTY = { name:(data.vendor||'').trim(), phone:data.phone||'', gstin:data.gstin||'', address:data.address||'' };
+  savePartyFromBill(AI_PARTY.name, AI_PARTY);
+}
+
 // Manual form में AI से भरना (verify-then-save)
 window.aiReadBill = async function(){
   if(!PHOTO_BLOB){ toast('⚠️ पहले bill photo लें','err'); return; }
   const btn=document.getElementById('ai-btn'), st=document.getElementById('ai-status');
-  btn.disabled=true; st.textContent='🤖 AI bill पढ़ रहा है... (10-20 sec)';
+  btn.disabled=true; st.textContent='🤖 AI bill पढ़ रहा है... (5-10 sec)';
   try{
     const data = await aiExtract(await blobToB64(PHOTO_BLOB));
-    if(data.vendor) document.getElementById('f-vendor').value = data.vendor;
-    if(data.date && /^\d{4}-\d{2}-\d{2}$/.test(data.date)) document.getElementById('f-date').value = data.date;
-    if(data.category && CATEGORIES.some(c=>c.id===data.category)) setCat(data.category);
-    if(Array.isArray(data.items) && data.items.length){
-      document.getElementById('item-rows').innerHTML='';
-      data.items.forEach(it=>addItemRow({name:it.name||'', qty:it.qty||0, unit:it.unit||'पीस', rate:it.rate||0, amount:it.amount||0}));
-      calcTotal();
-    }
-    savePartyFromBill((data.vendor||'').trim(), data.party);
-    st.textContent='✅ AI ने भर दिया — verify करके save करें';
+    applyBillData(data);
+    st.textContent='✅ AI ने भर दिया — नाम/रेट check करके Save करें';
     toast('✅ Bill पढ़ लिया — check करें!');
     saveDraft();
   }catch(e){
@@ -635,7 +665,7 @@ window.aiReadBill = async function(){
   }finally{ btn.disabled=false; }
 };
 
-// 📸 फोटो से पूरी entry अपने आप — photo → AI → save, एक भी field भरे बिना
+// 📸 फोटो से — AI पढ़कर form भर देगा, आप नाम/रेट check करके Save करेंगे (चुपचाप save नहीं)
 window.autoEntry = async function(ev){
   const file = ev.target.files[0];
   ev.target.value='';
@@ -643,50 +673,23 @@ window.autoEntry = async function(ev){
   const btn=document.getElementById('auto-btn'), st=document.getElementById('auto-status'), res=document.getElementById('auto-result');
   btn.disabled=true; res.style.display='none';
   try{
-    st.textContent='📷 Photo compress हो रही है...';
-    let blob = await compressImage(file, 1100, 0.72);
-    for(let q=0.65; blob.size>1024*1024 && q>=0.4; q-=0.15) blob = await compressImage(file, 1280, q);
-    st.textContent='🤖 AI bill पढ़ रहा है... (10-20 sec)';
+    st.textContent='📷 Photo तैयार हो रही है...';
+    let blob = await compressImage(file, 1568, 0.85);
+    for(let q=0.7; blob.size>1400*1024 && q>=0.45; q-=0.12) blob = await compressImage(file, 1568, q);
+    // photo को main form से जोड़ो ताकि Save पर वही bill लगे
+    PHOTO_BLOB = blob;
+    const prev=document.getElementById('photo-prev'); prev.src=URL.createObjectURL(blob); prev.style.display='block';
+    document.getElementById('photo-hint').textContent='✅ Bill photo लगी है';
+    document.getElementById('ai-btn').disabled=false;
+    // firm auto-form से main form में
+    if(val('auto-firm')) document.getElementById('f-firm').value = val('auto-firm');
+    st.textContent='🤖 AI bill पढ़ रहा है... (5-10 sec)';
     const data = await aiExtract(await blobToB64(blob));
-    const items = (Array.isArray(data.items)?data.items:[]).filter(it=>it&&it.name).map(it=>({
-      name:String(it.name), qty:+it.qty||0, unit:it.unit||'पीस', rate:+it.rate||0, amount:+it.amount||0
-    }));
-    let total = +data.total||0;
-    if(!total) total = items.reduce((a,b)=>a+b.amount,0);
-    if(!total) throw new Error('AI को amount समझ नहीं आया — नीचे वाले form से manually भरें');
-    st.textContent='💾 Entry बन रही है...';
-    const id = 'exp_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
-    st.textContent='📤 Photo upload...';
-    const billPhotoUrl = await safeUpload('kharcha_bills/'+id+'.jpg', blob);
-    if(!billPhotoUrl) toast('⚠️ Photo upload नहीं हुई (Storage चालू करें) — entry फिर भी बन रही है');
-    const now = new Date().toISOString();
-    const cat = CATEGORIES.some(c=>c.id===data.category) ? data.category : 'other';
-    const exp = {
-      id,
-      date: (data.date && /^\d{4}-\d{2}-\d{2}$/.test(data.date)) ? data.date : todayStr(),
-      firm: val('auto-firm'),
-      category: cat,
-      vendor: (data.vendor||'').trim(),
-      items, total,
-      paymentSource: payValue()||'', payMode: val('f-paymode')||'',
-      billPhotoUrl, billStatus: billPhotoUrl?'ok':'pending', entryStatus:'complete',
-      staffUid: ME.uid, staffName: ME.name, staffPhone: ME.phone,
-      notes: '🤖 AI Auto Entry',
-      createdAt: now, updatedAt: now, createdBy: ME.uid, createdByName: ME.name
-    };
-    await setDoc(doc(db,'vbe_expenses',id), exp);
-    await logPricebook(id, exp);
-    savePartyFromBill(exp.vendor, data.party);
-    st.textContent='';
-    const catLabel = (CATEGORIES.find(c=>c.id===cat)||{}).label||cat;
-    res.innerHTML = `✅ <b>₹${total.toLocaleString('hi-IN')}</b> की entry बन गई!<br>
-      🏪 ${esc(exp.vendor||'—')} · ${catLabel} · ${items.length} items<br>
-      ${items.slice(0,4).map(it=>`• ${esc(it.name)} — ${it.qty}${esc(it.unit)} × ₹${it.rate} = ₹${it.amount}`).join('<br>')}
-      ${items.length>4?'<br>…और '+(items.length-4)+' items':''}
-      <br><span class="mini">गलती दिखे तो dashboard से delete करके दोबारा photo लें</span>`;
+    applyBillData(data);
+    st.textContent='✅ पढ़ लिया — नीचे form में नाम/रेट check करके "Save करें" दबाएं';
+    res.innerHTML = `✅ AI ने नीचे form भर दिया — <b>नाम/रेट एक बार देख लीजिए</b>, फिर "💾 खर्चा Save करें" दबाएं।`;
     res.style.display='block';
-    toast('🤖 ₹'+total.toLocaleString('hi-IN')+' की AI entry बनी!');
-    loadAutocomplete();
+    document.getElementById('form-title').scrollIntoView({behavior:'smooth', block:'start'});
   }catch(e){
     st.textContent='❌ '+e.message;
     toast('❌ '+e.message,'err');
@@ -770,6 +773,8 @@ window.saveExpense = async function(){
       billPhotoUrl,
       billStatus: billPhotoUrl?'ok':'pending',
       entryStatus: 'complete',
+      grandTotal: AI_GRAND||total,
+      partyGstin: AI_PARTY?AI_PARTY.gstin:'', partyPhone: AI_PARTY?AI_PARTY.phone:'', partyAddress: AI_PARTY?AI_PARTY.address:'',
       staffUid: ME.uid, staffName: ME.name, staffPhone: ME.phone,
       notes: val('f-notes').trim(),
       updatedAt: now
@@ -786,6 +791,7 @@ window.saveExpense = async function(){
       await setDoc(doc(db,'vbe_expenses',id), exp);
     }
     await logPricebook(id, exp);
+    if(AI_PARTY) savePartyFromBill(exp.vendor, AI_PARTY);
     clearDraft();
     toast('✅ ₹'+total.toLocaleString('hi-IN')+' का खर्चा save हुआ!');
     resetForm();
@@ -812,6 +818,8 @@ function resetForm(){
   document.getElementById('f-photo').value='';
   document.getElementById('ai-btn').disabled=true;
   document.getElementById('ai-status').textContent='';
+  const gb=document.getElementById('gst-breakup'); if(gb){ gb.style.display='none'; gb.innerHTML=''; }
+  AI_PARTY=null; AI_GRAND=0;
 }
 
 // ── Pending entries (details बाकी या bill photo बाकी) ──
@@ -866,7 +874,7 @@ window.onBillAttach = async function(ev){
   const id = BILL_ATTACH_ID; BILL_ATTACH_ID = null;
   try{
     toast('📷 Photo upload हो रही है...');
-    let blob = await compressImage(file, 1100, 0.72);
+    let blob = await compressImage(file, 1568, 0.85);
     for(let q=0.65; blob.size>1024*1024 && q>=0.4; q-=0.15) blob = await compressImage(file, 1280, q);
     const url = await safeUpload('kharcha_bills/'+id+'_bill.jpg', blob);
     if(!url) throw new Error('Photo upload नहीं हुई — Firebase Storage चालू करें (Console → Storage → Get Started)');

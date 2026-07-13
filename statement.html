@@ -118,6 +118,18 @@ function vbeMenu(v){document.getElementById('vbe-menu').style.display=v?'block':
 document.querySelectorAll('.vbe-tile').forEach(function(a){var h=a.getAttribute('href').replace('./','');if(h===p)a.classList.add('cur')})})();
 </script>
 
+<!-- detail popup -->
+<div id="txn-modal" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(15,23,42,.55)" onclick="if(event.target===this)closeTxn()">
+  <div style="position:absolute;left:0;right:0;bottom:0;max-width:480px;margin:0 auto;background:#fff;border-radius:22px 22px 0 0;max-height:88dvh;overflow-y:auto;padding:18px 16px 26px;box-shadow:0 -10px 40px rgba(15,23,42,.4)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <b style="font-size:16px" id="tm-title">विवरण</b>
+      <button onclick="closeTxn()" style="border:none;background:#f1f5f9;border-radius:9px;padding:7px 14px;font-weight:900;font-size:14px;cursor:pointer">✕ बंद</button>
+    </div>
+    <div id="tm-body"></div>
+    <button onclick="closeTxn()" style="width:100%;margin-top:14px;border:none;background:#0f766e;color:#fff;border-radius:12px;padding:13px;font-weight:900;font-size:15px;font-family:inherit;cursor:pointer">← वापस बही पर</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script type="module">
@@ -170,10 +182,11 @@ async function loadAll(){
   TXNS=[];
   exSnap.forEach(d=>{ const e=d.data();
     TXNS.push({date:e.date||'', dir:'out', amount:+e.total||0, party:e.vendor||'—',
-      account:e.paymentSource||'', utr:e.utr||'', firm:e.firm||'', bill:e.billStatus==='pending', udhaar:e.payStatus==='udhaar', id:d.id}); });
+      account:e.paymentSource||'', utr:e.utr||'', firm:e.firm||'', bill:e.billStatus==='pending', udhaar:e.payStatus==='udhaar',
+      items:e.items||[], photo:e.billPhotoUrl||'', gstin:e.partyGstin||'', notes:e.notes||'', id:d.id, kind:'exp'}); });
   rcSnap.forEach(d=>{ const r=d.data(); if(r.direction!=='in') return;
     TXNS.push({date:r.date||'', dir:'in', amount:+r.amount||0, party:r.party||'—',
-      account:r.paymentSource||'', utr:r.utr||'', firm:'', bill:false, id:d.id}); });
+      account:r.paymentSource||'', utr:r.utr||'', firm:'', bill:false, items:[], photo:r.photoUrl||'', notes:r.notes||'', id:d.id, kind:'rcpt'}); });
   TXNS.sort((a,b)=> (b.date||'').localeCompare(a.date||''));
   renderChips();
   applyFilter('__all');
@@ -221,6 +234,8 @@ function render(){
   if(!rows.length){ list.innerHTML=''; more.style.display='none'; empty.style.display='block'; return; }
   empty.style.display='none';
   // group by date
+  rows.forEach((t,i)=>t._i=String(i));
+  window._ROWS=rows;
   const byDate={};
   for(const t of rows){ (byDate[t.date]=byDate[t.date]||[]).push(t); }
   const dates=Object.keys(byDate).sort((a,b)=>b.localeCompare(a));
@@ -237,7 +252,7 @@ function render(){
       </div>
       <div class="daycard">
         ${items.map(t=>`
-          <div class="row3d">
+          <div class="row3d" onclick="openTxn('${t._i}')" style="cursor:pointer">
             <div class="ic3d ${t.dir==='in'?'ic-in':'ic-out'}">${t.dir==='in'?'💰':'💸'}</div>
             <div class="mid">
               <div class="party">${esc(t.party)}${t.udhaar?'<span class="tag" style="background:#ffedd5;color:#c2410c">उधार</span>':''}${t.bill?'<span class="tag tag-bill">bill बाकी</span>':''}</div>
@@ -251,6 +266,32 @@ function render(){
   more.style.display = dates.length>SHOWN ? 'block' : 'none';
   more.textContent = `और पुराना दिखाएं (${dates.length-SHOWN} दिन बाकी)`;
 }
+
+window.openTxn = function(i){
+  const t=(window._ROWS||[])[+i]; if(!t) return;
+  document.getElementById('tm-title').textContent = (t.dir==='in'?'💰 आया पैसा':'💸 गया पैसा');
+  const rows=[];
+  rows.push(`<div style="font-size:20px;font-weight:900;color:${t.dir==='in'?'#059669':'#e11d48'}">${t.dir==='in'?'+':'−'}${fmt(t.amount)}</div>`);
+  rows.push(`<div style="font-size:15px;font-weight:800;margin-top:4px">${esc(t.party)}</div>`);
+  const line=(k,v)=> v?`<div style="display:flex;justify-content:space-between;padding:7px 2px;border-bottom:1px solid #f1f5f9;font-size:13px"><span style="color:#64748b">${k}</span><span style="font-weight:700;text-align:right;max-width:62%">${esc(v)}</span></div>`:'';
+  rows.push('<div style="margin-top:10px">');
+  rows.push(line('तारीख', hdate(t.date)));
+  rows.push(line('🏦 खाता', t.account));
+  rows.push(line('🏢 Firm', t.firm));
+  rows.push(line('🔖 UTR', t.utr));
+  rows.push(line('GSTIN', t.gstin));
+  rows.push('</div>');
+  if(t.items && t.items.length){
+    rows.push('<div style="margin-top:12px;font-weight:900;font-size:13px">📦 सामान (GST सहित)</div>');
+    rows.push('<div style="margin-top:5px">'+t.items.map(it=>`<div style="display:flex;justify-content:space-between;padding:6px 2px;border-bottom:1px solid #f6f7f9;font-size:12.5px"><span>${esc(it.name)} <span style="color:#94a3b8">${it.qty||''}${esc(it.unit||'')}${it.rate?(' × ₹'+it.rate):''}</span></span><b>₹${Math.round(it.amount||0).toLocaleString('hi-IN')}</b></div>`).join('')+'</div>');
+  }
+  if(t.notes && !/Statement import/.test(t.notes)) rows.push(`<div style="margin-top:10px;font-size:12px;color:#64748b">📝 ${esc(t.notes)}</div>`);
+  if(t.photo){ rows.push(`<div style="margin-top:12px;font-weight:900;font-size:13px">🧾 बिल फोटो</div><img src="${esc(t.photo)}" style="max-width:100%;border-radius:12px;margin-top:6px" loading="lazy">`); }
+  else if(t.kind==='exp'){ rows.push(`<div style="margin-top:12px;background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:10px;font-size:12.5px;color:#92400e">🟡 इस entry पर बिल फोटो नहीं है — 🧾 एंट्री page पर "Bill जोड़ें" से डाल सकते हैं।</div>`); }
+  document.getElementById('tm-body').innerHTML = rows.join('');
+  document.getElementById('txn-modal').style.display='block';
+};
+window.closeTxn = function(){ document.getElementById('txn-modal').style.display='none'; };
 
 function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.className='toast show'; clearTimeout(t._tm); t._tm=setTimeout(()=>t.classList.remove('show'),2600); }
 </script>

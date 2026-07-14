@@ -514,6 +514,26 @@ body.th-geo .qdial-popup,body.th-geo .modal-box{background:linear-gradient(160de
 body.th-geo .c-topic,body.th-geo .sv-tasks{color:#c7d2fe}
 body.th-geo .btn-add-big{background:linear-gradient(135deg,#6366f1,#a855f7);box-shadow:0 4px 16px rgba(139,92,246,.45)}
 
+/* ══ 🎛️ Theme accent — ऊपर के mode-बटन हर theme के साथ रँगें ══ */
+body{--acc:#a855f7;--acc2:#6366f1}
+body.th-black{--acc:#60a5fa;--acc2:#3b82f6}
+body.th-purple{--acc:#c084fc;--acc2:#8b5cf6}
+body.th-emerald{--acc:#34d399;--acc2:#059669}
+body.th-glass{--acc:#e9d5ff;--acc2:#a855f7}
+body.th-neo{--acc:#fbbf24;--acc2:#f59e0b}
+body.th-hex{--acc:#22d3ee;--acc2:#0ea5e9}
+body.th-geo{--acc:#a5b4fc;--acc2:#6366f1}
+.f-chip.fc-mic,.f-chip.fc-day,.f-chip.fc-add{
+  position:relative;color:#fff!important;border:1px solid var(--acc)!important;font-weight:900;
+  background:linear-gradient(135deg,color-mix(in srgb,var(--acc) 45%,transparent),color-mix(in srgb,var(--acc2) 28%,transparent))!important;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  box-shadow:0 4px 14px -4px color-mix(in srgb,var(--acc) 65%,transparent),inset 0 1px 0 rgba(255,255,255,.28),inset 0 -6px 10px -8px rgba(0,0,0,.7)!important;
+  transition:transform .3s cubic-bezier(.2,.9,.3,1.4),box-shadow .3s,background .3s}
+.f-chip.fc-mic:active,.f-chip.fc-day:active,.f-chip.fc-add:active{transform:perspective(300px) translateZ(-6px) scale(.93)}
+.f-chip.fc-day.on{animation:accSheen 2.6s ease-in-out infinite}
+@keyframes accSheen{0%,100%{box-shadow:0 4px 14px -4px color-mix(in srgb,var(--acc) 65%,transparent),inset 0 1px 0 rgba(255,255,255,.28)}
+  50%{box-shadow:0 4px 22px -3px color-mix(in srgb,var(--acc) 95%,transparent),inset 0 1px 0 rgba(255,255,255,.4)}}
+
 /* ══ 📅 मेरा दिन — in-app timeline view ══ */
 .dv-wrap{padding:4px 13px 20px}
 .dv-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 2px 4px}
@@ -632,23 +652,32 @@ body.th-geo .btn-add-big{background:linear-gradient(135deg,#6366f1,#a855f7);box-
   border:1px solid rgba(139,92,246,.6);border-radius:14px;padding:5px 9px 5px 5px;
   box-shadow:0 7px 16px -8px rgba(124,58,237,.55),inset 0 1px 0 rgba(255,255,255,.14)}
 .fc-ring{width:38px;height:38px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;position:relative;
-  background:conic-gradient(var(--fc,#a855f7) var(--p,0%), rgba(50,40,90,.5) 0)}
-.fc-ring::before{content:'';position:absolute;inset:3px;border-radius:50%;background:rgba(7,8,20,.88)}
-.fc-ring .tm{position:relative;font-size:8.5px;font-weight:900;color:#e9d5ff;font-variant-numeric:tabular-nums}
+  background:conic-gradient(from 220deg,color-mix(in srgb,var(--fc,#a855f7) 70%,#fff) 0%,var(--fc,#a855f7) calc(var(--p,0%)*.5),color-mix(in srgb,var(--fc,#a855f7) 60%,#000) var(--p,0%),rgba(40,44,70,.45) 0);
+  box-shadow:0 0 12px -3px var(--fc,#a855f7),inset 0 1px 2px rgba(255,255,255,.35),inset 0 -2px 4px rgba(0,0,0,.6)}
+.fc-ring::before{content:'';position:absolute;inset:3px;border-radius:50%;
+  background:radial-gradient(circle at 32% 26%,rgba(60,66,110,.9),rgba(7,8,20,.95) 62%);
+  box-shadow:inset 0 1px 3px rgba(255,255,255,.18),inset 0 -2px 5px rgba(0,0,0,.8)}
+.fc-ring::after{content:'';position:absolute;inset:-1px;border-radius:50%;pointer-events:none;
+  background:conic-gradient(from 0deg,transparent 0 84%,rgba(255,255,255,.28) 92%,transparent 100%);
+  animation:fcSweep 4.5s linear infinite}
+@keyframes fcSweep{to{transform:rotate(360deg)}}
+.fc-ring .tm{position:relative;z-index:1;font-size:8.5px;font-weight:900;color:#eef;font-variant-numeric:tabular-nums;text-shadow:0 1px 2px rgba(0,0,0,.7)}
+.fc-st{display:inline-block;font-size:7px;font-weight:900;letter-spacing:.6px;border-radius:5px;padding:1px 5px;margin-left:4px;vertical-align:1px;color:#fff}
+.fc-st.run{background:linear-gradient(120deg,#2563eb,#38bdf8)}
+.fc-st.late{background:linear-gradient(120deg,#b91c1c,#f97316)}
 .fc-task{font-size:9.5px;font-weight:800;color:#e2e8f0;line-height:1.3;max-width:135px;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .fc-x{font-size:14px;color:#8b7bb8;cursor:pointer;padding:4px;flex-shrink:0}
-.fc-item.over{border-color:#ef4444;box-shadow:0 0 14px -3px rgba(239,68,68,.7)}
-.fc-item.over .fc-ring{background:conic-gradient(#ef4444 100%, #ef4444 0);animation:fcTick 1s steps(2) infinite}
+.fc-item.over{border-color:#ef4444}
+.fc-item.over .fc-ring{--p:100%;--fc:#ef4444;animation:fcBreath 3s ease-in-out infinite}
 .fc-item.over .fc-ring .tm{color:#fecaca}
-@keyframes fcTick{0%{transform:scale(1)}50%{transform:scale(1.09) rotate(3deg)}100%{transform:scale(1)}}
+@keyframes fcBreath{0%,100%{box-shadow:0 0 10px -3px #ef4444,inset 0 1px 2px rgba(255,255,255,.35)}
+  50%{box-shadow:0 0 20px -2px #ef4444,inset 0 1px 2px rgba(255,255,255,.4)}}
 .dv-seg{display:flex;gap:6px;align-items:center;margin:6px 2px 2px;flex-wrap:wrap}
 .dv-seg .sg{font-size:10.5px;font-weight:900;font-family:inherit;border:1px solid #2a3d66;border-radius:9px;padding:6px 11px;cursor:pointer;background:linear-gradient(160deg,#16223f,#0d1526);color:#9fb2d8;touch-action:manipulation}
 .dv-seg .sg.on{border-color:#a855f7;color:#fff;background:linear-gradient(140deg,#7c3aed,#a855f7)}
 .dv-score{font-size:9.5px;color:#7d8db0;font-weight:800;margin-left:auto}
-.f-chip.fc-mic{background:linear-gradient(120deg,#7c3aed,#a855f7);color:#fff;border-color:transparent;font-weight:900;box-shadow:0 2px 8px rgba(139,92,246,.45)}
-.f-chip.fc-day{background:linear-gradient(120deg,#0ea5e9,#3b82f6);color:#fff;border-color:transparent;font-weight:900}
-.f-chip.fc-day.on{background:linear-gradient(120deg,#a855f7,#ec4899)}
+/* fc-mic/fc-day/fc-add की theme-glass styling ऊपर --acc से */
 /* ══ 💎 Premium 3D redesign — Card + Smart views ══
    गहराई वाला gradient, कटा कोना, चमक-रेखा, दबाने पर तिरछा झुकाव */
 .card{
@@ -2155,7 +2184,7 @@ function fcItemHTML(f){
   const lateTxt=Math.abs(left)>=3600000?fmtCompact(Math.abs(left))+' लेट':mm+'m '+String(ss).padStart(2,'0')+'s लेट'; // सेकंड-सेकंड टिकती घड़ी
   return `<div class="fc-item ${d?'d':''} ${over?'over':''}" data-key="${f.key}" onclick="openSmartPop('${f.id}')">
     <div class="fc-ring" style="--p:${p}%;--fc:${over?'#ef4444':(ow==='k'?'#22c55e':d?'#22d3ee':'#a855f7')}"><span class="tm">${over?lateTxt:mm+':'+String(ss).padStart(2,'0')}</span></div>
-    <div class="fc-task">${escH(f.t)}<div style="font-size:8.5px;color:${d?'#b8963e':'#8b7bb8'};font-weight:800;margin-top:1px">🎯 ${f.mins} मिनट</div></div>
+    <div class="fc-task">${escH(f.t)}<div style="font-size:8px;color:#8b96b8;font-weight:800;margin-top:1px">🎯 ${f.mins}m<span class="fc-st ${over?'late':'run'}">${over?'LATE':'चालू'}</span></div></div>
     <span class="fc-x" onclick="event.stopPropagation();stopFocus('${f.key}')">✕</span>
   </div>`;
 }
@@ -3859,7 +3888,7 @@ function filterItems(){
   const m={
     'mic':`<div class="f-chip fc-mic" onclick="openAiAdd()" title="बोलकर काम जोड़ें">🎙️ बोलो</div>`,
     'day':`<div class="f-chip fc-day" id="fc-day" onclick="gotoDay()" title="📅 मेरा दिन">📅 दिन</div>`,
-    'add':`<div class="f-chip" style="background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;border-color:transparent;font-weight:900;box-shadow:0 2px 8px rgba(239,68,68,.45)" onclick="openAddModal()" title="नया contact/काम">➕ नया</div>`,
+    'add':`<div class="f-chip fc-add" onclick="openAddModal()" title="नया contact/काम">➕ नया</div>`,
     'srch':`<div class="f-chip" onclick="fbSearchOpen()" title="🔍 नाम/नंबर खोजें">🔍</div>`,
     'fdash':`<div class="f-chip" style="border-color:rgba(34,211,238,.6);color:#67e8f9" onclick="openFocusDash()" title="🎯 Focus dashboard — विक्रम/दिनेश">🎯</div>`,
     'all':`<div class="f-chip" data-f="" onclick="setFilter('')">🔍 सब</div>`,

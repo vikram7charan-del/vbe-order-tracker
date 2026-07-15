@@ -453,6 +453,34 @@ body:not(.anim-off) .empty-ico{animation:emptyFloat 3.2s ease-in-out infinite}
   background:radial-gradient(circle at 30% 22%,rgba(255,255,255,.55),rgba(255,255,255,.12) 30%,transparent 58%),linear-gradient(160deg,transparent 45%,rgba(0,0,0,.3))}
 .dv-av::after{clip-path:inherit}
 
+/* ══ 🎬 LIVE BACKGROUND ENGINE — canvas जीवंत background सबसे पीछे ══ */
+#bgfx{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;opacity:.92;transition:opacity .6s ease}
+body.anim-off #bgfx{display:none}
+/* 🎬 Animation Studio — scene chooser sheet */
+#anim-studio{position:fixed;inset:0;z-index:400;display:none;align-items:flex-end;justify-content:center;background:rgba(3,6,14,.72);backdrop-filter:blur(4px)}
+#anim-studio.on{display:flex;animation:fadeIn .25s ease}
+.as-panel{width:100%;max-width:480px;background:linear-gradient(180deg,#0e1730,#080d1c);border:1px solid rgba(120,150,220,.28);border-radius:22px 22px 0 0;
+  box-shadow:0 -18px 50px -20px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.08);padding:16px 15px calc(20px + env(safe-area-inset-bottom));max-height:88vh;overflow-y:auto}
+.as-grab{width:42px;height:4px;border-radius:3px;background:rgba(255,255,255,.22);margin:0 auto 12px}
+.as-h{font-size:15px;font-weight:900;color:#eaf0ff;margin:0 0 3px;display:flex;align-items:center;gap:7px}
+.as-sub{font-size:10.5px;color:#7d8db0;font-weight:700;margin:0 0 13px}
+.as-lab{font-size:10.5px;font-weight:900;color:#9fb2d8;letter-spacing:.4px;margin:14px 2px 8px;text-transform:uppercase}
+.as-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.as-scene{position:relative;border-radius:15px;overflow:hidden;cursor:pointer;aspect-ratio:1/.82;border:1.5px solid rgba(120,150,220,.22);
+  background:#0a1122;display:flex;flex-direction:column;justify-content:flex-end;padding:7px 8px;transition:transform .18s,border-color .2s;-webkit-tap-highlight-color:transparent}
+.as-scene:active{transform:scale(.95)}
+.as-scene.on{border-color:var(--acc,#a855f7);box-shadow:0 0 0 1px var(--acc,#a855f7),0 8px 20px -10px var(--acc,#a855f7)}
+.as-scene .pv{position:absolute;inset:0;z-index:0}
+.as-scene .em{position:relative;z-index:1;font-size:20px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.6))}
+.as-scene .nm{position:relative;z-index:1;font-size:9.5px;font-weight:900;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.9);line-height:1.15;margin-top:2px}
+.as-scene.on .tick{position:absolute;top:5px;right:5px;z-index:2;width:17px;height:17px;border-radius:50%;background:var(--acc,#a855f7);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.5)}
+.as-levels{display:flex;gap:8px}
+.as-lv{flex:1;text-align:center;font-size:11px;font-weight:900;font-family:inherit;padding:9px 4px;border-radius:12px;cursor:pointer;
+  border:1.5px solid rgba(120,150,220,.22);background:#0c1428;color:#9fb2d8;transition:transform .15s}
+.as-lv:active{transform:scale(.94)}
+.as-lv.on{border-color:var(--acc,#a855f7);color:#fff;background:linear-gradient(140deg,color-mix(in srgb,var(--acc,#a855f7) 55%,#12203f),#12203f)}
+.as-close{width:100%;margin-top:16px;padding:12px;border-radius:13px;border:none;cursor:pointer;font-family:inherit;font-size:13px;font-weight:900;
+  color:#fff;background:linear-gradient(135deg,var(--acc,#7c3aed),var(--acc2,#a855f7));box-shadow:0 8px 20px -8px var(--acc,#a855f7)}
 /* ══ ✨ ANIMATION ENGINE — मेन्यू से off/soft/premium/max ══ */
 :root{--an:1}                              /* animation strength multiplier */
 body.anim-off{--an:0}
@@ -804,6 +832,7 @@ body.hdr-folded .hdr-row2{display:none}
 </style>
 </head>
 <body>
+<canvas id="bgfx" aria-hidden="true"></canvas>
 
 <!-- ══ LOGIN ══ -->
 <div id="s-login" style="display:none">
@@ -844,7 +873,7 @@ body.hdr-folded .hdr-row2{display:none}
         <button class="btn-icon" id="view-btn" onclick="toggleView()" title="Layout बदलें" style="cursor:pointer;font-family:inherit">🔲</button>
         <button class="btn-icon" onclick="cycleTheme()" title="Theme बदलें" style="cursor:pointer;font-family:inherit">🎨</button>
         <button class="btn-icon" onclick="shuffleLooks()" title="सबके रंग और emoji बदलो — नयापन" style="cursor:pointer;font-family:inherit">🎲</button>
-        <button class="btn-icon" onclick="cycleAnim()" title="✨ Animation स्तर बदलें (off/soft/premium/max)" style="cursor:pointer;font-family:inherit">✨</button>
+        <button class="btn-icon" onclick="openAnimStudio()" title="🎬 Animation Studio — जीवंत background और जोश का स्तर चुनें" style="cursor:pointer;font-family:inherit">🎬</button>
         <button class="btn-icon" onclick="unhideAll()" title="Swipe किए हुए सब वापस लाओ" style="cursor:pointer;font-family:inherit">👁️</button>
         <button class="btn-icon" onclick="setAiKey()" title="🤖 Anthropic AI key डालें/बदलें" style="cursor:pointer;font-family:inherit">⚙️</button>
         <a href="./quick-add.html" class="btn-icon" title="Quick Order Add">📦</a>
@@ -1159,6 +1188,20 @@ body.hdr-folded .hdr-row2{display:none}
   </div>
 </div>
 
+<!-- 🎬 Animation Studio -->
+<div id="anim-studio" onclick="if(event.target===this)closeAnimStudio()">
+  <div class="as-panel">
+    <div class="as-grab"></div>
+    <div class="as-h">🎬 Animation Studio</div>
+    <div class="as-sub">जीवंत background चुनो — live preview, तुरंत लागू</div>
+    <div class="as-lab">🌈 Background Scene</div>
+    <div class="as-grid" id="as-grid"></div>
+    <div class="as-lab">⚡ जोश का स्तर (Level)</div>
+    <div class="as-levels" id="as-levels"></div>
+    <button class="as-close" onclick="closeAnimStudio()">✓ हो गया</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script type="module">
@@ -1267,7 +1310,7 @@ function initApp(){
   document.getElementById('s-app').style.display='block';
   buildColorPicker(); buildEmojiPicker(); buildIntervalPicker();
   renderFilterBar(); renderTagBtns();
-  applyTheme(); applyAnim(); updateViewBtn();
+  applyTheme(); applyAnim(); applyScene(); updateViewBtn();
   startFirestoreSync(); startTick(); askNotifPermission(); setupPush();
   // App icon के long-press shortcuts (manifest से)
   const act=new URLSearchParams(location.search).get('action');
@@ -1305,6 +1348,10 @@ function startFirestoreSync(){
       rebuildTags();
       if(settings.n8nUrl) window._n8nUrl=settings.n8nUrl;
       if(Array.isArray(settings.filterOrder)) window._filterOrder=settings.filterOrder;
+      // 🎬 दूसरे device पर चुना animation scene/level यहाँ आकर लागू हो
+      if(!localStorage.getItem('vbe_ct_scene') && settings.animScene){ _scene=settings.animScene; localStorage.setItem('vbe_ct_scene',_scene); }
+      if(!localStorage.getItem('vbe_ct_anim') && settings.animLevel){ _anim=settings.animLevel; localStorage.setItem('vbe_ct_anim',_anim); applyAnim(); }
+      if(typeof applyScene==='function') applyScene();
     }
     renderFilterBar(); renderTagBtns(); render();
     if(window._pendingOpen){
@@ -3546,7 +3593,151 @@ window.cycleAnim=function(){
   const i=ANIM.findIndex(a=>a.k===_anim);
   const nx=ANIM[(i+1)%ANIM.length];
   _anim=nx.k; localStorage.setItem('vbe_ct_anim',_anim);
-  applyAnim(); toast(nx.n);
+  applyAnim(); applyScene(); toast(nx.n);
+};
+
+/* ══════════ 🎬 LIVE BACKGROUND ENGINE — canvas जीवंत background ══════════
+   कई scenes (आकाशगंगा/तारे/ऊर्जा/जुगनू/लहरें), theme के रंग से, level के हिसाब
+   से घनत्व; tab छिपते ही रुक जाता है (battery बचत)। पसंद Firebase _settings में
+   भी save — दूसरे device पर भी वही scene। */
+const BG_SCENES=[
+  {k:'aurora',em:'🌌',nm:'आकाशगंगा'},
+  {k:'stars', em:'✨',nm:'तारे'},
+  {k:'orbs',  em:'🫧',nm:'ऊर्जा'},
+  {k:'fire',  em:'🔥',nm:'जुगनू'},
+  {k:'silk',  em:'🌊',nm:'लहरें'},
+  {k:'none',  em:'🚫',nm:'सादा'},
+];
+const LVL_SHORT={off:'🚫 बंद',soft:'🍃 हल्की',premium:'✨ Premium',max:'🚀 Max'};
+let _scene=localStorage.getItem('vbe_ct_scene')||'aurora';
+let _bgCv=null,_bgX=null,_bgW=0,_bgH=0,_bgDpr=1,_bgParts=[],_bgT=0,_bgRAF=0,_bgPaused=false;
+function _cssv(v){ return (getComputedStyle(document.body).getPropertyValue(v)||'').trim(); }
+function _rgb(h){ h=(h||'a855f7').replace('#',''); if(h.length===3)h=h.split('').map(c=>c+c).join(''); const n=parseInt(h,16); return [(n>>16)&255,(n>>8)&255,n&255]; }
+function _inten(){ return _anim==='soft'?.6:_anim==='max'?1.4:1; }
+function _cnt(base){ const m=_anim==='soft'?.5:_anim==='max'?1.5:1; const mob=innerWidth<480?.7:1; return Math.max(3,Math.round(base*m*mob)); }
+function bgResize(){
+  if(!_bgCv)return;
+  _bgDpr=Math.min(devicePixelRatio||1,2); _bgW=innerWidth; _bgH=innerHeight;
+  _bgCv.width=_bgW*_bgDpr; _bgCv.height=_bgH*_bgDpr; _bgCv.style.width=_bgW+'px'; _bgCv.style.height=_bgH+'px';
+  _bgX.setTransform(_bgDpr,0,0,_bgDpr,0,0);
+}
+function bgInit(){
+  _bgParts=[];
+  const a=_rgb(_cssv('--acc')||'#a855f7'), a2=_rgb(_cssv('--acc2')||'#6366f1'), a3=[70,90,200];
+  if(_scene==='aurora'){
+    const cols=[a,a2,a3,a,a2];
+    for(let i=0;i<5;i++)_bgParts.push({x:Math.random()*_bgW,y:Math.random()*_bgH,r:Math.max(_bgW,_bgH)*(0.32+Math.random()*0.3),rx:_bgW*0.32,ry:_bgH*0.32,sx:0.5+Math.random()*0.7,sy:0.5+Math.random()*0.7,ph:Math.random()*7,c:cols[i]});
+  } else if(_scene==='stars'){
+    const n=_cnt(90);
+    for(let i=0;i<n;i++)_bgParts.push({x:Math.random()*_bgW,y:Math.random()*_bgH,r:Math.random()*1.4+.3,tw:Math.random()*7,sp:Math.random()*.03+.008,vy:Math.random()*.14+.02,c:i%9===0?a:null});
+  } else if(_scene==='orbs'){
+    const n=_cnt(13);
+    for(let i=0;i<n;i++)_bgParts.push({x:Math.random()*_bgW,y:Math.random()*_bgH,r:Math.random()*55+28,vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35,c:i%2?a:a2,a:Math.random()*.05+.03});
+  } else if(_scene==='fire'){
+    const n=_cnt(30);
+    for(let i=0;i<n;i++)_bgParts.push({x:Math.random()*_bgW,y:Math.random()*_bgH,r:Math.random()*1.6+.7,ph:Math.random()*7,sp:Math.random()*.5+.2,dr:Math.random()*.5+.2});
+  } else if(_scene==='silk'){
+    const n=_cnt(6);
+    for(let i=0;i<n;i++)_bgParts.push({y:(_bgH*(i+1))/(n+1),amp:18+Math.random()*38,freq:0.005+Math.random()*0.006,sp:0.5+Math.random(),ph:Math.random()*7,c:i%2?a2:a});
+  }
+}
+function bgDraw(){
+  const x=_bgX,IN=_inten(); if(!x)return;
+  x.clearRect(0,0,_bgW,_bgH); _bgT++;
+  if(_scene==='aurora'){
+    x.globalCompositeOperation='lighter';
+    const t=_bgT*0.004;
+    for(const b of _bgParts){
+      const cx=b.x+Math.sin(t*b.sx+b.ph)*b.rx, cy=b.y+Math.cos(t*b.sy+b.ph)*b.ry;
+      const g=x.createRadialGradient(cx,cy,0,cx,cy,b.r);
+      g.addColorStop(0,`rgba(${b.c[0]},${b.c[1]},${b.c[2]},${0.13*IN})`); g.addColorStop(1,`rgba(${b.c[0]},${b.c[1]},${b.c[2]},0)`);
+      x.fillStyle=g; x.beginPath(); x.arc(cx,cy,b.r,0,7); x.fill();
+    }
+    x.globalCompositeOperation='source-over';
+  } else if(_scene==='stars'){
+    for(const s of _bgParts){
+      s.y-=s.vy; if(s.y<-2){s.y=_bgH+2;s.x=Math.random()*_bgW;} s.tw+=s.sp;
+      const al=(0.35+0.65*Math.abs(Math.sin(s.tw)))*IN;
+      x.fillStyle=s.c?`rgba(${s.c[0]},${s.c[1]},${s.c[2]},${al})`:`rgba(226,232,255,${al})`;
+      x.beginPath(); x.arc(s.x,s.y,s.r,0,7); x.fill();
+    }
+  } else if(_scene==='orbs'){
+    x.globalCompositeOperation='lighter';
+    for(const o of _bgParts){
+      o.x+=o.vx; o.y+=o.vy;
+      if(o.x<-o.r)o.x=_bgW+o.r; if(o.x>_bgW+o.r)o.x=-o.r; if(o.y<-o.r)o.y=_bgH+o.r; if(o.y>_bgH+o.r)o.y=-o.r;
+      const g=x.createRadialGradient(o.x,o.y,0,o.x,o.y,o.r);
+      g.addColorStop(0,`rgba(${o.c[0]},${o.c[1]},${o.c[2]},${o.a*IN*3.2})`); g.addColorStop(1,`rgba(${o.c[0]},${o.c[1]},${o.c[2]},0)`);
+      x.fillStyle=g; x.beginPath(); x.arc(o.x,o.y,o.r,0,7); x.fill();
+    }
+    x.globalCompositeOperation='source-over';
+  } else if(_scene==='fire'){
+    x.globalCompositeOperation='lighter';
+    for(const f of _bgParts){
+      f.ph+=0.02; f.x+=Math.cos(f.ph*f.dr)*f.sp; f.y+=Math.sin(f.ph)*f.sp*.6;
+      if(f.x<0)f.x=_bgW; if(f.x>_bgW)f.x=0; if(f.y<0)f.y=_bgH; if(f.y>_bgH)f.y=0;
+      const al=(0.25+0.7*Math.abs(Math.sin(f.ph*1.7)))*IN, R=f.r*5;
+      const g=x.createRadialGradient(f.x,f.y,0,f.x,f.y,R);
+      g.addColorStop(0,`rgba(255,226,120,${al})`); g.addColorStop(1,'rgba(255,200,60,0)');
+      x.fillStyle=g; x.beginPath(); x.arc(f.x,f.y,R,0,7); x.fill();
+    }
+    x.globalCompositeOperation='source-over';
+  } else if(_scene==='silk'){
+    x.lineWidth=1.4;
+    for(const w of _bgParts){
+      const t=_bgT*0.01*w.sp+w.ph;
+      x.beginPath();
+      for(let px=0;px<=_bgW;px+=14){
+        const py=w.y+Math.sin(px*w.freq+t)*w.amp+Math.sin(px*w.freq*.5-t*1.3)*w.amp*.5;
+        px===0?x.moveTo(px,py):x.lineTo(px,py);
+      }
+      x.strokeStyle=`rgba(${w.c[0]},${w.c[1]},${w.c[2]},${0.20*IN})`; x.stroke();
+    }
+  }
+}
+function bgLoop(){ _bgRAF=requestAnimationFrame(bgLoop); if(!_bgPaused) bgDraw(); }
+function applyScene(){
+  _bgCv=_bgCv||document.getElementById('bgfx'); if(!_bgCv)return;
+  if(_anim==='off'||_scene==='none'){ if(_bgRAF){cancelAnimationFrame(_bgRAF);_bgRAF=0;} if(_bgX)_bgX.clearRect(0,0,_bgW,_bgH); _bgCv.style.display='none'; return; }
+  _bgCv.style.display='';
+  if(!_bgX)_bgX=_bgCv.getContext('2d');
+  bgResize(); bgInit();
+  if(!_bgRAF)_bgRAF=requestAnimationFrame(bgLoop);
+}
+addEventListener('resize',()=>{ if(_bgCv&&_bgCv.style.display!=='none'){ bgResize(); bgInit(); } });
+document.addEventListener('visibilitychange',()=>{ _bgPaused=document.hidden; });
+async function saveAnimPref(){
+  try{ window._settings=window._settings||{}; window._settings.animScene=_scene; window._settings.animLevel=_anim;
+    await setDoc(doc(db,'vbe_call_tracker','_settings'),{id:'_settings',animScene:_scene,animLevel:_anim},{merge:true}); }catch(e){}
+}
+function scenePreview(k){
+  const a=_cssv('--acc')||'#a855f7', a2=_cssv('--acc2')||'#6366f1';
+  switch(k){
+    case 'aurora': return `radial-gradient(circle at 30% 25%,${a}77,transparent 60%),radial-gradient(circle at 72% 72%,${a2}77,transparent 60%),#0a1022`;
+    case 'stars':  return `radial-gradient(1.4px 1.4px at 22% 30%,#fff,transparent),radial-gradient(1.2px 1.2px at 62% 55%,#fff,transparent),radial-gradient(1.4px 1.4px at 80% 22%,#fff,transparent),radial-gradient(1px 1px at 40% 78%,#fff,transparent),#060a16`;
+    case 'orbs':   return `radial-gradient(circle at 34% 40%,${a}88,transparent 55%),radial-gradient(circle at 68% 66%,${a2}77,transparent 50%),#0a1022`;
+    case 'fire':   return `radial-gradient(2.5px 2.5px at 30% 42%,#ffe27a,transparent),radial-gradient(2.5px 2.5px at 70% 56%,#ffd24d,transparent),radial-gradient(2px 2px at 50% 76%,#ffe27a,transparent),#0a0f1e`;
+    case 'silk':   return `linear-gradient(160deg,${a}55,transparent 42%),linear-gradient(20deg,${a2}55,transparent 46%),#0a1022`;
+    default:       return 'linear-gradient(160deg,#12203f,#0a1022)';
+  }
+}
+window.openAnimStudio=function(){
+  const g=document.getElementById('as-grid');
+  g.innerHTML=BG_SCENES.map(s=>`<div class="as-scene ${s.k===_scene?'on':''}" data-k="${s.k}" onclick="pickScene('${s.k}')">
+      <div class="pv" style="background:${scenePreview(s.k)}"></div><span class="tick">✓</span>
+      <span class="em">${s.em}</span><span class="nm">${s.nm}</span></div>`).join('');
+  const lv=document.getElementById('as-levels');
+  lv.innerHTML=ANIM.map(a=>`<div class="as-lv ${a.k===_anim?'on':''}" data-k="${a.k}" onclick="pickLevel('${a.k}')">${LVL_SHORT[a.k]}</div>`).join('');
+  document.getElementById('anim-studio').classList.add('on');
+};
+window.closeAnimStudio=function(){ document.getElementById('anim-studio').classList.remove('on'); };
+window.pickScene=function(k){
+  _scene=k; localStorage.setItem('vbe_ct_scene',k); applyScene(); saveAnimPref();
+  document.querySelectorAll('#as-grid .as-scene').forEach(e=>e.classList.toggle('on',e.dataset.k===k));
+};
+window.pickLevel=function(k){
+  _anim=k; localStorage.setItem('vbe_ct_anim',k); applyAnim(); applyScene(); saveAnimPref();
+  document.querySelectorAll('#as-levels .as-lv').forEach(e=>e.classList.toggle('on',e.dataset.k===k));
 };
 /* ripple हर tap पर (button/chip/card) — anim-off में नहीं */
 document.addEventListener('pointerdown',function(e){

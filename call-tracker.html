@@ -738,28 +738,24 @@ body.th-geo{--acc:#a5b4fc;--acc2:#6366f1}
 #focus-bar-d .fc-owner{color:#fbbf24}
 .fc-item.d{background:rgba(34,211,238,.13);border-color:rgba(34,211,238,.6);
   box-shadow:0 7px 16px -8px rgba(34,211,238,.45),inset 0 1px 0 rgba(255,255,255,.14)}
-.fc-item.d .fc-ring{background:conic-gradient(var(--fc,#22d3ee) var(--p,0%), rgba(8,60,66,.55) 0)}
-.fc-item.d .fc-ring::before{background:#04181c}
 .fc-item.d .fc-ring .tm{color:#a5f3fc}
 #focus-bar-d .fc-owner{color:#22d3ee}
 .fc-item{display:flex;align-items:center;gap:7px;flex-shrink:0;max-width:225px;
   background:rgba(124,58,237,.20);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
   border:1px solid rgba(139,92,246,.6);border-radius:14px;padding:5px 9px 5px 5px;
   box-shadow:0 7px 16px -8px rgba(124,58,237,.55),inset 0 1px 0 rgba(255,255,255,.14)}
-.fc-ring{width:40px;height:40px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;position:relative;
-  background:conic-gradient(from 220deg,color-mix(in srgb,var(--fc,#a855f7) 82%,#fff) 0%,var(--fc,#a855f7) calc(var(--p,0%)*.5),color-mix(in srgb,var(--fc,#a855f7) 55%,#000) var(--p,0%),rgba(40,44,70,.45) 0);
-  box-shadow:0 0 14px -3px var(--fc,#a855f7),0 3px 8px -4px rgba(0,0,0,.7),inset 0 1px 2px rgba(255,255,255,.4),inset 0 -2px 5px rgba(0,0,0,.65)}
-body:not(.anim-off) .fc-item:not(.over) .fc-ring{animation:fcPulse 2.6s ease-in-out infinite}
-@keyframes fcPulse{0%,100%{box-shadow:0 0 12px -4px var(--fc,#a855f7),0 3px 8px -4px rgba(0,0,0,.7),inset 0 1px 2px rgba(255,255,255,.4),inset 0 -2px 5px rgba(0,0,0,.65)}
-  50%{box-shadow:0 0 22px -2px var(--fc,#a855f7),0 3px 8px -4px rgba(0,0,0,.7),inset 0 1px 2px rgba(255,255,255,.5),inset 0 -2px 5px rgba(0,0,0,.65)}}
-.fc-ring::before{content:'';position:absolute;inset:3px;border-radius:50%;
-  background:radial-gradient(circle at 32% 24%,rgba(70,78,128,.95),rgba(7,8,20,.97) 64%);
-  box-shadow:inset 0 1px 3px rgba(255,255,255,.22),inset 0 -2px 5px rgba(0,0,0,.85),0 0 0 1px rgba(255,255,255,.06)}
-.fc-ring::after{content:'';position:absolute;inset:-1px;border-radius:50%;pointer-events:none;
-  background:conic-gradient(from 0deg,transparent 0 80%,rgba(255,255,255,.5) 90%,rgba(255,255,255,.15) 94%,transparent 100%);
-  animation:fcSweep 3.8s linear infinite}
-@keyframes fcSweep{to{transform:rotate(360deg)}}
-.fc-ring .tm{position:relative;z-index:1;font-size:8.5px;font-weight:900;color:#eef;font-variant-numeric:tabular-nums;text-shadow:0 1px 2px rgba(0,0,0,.7)}
+/* 💎 SVG progress dial — साफ़ पतली चमकती रिंग, बीच में countdown */
+.fc-ring{width:44px;height:44px;flex-shrink:0;position:relative;display:flex;align-items:center;justify-content:center;
+  border-radius:50%;background:radial-gradient(circle at 50% 42%,rgba(20,26,48,.9),rgba(6,9,20,.96) 70%);
+  box-shadow:inset 0 1px 2px rgba(255,255,255,.14),inset 0 -2px 5px rgba(0,0,0,.7),0 3px 9px -5px rgba(0,0,0,.8)}
+.fc-ring svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);overflow:visible}
+.fc-ring .trk{fill:none;stroke:rgba(255,255,255,.08);stroke-width:3.4}
+.fc-ring .prg{fill:none;stroke:var(--fc,#a855f7);stroke-width:3.4;stroke-linecap:round;
+  stroke-dasharray:119.4;stroke-dashoffset:calc(119.4 * (1 - var(--p,0)/100));
+  filter:drop-shadow(0 0 3px var(--fc,#a855f7));transition:stroke-dashoffset .95s linear}
+body:not(.anim-off) .fc-item:not(.over) .fc-ring .prg{animation:fcGlowP 2.4s ease-in-out infinite}
+@keyframes fcGlowP{0%,100%{filter:drop-shadow(0 0 2px var(--fc,#a855f7))}50%{filter:drop-shadow(0 0 6.5px var(--fc,#a855f7))}}
+.fc-ring .tm{position:relative;z-index:1;font-size:10px;font-weight:900;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:-.4px;text-shadow:0 1px 2px rgba(0,0,0,.85)}
 .fc-st{display:inline-block;font-size:7px;font-weight:900;letter-spacing:.6px;border-radius:5px;padding:1px 5px;margin-left:4px;vertical-align:1px;color:#fff}
 .fc-st.run{background:linear-gradient(120deg,#2563eb,#38bdf8)}
 .fc-st.late{background:linear-gradient(120deg,#b91c1c,#f97316)}
@@ -767,10 +763,12 @@ body:not(.anim-off) .fc-item:not(.over) .fc-ring{animation:fcPulse 2.6s ease-in-
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .fc-x{font-size:14px;color:#8b7bb8;cursor:pointer;padding:4px;flex-shrink:0}
 .fc-item.over{border-color:#ef4444}
-.fc-item.over .fc-ring{--p:100%;--fc:#ef4444;animation:fcBreath 3s ease-in-out infinite}
+.fc-item.over .fc-ring{--p:100;--fc:#ef4444;box-shadow:inset 0 1px 2px rgba(255,255,255,.14),inset 0 -2px 5px rgba(0,0,0,.7),0 0 12px -3px rgba(239,68,68,.7)}
+body:not(.anim-off) .fc-item.over .fc-ring{animation:fcBreath 1.5s ease-in-out infinite}
+.fc-item.over .fc-ring .prg{stroke-dashoffset:0;filter:drop-shadow(0 0 4px #ef4444)}
 .fc-item.over .fc-ring .tm{color:#fecaca}
-@keyframes fcBreath{0%,100%{box-shadow:0 0 10px -3px #ef4444,inset 0 1px 2px rgba(255,255,255,.35)}
-  50%{box-shadow:0 0 20px -2px #ef4444,inset 0 1px 2px rgba(255,255,255,.4)}}
+@keyframes fcBreath{0%,100%{box-shadow:inset 0 1px 2px rgba(255,255,255,.14),inset 0 -2px 5px rgba(0,0,0,.7),0 0 10px -3px rgba(239,68,68,.6)}
+  50%{box-shadow:inset 0 1px 2px rgba(255,255,255,.14),inset 0 -2px 5px rgba(0,0,0,.7),0 0 20px -1px rgba(239,68,68,.85)}}
 .dv-seg{display:flex;gap:6px;align-items:center;margin:6px 2px 2px;flex-wrap:wrap}
 .dv-seg .sg{font-size:10.5px;font-weight:900;font-family:inherit;border:1px solid #2a3d66;border-radius:9px;padding:6px 11px;cursor:pointer;background:linear-gradient(160deg,#16223f,#0d1526);color:#9fb2d8;touch-action:manipulation}
 .dv-seg .sg.on{border-color:#a855f7;color:#fff;background:linear-gradient(140deg,#7c3aed,#a855f7)}
@@ -2306,7 +2304,7 @@ function fcItemHTML(f){
   const ow=(f.own||'v'); const d=ow==='d';
   const lateTxt=Math.abs(left)>=3600000?fmtCompact(Math.abs(left))+' लेट':mm+'m '+String(ss).padStart(2,'0')+'s लेट'; // सेकंड-सेकंड टिकती घड़ी
   return `<div class="fc-item ${d?'d':''} ${over?'over':''}" data-key="${f.key}" onclick="openSmartPop('${f.id}')">
-    <div class="fc-ring" style="--p:${p}%;--fc:${over?'#ef4444':(ow==='k'?'#22c55e':d?'#22d3ee':'#a855f7')}"><span class="tm">${over?lateTxt:mm+':'+String(ss).padStart(2,'0')}</span></div>
+    <div class="fc-ring" style="--p:${p.toFixed(1)};--fc:${over?'#ef4444':(ow==='k'?'#22c55e':d?'#22d3ee':'#a855f7')}"><svg viewBox="0 0 44 44"><circle class="trk" cx="22" cy="22" r="19"/><circle class="prg" cx="22" cy="22" r="19"/></svg><span class="tm">${mm}:${String(ss).padStart(2,'0')}</span></div>
     <div class="fc-task"><span style="font-weight:900;color:${ow==='k'?'#4ade80':d?'#67e8f9':'#c4b5fd'}">🎯 ${ow==='k'?'कैलाश':d?'दिनेश':'विक्रम'}</span> · ${escH(f.t)}<div style="font-size:8px;color:#8b96b8;font-weight:800;margin-top:1px">${f.mins}m<span class="fc-st ${over?'late':'run'}">${over?'LATE':'चालू'}</span></div></div>
     <span class="fc-x" onclick="event.stopPropagation();stopFocus('${f.key}')">✕</span>
   </div>`;

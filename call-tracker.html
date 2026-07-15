@@ -443,6 +443,14 @@ body{
 /* Smart popup की secondary buttons */
 .sp-sec{background:#10192b;border:1.5px solid rgba(30,58,95,.8);color:#94a3b8}
 
+/* ══ 💠 Premium 3D avatars — glossy sphere हर जगह ══ */
+.c-av,.sv-av,.qd-av,.bc-av,.s-av,.dv-av{position:relative;isolation:isolate;
+  box-shadow:0 5px 14px -4px rgba(0,0,0,.55),inset 0 2px 4px rgba(255,255,255,.4),inset 0 -5px 9px -3px rgba(0,0,0,.5)}
+.c-av::after,.sv-av::after,.qd-av::after,.bc-av::after,.s-av::after,.dv-av::after{
+  content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:2;
+  background:radial-gradient(circle at 30% 22%,rgba(255,255,255,.55),rgba(255,255,255,.12) 30%,transparent 58%),linear-gradient(160deg,transparent 45%,rgba(0,0,0,.3))}
+.dv-av::after{clip-path:inherit}
+
 /* ══ ✨ ANIMATION ENGINE — मेन्यू से off/soft/premium/max ══ */
 :root{--an:1}                              /* animation strength multiplier */
 body.anim-off{--an:0}
@@ -451,8 +459,8 @@ body.anim-premium{--an:1}
 body.anim-max{--an:1.5}
 body.anim-off *{animation:none!important;transition:none!important}
 /* entrance: cards ऊपर उठकर आएँ (premium/max में ज़्यादा) */
-@keyframes riseIn{from{opacity:0;transform:translateY(calc(16px*var(--an))) scale(calc(1 - .04*var(--an)))}to{opacity:1;transform:none}}
-body:not(.anim-off) .card,body:not(.anim-off) .sv-item,body:not(.anim-off) .dvc{animation:riseIn calc(.42s*var(--an,1)) cubic-bezier(.2,.8,.25,1) both}
+@keyframes riseIn{0%{opacity:0;transform:translateY(calc(18px*var(--an))) scale(calc(1 - .05*var(--an)))}60%{opacity:1;transform:translateY(calc(-3px*var(--an))) scale(calc(1 + .012*var(--an)))}100%{opacity:1;transform:none}}
+body:not(.anim-off) .card,body:not(.anim-off) .sv-item,body:not(.anim-off) .dvc{animation:riseIn calc(.5s*var(--an,1)) cubic-bezier(.34,1.4,.5,1) both}
 body:not(.anim-off) .card:active,body:not(.anim-off) .sv-item:active{transform:translateY(calc(-2px*var(--an))) scale(calc(1 - .015*var(--an)))}
 /* ripple touch — किसी भी बटन पर */
 @keyframes rp{to{transform:scale(2.4);opacity:0}}
@@ -1468,7 +1476,7 @@ function renderStrip(list){
     const av=avatarContent(c);
     const avFs=avatarFontSize(c);
     return `<div class="strip-chip ${chipCls}" onclick="openQuickDial('${c.id}')">
-      <div class="s-av" style="background:${c.color||COLORS[0]};font-size:${avFs}">
+      <div class="s-av" style="background:${avBg(c)};font-size:${avFs}">
         ${escH(av)}<div class="s-dot ${dotCls}"></div>
       </div>
       <div class="s-lbl">
@@ -1605,7 +1613,7 @@ function renderSmart(list){
     const actN=normTopics(c).filter(x=>!x.done).length+assignedTo(c.id).length;
     return `<div class="sv-item ${cls}" style="animation-delay:${dly}ms" onclick="openSmartPop('${c.id}')"
       ontouchstart="svTS(event,'${c.id}')" ontouchmove="svTM(event)" ontouchend="svTE(event)">
-      <div class="sv-av" style="background:${c.color||COLORS[0]};font-size:${c.emoji?'16px':'9px'}">${escH(avatarContent(c))}<span class="s-dot ${c.pinned?'pinned':s}"></span></div>
+      <div class="sv-av" style="background:${avBg(c)};font-size:${c.emoji?'16px':'9px'}">${escH(avatarContent(c))}<span class="s-dot ${c.pinned?'pinned':s}"></span></div>
       <div class="sv-mid">
         <div class="sv-name">${c.pinned?'📌 ':''}${escH(c.name)}</div>
         ${actN?`<div class="sv-tasks">🗣️ ${actN} काम</div>`:''}
@@ -1694,7 +1702,7 @@ function cardHTML(c,s){
     <!-- Compact row -->
     <div class="card-row" onclick="toggleCard('${c.id}')">
       <div class="c-left">
-        <div class="c-av" style="background:${c.color||COLORS[0]};font-size:${avFs}">${escH(av)}</div>
+        <div class="c-av" style="background:${avBg(c)};font-size:${avFs}">${escH(av)}</div>
         <div class="c-lt"><span class="${sinceC}">${sinceV}</span><span class="c-lt-sep">→</span><span class="${nextC}">${nextV}</span></div>
         <div class="c-ltl">पहले · बाद</div>
       </div>
@@ -1858,6 +1866,14 @@ function getInitials(name){
   const firstWord=name.trim().split(/\s+/)[0];
   return [...firstWord].slice(0,3).join('');
 }
+function _shade(hex,p){
+  try{ const n=parseInt(String(hex).slice(1),16);
+    let r=(n>>16)&255,g=(n>>8)&255,b=n&255;
+    r=Math.max(0,Math.min(255,r+p)); g=Math.max(0,Math.min(255,g+p)); b=Math.max(0,Math.min(255,b+p));
+    return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);
+  }catch(e){ return hex; }
+}
+function avBg(c){ const col=c.color||COLORS[0]; return `radial-gradient(circle at 32% 26%,${_shade(col,60)},${col} 52%,${_shade(col,-60)})`; }
 function avatarContent(c){
   return c.emoji || getInitials(c.name);
 }
@@ -1940,7 +1956,7 @@ function renderBroadcast(){
     const n=(groupedActive(c).length)+(assignedTo(c.id).length);
     const sent=_bcSent[c.id];
     return `<div class="bc-item ${sent?'sent':''}" style="border-left-color:${c.color||COLORS[0]}">
-      <div class="bc-av" style="background:${c.color||COLORS[0]};font-size:${c.emoji?'17px':'10px'}">${escH(avatarContent(c))}</div>
+      <div class="bc-av" style="background:${avBg(c)};font-size:${c.emoji?'17px':'10px'}">${escH(avatarContent(c))}</div>
       <div class="bc-body">
         <div class="bc-name">${escH(c.name)}</div>
         <div class="bc-tasks">🗣️ ${n} काम${sent?' · भेजा ✓':''}</div>
@@ -3133,7 +3149,7 @@ function renderSmartPop(){
   }).join('')}</div>`;
   document.getElementById('sp-popup').innerHTML=`
     <div style="display:flex;align-items:center;gap:11px;margin-bottom:10px">
-      <div class="qd-av" style="width:48px;height:48px;background:${c.color||COLORS[0]};font-size:${c.emoji?'21px':'12px'}">${escH(avatarContent(c))}</div>
+      <div class="qd-av" style="width:48px;height:48px;background:${avBg(c)};font-size:${c.emoji?'21px':'12px'}">${escH(avatarContent(c))}</div>
       <div style="flex:1;min-width:0">
         <div style="font-size:16.5px;font-weight:900;color:#e2e8f0;line-height:1.25;word-break:break-word">${escH(c.name)}${c.pinned?' 📌':''}${c.active===false?' <span style="font-size:10px;font-weight:900;color:#fca5a5;background:rgba(127,29,29,.5);border:1px solid rgba(239,68,68,.4);border-radius:6px;padding:2px 7px;vertical-align:middle">📦 बंद है</span>':''}</div>
         ${c.phone?`<div style="font-size:12.5px;color:#60a5fa;font-weight:700;margin-top:2px;cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" onclick="spDial()">📱 ${escH(c.phone)}</div>`:''}

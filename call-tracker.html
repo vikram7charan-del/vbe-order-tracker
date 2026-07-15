@@ -2199,10 +2199,22 @@ window.startFocus=function(mins){
   if(_focus.filter(f=>(f.own||'v')===own).length>=50){ toast('⚠️ 50 focus पहले से — पहले कुछ पूरे करें','warn'); return; }
   _focus.push({key:_fcPick.id+'_'+_fcPick.i+'_'+Date.now(), id:_fcPick.id, i:_fcPick.i, t:_fcPick.t,
     own, start:Date.now(), until:Date.now()+mins*60000, mins});
-  saveFocus(); _fcPick=null;
+  saveFocus();
+  // 📅 वही काम calendar में भी +30 मिनट पर — आधे घंटे बाद notification आकर focus याद दिलाए
+  try{
+    const c=contacts.find(x=>x.id===_fcPick.id);
+    if(c){ const tp=normTopics(c);
+      if(tp[_fcPick.i] && !tp[_fcPick.i].done){
+        const at=new Date(Date.now()+30*60000).toISOString();
+        const ex=tp[_fcPick.i].at?new Date(tp[_fcPick.i].at).getTime():0;
+        if(!ex || ex>Date.now()+31*60000 || ex<=Date.now()){ tp[_fcPick.i]={...tp[_fcPick.i],at,tid:tp[_fcPick.i].tid||genTid()}; c.topics=tp; fbSave(c); }
+      }
+    }
+  }catch(e){}
+  _fcPick=null;
   closeModal('m-focus');
   renderFocusBar(); render();
-  toast('🎯 Focus चालू ('+(own==='d'?'दिनेश जी':'विक्रम भाई')+') — '+mins+' मिनट!');
+  toast('🎯 Focus चालू ('+(own==='d'?'दिनेश जी':own==='k'?'कैलाश भाई':'विक्रम भाई')+') — 📅 30 मिनट बाद reminder भी!');
 };
 window.stopFocus=function(key){
   // हटाने के लिए PIN — staff बिना PIN के delete नहीं कर सकता
@@ -2220,7 +2232,7 @@ function fcItemHTML(f){
   const lateTxt=Math.abs(left)>=3600000?fmtCompact(Math.abs(left))+' लेट':mm+'m '+String(ss).padStart(2,'0')+'s लेट'; // सेकंड-सेकंड टिकती घड़ी
   return `<div class="fc-item ${d?'d':''} ${over?'over':''}" data-key="${f.key}" onclick="openSmartPop('${f.id}')">
     <div class="fc-ring" style="--p:${p}%;--fc:${over?'#ef4444':(ow==='k'?'#22c55e':d?'#22d3ee':'#a855f7')}"><span class="tm">${over?lateTxt:mm+':'+String(ss).padStart(2,'0')}</span></div>
-    <div class="fc-task">${escH(f.t)}<div style="font-size:8px;color:#8b96b8;font-weight:800;margin-top:1px">🎯 ${f.mins}m<span class="fc-st ${over?'late':'run'}">${over?'LATE':'चालू'}</span></div></div>
+    <div class="fc-task"><span style="font-weight:900;color:${ow==='k'?'#4ade80':d?'#67e8f9':'#c4b5fd'}">🎯 ${ow==='k'?'कैलाश':d?'दिनेश':'विक्रम'}</span> · ${escH(f.t)}<div style="font-size:8px;color:#8b96b8;font-weight:800;margin-top:1px">${f.mins}m<span class="fc-st ${over?'late':'run'}">${over?'LATE':'चालू'}</span></div></div>
     <span class="fc-x" onclick="event.stopPropagation();stopFocus('${f.key}')">✕</span>
   </div>`;
 }
@@ -2751,7 +2763,9 @@ function renderDay(list){
   }
   if(showCal&&!rows.length) h+=`<div class="empty"><div class="empty-ico">📅</div><div class="empty-txt">अभी कोई काम समय पर नहीं लगा।<br>नीचे किसी काम पर <b style="color:#93c5fd">⏰ समय</b> दबाएँ या 🎙️ बोलो से जोड़ें</div></div>`;
   // बिना समय वाले — यहीं से समय लगाओ (filter/search लागू)
-  const uns=showNoCal?list.filter(c=>!c.nextCallAt&&normTopics(c).some(x=>!x.done)):[];
+  // बिना-समय सूची सिर्फ़ तब — segment 'बिना Calendar', या कोई filter/खोज active हो (वरना साफ़ timeline)
+  const showUns=(_dvSeg==='nocal')||(_activeFilter&&_activeFilter!=='')||!!_search;
+  const uns=(showNoCal&&showUns)?list.filter(c=>!c.nextCallAt&&normTopics(c).some(x=>!x.done)):[];
   if(uns.length){
     h+=`<div class="dv-grp-h">⏳ बिना समय वाले <span class="cnt">${uns.length}</span></div>`;
     uns.slice(0,80).forEach(c=>{

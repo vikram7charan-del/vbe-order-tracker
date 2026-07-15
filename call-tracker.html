@@ -454,7 +454,7 @@ body:not(.anim-off) .empty-ico{animation:emptyFloat 3.2s ease-in-out infinite}
 .dv-av::after{clip-path:inherit}
 
 /* ══ 🎬 LIVE BACKGROUND ENGINE — canvas जीवंत background सबसे पीछे ══ */
-#bgfx{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;opacity:.92;transition:opacity .6s ease}
+#bgfx{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;opacity:1;transition:opacity .6s ease}
 body.anim-off #bgfx{display:none}
 /* 🎬 Animation Studio — scene chooser sheet */
 #anim-studio{position:fixed;inset:0;z-index:400;display:none;align-items:flex-end;justify-content:center;background:rgba(3,6,14,.72);backdrop-filter:blur(4px)}
@@ -2162,7 +2162,7 @@ window.doneTopic=function(id,idx){
   c.topics=tps;
   c.note=tps.filter(x=>!x.done).map(x=>x.t).join(' · ');
   try{ const ev=window.event; celebrate(ev&&ev.clientX,ev&&ev.clientY); }catch(e){ celebrate(); }
-  bigCheck();
+  bigCheck(); try{ navigator.vibrate&&navigator.vibrate([18,40,26]); }catch(e){}
   render(); fbSave(c);
   toast('✅ काम पूरा — '+tps[idx].t.slice(0,24));
 };
@@ -3611,89 +3611,135 @@ const BG_SCENES=[
 const LVL_SHORT={off:'🚫 बंद',soft:'🍃 हल्की',premium:'✨ Premium',max:'🚀 Max'};
 let _scene=localStorage.getItem('vbe_ct_scene')||'aurora';
 let _bgCv=null,_bgX=null,_bgW=0,_bgH=0,_bgDpr=1,_bgParts=[],_bgT=0,_bgRAF=0,_bgPaused=false;
+let _bgSprites={},_bgBase=null,_bgVig=null,_bgLite=[],_bgShoot=null;
 function _cssv(v){ return (getComputedStyle(document.body).getPropertyValue(v)||'').trim(); }
 function _rgb(h){ h=(h||'a855f7').replace('#',''); if(h.length===3)h=h.split('').map(c=>c+c).join(''); const n=parseInt(h,16); return [(n>>16)&255,(n>>8)&255,n&255]; }
 function _inten(){ return _anim==='soft'?.6:_anim==='max'?1.4:1; }
 function _cnt(base){ const m=_anim==='soft'?.5:_anim==='max'?1.5:1; const mob=innerWidth<480?.7:1; return Math.max(3,Math.round(base*m*mob)); }
+/* pre-rendered soft glow sprite (एक बार बनाओ, बार-बार drawImage — तेज़ + premium bloom) */
+function _glow(rgb){
+  const key=rgb.join('_'); if(_bgSprites[key])return _bgSprites[key];
+  const S=64,c=document.createElement('canvas'); c.width=c.height=S;
+  const g=c.getContext('2d'),gr=g.createRadialGradient(S/2,S/2,0,S/2,S/2,S/2);
+  gr.addColorStop(0,`rgba(${rgb[0]},${rgb[1]},${rgb[2]},1)`);
+  gr.addColorStop(.22,`rgba(${rgb[0]},${rgb[1]},${rgb[2]},.6)`);
+  gr.addColorStop(.55,`rgba(${rgb[0]},${rgb[1]},${rgb[2]},.14)`);
+  gr.addColorStop(1,`rgba(${rgb[0]},${rgb[1]},${rgb[2]},0)`);
+  g.fillStyle=gr; g.fillRect(0,0,S,S);
+  return _bgSprites[key]=c;
+}
+function _buildBase(){
+  const g=_bgX.createLinearGradient(0,0,0,_bgH);
+  g.addColorStop(0,'#070c18'); g.addColorStop(.5,'#04060e'); g.addColorStop(1,'#03040a');
+  _bgBase=g;
+}
+function _buildVig(){
+  const g=_bgX.createRadialGradient(_bgW/2,_bgH*0.4,Math.min(_bgW,_bgH)*0.28,_bgW/2,_bgH*0.52,Math.max(_bgW,_bgH)*0.78);
+  g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(.7,'rgba(0,0,0,.18)'); g.addColorStop(1,'rgba(0,0,0,.6)');
+  _bgVig=g;
+}
 function bgResize(){
   if(!_bgCv)return;
   _bgDpr=Math.min(devicePixelRatio||1,2); _bgW=innerWidth; _bgH=innerHeight;
   _bgCv.width=_bgW*_bgDpr; _bgCv.height=_bgH*_bgDpr; _bgCv.style.width=_bgW+'px'; _bgCv.style.height=_bgH+'px';
   _bgX.setTransform(_bgDpr,0,0,_bgDpr,0,0);
+  _buildBase(); _buildVig();
 }
 function bgInit(){
-  _bgParts=[];
-  const a=_rgb(_cssv('--acc')||'#a855f7'), a2=_rgb(_cssv('--acc2')||'#6366f1'), a3=[70,90,200];
+  _bgParts=[]; _bgSprites={}; _bgShoot=null;
+  const a=_rgb(_cssv('--acc')||'#a855f7'), a2=_rgb(_cssv('--acc2')||'#6366f1'), a3=[96,72,214], gold=[255,214,120], white=[224,231,255];
+  const D=Math.max(_bgW,_bgH);
+  // ✦ ambient cinematic lighting — हर scene में गहराई देता है
+  _bgLite=[
+    {x:_bgW*0.24,y:_bgH*0.20,r:D*0.62,c:a,  a:0.11,sx:1.0,sy:0.8,ph:0,ax:_bgW*0.16,ay:_bgH*0.10},
+    {x:_bgW*0.82,y:_bgH*0.74,r:D*0.68,c:a2, a:0.10,sx:0.7,sy:1.1,ph:2,ax:_bgW*0.18,ay:_bgH*0.12},
+    {x:_bgW*0.55,y:_bgH*0.46,r:D*0.5, c:a3, a:0.08,sx:0.9,sy:0.6,ph:4,ax:_bgW*0.14,ay:_bgH*0.09},
+  ];
   if(_scene==='aurora'){
-    const cols=[a,a2,a3,a,a2];
-    for(let i=0;i<5;i++)_bgParts.push({x:Math.random()*_bgW,y:Math.random()*_bgH,r:Math.max(_bgW,_bgH)*(0.32+Math.random()*0.3),rx:_bgW*0.32,ry:_bgH*0.32,sx:0.5+Math.random()*0.7,sy:0.5+Math.random()*0.7,ph:Math.random()*7,c:cols[i]});
+    const cols=[a,a2,a3,a,a2,a3];
+    for(let i=0;i<6;i++)_bgParts.push({k:'g',x:Math.random()*_bgW,y:_bgH*(0.12+Math.random()*0.7),r:D*(0.26+Math.random()*0.2),c:cols[i],a:0.09+Math.random()*0.06,sx:0.3+Math.random()*0.5,sy:0.25+Math.random()*0.4,ph:Math.random()*7,ax:_bgW*0.26,ay:_bgH*0.12});
   } else if(_scene==='stars'){
-    const n=_cnt(90);
-    for(let i=0;i<n;i++)_bgParts.push({x:Math.random()*_bgW,y:Math.random()*_bgH,r:Math.random()*1.4+.3,tw:Math.random()*7,sp:Math.random()*.03+.008,vy:Math.random()*.14+.02,c:i%9===0?a:null});
+    const n=_cnt(120);
+    for(let i=0;i<n;i++){ const L=Math.random(); _bgParts.push({k:'s',x:Math.random()*_bgW,y:Math.random()*_bgH,r:L>0.86?Math.random()*1.7+1.1:Math.random()*1.1+0.4,b:0.35+L*0.65,tw:Math.random()*7,sp:Math.random()*0.03+0.006,vy:0.02+L*0.16,g:L>0.86,c:i%12===0?a:white}); }
   } else if(_scene==='orbs'){
-    const n=_cnt(13);
-    for(let i=0;i<n;i++)_bgParts.push({x:Math.random()*_bgW,y:Math.random()*_bgH,r:Math.random()*55+28,vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35,c:i%2?a:a2,a:Math.random()*.05+.03});
+    const n=_cnt(11);
+    for(let i=0;i<n;i++)_bgParts.push({k:'o',x:Math.random()*_bgW,y:Math.random()*_bgH,r:Math.random()*75+42,vx:(Math.random()-.5)*.26,vy:(Math.random()-.5)*.26,c:i%2?a:a2,a:0.10+Math.random()*0.07});
   } else if(_scene==='fire'){
-    const n=_cnt(30);
-    for(let i=0;i<n;i++)_bgParts.push({x:Math.random()*_bgW,y:Math.random()*_bgH,r:Math.random()*1.6+.7,ph:Math.random()*7,sp:Math.random()*.5+.2,dr:Math.random()*.5+.2});
+    const n=_cnt(26);
+    for(let i=0;i<n;i++)_bgParts.push({k:'f',x:Math.random()*_bgW,y:Math.random()*_bgH,r:Math.random()*8+6,ph:Math.random()*7,sp:0.22+Math.random()*0.5,dr:0.3+Math.random()*0.5,c:gold});
   } else if(_scene==='silk'){
     const n=_cnt(6);
-    for(let i=0;i<n;i++)_bgParts.push({y:(_bgH*(i+1))/(n+1),amp:18+Math.random()*38,freq:0.005+Math.random()*0.006,sp:0.5+Math.random(),ph:Math.random()*7,c:i%2?a2:a});
+    for(let i=0;i<n;i++)_bgParts.push({k:'w',y:(_bgH*(i+1))/(n+1),amp:22+Math.random()*44,freq:0.005+Math.random()*0.006,sp:0.4+Math.random()*0.8,ph:Math.random()*7,c:i%2?a2:a});
   }
 }
 function bgDraw(){
-  const x=_bgX,IN=_inten(); if(!x)return;
-  x.clearRect(0,0,_bgW,_bgH); _bgT++;
-  if(_scene==='aurora'){
-    x.globalCompositeOperation='lighter';
-    const t=_bgT*0.004;
-    for(const b of _bgParts){
-      const cx=b.x+Math.sin(t*b.sx+b.ph)*b.rx, cy=b.y+Math.cos(t*b.sy+b.ph)*b.ry;
-      const g=x.createRadialGradient(cx,cy,0,cx,cy,b.r);
-      g.addColorStop(0,`rgba(${b.c[0]},${b.c[1]},${b.c[2]},${0.13*IN})`); g.addColorStop(1,`rgba(${b.c[0]},${b.c[1]},${b.c[2]},0)`);
-      x.fillStyle=g; x.beginPath(); x.arc(cx,cy,b.r,0,7); x.fill();
-    }
-    x.globalCompositeOperation='source-over';
-  } else if(_scene==='stars'){
-    for(const s of _bgParts){
-      s.y-=s.vy; if(s.y<-2){s.y=_bgH+2;s.x=Math.random()*_bgW;} s.tw+=s.sp;
-      const al=(0.35+0.65*Math.abs(Math.sin(s.tw)))*IN;
-      x.fillStyle=s.c?`rgba(${s.c[0]},${s.c[1]},${s.c[2]},${al})`:`rgba(226,232,255,${al})`;
-      x.beginPath(); x.arc(s.x,s.y,s.r,0,7); x.fill();
-    }
-  } else if(_scene==='orbs'){
-    x.globalCompositeOperation='lighter';
-    for(const o of _bgParts){
-      o.x+=o.vx; o.y+=o.vy;
-      if(o.x<-o.r)o.x=_bgW+o.r; if(o.x>_bgW+o.r)o.x=-o.r; if(o.y<-o.r)o.y=_bgH+o.r; if(o.y>_bgH+o.r)o.y=-o.r;
-      const g=x.createRadialGradient(o.x,o.y,0,o.x,o.y,o.r);
-      g.addColorStop(0,`rgba(${o.c[0]},${o.c[1]},${o.c[2]},${o.a*IN*3.2})`); g.addColorStop(1,`rgba(${o.c[0]},${o.c[1]},${o.c[2]},0)`);
-      x.fillStyle=g; x.beginPath(); x.arc(o.x,o.y,o.r,0,7); x.fill();
-    }
-    x.globalCompositeOperation='source-over';
-  } else if(_scene==='fire'){
-    x.globalCompositeOperation='lighter';
-    for(const f of _bgParts){
-      f.ph+=0.02; f.x+=Math.cos(f.ph*f.dr)*f.sp; f.y+=Math.sin(f.ph)*f.sp*.6;
-      if(f.x<0)f.x=_bgW; if(f.x>_bgW)f.x=0; if(f.y<0)f.y=_bgH; if(f.y>_bgH)f.y=0;
-      const al=(0.25+0.7*Math.abs(Math.sin(f.ph*1.7)))*IN, R=f.r*5;
-      const g=x.createRadialGradient(f.x,f.y,0,f.x,f.y,R);
-      g.addColorStop(0,`rgba(255,226,120,${al})`); g.addColorStop(1,'rgba(255,200,60,0)');
-      x.fillStyle=g; x.beginPath(); x.arc(f.x,f.y,R,0,7); x.fill();
-    }
-    x.globalCompositeOperation='source-over';
-  } else if(_scene==='silk'){
-    x.lineWidth=1.4;
+  const x=_bgX,IN=_inten(); if(!x)return; _bgT++;
+  // 1) deep base fill (opaque — असली गहराई)
+  x.globalCompositeOperation='source-over'; x.globalAlpha=1;
+  x.fillStyle=_bgBase||'#04060e'; x.fillRect(0,0,_bgW,_bgH);
+  // 2) drifting ambient light (moving glow / aurora feel)
+  x.globalCompositeOperation='lighter';
+  const lt=_bgT*0.0016;
+  for(const L of _bgLite){
+    const cx=L.x+Math.sin(lt*L.sx+L.ph)*L.ax, cy=L.y+Math.cos(lt*L.sy+L.ph)*L.ay;
+    x.globalAlpha=L.a*IN; x.drawImage(_glow(L.c),cx-L.r,cy-L.r,L.r*2,L.r*2);
+  }
+  x.globalAlpha=1;
+  // 3) scene particles
+  if(_scene==='silk'){
+    x.lineWidth=2.2;
     for(const w of _bgParts){
-      const t=_bgT*0.01*w.sp+w.ph;
+      const t=_bgT*0.008*w.sp+w.ph;
       x.beginPath();
-      for(let px=0;px<=_bgW;px+=14){
+      for(let px=0;px<=_bgW;px+=12){
         const py=w.y+Math.sin(px*w.freq+t)*w.amp+Math.sin(px*w.freq*.5-t*1.3)*w.amp*.5;
         px===0?x.moveTo(px,py):x.lineTo(px,py);
       }
-      x.strokeStyle=`rgba(${w.c[0]},${w.c[1]},${w.c[2]},${0.20*IN})`; x.stroke();
+      const gr=x.createLinearGradient(0,0,_bgW,0);
+      gr.addColorStop(0,`rgba(${w.c[0]},${w.c[1]},${w.c[2]},0)`);
+      gr.addColorStop(.5,`rgba(${w.c[0]},${w.c[1]},${w.c[2]},${0.55*IN})`);
+      gr.addColorStop(1,`rgba(${w.c[0]},${w.c[1]},${w.c[2]},0)`);
+      x.strokeStyle=gr; x.stroke();
+    }
+  } else {
+    for(const p of _bgParts){
+      if(p.k==='g'){
+        const cx=p.x+Math.sin(_bgT*0.0018*p.sx+p.ph)*p.ax, cy=p.y+Math.cos(_bgT*0.0018*p.sy+p.ph)*p.ay;
+        x.globalAlpha=p.a*IN; x.drawImage(_glow(p.c),cx-p.r,cy-p.r,p.r*2,p.r*2);
+      } else if(p.k==='s'){
+        p.y-=p.vy; if(p.y<-4){p.y=_bgH+4;p.x=Math.random()*_bgW;} p.tw+=p.sp;
+        const al=(0.32+0.68*Math.abs(Math.sin(p.tw)))*IN*p.b;
+        if(p.g){ const R=p.r*3.6; x.globalAlpha=al; x.drawImage(_glow(p.c),p.x-R,p.y-R,R*2,R*2); }
+        else { x.globalAlpha=al; x.fillStyle=`rgb(${p.c[0]},${p.c[1]},${p.c[2]})`; x.fillRect(p.x,p.y,p.r,p.r); }
+      } else if(p.k==='o'){
+        p.x+=p.vx; p.y+=p.vy;
+        if(p.x<-p.r)p.x=_bgW+p.r; if(p.x>_bgW+p.r)p.x=-p.r; if(p.y<-p.r)p.y=_bgH+p.r; if(p.y>_bgH+p.r)p.y=-p.r;
+        x.globalAlpha=p.a*IN; x.drawImage(_glow(p.c),p.x-p.r,p.y-p.r,p.r*2,p.r*2);
+      } else if(p.k==='f'){
+        p.ph+=0.02; p.x+=Math.cos(p.ph*p.dr)*p.sp; p.y+=Math.sin(p.ph)*p.sp*0.6;
+        if(p.x<0)p.x=_bgW; if(p.x>_bgW)p.x=0; if(p.y<0)p.y=_bgH; if(p.y>_bgH)p.y=0;
+        const al=(0.28+0.72*Math.abs(Math.sin(p.ph*1.7)))*IN;
+        x.globalAlpha=al; x.drawImage(_glow(p.c),p.x-p.r,p.y-p.r,p.r*2,p.r*2);
+      }
+    }
+    x.globalAlpha=1;
+  }
+  // 3b) shooting star (सिर्फ़ तारे scene में, कभी-कभी)
+  if(_scene==='stars'){
+    if(!_bgShoot && Math.random()<0.004) _bgShoot={x:Math.random()*_bgW*0.6,y:Math.random()*_bgH*0.35,len:110+Math.random()*110,vx:6+Math.random()*4,vy:2.2+Math.random()*1.8,life:1};
+    if(_bgShoot){ const s=_bgShoot; s.x+=s.vx; s.y+=s.vy; s.life-=0.011;
+      x.globalAlpha=Math.max(0,s.life)*IN;
+      const ex=s.x-s.len, ey=s.y-s.len*(s.vy/s.vx);
+      const gr=x.createLinearGradient(s.x,s.y,ex,ey);
+      gr.addColorStop(0,'rgba(255,255,255,.95)'); gr.addColorStop(1,'rgba(255,255,255,0)');
+      x.strokeStyle=gr; x.lineWidth=2; x.beginPath(); x.moveTo(s.x,s.y); x.lineTo(ex,ey); x.stroke();
+      x.globalAlpha=1;
+      if(s.life<=0||s.x>_bgW+60) _bgShoot=null;
     }
   }
+  // 4) cinematic vignette
+  x.globalCompositeOperation='source-over'; x.globalAlpha=1;
+  if(_bgVig){ x.fillStyle=_bgVig; x.fillRect(0,0,_bgW,_bgH); }
 }
 function bgLoop(){ _bgRAF=requestAnimationFrame(bgLoop); if(!_bgPaused) bgDraw(); }
 function applyScene(){

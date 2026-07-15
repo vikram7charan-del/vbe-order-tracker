@@ -101,7 +101,11 @@ body{
   touch-action:manipulation;transition:transform .12s;
   display:flex;align-items:center;gap:5px;
 }
-.btn-add-big:active{transform:scale(.94)}
+.btn-add-big{position:relative;overflow:hidden;box-shadow:0 8px 22px -6px rgba(239,68,68,.6),0 2px 6px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.35),inset 0 -3px 8px -3px rgba(0,0,0,.5)!important;transition:transform .14s cubic-bezier(.2,.9,.3,1.5),box-shadow .2s}
+.btn-add-big:active{transform:perspective(300px) translateZ(-8px) scale(.92)!important;box-shadow:0 3px 10px -4px rgba(239,68,68,.7),inset 0 2px 6px rgba(0,0,0,.4)!important}
+.btn-add-big::after{content:'';position:absolute;inset:0;border-radius:inherit;background:radial-gradient(circle,rgba(255,255,255,.55),transparent 60%);opacity:0;transform:scale(0)}
+.btn-add-big:active::after{animation:ripple .5s ease-out}
+@keyframes ripple{0%{opacity:.6;transform:scale(0)}100%{opacity:0;transform:scale(2.5)}}
 /* भेजो Mode — Broadcast overlay */
 .bc-bg{position:fixed;inset:0;background:rgba(2,6,14,.95);z-index:300;display:none;overflow-y:auto;backdrop-filter:blur(3px)}
 .bc-wrap{max-width:480px;margin:0 auto;padding:14px 12px 40px;min-height:100dvh}
@@ -589,7 +593,9 @@ body.th-geo{--acc:#a5b4fc;--acc2:#6366f1}
 .dvc::before{content:'';position:absolute;inset:0;border-radius:18px;padding:1.2px;pointer-events:none;opacity:.55;
   background:linear-gradient(140deg,var(--c,#8b5cf6),transparent 32%,transparent 68%,rgba(96,165,250,.5));
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
-.dvc .dot{position:absolute;left:-16px;top:22px;width:9px;height:9px;border-radius:50%;background:var(--c,#8b5cf6);box-shadow:0 0 11px var(--c,#8b5cf6)}
+.dvc .dot{position:absolute;left:-17px;top:20px;width:11px;height:11px;border-radius:50%;background:var(--st,#64748b);border:2px solid #060d1a;box-shadow:0 0 0 2px color-mix(in srgb,var(--st,#64748b) 40%,transparent),0 0 8px var(--st,#64748b)}
+.dvc.st-soon .dot{animation:dotPulse 2s ease-in-out infinite}
+@keyframes dotPulse{0%,100%{box-shadow:0 0 0 2px rgba(245,158,11,.4),0 0 8px #f59e0b}50%{box-shadow:0 0 0 5px rgba(245,158,11,.15),0 0 14px #f59e0b}}
 .dvc{border-left:3px solid var(--st,#64748b)}
 .dvc.st-soon{--st:#f59e0b}.dvc.st-up{--st:#3b82f6}.dvc.st-far{--st:#64748b}
 .dvc.late{border-color:rgba(239,68,68,.42);--st:#ef4444;animation:dvGlow 2.4s ease-in-out infinite}
@@ -597,21 +603,23 @@ body.th-geo{--acc:#a5b4fc;--acc2:#6366f1}
 .dvc.late .dot{background:#ef4444;box-shadow:0 0 13px #ef4444}
 @keyframes dvGlow{0%,100%{box-shadow:0 16px 32px -15px rgba(0,0,0,.85)}50%{box-shadow:0 16px 32px -15px rgba(0,0,0,.85),0 0 20px -4px rgba(239,68,68,.4)}}
 .dvc-top{display:flex;gap:10px;align-items:center}
-.dv-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:21px;flex-shrink:0;position:relative;background:radial-gradient(circle at 35% 30%,#182642,#0a1120);box-shadow:0 5px 14px -4px rgba(0,0,0,.7),inset 0 2px 4px rgba(255,255,255,.09)}
+.dv-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;position:relative;
+  background:radial-gradient(circle at 34% 28%,color-mix(in srgb,var(--c,#8b5cf6) 55%,#182642),#0a1120 75%);
+  box-shadow:0 6px 15px -4px rgba(0,0,0,.75),inset 0 2px 5px rgba(255,255,255,.14),inset 0 -3px 6px rgba(0,0,0,.5)}
 .dv-av::before{content:'';position:absolute;inset:-3px;border-radius:50%;z-index:-1;opacity:.9;background:conic-gradient(from 200deg,var(--c,#8b5cf6),transparent 42%,var(--c,#8b5cf6) 75%,transparent 92%)}
 .dv-tm{flex-shrink:0;text-align:center;min-width:50px}
 .dv-tm .t1{font-size:14px;font-weight:900;line-height:1.05;font-variant-numeric:tabular-nums;background:linear-gradient(180deg,#fff,#93c5fd);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .dv-tm .t2{font-size:9px;color:#7d8db0;font-weight:800;margin-top:2px}
 .dv-tm .dur{font-size:8.5px;color:#54648a;margin-top:2px}
 .dv-bd{flex:1;min-width:0}
-.dv-nm{font-size:12.5px;font-weight:900;color:#f4f7ff;display:flex;align-items:center;gap:6px;word-break:break-word}
+.dv-nm{font-size:11px;font-weight:800;color:#93a3c4;display:flex;align-items:center;gap:5px;word-break:break-word}
 .dv-sub{font-size:9.5px;color:#5f7096;margin-top:2px;font-weight:700}
 .dv-late-tag{font-size:9px;font-weight:900;color:#fca5a5;background:rgba(127,29,29,.5);border:1px solid rgba(239,68,68,.4);border-radius:6px;padding:1px 6px;flex-shrink:0}
-.dv-tasks{margin-top:6px;background:rgba(6,13,26,.75);border:1px solid rgba(30,58,95,.55);border-radius:11px;padding:7px 10px}
-.dv-task{font-size:10.5px;color:#c8d4ee;line-height:1.5;display:flex;gap:6px;align-items:center;padding:2px 0}
+.dv-tasks{margin-top:6px;background:rgba(30,22,4,.5);border:1px solid rgba(161,98,7,.3);border-radius:11px;padding:8px 11px}
+.dv-task{font-size:14px;color:#fcd34d;font-weight:800;line-height:1.45;display:flex;gap:7px;align-items:center;padding:3px 0;text-shadow:0 1px 3px rgba(0,0,0,.5)}
 .dv-task .b{color:var(--c,#8b5cf6);flex-shrink:0}
 .dv-task.has-at{color:#93c5fd;font-weight:700}
-.dv-task-at{display:block;font-size:9px;color:#60a5fa;font-weight:800;margin-top:1px}
+.dv-task-at{display:block;font-size:10px;color:#93c5fd;font-weight:800;margin-top:2px}
 .dv-task-clk{flex-shrink:0;font-size:13px;cursor:pointer;border:1px dashed rgba(100,116,139,.4);border-radius:7px;padding:2px 7px;background:rgba(13,21,38,.6);touch-action:manipulation}
 .dv-task.has-at .dv-task-clk{border-color:rgba(59,130,246,.6)}
 .dv-more{font-size:10px;color:#5f7096;font-weight:800;margin-top:2px}
@@ -718,11 +726,11 @@ body.th-geo{--acc:#a5b4fc;--acc2:#6366f1}
    गहराई वाला gradient, कटा कोना, चमक-रेखा, दबाने पर तिरछा झुकाव */
 .card{
   background:linear-gradient(163deg,rgba(24,36,66,.94) 0%,rgba(9,15,30,.98) 55%,rgba(6,10,20,.99) 100%);
-  border-radius:20px 20px 20px 7px;
-  border-color:rgba(82,108,170,.32);
-  box-shadow:0 16px 32px -15px rgba(0,0,0,.85),0 3px 12px -6px rgba(0,0,0,.6),
-             inset 0 1px 0 rgba(255,255,255,.07),inset 0 -10px 20px -16px rgba(0,0,0,.8);
-  position:relative;
+  border-radius:24px 24px 24px 8px;
+  border-color:rgba(120,150,220,.28);
+  box-shadow:0 18px 38px -16px rgba(0,0,0,.9),0 3px 12px -6px rgba(0,0,0,.6),
+             inset 0 1.5px 0 rgba(255,255,255,.1),inset 0 -12px 24px -18px rgba(0,0,0,.85);
+  position:relative;backdrop-filter:blur(3px);
 }
 .card::after{content:'';position:absolute;top:0;left:8%;right:35%;height:1px;pointer-events:none;
   background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent)}
@@ -740,7 +748,7 @@ body.th-geo{--acc:#a5b4fc;--acc2:#6366f1}
 
 body.hdr-folded .hdr-btns>*:not(#hdr-fold){display:none}
 body.hdr-folded .hdr-row2{display:none}
-body.hdr-folded #hdr-fold{transform:rotate(180deg)}
+#hdr-fold{background:color-mix(in srgb,var(--acc) 22%,#0d1526)!important;border-color:color-mix(in srgb,var(--acc) 50%,transparent)!important;color:#fff!important;font-weight:900}
 </style>
 </head>
 <body>
@@ -788,7 +796,7 @@ body.hdr-folded #hdr-fold{transform:rotate(180deg)}
         <button class="btn-icon" onclick="setAiKey()" title="🤖 Anthropic AI key डालें/बदलें" style="cursor:pointer;font-family:inherit">⚙️</button>
         <a href="./quick-add.html" class="btn-icon" title="Quick Order Add">📦</a>
         <button class="btn-icon" id="day-btn" onclick="gotoDay()" title="📅 मेरा दिन — इसी पेज पर timeline" style="cursor:pointer;font-family:inherit">📅 दिन</button>
-        <button class="btn-icon" id="hdr-fold" onclick="foldHdr()" title="ऊपर के बटन छुपाओ/दिखाओ" style="cursor:pointer;font-family:inherit">⌃</button>
+        <button class="btn-icon" id="hdr-fold" onclick="foldHdr()" title="मेन्यू खोलो/बंद करो" style="cursor:pointer;font-family:inherit">✕ बंद</button>
         <span id="hdr-search" style="flex:1;min-width:110px;max-width:230px;position:relative;display:flex">
           <input class="inp" id="search-inp" style="padding:7px 30px 7px 11px;font-size:12.5px;border-radius:9px;width:100%"
                  placeholder="🔍 नाम या नंबर खोजें..." oninput="onSearchInput(this.value)">
@@ -1543,9 +1551,10 @@ function updateViewBtn(){
 window.foldHdr=function(){
   const on=document.body.classList.toggle('hdr-folded');
   localStorage.setItem('vbe_hdr_fold',on?'1':'');
+  const b=document.getElementById('hdr-fold'); if(b) b.textContent=on?'☰ मेन्यू':'✕ बंद';
 };
 if(localStorage.getItem('vbe_hdr_fold')===null) localStorage.setItem('vbe_hdr_fold','1'); // पहली बार: ऊपर के बटन छुपे — ⌃ से खुलें
-if(localStorage.getItem('vbe_hdr_fold')==='1') document.body.classList.add('hdr-folded');
+if(localStorage.getItem('vbe_hdr_fold')==='1'){ document.body.classList.add('hdr-folded'); const _fb=document.getElementById('hdr-fold'); if(_fb)_fb.textContent='☰ मेन्यू'; }
 
 /* Smart View — 2-column grid, पूरा नाम + छोटा गोल icon */
 function renderSmart(list){

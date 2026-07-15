@@ -464,6 +464,16 @@ body.anim-off *{animation:none!important;transition:none!important}
 @keyframes riseIn{0%{opacity:0;transform:translateY(calc(18px*var(--an))) scale(calc(1 - .05*var(--an)))}60%{opacity:1;transform:translateY(calc(-3px*var(--an))) scale(calc(1 + .012*var(--an)))}100%{opacity:1;transform:none}}
 body:not(.anim-off) .card,body:not(.anim-off) .sv-item,body:not(.anim-off) .dvc{animation:riseIn calc(.5s*var(--an,1)) cubic-bezier(.34,1.4,.5,1) both}
 body:not(.anim-off) .card:active,body:not(.anim-off) .sv-item:active{transform:translateY(calc(-2px*var(--an))) scale(calc(1 - .015*var(--an)))}
+/* ✓ बड़ा green checkmark — काम पूरा होने पर बीच में draw होता है */
+.bigchk{position:fixed;inset:0;z-index:9998;pointer-events:none;display:flex;align-items:center;justify-content:center;animation:bcFade 1.1s ease forwards}
+.bigchk svg{width:118px;height:118px;filter:drop-shadow(0 8px 22px rgba(34,197,94,.55))}
+.bigchk .bc-c{fill:none;stroke:#22c55e;stroke-width:6;stroke-linecap:round;stroke-dasharray:326;stroke-dashoffset:326;animation:bcCircle .55s cubic-bezier(.65,0,.35,1) forwards}
+.bigchk .bc-k{fill:none;stroke:#22c55e;stroke-width:9;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:90;stroke-dashoffset:90;animation:bcCheck .35s cubic-bezier(.65,0,.35,1) .42s forwards}
+.bigchk .bc-bg{fill:rgba(34,197,94,.14);transform-origin:center;transform:scale(0);animation:bcPop .5s cubic-bezier(.34,1.5,.5,1) .1s forwards}
+@keyframes bcCircle{to{stroke-dashoffset:0}}
+@keyframes bcCheck{to{stroke-dashoffset:0}}
+@keyframes bcPop{to{transform:scale(1)}}
+@keyframes bcFade{0%,68%{opacity:1}100%{opacity:0;transform:scale(1.08)}}
 /* 🎉 confetti burst — काम पूरा होने पर */
 .celebr{position:fixed;z-index:9999;pointer-events:none;transform:translate(-50%,-50%)}
 .celebr i{position:absolute;width:9px;height:9px;border-radius:2px;left:0;top:0;opacity:0;box-shadow:0 1px 3px rgba(0,0,0,.3);animation:celeb .85s cubic-bezier(.18,.7,.3,1) forwards}
@@ -736,15 +746,18 @@ body.th-geo{--acc:#a5b4fc;--acc2:#6366f1}
   background:rgba(124,58,237,.20);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
   border:1px solid rgba(139,92,246,.6);border-radius:14px;padding:5px 9px 5px 5px;
   box-shadow:0 7px 16px -8px rgba(124,58,237,.55),inset 0 1px 0 rgba(255,255,255,.14)}
-.fc-ring{width:38px;height:38px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;position:relative;
-  background:conic-gradient(from 220deg,color-mix(in srgb,var(--fc,#a855f7) 70%,#fff) 0%,var(--fc,#a855f7) calc(var(--p,0%)*.5),color-mix(in srgb,var(--fc,#a855f7) 60%,#000) var(--p,0%),rgba(40,44,70,.45) 0);
-  box-shadow:0 0 12px -3px var(--fc,#a855f7),inset 0 1px 2px rgba(255,255,255,.35),inset 0 -2px 4px rgba(0,0,0,.6)}
+.fc-ring{width:40px;height:40px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;position:relative;
+  background:conic-gradient(from 220deg,color-mix(in srgb,var(--fc,#a855f7) 82%,#fff) 0%,var(--fc,#a855f7) calc(var(--p,0%)*.5),color-mix(in srgb,var(--fc,#a855f7) 55%,#000) var(--p,0%),rgba(40,44,70,.45) 0);
+  box-shadow:0 0 14px -3px var(--fc,#a855f7),0 3px 8px -4px rgba(0,0,0,.7),inset 0 1px 2px rgba(255,255,255,.4),inset 0 -2px 5px rgba(0,0,0,.65)}
+body:not(.anim-off) .fc-item:not(.over) .fc-ring{animation:fcPulse 2.6s ease-in-out infinite}
+@keyframes fcPulse{0%,100%{box-shadow:0 0 12px -4px var(--fc,#a855f7),0 3px 8px -4px rgba(0,0,0,.7),inset 0 1px 2px rgba(255,255,255,.4),inset 0 -2px 5px rgba(0,0,0,.65)}
+  50%{box-shadow:0 0 22px -2px var(--fc,#a855f7),0 3px 8px -4px rgba(0,0,0,.7),inset 0 1px 2px rgba(255,255,255,.5),inset 0 -2px 5px rgba(0,0,0,.65)}}
 .fc-ring::before{content:'';position:absolute;inset:3px;border-radius:50%;
-  background:radial-gradient(circle at 32% 26%,rgba(60,66,110,.9),rgba(7,8,20,.95) 62%);
-  box-shadow:inset 0 1px 3px rgba(255,255,255,.18),inset 0 -2px 5px rgba(0,0,0,.8)}
+  background:radial-gradient(circle at 32% 24%,rgba(70,78,128,.95),rgba(7,8,20,.97) 64%);
+  box-shadow:inset 0 1px 3px rgba(255,255,255,.22),inset 0 -2px 5px rgba(0,0,0,.85),0 0 0 1px rgba(255,255,255,.06)}
 .fc-ring::after{content:'';position:absolute;inset:-1px;border-radius:50%;pointer-events:none;
-  background:conic-gradient(from 0deg,transparent 0 84%,rgba(255,255,255,.28) 92%,transparent 100%);
-  animation:fcSweep 4.5s linear infinite}
+  background:conic-gradient(from 0deg,transparent 0 80%,rgba(255,255,255,.5) 90%,rgba(255,255,255,.15) 94%,transparent 100%);
+  animation:fcSweep 3.8s linear infinite}
 @keyframes fcSweep{to{transform:rotate(360deg)}}
 .fc-ring .tm{position:relative;z-index:1;font-size:8.5px;font-weight:900;color:#eef;font-variant-numeric:tabular-nums;text-shadow:0 1px 2px rgba(0,0,0,.7)}
 .fc-st{display:inline-block;font-size:7px;font-weight:900;letter-spacing:.6px;border-radius:5px;padding:1px 5px;margin-left:4px;vertical-align:1px;color:#fff}
@@ -2104,6 +2117,7 @@ window.doneTopic=function(id,idx){
   c.topics=tps;
   c.note=tps.filter(x=>!x.done).map(x=>x.t).join(' · ');
   try{ const ev=window.event; celebrate(ev&&ev.clientX,ev&&ev.clientY); }catch(e){ celebrate(); }
+  bigCheck();
   render(); fbSave(c);
   toast('✅ काम पूरा — '+tps[idx].t.slice(0,24));
 };
@@ -4361,6 +4375,14 @@ function toast(msg,type){
   clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),3000);
 }
 function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+/* ✓ बड़ा हरा checkmark जो बीच में draw होता है — काम पूरा होने पर */
+function bigCheck(){
+  if(document.body.classList.contains('anim-off')) return;
+  const w=document.createElement('div'); w.className='bigchk';
+  w.innerHTML='<svg viewBox="0 0 120 120"><circle class="bc-bg" cx="60" cy="60" r="54"/><circle class="bc-c" cx="60" cy="60" r="52"/><path class="bc-k" d="M38 62 L54 78 L84 44"/></svg>';
+  document.body.appendChild(w);
+  setTimeout(()=>w.remove(),1150);
+}
 /* 🎉 काम पूरा होने पर छोटा सा जश्न — confetti burst (anim-off पर बंद) */
 function celebrate(x,y){
   if(document.body.classList.contains('anim-off')) return;

@@ -443,6 +443,33 @@ body{
 /* Smart popup की secondary buttons */
 .sp-sec{background:#10192b;border:1.5px solid rgba(30,58,95,.8);color:#94a3b8}
 
+/* ══ ✨ ANIMATION ENGINE — मेन्यू से off/soft/premium/max ══ */
+:root{--an:1}                              /* animation strength multiplier */
+body.anim-off{--an:0}
+body.anim-soft{--an:.6}
+body.anim-premium{--an:1}
+body.anim-max{--an:1.5}
+body.anim-off *{animation:none!important;transition:none!important}
+/* entrance: cards ऊपर उठकर आएँ (premium/max में ज़्यादा) */
+@keyframes riseIn{from{opacity:0;transform:translateY(calc(16px*var(--an))) scale(calc(1 - .04*var(--an)))}to{opacity:1;transform:none}}
+body:not(.anim-off) .card,body:not(.anim-off) .sv-item,body:not(.anim-off) .dvc{animation:riseIn calc(.42s*var(--an,1)) cubic-bezier(.2,.8,.25,1) both}
+body:not(.anim-off) .card:active,body:not(.anim-off) .sv-item:active{transform:translateY(calc(-2px*var(--an))) scale(calc(1 - .015*var(--an)))}
+/* ripple touch — किसी भी बटन पर */
+@keyframes rp{to{transform:scale(2.4);opacity:0}}
+.rpl{position:absolute;border-radius:50%;background:rgba(255,255,255,.45);pointer-events:none;transform:scale(0);animation:rp .55s ease-out forwards;z-index:5}
+/* page/view transition */
+@keyframes vIn{from{opacity:0;transform:translateY(calc(10px*var(--an))) }to{opacity:1;transform:none}}
+body:not(.anim-off) #card-list.vfx{animation:vIn calc(.34s*var(--an)) ease both}
+/* shimmer — headers/accent पर हल्की रौशनी */
+body.anim-max .dvg::after,body.anim-max .dv-bar{background-size:200% 100%;animation:shim 3.2s linear infinite}
+@keyframes shim{0%{background-position:200% 0}100%{background-position:-200% 0}}
+/* floating pulse — FAB हल्का साँस ले (max) */
+body.anim-max .btn-add-big{animation:fabFloat 3s ease-in-out infinite}
+@keyframes fabFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+/* AI बनने का shimmer indicator */
+@keyframes aiGlow{0%,100%{box-shadow:0 0 0 0 rgba(168,85,247,.5)}50%{box-shadow:0 0 16px 3px rgba(168,85,247,.6)}}
+.ai-thinking{animation:aiGlow 1.2s ease-in-out infinite}
+
 /* ══ THEMES ══ */
 body.th-black{background:#000}
 body.th-black .card,body.th-black .sv-item,body.th-black .stat,body.th-black .strip-chip,body.th-black .f-chip,body.th-black .inp{background:#0b0b12;border-color:rgba(70,70,95,.55)}
@@ -792,6 +819,7 @@ body.hdr-folded .hdr-row2{display:none}
         <button class="btn-icon" id="view-btn" onclick="toggleView()" title="Layout बदलें" style="cursor:pointer;font-family:inherit">🔲</button>
         <button class="btn-icon" onclick="cycleTheme()" title="Theme बदलें" style="cursor:pointer;font-family:inherit">🎨</button>
         <button class="btn-icon" onclick="shuffleLooks()" title="सबके रंग और emoji बदलो — नयापन" style="cursor:pointer;font-family:inherit">🎲</button>
+        <button class="btn-icon" onclick="cycleAnim()" title="✨ Animation स्तर बदलें (off/soft/premium/max)" style="cursor:pointer;font-family:inherit">✨</button>
         <button class="btn-icon" onclick="unhideAll()" title="Swipe किए हुए सब वापस लाओ" style="cursor:pointer;font-family:inherit">👁️</button>
         <button class="btn-icon" onclick="setAiKey()" title="🤖 Anthropic AI key डालें/बदलें" style="cursor:pointer;font-family:inherit">⚙️</button>
         <a href="./quick-add.html" class="btn-icon" title="Quick Order Add">📦</a>
@@ -1214,7 +1242,7 @@ function initApp(){
   document.getElementById('s-app').style.display='block';
   buildColorPicker(); buildEmojiPicker(); buildIntervalPicker();
   renderFilterBar(); renderTagBtns();
-  applyTheme(); updateViewBtn();
+  applyTheme(); applyAnim(); updateViewBtn();
   startFirestoreSync(); startTick(); askNotifPermission(); setupPush();
   // App icon के long-press shortcuts (manifest से)
   const act=new URLSearchParams(location.search).get('action');
@@ -1532,11 +1560,12 @@ window.toggleView=function(){
   updateViewBtn(); _animNext=true; render();
   toast(_view==='smart'?'🔲 Smart View — compact grid':'📋 Card View — पूरी detail');
 };
+function _vfx(){ const el=document.getElementById('card-list'); if(el&&!document.body.classList.contains('anim-off')){ el.classList.remove('vfx'); void el.offsetWidth; el.classList.add('vfx'); } }
 window.gotoDay=function(){
   _view=_view==='day'?(localStorage.getItem('vbe_ct_view_prev')||'card'):'day';
   if(_view==='day') localStorage.setItem('vbe_ct_view_prev',localStorage.getItem('vbe_ct_view')||'card');
   localStorage.setItem('vbe_ct_view',_view);
-  updateViewBtn(); _animNext=true; render();
+  updateViewBtn(); _animNext=true; render(); _vfx();
   toast(_view==='day'?'📅 मेरा दिन — समय के हिसाब से':'वापस list view');
 };
 function updateViewBtn(){
@@ -3382,7 +3411,7 @@ window.spFreshAI=async function(){
   if(!tps.length&&!asg.length){ toast('⚠️ इस श्रेणी में कोई बाकी काम नहीं','warn'); return; }
   const tasks=[...tps.map(x=>(catInfo(x.cat)?catInfo(x.cat).logo+' ':'')+x.t),
                ...asg.map(x=>(catInfo(x.cat)?catInfo(x.cat).logo+' ':'')+x.t+' ('+x.srcName+')')];
-  toast('🤖 विक्रम-अंदाज़ का नया message बन रहा है...');
+  toast('🤖 विक्रम-अंदाज़ का नया message बन रहा है...'); document.body.classList.add('ai-busy');
   // पहला रास्ता: सीधा Anthropic (नया दमदार prompt)
   if(aiKey()){
     try{
@@ -3466,6 +3495,37 @@ const THEMES=[
   {cls:'th-black th-round', name:'⬛⚪ Black + Round'},
   {cls:'th-purple th-round',name:'💜⚪ Purple + Round'},
 ];
+/* ── Animation level ── */
+const ANIM=[
+  {k:'off',     n:'🚫 Animation बंद'},
+  {k:'soft',    n:'🍃 हल्की (Soft)'},
+  {k:'premium', n:'✨ Premium'},
+  {k:'max',     n:'🚀 Max — पूरा जोश'},
+];
+let _anim=localStorage.getItem('vbe_ct_anim')||'premium';
+function applyAnim(){
+  document.body.classList.remove('anim-off','anim-soft','anim-premium','anim-max');
+  document.body.classList.add('anim-'+_anim);
+}
+window.cycleAnim=function(){
+  const i=ANIM.findIndex(a=>a.k===_anim);
+  const nx=ANIM[(i+1)%ANIM.length];
+  _anim=nx.k; localStorage.setItem('vbe_ct_anim',_anim);
+  applyAnim(); toast(nx.n);
+};
+/* ripple हर tap पर (button/chip/card) — anim-off में नहीं */
+document.addEventListener('pointerdown',function(e){
+  if(document.body.classList.contains('anim-off')) return;
+  const t=e.target.closest('.btn-icon,.f-chip,.qd-btn,.dv-btn,.sg,.dchip,.btn-add-big,.btn-save,.pbtn,.sk-chip,.fbtn');
+  if(!t) return;
+  const cs=getComputedStyle(t); if(cs.position==='static') t.style.position='relative';
+  if(cs.overflow!=='hidden') t.style.overflow='hidden';
+  const r=t.getBoundingClientRect(), d=Math.max(r.width,r.height);
+  const sp=document.createElement('span'); sp.className='rpl';
+  sp.style.width=sp.style.height=d+'px';
+  sp.style.left=(e.clientX-r.left-d/2)+'px'; sp.style.top=(e.clientY-r.top-d/2)+'px';
+  t.appendChild(sp); setTimeout(()=>sp.remove(),560);
+},{passive:true});
 let _theme=localStorage.getItem('vbe_ct_theme')||'';
 function applyTheme(){
   document.body.classList.remove('th-black','th-purple','th-emerald','th-round','th-glass','th-neo','th-hex','th-geo');

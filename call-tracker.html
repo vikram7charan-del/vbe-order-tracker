@@ -534,6 +534,26 @@ body.th-geo{--acc:#a5b4fc;--acc2:#6366f1}
 @keyframes accSheen{0%,100%{box-shadow:0 4px 14px -4px color-mix(in srgb,var(--acc) 65%,transparent),inset 0 1px 0 rgba(255,255,255,.28)}
   50%{box-shadow:0 4px 22px -3px color-mix(in srgb,var(--acc) 95%,transparent),inset 0 1px 0 rgba(255,255,255,.4)}}
 
+/* ══ 📅 मेरा दिन — premium command center ══ */
+.dvg{margin:10px 13px 4px;border-radius:20px;padding:13px 15px;position:relative;overflow:hidden;
+  background:linear-gradient(135deg,#0b1b36 0%,#141034 55%,#081221 100%);
+  border:1px solid color-mix(in srgb,var(--acc) 40%,transparent);
+  box-shadow:0 14px 30px -14px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.09)}
+.dvg::after{content:'';position:absolute;top:-40px;right:-30px;width:130px;height:130px;border-radius:50%;
+  background:radial-gradient(circle,color-mix(in srgb,var(--acc) 30%,transparent),transparent 70%)}
+.dvg .hi{font-size:16px;font-weight:900;color:#f4f7ff}
+.dvg .dt{font-size:10.5px;font-weight:800;color:color-mix(in srgb,var(--acc) 80%,#fff);margin-top:2px}
+.dvg .mot{font-size:10px;color:#93a3c4;margin-top:5px;font-weight:700}
+.dv-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:8px 13px 2px}
+.dv-tile{border-radius:15px;padding:8px 4px;text-align:center;
+  background:linear-gradient(160deg,rgba(24,36,66,.9),rgba(8,13,26,.97));
+  border:1px solid rgba(82,108,170,.3);box-shadow:0 8px 18px -10px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.07)}
+.dv-tile .n{font-size:17px;font-weight:900;line-height:1.05;font-variant-numeric:tabular-nums}
+.dv-tile .l{font-size:8px;color:#7d8db0;font-weight:800;margin-top:2px;letter-spacing:.3px}
+.dv-fires{display:flex;gap:6px;overflow-x:auto;margin:8px 13px 0;scrollbar-width:none;padding-bottom:2px}
+.dv-fire{flex-shrink:0;border-radius:13px;padding:7px 12px;font-size:10.5px;font-weight:900;color:#fff;
+  box-shadow:0 6px 14px -6px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.25)}
+
 /* ══ 📅 मेरा दिन — in-app timeline view ══ */
 .dv-wrap{padding:4px 13px 20px}
 .dv-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 2px 4px}
@@ -2297,6 +2317,48 @@ window.genDayPlan=async function(){
     toast('✅ AI प्लान तैयार — ऊपर golden panel में');
   }catch(e){ toast('⚠️ AI प्लान नहीं बना — key/net जाँचें','err'); }
 };
+async function genDaySummary(){
+  if(!askPinAI()) return;
+  toast('🤖 आज का सार बन रहा है…');
+  try{
+    const now=Date.now();
+    let late=0,todayN=0,doneN=0,callP=0; const urgent=[];
+    const tk0=(d=>{d.setHours(0,0,0,0);return d.getTime()})(new Date());
+    contacts.forEach(c=>{
+      if(c.active===false) return;
+      normTopics(c).forEach(x=>{ if(x.done&&x.doneAt&&new Date(x.doneAt).getTime()>=tk0) doneN++; });
+      const pend=normTopics(c).filter(x=>!x.done); if(!pend.length) return;
+      const t=c.nextCallAt?new Date(c.nextCallAt).getTime():0;
+      if(t){ if(t<now){late++; if(urgent.length<10)urgent.push((c.name||'')+': '+pend[0].t);} if(t>=tk0&&t<tk0+864e5)todayN++; }
+      if(t&&t<now&&(c.phone||'')) callP++;
+    });
+    const txt=await aiAsk(`तुम विक्रम भाई (Vande Bharat Enterprises) के AI सहायक हो। छोटा, दमदार हिंदी सार दो (गोल्डन-पीली भाषा जैसा अपनापन)।\nआँकड़े: आज ${todayN} काम, देर ${late}, पूरे ${doneN}, call बाकी ${callP}।\nसबसे ज़रूरी (नाम: काम): ${urgent.join(' | ')||'—'}\nजवाब सिर्फ़ JSON: {"score":0-100 productivity,"line":"1 पंक्ति हालत","urgent":["2-3 सबसे ज़रूरी काम छोटे"],"tip":"1 सीधा सुझाव अगले 2 घंटे के लिए"}`,600);
+    const m=txt.match(/\{[\s\S]*\}/); const j=JSON.parse(m?m[0]:txt);
+    window._settings=window._settings||{};
+    window._settings.aiSummary={at:new Date().toISOString(),...j};
+    try{ await setDoc(doc(db,'vbe_call_tracker','_settings'),{id:'_settings',aiSummary:window._settings.aiSummary},{merge:true}); }catch(e){}
+    render();
+    toast('✅ AI सार तैयार!');
+  }catch(e){ toast('⚠️ सार नहीं बना — ⚙️ में key/PIN जाँचें','err'); }
+}
+function aiSummaryPanel(){
+  const su=(window._settings||{}).aiSummary;
+  const sc=su&&typeof su.score==='number'?su.score:null;
+  return `<div style="margin:8px 13px 2px;border-radius:18px;padding:13px 15px;position:relative;overflow:hidden;
+    background:linear-gradient(135deg,rgba(30,20,60,.85),rgba(8,13,26,.95));border:1px solid rgba(168,85,247,.4);
+    box-shadow:0 12px 26px -14px rgba(124,58,237,.45),inset 0 1px 0 rgba(255,255,255,.08)">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
+      <span style="font-size:12px;font-weight:900;color:#e9d5ff;flex:1">🤖 AI Summary${su&&su.at?' · '+agoText(su.at):''}</span>
+      ${sc!==null?`<span style="font-size:20px;font-weight:900;color:${sc>=70?'#4ade80':sc>=40?'#fbbf24':'#f87171'}">${sc}<span style="font-size:9px;color:#7d8db0">/100</span></span>`:''}
+      <button class="dv-btn" style="border-color:rgba(168,85,247,.6);color:#c4b5fd" onclick="genDaySummary()">🤖 ${su?'नया':'बनाओ'}</button>
+    </div>
+    ${sc!==null?`<div style="height:6px;border-radius:6px;background:rgba(80,60,120,.4);overflow:hidden;margin-bottom:8px"><div style="height:100%;width:${sc}%;border-radius:6px;background:linear-gradient(90deg,#7c3aed,#a855f7,#22d3ee)"></div></div>`:''}
+    ${su?`<div style="font-size:12px;font-weight:800;color:#fbbf24;line-height:1.5">${escH(su.line||'')}</div>
+      ${Array.isArray(su.urgent)&&su.urgent.length?`<div style="margin-top:6px">${su.urgent.map(u=>`<div style="font-size:11px;color:#c8d4ee;line-height:1.55">🔴 ${escH(u)}</div>`).join('')}</div>`:''}
+      ${su.tip?`<div style="margin-top:7px;font-size:11px;color:#93c5fd;font-weight:700;background:rgba(59,130,246,.12);border-radius:9px;padding:6px 9px">💡 ${escH(su.tip)}</div>`:''}`
+      :`<div style="font-size:11px;color:#8b7bb8">🤖 दबाकर आज का AI विश्लेषण + productivity score पाएँ</div>`}
+  </div>`;
+}
 function aiPlanPanel(){
   const pl=(window._settings||{}).aiDayPlan;
   let inner;
@@ -2572,6 +2634,22 @@ function dayRows(list){
   return merged;
 }
 let _dvSeg='all';
+let _dvDate='all'; // all|today|tom|yest|week|nweek|d:YYYY-MM-DD
+window.dvDate=function(v){
+  if(v==='pick'){ const e=document.getElementById('dv-date-inp'); if(e){ e.style.display='inline-block'; e.showPicker?e.showPicker():e.focus(); } return; }
+  _dvDate=v; render();
+};
+window.dvDatePick=function(v){ if(v) { _dvDate='d:'+v; render(); } };
+function dvRange(){
+  const t0=new Date(); t0.setHours(0,0,0,0); const D=864e5, a=t0.getTime();
+  if(_dvDate==='today') return [a,a+D];
+  if(_dvDate==='tom') return [a+D,a+2*D];
+  if(_dvDate==='yest') return [a-D,a];
+  if(_dvDate==='week') return [a,a+7*D];
+  if(_dvDate==='nweek') return [a+7*D,a+14*D];
+  if(_dvDate.startsWith('d:')){ const d=new Date(_dvDate.slice(2)+'T00:00:00'); if(!isNaN(d)) return [d.getTime(),d.getTime()+D]; }
+  return null;
+}
 let _dvAI=false;
 window.dvAI=function(){ _dvAI=!_dvAI; render(); };
 let _dvZig=localStorage.getItem('vbe_dv_zig')==='1';
@@ -2580,14 +2658,46 @@ window.dvZig=function(){ _dvZig=!_dvZig; localStorage.setItem('vbe_dv_zig',_dvZi
 function renderDay(list){
   const el=document.getElementById('card-list');
   const now=Date.now();
-  const rows=dayRows(list);
+  let rows=dayRows(list);
+  const rng=dvRange();
+  if(rng) rows=rows.filter(r=>r.t>=rng[0]&&r.t<rng[1]);
   const late=rows.filter(r=>r.t<=now), up=rows.filter(r=>r.t>now);
   // accountability — आज कितने काम पूरे हुए
   let doneToday=0;
   const tk=dayKey0(new Date());
   contacts.forEach(c=>normTopics(c).forEach(x=>{ if(x.done&&x.doneAt&&dayKey0(new Date(x.doneAt))===tk) doneToday++; }));
   const showCal=_dvSeg!=='nocal', showNoCal=_dvSeg!=='cal';
+  // 🔥 focus-mode संख्याएँ
+  const in30=rows.filter(r=>r.t>now&&r.t<=now+30*60000).length;
+  const callNow=late.filter(r=>(r.c.phone||'').length).length;
+  const vip=rows.filter(r=>r.c.pinned).length;
+  const hindiDate=new Intl.DateTimeFormat('hi-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(new Date());
+  const hr=new Date().getHours();
+  const greet=hr<12?'🌅 शुभ प्रभात':hr<17?'☀️ नमस्ते':'🌆 शुभ संध्या';
+  const dch=(v,l)=>`<button class="sg ${_dvDate===v?'on':''}" onclick="dvDate('${v}')">${l}</button>`;
   let h=`<div class="dv-wrap ${_dvZig?'dv-zig':''}">
+    <div class="dvg">
+      <div class="hi">${greet}, विक्रम भाई 👋</div>
+      <div class="dt">${hindiDate}</div>
+      <div class="mot">हर दिन एक नया अवसर है — आज के 3 सबसे ज़रूरी काम पहले पूरे करें।</div>
+    </div>
+    <div class="dv-tiles">
+      <div class="dv-tile"><div class="n" style="color:#60a5fa">${rows.length}</div><div class="l">📅 काम</div></div>
+      <div class="dv-tile" style="cursor:pointer" onclick="dvSeg('cal')"><div class="n" style="color:#f87171">${late.length}</div><div class="l">🔴 देर</div></div>
+      <div class="dv-tile"><div class="n" style="color:#4ade80">${doneToday}</div><div class="l">✅ आज पूरे</div></div>
+      <div class="dv-tile" style="cursor:pointer" onclick="openFocusDash()"><div class="n" style="color:#c084fc">${_focus.length}</div><div class="l">🎯 Focus</div></div>
+    </div>
+    <div class="dv-fires">
+      <span class="dv-fire" style="background:linear-gradient(120deg,#b91c1c,#f97316)">🚨 देर ${late.length}</span>
+      <span class="dv-fire" style="background:linear-gradient(120deg,#7c3aed,#a855f7)">🔥 अगले 30 मिनट ${in30}</span>
+      <span class="dv-fire" style="background:linear-gradient(120deg,#059669,#22c55e)">📞 अभी call ${callNow}</span>
+      <span class="dv-fire" style="background:linear-gradient(120deg,#b45309,#f59e0b)">⭐ VIP ${vip}</span>
+    </div>
+    <div class="dv-seg" style="margin-top:9px">
+      ${dch('all','सब दिन')}${dch('yest','बीता कल')}${dch('today','आज')}${dch('tom','कल')}${dch('week','यह हफ़्ता')}${dch('nweek','अगला हफ़्ता')}
+      <button class="sg ${_dvDate.startsWith('d:')?'on':''}" onclick="dvDate('pick')">📅 ${_dvDate.startsWith('d:')?_dvDate.slice(2):'तारीख़'}</button>
+      <input type="date" id="dv-date-inp" style="display:none;background:#0d1526;border:1px solid #2a3d66;color:#e2e8f0;border-radius:8px;padding:4px;font-family:inherit;font-size:11px" onchange="dvDatePick(this.value)">
+    </div>
     <div class="dv-head">
       <div class="dv-title">📅 मेरा दिन — ${rows.length} काम समय पर</div>
       <button class="dv-reset" onclick="resetToday()">🧹 आज reset</button>
@@ -2600,6 +2710,7 @@ function renderDay(list){
       <button class="sg ${_dvAI?'on':''}" onclick="dvAI()">🤖 AI प्लान</button>
       <span class="dv-score">✓${doneToday} आज पूरे${late.length?` · 🔴${late.length} देर`:''}</span>
     </div>
+    ${aiSummaryPanel()}
     ${_dvAI?aiPlanPanel():''}`;
   if(showCal&&late.length){
     h+=`<div class="dv-grp-h late">🔴 देर हो गई <span class="cnt">${late.length}</span></div><div class="dv-rail">`;

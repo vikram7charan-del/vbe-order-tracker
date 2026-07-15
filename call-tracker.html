@@ -535,6 +535,20 @@ body.th-geo{--acc:#a5b4fc;--acc2:#6366f1}
   50%{box-shadow:0 4px 22px -3px color-mix(in srgb,var(--acc) 95%,transparent),inset 0 1px 0 rgba(255,255,255,.4)}}
 
 /* ══ 📅 मेरा दिन — premium command center ══ */
+.dv-bar{display:flex;align-items:center;gap:10px;margin:9px 13px 6px;border-radius:16px;padding:10px 13px;
+  background:linear-gradient(135deg,#0b1b36,#0a0f28 60%,#081221);border:1px solid color-mix(in srgb,var(--acc) 35%,transparent);
+  box-shadow:0 10px 22px -14px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.08)}
+.dv-bar-l{flex:1;min-width:0}
+.dv-bar-hi{font-size:14px;font-weight:900;color:#f4f7ff}
+.dv-bar-dt{font-size:9.5px;font-weight:800;color:color-mix(in srgb,var(--acc) 75%,#9fb2d8);margin-top:2px}
+.dv-ic{flex-shrink:0;width:38px;height:38px;border-radius:12px;border:1px solid color-mix(in srgb,var(--acc) 45%,transparent);
+  background:color-mix(in srgb,var(--acc) 18%,transparent);color:#fff;font-size:15px;cursor:pointer;font-family:inherit}
+.dv-ic.on{background:color-mix(in srgb,var(--acc) 40%,transparent)}
+.dv-dates{display:flex;gap:6px;overflow-x:auto;margin:0 13px 4px;scrollbar-width:none;padding-bottom:2px}
+.dchip{flex-shrink:0;font-size:11.5px;font-weight:800;font-family:inherit;border-radius:11px;padding:7px 13px;cursor:pointer;
+  border:1px solid #2a3d66;background:linear-gradient(160deg,#111c33,#0b1120);color:#9fb2d8;transition:all .15s}
+.dchip.on{border-color:var(--acc);color:#fff;background:linear-gradient(135deg,color-mix(in srgb,var(--acc) 55%,transparent),color-mix(in srgb,var(--acc2) 35%,transparent));box-shadow:0 4px 12px -4px color-mix(in srgb,var(--acc) 60%,transparent)}
+
 .dvg{margin:10px 13px 4px;border-radius:20px;padding:13px 15px;position:relative;overflow:hidden;
   background:linear-gradient(135deg,#0b1b36 0%,#141034 55%,#081221 100%);
   border:1px solid color-mix(in srgb,var(--acc) 40%,transparent);
@@ -576,7 +590,9 @@ body.th-geo{--acc:#a5b4fc;--acc2:#6366f1}
   background:linear-gradient(140deg,var(--c,#8b5cf6),transparent 32%,transparent 68%,rgba(96,165,250,.5));
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
 .dvc .dot{position:absolute;left:-16px;top:22px;width:9px;height:9px;border-radius:50%;background:var(--c,#8b5cf6);box-shadow:0 0 11px var(--c,#8b5cf6)}
-.dvc.late{border-color:rgba(239,68,68,.42);animation:dvGlow 2.4s ease-in-out infinite}
+.dvc{border-left:3px solid var(--st,#64748b)}
+.dvc.st-soon{--st:#f59e0b}.dvc.st-up{--st:#3b82f6}.dvc.st-far{--st:#64748b}
+.dvc.late{border-color:rgba(239,68,68,.42);--st:#ef4444;animation:dvGlow 2.4s ease-in-out infinite}
 .dvc.late::before{background:linear-gradient(140deg,#ef4444,transparent 36%,transparent 66%,rgba(239,68,68,.55))}
 .dvc.late .dot{background:#ef4444;box-shadow:0 0 13px #ef4444}
 @keyframes dvGlow{0%,100%{box-shadow:0 16px 32px -15px rgba(0,0,0,.85)}50%{box-shadow:0 16px 32px -15px rgba(0,0,0,.85),0 0 20px -4px rgba(239,68,68,.4)}}
@@ -2211,6 +2227,8 @@ function fcItemHTML(f){
 function renderFocusBar(){
   const bv=document.getElementById('focus-bar'), bd=document.getElementById('focus-bar-d');
   if(!bv||!bd) return;
+  const bk0=document.getElementById('focus-bar-k');
+  if(_view==='day'){ bv.classList.remove('on'); bd.classList.remove('on'); if(bk0) bk0.classList.remove('on'); bv.innerHTML=bd.innerHTML=''; if(bk0)bk0.innerHTML=''; return; }
   // latest सबसे आगे — नया focus हमेशा सामने, पुराने पीछे scroll में
   const bk=document.getElementById('focus-bar-k');
   const vs=_focus.filter(f=>!['d','k'].includes(f.own||'v')).sort((a,b)=>b.start-a.start);
@@ -2652,6 +2670,8 @@ function dvRange(){
 }
 let _dvAI=false;
 window.dvAI=function(){ _dvAI=!_dvAI; render(); };
+let _dvPanel=false;
+window.dvPanel=function(){ _dvPanel=!_dvPanel; render(); };
 let _dvZig=localStorage.getItem('vbe_dv_zig')==='1';
 window.dvSeg=function(s){ _dvSeg=s; render(); };
 window.dvZig=function(){ _dvZig=!_dvZig; localStorage.setItem('vbe_dv_zig',_dvZig?'1':''); render(); };
@@ -2675,43 +2695,38 @@ function renderDay(list){
   const hr=new Date().getHours();
   const greet=hr<12?'🌅 शुभ प्रभात':hr<17?'☀️ नमस्ते':'🌆 शुभ संध्या';
   const dch=(v,l)=>`<button class="sg ${_dvDate===v?'on':''}" onclick="dvDate('${v}')">${l}</button>`;
+  const dch2=(v,l)=>`<button class="dchip ${_dvDate===v?'on':''}" onclick="dvDate('${v}')">${l}</button>`;
   let h=`<div class="dv-wrap ${_dvZig?'dv-zig':''}">
-    <div class="dvg">
-      <div class="hi">${greet}, विक्रम भाई 👋</div>
-      <div class="dt">${hindiDate}</div>
-      <div class="mot">हर दिन एक नया अवसर है — आज के 3 सबसे ज़रूरी काम पहले पूरे करें।</div>
+    <div class="dv-bar">
+      <div class="dv-bar-l">
+        <div class="dv-bar-hi">${greet}, विक्रम भाई</div>
+        <div class="dv-bar-dt">${hindiDate} · ${rows.length} काम${late.length?` · <span style="color:#f87171">🔴 ${late.length} देर</span>`:''}</div>
+      </div>
+      <button class="dv-ic ${_dvPanel?'on':''}" onclick="dvPanel()" title="dashboard/filter">${_dvPanel?'▲':'⚙️'}</button>
     </div>
+    <div class="dv-dates">
+      ${dch2('all','सब')}${dch2('today','आज')}${dch2('tom','कल')}${dch2('yest','बीता कल')}${dch2('week','हफ़्ता')}${dch2('nweek','अगला हफ़्ता')}
+      <button class="dchip ${_dvDate.startsWith('d:')?'on':''}" onclick="dvDate('pick')">📅 ${_dvDate.startsWith('d:')?_dvDate.slice(2):'तारीख़'}</button>
+      <input type="date" id="dv-date-inp" style="display:none;background:#0d1526;border:1px solid #2a3d66;color:#e2e8f0;border-radius:8px;padding:4px;font-family:inherit;font-size:11px" onchange="dvDatePick(this.value)">
+    </div>
+    ${_dvPanel?`
     <div class="dv-tiles">
       <div class="dv-tile"><div class="n" style="color:#60a5fa">${rows.length}</div><div class="l">📅 काम</div></div>
       <div class="dv-tile" style="cursor:pointer" onclick="dvSeg('cal')"><div class="n" style="color:#f87171">${late.length}</div><div class="l">🔴 देर</div></div>
-      <div class="dv-tile"><div class="n" style="color:#4ade80">${doneToday}</div><div class="l">✅ आज पूरे</div></div>
+      <div class="dv-tile"><div class="n" style="color:#4ade80">${doneToday}</div><div class="l">✅ पूरे</div></div>
       <div class="dv-tile" style="cursor:pointer" onclick="openFocusDash()"><div class="n" style="color:#c084fc">${_focus.length}</div><div class="l">🎯 Focus</div></div>
-    </div>
-    <div class="dv-fires">
-      <span class="dv-fire" style="background:linear-gradient(120deg,#b91c1c,#f97316)">🚨 देर ${late.length}</span>
-      <span class="dv-fire" style="background:linear-gradient(120deg,#7c3aed,#a855f7)">🔥 अगले 30 मिनट ${in30}</span>
-      <span class="dv-fire" style="background:linear-gradient(120deg,#059669,#22c55e)">📞 अभी call ${callNow}</span>
-      <span class="dv-fire" style="background:linear-gradient(120deg,#b45309,#f59e0b)">⭐ VIP ${vip}</span>
-    </div>
-    <div class="dv-seg" style="margin-top:9px">
-      ${dch('all','सब दिन')}${dch('yest','बीता कल')}${dch('today','आज')}${dch('tom','कल')}${dch('week','यह हफ़्ता')}${dch('nweek','अगला हफ़्ता')}
-      <button class="sg ${_dvDate.startsWith('d:')?'on':''}" onclick="dvDate('pick')">📅 ${_dvDate.startsWith('d:')?_dvDate.slice(2):'तारीख़'}</button>
-      <input type="date" id="dv-date-inp" style="display:none;background:#0d1526;border:1px solid #2a3d66;color:#e2e8f0;border-radius:8px;padding:4px;font-family:inherit;font-size:11px" onchange="dvDatePick(this.value)">
-    </div>
-    <div class="dv-head">
-      <div class="dv-title">📅 मेरा दिन — ${rows.length} काम समय पर</div>
-      <button class="dv-reset" onclick="resetToday()">🧹 आज reset</button>
     </div>
     <div class="dv-seg">
       <button class="sg ${_dvSeg==='all'?'on':''}" onclick="dvSeg('all')">सब</button>
-      <button class="sg ${_dvSeg==='cal'?'on':''}" onclick="dvSeg('cal')">📅 Calendar वाले</button>
-      <button class="sg ${_dvSeg==='nocal'?'on':''}" onclick="dvSeg('nocal')">⏳ बिना Calendar</button>
+      <button class="sg ${_dvSeg==='cal'?'on':''}" onclick="dvSeg('cal')">📅 Calendar</button>
+      <button class="sg ${_dvSeg==='nocal'?'on':''}" onclick="dvSeg('nocal')">⏳ बिना</button>
       <button class="sg" onclick="dvZig()">${_dvZig?'📏 सीधा':'🐍 zigzag'}</button>
-      <button class="sg ${_dvAI?'on':''}" onclick="dvAI()">🤖 AI प्लान</button>
-      <span class="dv-score">✓${doneToday} आज पूरे${late.length?` · 🔴${late.length} देर`:''}</span>
+      <button class="sg ${_dvAI?'on':''}" onclick="dvAI()">🤖 प्लान</button>
+      <button class="sg" onclick="openFocusDash()">🎯 Focus</button>
+      <button class="sg" style="color:#fca5a5" onclick="resetToday()">🧹 reset</button>
     </div>
     ${aiSummaryPanel()}
-    ${_dvAI?aiPlanPanel():''}`;
+    ${_dvAI?aiPlanPanel():''}`:''}`;
   if(showCal&&late.length){
     h+=`<div class="dv-grp-h late">🔴 देर हो गई <span class="cnt">${late.length}</span></div><div class="dv-rail">`;
     late.forEach(r=>h+=dayCard(r,true));
@@ -2761,7 +2776,8 @@ function dayCard(r,isLate){
     const pend=normTopics(c).map((x,i)=>({...x,_i:i})).filter(x=>!x.done);
     const dur=Number(c.durationMins)>0?Number(c.durationMins):15;
     const okS=c.calSynced===true&&c.calEventFor===c.nextCallAt;
-    return `<div class="dvc ${isLate?'late':''}" style="--c:${col}" onclick="openSmartPop('${c.id}')">
+    const stc=isLate?'':(r.t-now<=3600000?'st-soon':(r.t-now<=6*3600000?'st-up':'st-far'));
+    return `<div class="dvc ${isLate?'late':''} ${stc}" style="--c:${col}" onclick="openSmartPop('${c.id}')">
       <span class="dot"></span>
       <div class="dvc-top">
         <div class="dv-tm"><div class="t1">${dvTime(d)}</div><div class="t2">${dvPart(d)}</div><div class="dur">${dur} मिनट</div></div>
@@ -2781,13 +2797,10 @@ function dayCard(r,isLate){
       <div class="dvc-foot" onclick="event.stopPropagation()">
         <span class="dv-cd" data-t="${r.t}"></span>${sync(okS)}
         <span style="flex:1"></span>
-        <button class="dv-btn snz" onclick="dvSnooze('${c.id}',15)">+15m</button>
-        <button class="dv-btn snz" onclick="dvSnooze('${c.id}',30)">+30m</button>
-        <button class="dv-btn snz" onclick="dvSnooze('${c.id}',60)">+1h</button>
-        <button class="dv-btn" onclick="openSchedPick('c','${c.id}')">📆 कल/बदलो</button>
         ${ph?`<button class="dv-btn call" onclick="location.href='tel:+91${ph}'">📞</button>`:''}
         ${waN?`<button class="dv-btn call" onclick="openWA('${c.id}')">💬</button>`:''}
-        <button class="dv-btn rm" onclick="dvClear('${c.id}')" title="सिर्फ़ Calendar से हटेगा — काम बना रहेगा">🔕</button>
+        <button class="dv-btn snz" onclick="dvSnooze('${c.id}',30)">+30m</button>
+        <button class="dv-btn" onclick="openSchedPick('c','${c.id}')">📆</button>
       </div>
     </div>`;
   }
@@ -2814,12 +2827,9 @@ function dayCard(r,isLate){
     <div class="dvc-foot" onclick="event.stopPropagation()">
       <span class="dv-cd" data-t="${r.t}"></span>${sync(okS)}
       <span style="flex:1"></span>
-      <button class="dv-btn snz" onclick="dvSnoozeTG('${c.id}',[${idxs}],15)">+15m</button>
-      <button class="dv-btn snz" onclick="dvSnoozeTG('${c.id}',[${idxs}],30)">+30m</button>
-      <button class="dv-btn snz" onclick="dvSnoozeTG('${c.id}',[${idxs}],60)">+1h</button>
       ${ph?`<button class="dv-btn call" onclick="location.href='tel:+91${ph}'">📞</button>`:''}
       ${waN?`<button class="dv-btn call" onclick="openWA('${c.id}')">💬</button>`:''}
-      <button class="dv-btn rm" onclick="dvClearTG('${c.id}',[${idxs}])" title="सिर्फ़ Calendar से — काम बने रहेंगे">🔕</button>
+      <button class="dv-btn snz" onclick="dvSnoozeTG('${c.id}',[${idxs}],30)">+30m</button>
     </div>
   </div>`;
 }

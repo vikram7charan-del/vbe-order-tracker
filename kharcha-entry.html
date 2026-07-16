@@ -192,15 +192,16 @@ h2.sec-title{font-size:14px;font-weight:900;color:#1e293b;margin-bottom:10px}
   </div>
 
   <!-- AI settings -->
-  <div class="card">
-    <details>
-      <summary style="font-size:12px;font-weight:800;color:#475569;cursor:pointer">⚙️ AI Settings (एक बार setup)</summary>
+  <div class="card" id="ai-settings-card">
+    <details id="ai-settings">
+      <summary style="font-size:14px;font-weight:900;color:#7c3aed;cursor:pointer">🔑 AI की चाबी यहाँ डालो (एक बार setup)</summary>
       <div style="margin-top:10px">
-        <div class="sec"><label class="lbl">Cloud Function Proxy URL (recommended)</label>
-          <input class="inp" id="set-proxy" placeholder="https://...cloudfunctions.net/aiBillExtract" style="font-size:12px"></div>
-        <div class="sec"><label class="lbl">या Anthropic API Key (Admin सेव करे तो हर फ़ोन पर अपने-आप चलती है)</label>
+        <div class="sec"><label class="lbl">Anthropic API Key — Admin एक बार सेव करे, हर फ़ोन पर अपने-आप चलेगी</label>
           <input class="inp" id="set-key" type="password" placeholder="sk-ant-..." style="font-size:12px"></div>
-        <button class="btn btn-ghost" onclick="saveAiSettings()">Save Settings</button>
+        <button class="btn" onclick="saveAiSettings()">💾 चाबी सेव करो</button>
+        <div class="mini" style="margin-top:8px">key कहाँ से मिलेगी: <b>console.anthropic.com</b> → API Keys → Create Key → copy करके ऊपर paste।</div>
+        <details style="margin-top:10px"><summary style="font-size:11px;color:#94a3b8;cursor:pointer">advanced: Cloud Function Proxy URL</summary>
+          <input class="inp" id="set-proxy" placeholder="https://...cloudfunctions.net/aiBillExtract" style="font-size:12px;margin-top:6px"></details>
       </div>
     </details>
   </div>
@@ -650,9 +651,21 @@ function aiConfigured(){
 // फोटो card पर AI की हालत पहले से दिखाओ — photo खींचने के बाद surprise नहीं
 function showAiState(){
   const st=document.getElementById('auto-status'); if(!st) return;
-  if(aiConfigured()){ st.innerHTML='🟢 AI तैयार है — फोटो लो, नाम-रेट-GST सब AI भरेगा'; st.style.color='#059669'; }
-  else{ st.innerHTML='🔴 AI की चाबी अभी नहीं लगी — नीचे <b>⚙️ AI Settings</b> में API key एक बार डालो (सेव करते ही <b>हर फ़ोन</b> पर चल जाएगी)'; st.style.color='#b91c1c'; }
+  if(aiConfigured()){ st.innerHTML='🟢 AI तैयार है — फोटो लो, नाम-रेट-GST सब AI भरेगा'; st.style.color='#059669'; st.onclick=null; st.style.cursor=''; }
+  else{
+    st.innerHTML='🔴 AI की चाबी नहीं लगी — <u><b>यहाँ tap करो</b></u>, box खुल जाएगा (एक बार डालो, हर फ़ोन पर चलेगी)';
+    st.style.color='#b91c1c'; st.style.cursor='pointer';
+    st.onclick=openAiSettings;
+  }
 }
+// लाल संदेश पर tap → settings box अपने-आप खुले और सामने आ जाए
+window.openAiSettings=function(){
+  const d=document.getElementById('ai-settings'); if(d) d.open=true;
+  const card=document.getElementById('ai-settings-card');
+  if(card){ card.scrollIntoView({behavior:'smooth', block:'center'});
+    card.style.boxShadow='0 0 0 3px #a855f7'; setTimeout(()=>{card.style.boxShadow='';},2500); }
+  setTimeout(()=>{ document.getElementById('set-key')?.focus(); }, 600);
+};
 // Google/API के अंग्रेज़ी errors → मालिक की भाषा में
 function aiErrHindi(e){
   const s=String(e&&e.message||e);

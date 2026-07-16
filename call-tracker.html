@@ -3097,6 +3097,33 @@ function aicRuleAnswer(q){
   const today=_dayKeyN(now), yest=_dayKeyN(now-864e5);
   const tasks=_allTasks();
   const has=(...w)=>w.some(x=>ql.includes(x));
+  // 🎯 FOCUS MODE — सबसे ऊँची प्राथमिकता: "focus" शब्द आया तो सिर्फ़ focus-database से जवाब,
+  // लेट/पेंडिंग सूची से कभी नहीं (FMIE नियम)
+  if(has('focus','फोकस','फ़ोकस','फॉक्स','फोक्स')){
+    const F=Array.isArray(_focus)?_focus.slice():[];
+    const ownName={v:'विक्रम',d:'दिनेश',k:'कैलाश'};
+    let own=null;
+    if(has('विक्रम','मेरे','मेरा','मेरी','my')) own='v';
+    else if(has('दिनेश')) own='d';
+    else if(has('कैलाश')) own='k';
+    const items=(own?F.filter(f=>(f.own||'v')===own):F);
+    if(!items.length) return own
+      ? `${ownName[own]} के नाम पर अभी कोई काम Focus Mode में नहीं है।${F.length?` (कुल ${F.length} focus दूसरों के नाम पर हैं)`:''}\nकिसी काम पर 🎯 दबाकर focus शुरू करें।`
+      : `अभी कोई भी काम Focus Mode में नहीं है।\nकिसी काम पर 🎯 दबाकर 15-min घड़ी शुरू करें।`;
+    // क्रम: पहले लेट (सबसे पुराना पहले), फिर जिनका समय जल्दी पूरा होगा
+    items.sort((a,b)=>{ const la=a.until-now, lb=b.until-now; const oa=la<=0?0:1, ob=lb<=0?0:1; return oa-ob || (oa===0? a.until-b.until : a.until-b.until); });
+    const mmss=ms=>{ const m=Math.floor(Math.abs(ms)/60000), s=Math.floor((Math.abs(ms)%60000)/1000); return m+' min '+s+'s'; };
+    const out=[`🎯 Focus Mode में ${items.length} काम${own?' — '+ownName[own]:''}:`];
+    let lateN=0;
+    items.forEach((f,i)=>{
+      const left=f.until-now; if(left<=0) lateN++;
+      const c=contacts.find(x=>x.id===f.id);
+      out.push(`${i+1}. ${own?'':ownName[f.own||'v']+' — '}${f.t}${c&&c.name?' ('+c.name+')':''}`);
+      out.push(`    ${left<=0?'🔴 '+mmss(left)+' लेट':'⏳ '+mmss(left)+' बाकी'} · ${f.mins||15} min घड़ी · शुरू ${_dmy(new Date(f.start||now).toISOString(),true)}`);
+    });
+    out.push(lateN?`\n👉 पहले #1 निपटाओ — वो सबसे ज़्यादा लेट है। पूरा करते ही अगला focus अपने-आप ऊपर आएगा।`:`\n👉 #1 से क्रम में चलो — सबका समय अभी बाकी है।`);
+    return out.join('\n');
+  }
   // 🔒 Backup — "backup लो/दो" → पूरा data JSON फ़ाइल में download
   if(has('backup','बैकअप','बैक अप','बैक-अप')){
     try{

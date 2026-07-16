@@ -3574,6 +3574,12 @@ function aicAssistant(){
     <div id="asst-live" style="min-height:20px;font-size:12.5px;font-weight:800;color:#fcd34d;margin-top:6px"></div>
     <div style="font-size:10.5px;color:#8b9bbb;margin-top:3px">जैसे: "नवीन भाई को बोल दो दो प्रिंटर मंगवा दे, फोकस में डाल दो"</div>
     <button class="aic-act" style="margin-top:11px" onclick="try{_asstRec&&_asstRec.stop()}catch(e){}">⏹ बस, इतना ही</button>
+    <div style="display:flex;gap:7px;margin-top:13px;align-items:center">
+      <input class="inp" id="asst-inp" placeholder="⌨️ या यहाँ दबाकर keyboard के 🎤 से बोलो" style="flex:1;font-size:13px"
+             onkeydown="if(event.key==='Enter')asstManual()">
+      <button class="aic-send" onclick="asstManual()" title="भेजो">➤</button>
+    </div>
+    <div style="font-size:9.5px;color:#7d8db0;margin-top:5px;text-align:left">👆 ऊपर पीले अक्षर न आएँ तो इस खाने में keyboard का 🎤 दबाकर बोलो — 100% चलता है, आगे AI वही काम करेगा</div>
   </div>`;
   const orb=document.getElementById('ai-orb'); orb&&orb.classList.add('thinking');
   try{ _asstRec&&_asstRec.stop(); }catch(e){}
@@ -3754,6 +3760,15 @@ window.asstUndoNow=function(){
   render();
   const rp=document.getElementById('aic-resp'); if(rp) rp.innerHTML='↩️ हटा दिया — सब जैसा था वैसा।';
   toast('↩️ Undo हो गया');
+};
+/* ⌨️/Gboard-mic रास्ता — खाने में जो आया (बोला/लिखा), उसी से आगे की पूरी AI-कार्रवाई */
+window.asstManual=function(){
+  const el=document.getElementById('asst-inp');
+  const v=((el&&el.value)||'').trim();
+  if(!v){ toast('कुछ बोलो या लिखो 🙂','warn'); return; }
+  try{ _asstRec&&_asstRec.stop(); }catch(e){}
+  _asstRec=null;
+  _asstProcess(v);
 };
 window.asstEdit=function(){
   const d=window._asstData; closeAiComp();

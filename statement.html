@@ -153,7 +153,7 @@ document.querySelectorAll('.v2nav a[data-p]').forEach(function(a){if(a.getAttrib
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, initializeFirestore, persistentLocalCache, collection, doc, getDoc, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getFirestore, initializeFirestore, persistentLocalCache, collection, doc, getDoc, getDocs, query, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 const FB_CFG = {
   apiKey:'AIzaSyBCe5DKNKcthOl4umprfRm2QBfbVaFORg8',
@@ -192,8 +192,8 @@ onAuthStateChanged(auth, async u=>{
 async function loadAll(){
   const [accSnap, exSnap, rcSnap] = await Promise.all([
     getDocs(collection(db,'vbe_payment_accounts')).catch(()=>({forEach:()=>{}})),
-    getDocs(collection(db,'vbe_expenses')).catch(()=>({forEach:()=>{}})),
-    getDocs(collection(db,'vbe_receipts')).catch(()=>({forEach:()=>{}}))
+    getDocs(query(collection(db,'vbe_expenses'), orderBy('date','desc'), limit(1500))).catch(()=>({forEach:()=>{}})),
+    getDocs(query(collection(db,'vbe_receipts'), orderBy('date','desc'), limit(1500))).catch(()=>({forEach:()=>{}}))
   ]);
   ACCOUNTS=[]; accSnap.forEach(d=>ACCOUNTS.push(d.data()));
   ACCOUNTS.sort((a,b)=>(a.order??99)-(b.order??99));

@@ -5567,7 +5567,8 @@ function renderFilterBar(){
 /* हर chip का HTML — token के हिसाब से; क्रम settings.filterOrder से */
 function filterItems(){
   const m={
-    'mic':`<div class="f-chip fc-mic" onclick="openAiAdd()" title="बोलकर काम जोड़ें">🎙️ बोलो</div>`,
+    'asst':`<div class="f-chip fc-mic" onclick="aicAssistant()" style="border-color:rgba(168,85,247,.7);background:linear-gradient(150deg,rgba(88,28,135,.55),rgba(30,10,60,.55));color:#e9d5ff" title="🧞 बोलकर काम — बोलते ही अपने-आप समझकर जोड़ देगा">🧞 बोलो-काम</div>`,
+    'mic':`<div class="f-chip fc-mic" onclick="openAiAdd()" title="बोलकर काम जोड़ें (form के साथ)">🎙️ बोलो</div>`,
     'day':`<div class="f-chip fc-day" id="fc-day" onclick="gotoDay()" title="📅 मेरा दिन">📅 दिन</div>`,
     'add':`<div class="f-chip fc-add" onclick="openAddModal()" title="नया contact/काम">➕ नया</div>`,
     'srch':`<div class="f-chip" onclick="fbSearchOpen()" title="🔍 नाम/नंबर खोजें">🔍</div>`,
@@ -5580,7 +5581,7 @@ function filterItems(){
   return m;
 }
 function defaultOrder(){
-  return ['mic','day','add','srch','fdash','all',...TAG_LIST.map(t=>'t:'+t.k),...TASK_CATS.map(tc=>'c:'+tc.k),'arch'];
+  return ['asst','mic','day','add','srch','fdash','all',...TAG_LIST.map(t=>'t:'+t.k),...TASK_CATS.map(tc=>'c:'+tc.k),'arch'];
 }
 function orderedTokens(){
   const def=defaultOrder();
@@ -5593,7 +5594,7 @@ window.fbSearchOpen=function(){
   setTimeout(()=>{ const e=document.getElementById('search-inp'); if(e){ e.focus(); e.scrollIntoView({block:'center'}); } },100);
 };
 function tokLabel(tok){
-  if(tok==='mic')return '🎙️ बोलो'; if(tok==='srch')return '🔍 खोज'; if(tok==='day')return '📅 दिन'; if(tok==='add')return '➕ नया';
+  if(tok==='asst')return '🧞 बोलो-काम'; if(tok==='mic')return '🎙️ बोलो'; if(tok==='srch')return '🔍 खोज'; if(tok==='day')return '📅 दिन'; if(tok==='add')return '➕ नया';
   if(tok==='fdash')return '🎯 Focus dash'; if(tok==='all')return '🔍 सब'; if(tok==='arch')return '📦 बंद';
   if(tok.startsWith('t:')){ const t=TAG_LIST.find(x=>x.k===tok.slice(2)); return t?t.label:tok; }
   if(tok.startsWith('c:')){ const t=TASK_CATS.find(x=>x.k===tok.slice(2)); return t?t.logo+' '+t.label:tok; }

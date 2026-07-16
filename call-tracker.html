@@ -507,6 +507,62 @@ body.anim-off #bgfx{display:none}
 .as-lv.on{border-color:var(--acc,#a855f7);color:#fff;background:linear-gradient(140deg,color-mix(in srgb,var(--acc,#a855f7) 55%,#12203f),#12203f)}
 .as-close{width:100%;margin-top:16px;padding:12px;border-radius:13px;border:none;cursor:pointer;font-family:inherit;font-size:13px;font-weight:900;
   color:#fff;background:linear-gradient(135deg,var(--acc,#7c3aed),var(--acc2,#a855f7));box-shadow:0 8px 20px -8px var(--acc,#a855f7)}
+/* ══ 🤖 AI साथी — living orb + companion sheet ══ */
+#ai-orb{position:fixed;right:14px;bottom:84px;z-index:180;width:58px;height:58px;border-radius:50%;cursor:pointer;border:none;padding:0;
+  background:radial-gradient(circle at 36% 30%,color-mix(in srgb,var(--acc) 88%,#fff),var(--acc) 46%,color-mix(in srgb,var(--acc) 52%,#000));
+  box-shadow:0 12px 28px -8px color-mix(in srgb,var(--acc) 85%,transparent),0 3px 10px rgba(0,0,0,.55),inset 0 2px 6px rgba(255,255,255,.5),inset 0 -7px 13px rgba(0,0,0,.45);
+  display:flex;align-items:center;justify-content:center;overflow:visible;-webkit-tap-highlight-color:transparent}
+body:not(.anim-off) #ai-orb{animation:orbFloat 4.2s ease-in-out infinite}
+#ai-orb::before{content:'';position:absolute;inset:7px;border-radius:50%;pointer-events:none;
+  background:conic-gradient(from 0deg,color-mix(in srgb,var(--acc2) 85%,#fff),transparent 30%,var(--acc) 55%,transparent 78%,color-mix(in srgb,var(--acc2) 85%,#fff));
+  filter:blur(3px);opacity:.7}
+body:not(.anim-off) #ai-orb::before{animation:orbSwirl 3.6s linear infinite}
+#ai-orb::after{content:'';position:absolute;inset:-4px;border-radius:50%;pointer-events:none;box-shadow:0 0 0 0 color-mix(in srgb,var(--acc) 55%,transparent)}
+body:not(.anim-off) #ai-orb::after{animation:orbHalo 2.8s ease-out infinite}
+#ai-orb .orb-core{position:relative;z-index:1;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff,color-mix(in srgb,var(--acc2) 70%,#fff) 70%);box-shadow:0 0 10px rgba(255,255,255,.85)}
+body:not(.anim-off) #ai-orb .orb-core{animation:orbCore 2.2s ease-in-out infinite}
+#ai-orb.thinking::before{animation-duration:.7s}
+#ai-orb.thinking .orb-core{animation:orbThink .6s ease-in-out infinite}
+#ai-orb.alert{box-shadow:0 12px 28px -8px rgba(239,68,68,.8),0 3px 10px rgba(0,0,0,.55),inset 0 2px 6px rgba(255,255,255,.5),inset 0 -7px 13px rgba(0,0,0,.45)}
+.orb-badge{position:absolute;top:-3px;right:-3px;z-index:2;min-width:20px;height:20px;padding:0 5px;border-radius:11px;background:linear-gradient(140deg,#ef4444,#f97316);color:#fff;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;border:2px solid #060d1a;box-shadow:0 2px 6px rgba(0,0,0,.5)}
+@keyframes orbFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes orbSwirl{to{transform:rotate(360deg)}}
+@keyframes orbHalo{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--acc) 55%,transparent)}70%,100%{box-shadow:0 0 0 16px rgba(0,0,0,0)}}
+@keyframes orbCore{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.35);opacity:.8}}
+@keyframes orbThink{0%,100%{transform:scale(.7)}50%{transform:scale(1.5)}}
+#ai-comp{position:fixed;inset:0;z-index:390;display:none;align-items:flex-end;justify-content:center;background:rgba(3,6,14,.66);backdrop-filter:blur(6px) saturate(1.1);-webkit-backdrop-filter:blur(6px) saturate(1.1)}
+#ai-comp.on{display:flex;animation:fadeIn .25s ease}
+.aic-panel{position:relative;width:100%;max-width:480px;background:linear-gradient(180deg,rgba(18,28,50,.97) 0%,rgba(8,13,26,.98) 100%);
+  border:1px solid rgba(125,152,214,.22);border-bottom:none;border-radius:26px 26px 0 0;
+  box-shadow:0 -22px 60px -22px rgba(0,0,0,.95),inset 0 1.5px 0 rgba(255,255,255,.09);
+  padding:20px 15px calc(20px + env(safe-area-inset-bottom));max-height:88vh;overflow-y:auto;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.aic-panel::before{content:'';position:absolute;top:9px;left:50%;transform:translateX(-50%);width:42px;height:4px;border-radius:3px;background:rgba(255,255,255,.22)}
+.aic-head{display:flex;align-items:center;gap:11px;margin:6px 0 14px}
+.aic-orb{flex-shrink:0;width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative;
+  background:radial-gradient(circle at 36% 30%,color-mix(in srgb,var(--acc) 88%,#fff),var(--acc) 46%,color-mix(in srgb,var(--acc) 52%,#000));
+  box-shadow:0 6px 16px -5px color-mix(in srgb,var(--acc) 80%,transparent),inset 0 2px 5px rgba(255,255,255,.5)}
+.aic-orb .orb-core{width:11px;height:11px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff,color-mix(in srgb,var(--acc2) 70%,#fff) 70%);box-shadow:0 0 8px rgba(255,255,255,.85)}
+body:not(.anim-off) .aic-orb .orb-core{animation:orbCore 2.2s ease-in-out infinite}
+.aic-hi{font-size:15px;font-weight:900;color:#f1f5ff;line-height:1.25;letter-spacing:.2px}
+.aic-sub{font-size:10.5px;color:#8b9bbb;font-weight:700;margin-top:2px}
+.aic-sec{font-size:10.5px;font-weight:900;color:#9fb2d8;letter-spacing:.4px;text-transform:uppercase;margin:14px 2px 9px}
+.aic-resp{background:linear-gradient(160deg,color-mix(in srgb,var(--acc) 16%,#0c1428),#0a1120);border:1px solid color-mix(in srgb,var(--acc) 32%,transparent);border-radius:15px;padding:13px 14px;font-size:13.5px;line-height:1.7;color:#eaf0ff;white-space:pre-wrap;margin-bottom:6px;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+.aic-resp .cur{display:inline-block;width:7px;height:15px;background:var(--acc);vertical-align:-2px;border-radius:1px;animation:aiPulse .8s infinite}
+.aic-sug-item{display:flex;align-items:center;gap:10px;background:linear-gradient(160deg,rgba(24,34,60,.6),rgba(9,14,28,.6));border:1px solid rgba(125,152,214,.18);border-radius:13px;padding:11px 13px;margin-bottom:8px;cursor:pointer;transition:transform .14s cubic-bezier(.2,.9,.3,1.4),border-color .2s;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.aic-sug-item:active{transform:scale(.97)}
+.aic-sug-item .ico{font-size:19px;flex-shrink:0;width:26px;text-align:center}
+.aic-sug-item .tx{flex:1;min-width:0}
+.aic-sug-item .t1{font-size:13px;font-weight:800;color:#e6ecfb;line-height:1.3}
+.aic-sug-item .t2{font-size:10px;color:#8b9bbb;font-weight:700;margin-top:1px}
+.aic-sug-item .go{font-size:15px;color:color-mix(in srgb,var(--acc) 85%,#fff);flex-shrink:0}
+.aic-askrow{display:flex;gap:7px;align-items:flex-end;margin-top:4px}
+.aic-q{flex:1;min-width:0;resize:none;font-family:inherit;font-size:13px;color:#eaf0ff;background:rgba(8,13,26,.7);border:1px solid rgba(125,152,214,.24);border-radius:13px;padding:11px 12px;line-height:1.4;max-height:110px}
+.aic-q:focus{outline:none;border-color:color-mix(in srgb,var(--acc) 60%,transparent)}
+.aic-mic,.aic-send{flex-shrink:0;width:44px;height:44px;border:none;border-radius:13px;cursor:pointer;font-family:inherit;font-size:18px;color:#fff;touch-action:manipulation;transition:transform .14s}
+.aic-mic{background:linear-gradient(150deg,#1e293b,#0f1a2e);border:1px solid rgba(125,152,214,.24)}
+.aic-mic.rec{background:#dc2626;animation:aiPulse 1s infinite}
+.aic-send{background:linear-gradient(135deg,var(--acc),var(--acc2));box-shadow:0 6px 16px -6px var(--acc)}
+.aic-mic:active,.aic-send:active{transform:scale(.9)}
 /* ══ ✨ ANIMATION ENGINE — मेन्यू से off/soft/premium/max ══ */
 :root{--an:1}                              /* animation strength multiplier */
 body.anim-off{--an:0}
@@ -940,6 +996,35 @@ body.hdr-folded .hdr-row2{display:none}
 
   <!-- Contact Cards -->
   <div id="card-list"></div>
+
+  <!-- 🤖 AI साथी — जीता-जागता AI orb -->
+  <button id="ai-orb" onclick="openAiComp()" title="🤖 विक्रम भाई का AI साथी" aria-label="AI साथी">
+    <span class="orb-core"></span>
+    <span class="orb-badge" id="orb-badge" style="display:none">0</span>
+  </button>
+</div>
+
+<!-- 🤖 AI साथी panel -->
+<div id="ai-comp" onclick="if(event.target===this)closeAiComp()">
+  <div class="aic-panel">
+    <div class="aic-head">
+      <span class="aic-orb"><span class="orb-core"></span></span>
+      <div style="flex:1;min-width:0">
+        <div class="aic-hi" id="aic-hi">राम राम विक्रम भाई 🙏</div>
+        <div class="aic-sub" id="aic-sub">आपका AI साथी — पूछो या नीचे से चुनो</div>
+      </div>
+      <span class="modal-x" onclick="closeAiComp()" style="align-self:flex-start">✕</span>
+    </div>
+    <div id="aic-resp" class="aic-resp" style="display:none"></div>
+    <div class="aic-sec">💡 अभी के सुझाव</div>
+    <div id="aic-sug"></div>
+    <div class="aic-sec">🎤 कुछ भी पूछो</div>
+    <div class="aic-askrow">
+      <textarea id="aic-q" class="aic-q" rows="1" placeholder="जैसे: आज किसको पहले call करूँ? कितने काम लेट हैं?"></textarea>
+      <button class="aic-mic" id="aic-mic" onclick="aicVoice()" title="बोलकर पूछो">🎙️</button>
+      <button class="aic-send" onclick="aicAsk()" title="पूछो">➤</button>
+    </div>
+  </div>
 </div>
 
 <!-- ══ ADD / EDIT MODAL ══ -->
@@ -1525,6 +1610,7 @@ function render(){
   const cl=document.getElementById('card-list');
   if(cl) cl.classList.toggle('no-anim',!_animNext);
   renderStrip(list); renderCards(list); renderStats(list); updateHdrSub();
+  if(typeof aiOrbUpdate==='function') aiOrbUpdate();
   if(hubOpenNow()) renderHub();
   _animNext=false;
   // Hidden count बदला (10 min बाद वापस आए) तो filter bar refresh
@@ -2668,6 +2754,114 @@ ${tasks.map((t,i)=>(i+1)+'. '+t).join('\n')}
 - भाषा हर बार अलग-अलग हो — कभी शुद्ध हिंदी, कभी हल्की मारवाड़ी मिठास, कभी थोड़ी Hinglish; robot जैसा template कभी नहीं
 - थोड़े emoji ठीक, ज़्यादा नहीं। सिर्फ़ message लिखो — कोई heading/explanation नहीं।`;
 }
+
+/* ══════════ 🤖 AI साथी — living companion ══════════
+   local आँकड़ों से खुद सुझाव देता है (मुफ़्त), और पूछने पर Claude से जवाब
+   (token — askPinAI से सुरक्षित)। orb हमेशा जीवंत — लेट काम हों तो लाल badge। */
+function aicStats(){
+  const now=Date.now();
+  let late=0, callsDue=0, todayN=0, doneN=0; const lateNames=[], dueNames=[];
+  const tk0=new Date(); tk0.setHours(0,0,0,0); const tkk=tk0.getTime();
+  const te=tkk+864e5;
+  contacts.forEach(c=>{
+    if(c.active===false) return;
+    const tps=normTopics(c); const undone=tps.filter(x=>!x.done);
+    if(c.nextCallAt){ const t=new Date(c.nextCallAt).getTime();
+      if(!isNaN(t)){ if(t<=now && undone.length){ callsDue++; dueNames.push(c.name||'?'); } if(t>=tkk&&t<te) todayN++; } }
+    let isLate=false;
+    if(c.nextCallAt){ const t=new Date(c.nextCallAt).getTime(); if(!isNaN(t)&&t<now&&undone.length) isLate=true; }
+    undone.forEach(x=>{ if(x.at){ const t=new Date(x.at).getTime(); if(!isNaN(t)){ if(t<now) isLate=true; if(t>=tkk&&t<te) todayN++; } } });
+    if(isLate){ late++; lateNames.push(c.name||'?'); }
+    tps.forEach(x=>{ if(x.done&&x.doneAt&&new Date(x.doneAt).getTime()>=tkk) doneN++; });
+  });
+  return {late,callsDue,todayN,doneN,lateNames,dueNames};
+}
+function aiOrbUpdate(){
+  const orb=document.getElementById('ai-orb'), b=document.getElementById('orb-badge'); if(!orb||!b) return;
+  const s=aicStats(); const n=s.late;
+  if(n>0){ b.style.display='flex'; b.textContent=n>99?'99+':n; orb.classList.add('alert'); }
+  else { b.style.display='none'; orb.classList.remove('alert'); }
+}
+function aicGreeting(){
+  const h=Number(new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Kolkata',hour:'numeric',hour12:false}).format(new Date()));
+  if(h<5) return 'देर रात तक जागे हैं विक्रम भाई 🌙';
+  if(h<11) return 'राम राम विक्रम भाई 🌅';
+  if(h<16) return 'शुभ दोपहर विक्रम भाई ☀️';
+  if(h<19) return 'शुभ संध्या विक्रम भाई 🌆';
+  return 'शुभ रात्रि विक्रम भाई 🌙';
+}
+function aicSuggests(){
+  const s=aicStats(); const out=[];
+  if(s.late>0) out.push({ico:'🔴',t1:`${s.late} काम लेट चल रहे हैं`,t2:s.lateNames.slice(0,3).join(', ')+(s.late>3?` +${s.late-3}`:''),act:'day'});
+  if(s.callsDue>0) out.push({ico:'📞',t1:`${s.callsDue} call अभी करनी हैं`,t2:s.dueNames.slice(0,3).join(', ')+(s.callsDue>3?` +${s.callsDue-3}`:''),act:'day'});
+  out.push({ico:'📊',t1:'आज का पूरा हिसाब — AI सार',t2:`आज ${s.todayN} काम · ${s.doneN} पूरे`,act:'summary'});
+  out.push({ico:'🗓️',t1:'दिन का प्लान बनवाओ',t2:'बीते छूटे + आज + आगे 7 दिन',act:'plan'});
+  out.push({ico:'✨',t1:'किसी को WhatsApp लिखवाओ',t2:'विक्रम-अंदाज़ में, अपने आप',act:'wa'});
+  return out;
+}
+window.openAiComp=function(){
+  document.getElementById('aic-hi').textContent=aicGreeting();
+  const s=aicStats();
+  document.getElementById('aic-sub').textContent = s.late>0 ? `${s.late} काम ध्यान माँग रहे हैं 🙏` : (s.callsDue>0?`${s.callsDue} call बाकी हैं`:'सब काबू में है — बढ़िया! 👍');
+  const sug=document.getElementById('aic-sug');
+  sug.innerHTML=aicSuggests().map(x=>`<div class="aic-sug-item" onclick="aicDo('${x.act}')"><span class="ico">${x.ico}</span><span class="tx"><div class="t1">${escH(x.t1)}</div><div class="t2">${escH(x.t2)}</div></span><span class="go">›</span></div>`).join('');
+  const rp=document.getElementById('aic-resp'); rp.style.display='none'; rp.textContent='';
+  document.getElementById('ai-comp').classList.add('on');
+};
+window.closeAiComp=function(){ document.getElementById('ai-comp').classList.remove('on'); const m=document.getElementById('aic-mic'); if(m)m.classList.remove('rec'); try{ _aicRec&&_aicRec.stop(); }catch(e){} };
+window.aicDo=function(act){
+  if(act==='day'){ closeAiComp(); if(_view!=='day') gotoDay(); toast('📅 समय-रेखा पर देखो — लेट काम ऊपर'); return; }
+  if(act==='summary'){ closeAiComp(); if(_view!=='day') gotoDay(); _dvAI=false; setTimeout(()=>{ try{ genDaySummary(); }catch(e){} },250); toast('🤖 AI सार बन रहा है...'); return; }
+  if(act==='plan'){ closeAiComp(); if(_view!=='day') gotoDay(); _dvAI=true; render(); setTimeout(()=>{ try{ window.genDayPlan(); }catch(e){} },250); toast('🤖 दिन का प्लान बन रहा है...'); return; }
+  if(act==='wa'){ closeAiComp(); openBroadcast(); return; }
+};
+async function _aicRun(q){
+  const rp=document.getElementById('aic-resp'); const orb=document.getElementById('ai-orb');
+  if(!aiKey()){ rp.style.display='block'; rp.textContent='⚠️ पहले ⚙️ से Anthropic AI key डालें — तभी मैं जवाब दे पाऊँगा।'; return; }
+  if(!askPinAI()) return;
+  rp.style.display='block'; rp.innerHTML='<span style="color:#8b9bbb">सोच रहा हूँ…</span> <span class="cur"></span>';
+  orb&&orb.classList.add('thinking');
+  const s=aicStats();
+  const ctx=`तुम विक्रम चारण (Vande Bharat Enterprises, जालीपा कैंट, बाड़मेर — army supply) के निजी AI साथी हो। छोटा, सीधा, गर्मजोशी वाला हिंदी जवाब दो (4-7 पंक्तियाँ, ज़रूरत हो तो बुलेट)। सलाह practical हो।
+आज के आँकड़े: कुल आज ${s.todayN} काम, लेट ${s.late}, पूरे ${s.doneN}, call बाकी ${s.callsDue}।
+लेट काम: ${s.lateNames.slice(0,8).join(', ')||'कोई नहीं'}।
+call बाकी: ${s.dueNames.slice(0,8).join(', ')||'कोई नहीं'}।
+
+विक्रम भाई का सवाल: ${q}`;
+  try{
+    const ans=await aiAsk(ctx,700);
+    _aicType(rp,ans);
+  }catch(e){
+    rp.textContent = e.message==='no-key' ? '⚠️ AI key नहीं मिली — ⚙️ से डालें।' : '⚠️ अभी जवाब नहीं ला पाया — net/key देखें और दोबारा पूछें।';
+  } finally{ orb&&orb.classList.remove('thinking'); }
+}
+function _aicType(el,txt){
+  el.textContent=''; let i=0; const cur=document.createElement('span'); cur.className='cur';
+  el.appendChild(cur);
+  clearInterval(el._ti);
+  el._ti=setInterval(()=>{
+    i+=2; el.textContent=txt.slice(0,i); el.appendChild(cur);
+    if(i>=txt.length){ clearInterval(el._ti); cur.remove(); }
+  },14);
+}
+window.aicAsk=function(){
+  const q=(document.getElementById('aic-q').value||'').trim();
+  if(!q){ toast('कुछ पूछो तो सही 🙂','warn'); return; }
+  _aicRun(q);
+};
+let _aicRec=null;
+window.aicVoice=function(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const mic=document.getElementById('aic-mic');
+  if(!SR){ toast('इस फ़ोन में बोलकर पूछना नहीं चलता — टाइप करो','warn'); return; }
+  if(_aicRec){ try{_aicRec.stop();}catch(e){} _aicRec=null; mic.classList.remove('rec'); return; }
+  const r=new SR(); _aicRec=r; r.lang='hi-IN'; r.interimResults=false; r.maxAlternatives=1;
+  mic.classList.add('rec'); toast('🎙️ बोलिए…');
+  r.onresult=(e)=>{ const t=e.results[0][0].transcript; document.getElementById('aic-q').value=t; };
+  r.onerror=()=>{ toast('सुन नहीं पाया — दोबारा','warn'); };
+  r.onend=()=>{ mic.classList.remove('rec'); _aicRec=null; const q=(document.getElementById('aic-q').value||'').trim(); if(q) _aicRun(q); };
+  try{ r.start(); }catch(e){ mic.classList.remove('rec'); _aicRec=null; }
+};
 
 /* सौंपा काम ⬆️ मुख्य कामों में — फिर calendar/श्रेणी सब लग सकता है */
 window.spPromoteAsg=function(srcId,i){

@@ -151,7 +151,7 @@ document.querySelectorAll('.v2nav a[data-p]').forEach(function(a){if(a.getAttrib
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, collection, doc, getDoc, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getFirestore, initializeFirestore, persistentLocalCache, collection, doc, getDoc, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 const FB_CFG = {
   apiKey:'AIzaSyBCe5DKNKcthOl4umprfRm2QBfbVaFORg8',
@@ -163,7 +163,7 @@ const FB_CFG = {
 };
 const app = initializeApp(FB_CFG, 'vbe-kharcha');
 const auth = getAuth(app);
-const db = getFirestore(app);
+let db; try{ db = initializeFirestore(app,{localCache:persistentLocalCache()}); }catch(e){ db = getFirestore(app); } // offline cache = दूसरी बार instant
 
 let ME=null, ACCOUNTS=[], TXNS=[], FILTER='__all', SHOWN=0;
 const PAGE = 60;   // हर बार कितने दिन दिखाएं

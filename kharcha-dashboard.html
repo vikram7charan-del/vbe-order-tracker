@@ -230,7 +230,7 @@ document.querySelectorAll('.v2nav a[data-p]').forEach(function(a){if(a.getAttrib
 <script type="module">
 import { initializeApp, deleteApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signOut as signOut2 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getFirestore, initializeFirestore, persistentLocalCache, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 const FB_CFG = {
   apiKey:'AIzaSyBCe5DKNKcthOl4umprfRm2QBfbVaFORg8',
@@ -244,7 +244,7 @@ const CAT_LABELS={kaccha:'कच्चा माल',fuel:'पेट्रोल
 
 const app=initializeApp(FB_CFG, 'vbe-kharcha');
 const auth=getAuth(app);
-const db=getFirestore(app);
+let db; try{ db = initializeFirestore(app,{localCache:persistentLocalCache()}); }catch(e){ db = getFirestore(app); }
 
 let ME=null, EXP=[], RANGE_EXP=[], RECV=[], MR_STAFF=[], SHOW_N=30;
 

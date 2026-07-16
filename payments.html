@@ -165,7 +165,7 @@ try{
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, collection, doc, getDoc, getDocs, setDoc, writeBatch, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getFirestore, initializeFirestore, persistentLocalCache, collection, doc, getDoc, getDocs, setDoc, writeBatch, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
 
 const FB_CFG = {
@@ -180,7 +180,7 @@ const FIRMS = ['Vande Bharat Enterprises','177 Wet Canteen','MES Canteen','म�
 
 const app = initializeApp(FB_CFG, 'vbe-kharcha');
 const auth = getAuth(app);
-const db = getFirestore(app);
+let db; try{ db = initializeFirestore(app,{localCache:persistentLocalCache()}); }catch(e){ db = getFirestore(app); } // offline cache = दूसरी बार instant
 const storage = getStorage(app);
 
 let ME=null, AI_PROXY_DB='', ACCOUNTS=[], RECEIPTS=[], EXPENSES=[], PARTIES=[], PARSED=null;

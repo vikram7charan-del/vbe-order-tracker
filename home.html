@@ -214,10 +214,11 @@ function closeMenu(){document.getElementById('sheet').style.display='none';}
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, collection, doc, getDoc, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getFirestore, initializeFirestore, persistentLocalCache, collection, doc, getDoc, getDocs, query, where, orderBy, limit, getCountFromServer } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 const FB_CFG = { apiKey:'AIzaSyBCe5DKNKcthOl4umprfRm2QBfbVaFORg8', authDomain:'vbe-order-tracker-60324.firebaseapp.com', projectId:'vbe-order-tracker-60324', storageBucket:'vbe-order-tracker-60324.firebasestorage.app', messagingSenderId:'894023456122', appId:'1:894023456122:web:6ee548f0913c887c67f2c3' };
 const app = initializeApp(FB_CFG, 'vbe-kharcha');
-const auth = getAuth(app); const db = getFirestore(app);
+const auth = getAuth(app);
+let db; try{ db = initializeFirestore(app,{localCache:persistentLocalCache()}); }catch(e){ db = getFirestore(app); } // offline cache = दूसरी बार instant
 const fmt=n=>{ n=Math.round(+n||0); return '₹'+n.toLocaleString('hi-IN'); };
 const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
 const hourGreet=()=>{const h=new Date().getHours(); return h<12?'शुभ प्रभात':h<17?'नमस्ते':'शुभ संध्या';};
@@ -238,24 +239,31 @@ onAuthStateChanged(auth, async u=>{
 });
 
 async function loadDash(){
-  const t=today(), m=t.slice(0,7);
-  const [exSnap, rcSnap]=await Promise.all([
-    getDocs(collection(db,'vbe_expenses')).catch(()=>({forEach:()=>{}})),
-    getDocs(collection(db,'vbe_receipts')).catch(()=>({forEach:()=>{}}))
+  const t=today(), m=t.slice(0,7), mStart=m+'-01';
+  const EX=collection(db,'vbe_expenses'), RC=collection(db,'vbe_receipts');
+  // सिर्फ़ इस महीने का डेटा (पूरी बही नहीं) — इसी में आज भी है → हल्का + तेज़
+  const [exSnap, rcSnap, exRecent, rcRecent] = await Promise.all([
+    getDocs(query(EX, where('date','>=',mStart))).catch(()=>({forEach:()=>{}})),
+    getDocs(query(RC, where('date','>=',mStart))).catch(()=>({forEach:()=>{}})),
+    getDocs(query(EX, orderBy('createdAt','desc'), limit(6))).catch(()=>({forEach:()=>{}})),
+    getDocs(query(RC, orderBy('createdAt','desc'), limit(6))).catch(()=>({forEach:()=>{}}))
   ]);
-  let tout=0,tin=0,mout=0,billPend=0,udhaar=0,todayN=0;
-  const acts=[];
+  let tout=0,tin=0,mout=0,todayN=0;
   exSnap.forEach(x=>{const e=x.data();
-    if(e.date===t){ tout+=+e.total||0; todayN++; }
     if((e.date||'').slice(0,7)===m) mout+=+e.total||0;
-    if(e.billStatus==='pending') billPend++;
-    if(e.payStatus==='udhaar') udhaar+=+e.total||0;
-    acts.push({dir:'out', party:e.vendor||'खर्चा', amount:+e.total||0, date:e.date||'', firm:e.firm||'', ts:e.createdAt||e.date||''});
+    if(e.date===t){ tout+=+e.total||0; todayN++; }
   });
   rcSnap.forEach(x=>{const r=x.data(); if(r.direction!=='in')return;
     if(r.date===t){ tin+=+r.amount||0; todayN++; }
-    acts.push({dir:'in', party:r.party||'आमदनी', amount:+r.amount||0, date:r.date||'', firm:'', ts:r.createdAt||r.date||''});
   });
+  // recent activity — सिर्फ़ आखिरी 6 (पूरी list नहीं)
+  const acts=[];
+  exRecent.forEach(x=>{const e=x.data(); acts.push({dir:'out', party:e.vendor||'खर्चा', amount:+e.total||0, date:e.date||'', firm:e.firm||'', ts:e.createdAt||e.date||''});});
+  rcRecent.forEach(x=>{const r=x.data(); if(r.direction!=='in')return; acts.push({dir:'in', party:r.party||'आमदनी', amount:+r.amount||0, date:r.date||'', firm:'', ts:r.createdAt||r.date||''});});
+  // bill-बाकी count (डाउनलोड नहीं — सिर्फ़ गिनती) + उधार (कम entries)
+  let billPend='—', udhaar=0;
+  try{ billPend=(await getCountFromServer(query(EX, where('billStatus','==','pending')))).data().count; }catch(e){}
+  try{ (await getDocs(query(EX, where('payStatus','==','udhaar')))).forEach(x=>udhaar+=+x.data().total||0); }catch(e){}
   const net=tin-tout;
   document.getElementById('h-net').textContent=(net>=0?'+':'−')+fmt(Math.abs(net));
   document.getElementById('h-netsub').textContent=`आया ${fmt(tin)}  ·  गया ${fmt(tout)}`;

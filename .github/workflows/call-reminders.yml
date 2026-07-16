@@ -1,11 +1,11 @@
-# ══════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════
 # VBE Call Tracker — हर 5 मिनट में due calls की push notification
 # App बंद होने पर भी phone पर reminder आएगा (FCM)
 #
 # ⚠️ SETUP (एक बार): repo → Settings → Secrets and variables →
 #    Actions → New repository secret →
 #    Name: FIREBASE_SA   Value: (service account JSON पूरा paste)
-# ══════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════
 name: 📞 Call Reminders
 
 on:
@@ -51,3 +51,10 @@ jobs:
           FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
           ANTHROPIC_KEY: ${{ secrets.ANTHROPIC_KEY }}
         run: node scripts/ai-day-plan.js
+
+      # 🧠 रात 23:20+ IST में आज का Daily Memory सारांश (0 token, structured)
+      - name: Nightly daily memory
+        continue-on-error: true
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
+        run: node scripts/ai-daily-memory.js

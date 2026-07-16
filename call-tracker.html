@@ -1559,6 +1559,16 @@ window.clearSearch=function(){
   if(inp) inp.value='';
   window.onSearchInput('');
 };
+/* ══ 🔤 हिंदी⇄English अपने-आप पहचान (transliteration) ══
+   हर नाम की "आवाज़-कुंजी" (phonetic key): नवीन → nvn, naveen → nvn — बराबर!
+   इससे किसी भी भाषा में लिखो/बोलो — contact मिल जाता है, बिना alias भरे। */
+const _DEV2LAT={'क':'k','ख':'kh','ग':'g','घ':'gh','ङ':'n','च':'c','छ':'c','ज':'j','झ':'j','ञ':'n','ट':'t','ठ':'t','ड':'d','ढ':'d','ण':'n','त':'t','थ':'t','द':'d','ध':'d','न':'n','प':'p','फ':'f','ब':'b','भ':'b','म':'m','य':'y','र':'r','ल':'l','व':'v','श':'s','ष':'s','स':'s','ह':'h','क़':'k','ख़':'k','ग़':'g','ज़':'j','ड़':'r','ढ़':'r','फ़':'f','अ':'a','आ':'a','इ':'i','ई':'i','उ':'u','ऊ':'u','ए':'e','ऐ':'e','ओ':'o','औ':'o','ऋ':'r','ा':'a','ि':'i','ी':'i','ु':'u','ू':'u','े':'e','ै':'e','ो':'o','ौ':'o','ृ':'r','ं':'n','ँ':'n','ः':'','्':'','़':''};
+function _translit(s){ let o=''; for(const ch of String(s||'')){ o += (_DEV2LAT[ch]!==undefined?_DEV2LAT[ch]:ch); } return o; }
+function _phonKey(s){
+  let x=_translit(s).toLowerCase();
+  x=x.replace(/chh/g,'c').replace(/ph/g,'f').replace(/kh/g,'k').replace(/gh/g,'g').replace(/ch/g,'c').replace(/jh/g,'j').replace(/th/g,'t').replace(/dh/g,'d').replace(/bh/g,'b').replace(/sh/g,'s').replace(/w/g,'v').replace(/z/g,'j').replace(/q/g,'k');
+  return x.replace(/[aeiou]/g,'').replace(/[^a-z0-9]/g,'').replace(/(.)\1+/g,'$1');
+}
 /* 🔍 Advanced search — नंबर से +91/space/0 अपने-आप साफ़; नाम space-रहित भी;
    काम-text, tag, call-notes सब में ढूँढता है। 3-4 अंक कहीं भी मिलें तो contact दिखे। */
 function _digOf(s){ return String(s||'').replace(/[^0-9]/g,''); }
@@ -1567,6 +1577,10 @@ function matchesSearch(c){
   const q=_search, qn=q.replace(/\s+/g,'');
   const name=(c.name||'').toLowerCase();
   if(name.includes(q) || name.replace(/\s+/g,'').includes(qn)) return true;
+  if((c.aliases||'').toLowerCase().includes(q)) return true;
+  // 🔤 हिंदी⇄English — "naveen" लिखो तो "नवीन" भी मिले (और उल्टा भी)
+  const qk=_phonKey(q);
+  if(qk.length>=3 && (_phonKey(c.name).includes(qk) || (c.aliases&&_phonKey(c.aliases).includes(qk)))) return true;
   const digits=q.replace(/[^0-9]/g,'');
   if(digits.length>=3){
     // query के variants: जैसा है + बिना 91 + बिना आगे के 0 — stored नंबर भी साफ़ करके मिलान
@@ -3081,18 +3095,34 @@ function _allTasks(){
   return out;
 }
 /* 🗂️ Client Memory — किसी भी संपर्क की पूरी कुंडली (0 token) */
+/* सम्मान-शब्द नाम नहीं हैं — इनसे कभी पहचान न हो ("नवीन भाई" का 'भाई' किसी और के 'भाई' से न मिले) */
+const _NAME_STOP=['भाई','भाईसाहब','जी','जीजी','साहब','साब','सर','मैडम','श्री','श्रीमान','वाले','वाला','bhai','ji','sahab','sahib','sir','madam','shri','wale','wala','kumar'];
+function _isStopW(w){ return _NAME_STOP.indexOf(w)>=0; }
 function _findByName(ql){
   let best=null,bl=0;
   contacts.forEach(c=>{
     // नाम + 🗣️ बोलचाल के नाम (aliases) दोनों से पहचान — alias पूरा मिले तो सबसे ऊँचा भरोसा
     const nm=(c.name||'').toLowerCase();
-    nm.split(/\s+/).forEach(w=>{ if(w.length>=3 && ql.includes(w) && w.length>bl){ best=c; bl=w.length; } });
+    nm.split(/\s+/).forEach(w=>{ if(w.length>=3 && !_isStopW(w) && ql.includes(w) && w.length>bl){ best=c; bl=w.length; } });
     String(c.aliases||'').toLowerCase().split(/[,;]/).forEach(al=>{
       al=al.trim(); if(!al) return;
       if(al.length>=3 && ql.includes(al) && al.length+10>bl){ best=c; bl=al.length+10; } // alias को नाम से ऊपर वज़न
       else al.split(/\s+/).forEach(w=>{ if(w.length>=3 && ql.includes(w) && w.length>bl){ best=c; bl=w.length; } });
     });
   });
+  if(best) return best;
+  // 🔤 हिंदी⇄English phonetic — "नवीन" बोलो, "Naveen Kumar" वाला कार्ड मिले (और उल्टा)
+  const qws=ql.split(/\s+/).filter(w=>!_isStopW(w)).map(_phonKey).filter(w=>w.length>=3);
+  if(qws.length){
+    contacts.forEach(c=>{
+      ((c.name||'')+' '+(c.aliases||'')).split(/[\s,;]+/).forEach(w=>{
+        if(_isStopW(w.toLowerCase())) return;
+        const wk=_phonKey(w); if(wk.length<3) return;
+        qws.forEach(qw=>{ const hit=(qw===wk)?wk.length+5:((qw.startsWith(wk)||wk.startsWith(qw))?Math.min(qw.length,wk.length):0);
+          if(hit>bl){ best=c; bl=hit; } });
+      });
+    });
+  }
   return best;
 }
 function ableClientText(c){

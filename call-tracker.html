@@ -4920,10 +4920,14 @@ function renderAiTags(){
     TAG_LIST.map(t=>`<button class="sk-chip sm ${_aiTag===t.k?'on':''}" onclick="aiPickTag('${t.k}')">${escH(t.label)}</button>`).join('');
 }
 window.aiPickTag=function(k){ _aiTag=k; renderAiTags(); };
+/* बोले वाक्य से focus-निर्देश शब्द हटाओ (काम साफ़ रहे) */
+function _stripFocusWords(t){ return String(t||'').replace(/(फ़ोकस|फोकस|फॉक्स|फोक्स|focus)\s*(mode|मोड)?\s*(में)?\s*(भी)?\s*(डाल\s*(दो|देना|दे)|डालो|रखो|लगा\s*दो|कर\s*दो)?/gi,'').replace(/\s{2,}/g,' ').replace(/\s+(और|aur|तथा|उसे|उसको|इसे)\s*$/,'').trim(); }
+function _wantsFocus(s){ return /फ़ोकस|फोकस|फॉक्स|फोक्स|focus/i.test(String(s||'')); }
 window.aiPreviewLocal=function(){
   const raw=(document.getElementById('ai-inp').value||'').trim();
   const whenRaw=((document.getElementById('ai-whentxt')||{}).value||'').trim();
   if(!raw&&!whenRaw){ toast('⚠️ पहले बोलें या लिखें','warn'); return; }
+  const wantFocus=_wantsFocus(raw+' '+whenRaw);
   // पहले ऊपर वाले समय-खाने से; न मिले तो काम की बात से समय निकालो
   let when=whenRaw?_aiParseWhen(whenRaw):null;
   let task=raw;
@@ -4932,10 +4936,14 @@ window.aiPreviewLocal=function(){
   const guessed=!!when;
   if(!when) when=new Date(Date.now()+60*60*1000); // समझ न आए तो 1 घंटा बाद, user खुद ठीक करे
   if(!task) task=whenRaw?_aiCleanTask(whenRaw):'काम';
-  showAiPreview(task,when,guessed,false);
+  if(wantFocus) task=_stripFocusWords(task)||task;
+  showAiPreview(task,when,guessed,false,wantFocus);
 };
-function showAiPreview(task,when,guessed,ai){
+function showAiPreview(task,when,guessed,ai,wantFocus){
   const pv=document.getElementById('ai-preview');
+  // 📇 नाम से मौजूदा contact पहचानो — काम उसी कार्ड में जुड़ेगा
+  const nmv=((document.getElementById('ai-name')||{}).value||'').trim();
+  const mc=nmv?_findByName(nmv.toLowerCase()):null;
   pv.innerHTML=`
     <div style="background:#0d1526;border:1px solid ${ai?'rgba(168,85,247,.6)':'#1e3a5f'};border-radius:12px;padding:13px">
       ${ai?'<div style="font-size:9px;font-weight:900;color:#c4b5fd;margin-bottom:5px">🤖 AI ने समझा — जाँच लें</div>':''}
@@ -4943,9 +4951,14 @@ function showAiPreview(task,when,guessed,ai){
       <div id="ai-ptask" contenteditable="true"
            style="font-size:15px;font-weight:800;color:#e2e8f0;margin-bottom:11px;outline:none;
                   border-bottom:1px dashed #1e3a5f;padding-bottom:4px">${task.replace(/</g,'&lt;')}</div>
+      ${mc?`<div style="font-size:11px;font-weight:800;color:#4ade80;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.35);border-radius:9px;padding:6px 10px;margin-bottom:10px">📇 यह काम <b>${escH(mc.name)}</b> के मौजूदा कार्ड में जुड़ेगा (नया कार्ड नहीं बनेगा)</div>`
+          :(nmv?`<div style="font-size:10.5px;color:#8b9bbb;margin-bottom:10px">🆕 "${escH(nmv)}" नाम का contact नहीं मिला — नया कार्ड बनेगा</div>`:'')}
       <label class="lbl">⏰ कब? ${guessed?'(समझ लिया — चाहें तो बदलें)':'<span style="color:#fbbf24">(समय समझ नहीं आया — खुद चुनें)</span>'}</label>
       <input class="inp" type="datetime-local" id="ai-when" value="${_toLocalInput(when)}" style="font-size:14px">
       <div style="font-size:11px;color:#a855f7;font-weight:700;margin-top:7px">🔔 ${_aiFmt(when)} — इस समय अलार्म आएगा</div>
+      <label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:12.5px;font-weight:800;color:#c4b5fd;cursor:pointer">
+        <input type="checkbox" id="ai-focus" ${wantFocus?'checked':''} style="width:18px;height:18px;accent-color:#a855f7"> 🎯 Focus Mode में भी डालो (विक्रम की घड़ी, 15 min)
+      </label>
       <button class="btn-confirm-call" onclick="aiConfirm()" style="margin-top:11px">✅ जोड़ो — अलार्म लग जाएगा</button>
     </div>`;
   pv.style.display='block';
@@ -4960,15 +4973,17 @@ window.aiPreview=async function(){
   try{
     const now=new Date(), pd=n=>String(n).padStart(2,'0');
     const nowS=now.getFullYear()+'-'+pd(now.getMonth()+1)+'-'+pd(now.getDate())+' '+pd(now.getHours())+':'+pd(now.getMinutes());
-    const txt=await aiAsk('अभी समय (IST): '+nowS+'\nबोले हुए वाक्य से जानकारी निकालो, जवाब सिर्फ़ JSON:\n{"task":"काम पूरा हूबहू (सिर्फ़ समय-शब्द हटाओ, बाकी एक शब्द मत बदलो)","when":"YYYY-MM-DD HH:MM (आने वाला समय; न हो तो null)","name":"व्यक्ति का नाम या null","cat":"golden|computer|market|jalipa या null"}\nसमय-वाक्य: '+(whenRaw||'—')+'\nकाम-वाक्य: '+(raw||'—'),240);
+    const txt=await aiAsk('अभी समय (IST): '+nowS+'\nबोले हुए वाक्य से जानकारी निकालो, जवाब सिर्फ़ JSON:\n{"task":"काम पूरा हूबहू (सिर्फ़ समय-शब्द और focus-निर्देश हटाओ, बाकी एक शब्द मत बदलो)","when":"YYYY-MM-DD HH:MM (आने वाला समय; न हो तो null)","name":"जिस व्यक्ति को काम बोलना/करवाना है उसका नाम या null (जैसे \'नवीन भाई को बोल दो\' → नवीन)","cat":"golden|computer|market|jalipa या null","focus":true/false (वाक्य में focus/फोकस में डालने को कहा हो तो true)}\nसमय-वाक्य: '+(whenRaw||'—')+'\nकाम-वाक्य: '+(raw||'—'),260);
     const m=txt.match(/\{[\s\S]*\}/);
     const j=JSON.parse(m?m[0]:txt);
     let when=j.when?new Date(String(j.when).replace(' ','T')):null;
     if(when&&(isNaN(when.getTime())||when.getTime()<=Date.now())) when=null;
-    const task=(j.task||raw||whenRaw||'काम').trim();
+    let task=(j.task||raw||whenRaw||'काम').trim();
+    const wantFocus=!!j.focus||_wantsFocus(raw+' '+whenRaw);
+    if(wantFocus) task=_stripFocusWords(task)||task;
     if(j.name){ const ne=document.getElementById('ai-name'); if(ne&&!ne.value) ne.value=j.name; }
     window._aiCat=(j.cat&&TASK_CATS.find(t=>t.k===j.cat))?j.cat:'';
-    showAiPreview(task, when||new Date(Date.now()+3600000), !!when, true);
+    showAiPreview(task, when||new Date(Date.now()+3600000), !!when, true, wantFocus);
   }catch(e){ window.aiPreviewLocal(); }
   finally{ window._aiBusy=false; }
 };
@@ -4981,17 +4996,38 @@ window.aiConfirm=function(){
   const nm=((document.getElementById('ai-name')||{}).value||'').trim();
   const phRaw=((document.getElementById('ai-phone')||{}).value||'').trim();
   const ph=phRaw?normalizePhone(phRaw):'';
-  const entry={
-    id:genId(), name:nm||task.slice(0,44), phone:(ph&&ph.length>=10)?ph:'', waPhone:'', note:task,
-    topics:[{t:task,done:false,doneAt:null,cat:(window._aiCat||''),assignTo:'',addedAt:new Date().toISOString()}],
-    tag:_aiTag||'', color:'#a855f7', emoji:'📅', intervalMins:30, alarmTime:'',
-    lastCallAt:null, nextCallAt:when.toISOString(), callLog:[], pinned:false,
-    createdAt:new Date().toISOString(), aiQuick:true
-  };
-  contacts.push(entry);
-  render(); fbSave(entry);
+  const wantFocus=!!((document.getElementById('ai-focus')||{}).checked);
+  // 📇 नाम से मौजूदा contact मिले तो काम उसी के कार्ड में जुड़े (नया कार्ड नहीं)
+  const mc=nm?_findByName(nm.toLowerCase()):null;
+  let target, ti;
+  if(mc){
+    const tps=normTopics(mc);
+    const act=tps.filter(x=>!x.done), don=tps.filter(x=>x.done);
+    act.push({t:task,done:false,doneAt:null,cat:(window._aiCat||''),assignTo:'',addedAt:new Date().toISOString(),at:when.toISOString()});
+    mc.topics=[...act,...don];
+    ti=act.length-1;
+    mc.note=mc.topics.filter(x=>!x.done).map(x=>x.t).join(' · ');
+    _logHist(mc,'add',task);
+    target=mc;
+    render(); fbSave(mc);
+  } else {
+    const entry={
+      id:genId(), name:nm||task.slice(0,44), phone:(ph&&ph.length>=10)?ph:'', waPhone:'', note:task,
+      topics:[{t:task,done:false,doneAt:null,cat:(window._aiCat||''),assignTo:'',addedAt:new Date().toISOString()}],
+      tag:_aiTag||'', color:'#a855f7', emoji:'📅', intervalMins:30, alarmTime:'',
+      lastCallAt:null, nextCallAt:when.toISOString(), callLog:[], pinned:false,
+      createdAt:new Date().toISOString(), aiQuick:true
+    };
+    contacts.push(entry); target=entry; ti=0;
+    render(); fbSave(entry);
+  }
+  // 🎯 बोले में focus कहा हो / checkbox लगा हो → विक्रम की घड़ी भी चालू
+  if(wantFocus&&target){
+    _focus.push({key:target.id+'_'+ti+'_'+Date.now(), id:target.id, i:ti, t:task, own:'v', start:Date.now(), until:Date.now()+15*60000, mins:15});
+    saveFocus(); renderFocusBar();
+  }
   closeModal('m-ai');
-  toast('✅ जुड़ गया — 🔔 '+_aiFmt(when));
+  toast((mc?'✅ '+(mc.name||'').slice(0,18)+' के कार्ड में जुड़ गया':'✅ जुड़ गया')+(wantFocus?' + 🎯 Focus चालू':'')+' — 🔔 '+_aiFmt(when));
 };
 
 /* ⏱ 15 मिनट बाद call करने का reminder */

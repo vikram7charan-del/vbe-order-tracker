@@ -34,6 +34,12 @@ select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns
 .btn-ghost{background:#eff6ff;color:#1d4ed8;border:1.5px solid #bfdbfe;font-size:13px;padding:11px}
 .item-row{display:grid;grid-template-columns:1fr 52px 62px 62px 66px 26px;gap:5px;margin-bottom:6px;align-items:center}
 .item-row input{padding:9px 7px;font-size:13px;border-radius:8px}
+.it-hint{grid-column:1/-1;font-size:10.5px;font-weight:700;line-height:1.35;padding:1px 3px 2px;display:none}
+.it-hint.show{display:block}
+.it-hint .h-prev{color:#475569}
+.it-hint .h-up{color:#e11d48}
+.it-hint .h-dn{color:#059669}
+.it-hint b{font-weight:900}
 .item-head{display:grid;grid-template-columns:1fr 52px 62px 62px 66px 26px;gap:5px;font-size:9px;color:#94a3b8;font-weight:800;text-transform:uppercase;margin-bottom:4px;padding:0 2px}
 .del-x{color:#dc2626;font-size:17px;font-weight:900;text-align:center;cursor:pointer;user-select:none}
 .total-bar{display:flex;justify-content:space-between;align-items:center;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:10px;padding:11px 14px;font-weight:900}
@@ -370,6 +376,7 @@ async function initApp(){
   document.getElementById('set-key').value = localStorage.getItem('vbe_ai_key')||'';
   restoreDraft();
   loadAutocomplete();
+  loadPriceMemory();
   loadPending();
   if(ME.role==='admin') loadStaffList();
 }
@@ -455,17 +462,55 @@ window.addItemRow = function(data){
     <select class="inp it-unit">${Object.values(UNITS_HINT).map(u=>`<option ${data?.unit===u?'selected':''}>${u}</option>`).join('')}</select>
     <input class="inp it-rate" type="number" inputmode="decimal" placeholder="₹" value="${data?.rate??''}">
     <input class="inp it-amt" type="number" inputmode="decimal" placeholder="₹" value="${data?.amount??''}">
-    <span class="del-x" onclick="this.parentElement.remove();calcTotal();saveDraft()">✕</span>`;
+    <span class="del-x" onclick="this.parentElement.remove();calcTotal();saveDraft()">✕</span>
+    <div class="it-hint"></div>`;
   div.querySelectorAll('.it-qty,.it-rate').forEach(el=>el.addEventListener('input',()=>{
     const q=parseFloat(div.querySelector('.it-qty').value)||0;
     const r=parseFloat(div.querySelector('.it-rate').value)||0;
     if(q&&r) div.querySelector('.it-amt').value = +(q*r).toFixed(2);
-    calcTotal(); saveDraft();
+    calcTotal(); saveDraft(); updateItemHint(div);
   }));
   div.querySelector('.it-amt').addEventListener('input',()=>{calcTotal();saveDraft();});
-  div.querySelector('.it-name').addEventListener('input',saveDraft);
+  div.querySelector('.it-name').addEventListener('input',()=>{ saveDraft(); updateItemHint(div); });
   document.getElementById('item-rows').appendChild(div);
+  updateItemHint(div);
 };
+
+// ── 💡 Price memory: item का last रेट + महँगा/सस्ता चेतावनी (चूना-protection) ──
+var PRICE_MEM = {};   // itemKey → {name, latest:{rate,vendor,date}, avg, min, max, n}
+async function loadPriceMemory(){
+  try{
+    const snap = await getDocs(query(collection(db,'vbe_pricebook'), orderBy('date','desc'), limit(600)));
+    const g={};
+    snap.forEach(d=>{ const p=d.data(); const k=p.item_key||itemKey(p.item_name||''); const r=+p.rate;
+      if(!k||!(r>0)) return;
+      (g[k]=g[k]||{name:p.item_name||k, recs:[]}).recs.push({rate:r, vendor:p.vendor||'', date:p.date||''}); });
+    const mem={};
+    for(const k in g){ const recs=g[k].recs;   // already date-desc from query
+      const rates=recs.map(r=>r.rate);
+      mem[k]={ name:g[k].name, latest:recs[0],
+        avg:rates.reduce((a,b)=>a+b,0)/rates.length,
+        min:Math.min(...rates), max:Math.max(...rates), n:rates.length };
+    }
+    PRICE_MEM=mem;
+    document.querySelectorAll('.item-row').forEach(updateItemHint);
+  }catch(e){}
+}
+function fmtDay(d){ if(!d) return ''; const p=String(d).split('-'); return p.length===3?(p[2]+'/'+p[1]):String(d); }
+function updateItemHint(div){
+  const nameEl=div.querySelector('.it-name'), hintEl=div.querySelector('.it-hint');
+  if(!nameEl||!hintEl) return;
+  const m=PRICE_MEM[itemKey(nameEl.value||'')];
+  if(!m){ hintEl.className='it-hint'; hintEl.innerHTML=''; return; }
+  const last=m.latest.rate, curRate=parseFloat(div.querySelector('.it-rate').value)||0;
+  let html=`<span class="h-prev">💡 पिछली बार <b>₹${last}</b>${m.latest.vendor?(' · '+esc(m.latest.vendor)):''}${m.latest.date?(' · '+fmtDay(m.latest.date)):''}${m.n>2?(' · औसत ₹'+Math.round(m.avg)):''}</span>`;
+  if(curRate>0){
+    const pct=Math.round(((curRate-last)/last)*100);
+    if(pct>=12) html+=` <span class="h-up">⚠️ पिछली बार से <b>+${pct}%</b> महँगा — एक बार देख लें</span>`;
+    else if(pct<=-12) html+=` <span class="h-dn">✓ <b>${pct}%</b> सस्ता</span>`;
+  }
+  hintEl.className='it-hint show'; hintEl.innerHTML=html;
+}
 function esc(s){ return String(s).replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
 
 window.calcTotal = function(){

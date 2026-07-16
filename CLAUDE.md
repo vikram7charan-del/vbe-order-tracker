@@ -175,6 +175,7 @@ Learned from the owner's legacy "My Business Cloud Systems" report (Jan–Feb 20
 | `payments.html` | Receipts + **bank-statement PDF import** (pdf.js, no AI) + party search |
 | `statement.html` | **बही** — date-grouped ledger, account-filter chips (auto from `vbe_payment_accounts`), 3D; row tap → detail popup with items + bill photo |
 | `kharcha-dashboard.html` | Admin analytics + staff accounts (with `whatsapp` field) + payment-account manage + 📥 one-click embedded data import |
+| `search.html` | **खोज / Universal search** — one box across parties/items/vendor/UTR/GSTIN/phone/amount (client-side, no AI). Party result → profile popup (totals, tel/WhatsApp, recent हिसाब); txn result → same detail popup as बही. Reached from ☰ menu tile + home header 🔍 |
 
 ### AI bill reading (`kharcha-entry.html`)
 - Only for **photo bills** (statements need no AI). Model `claude-sonnet-4-6`, image ≤1568px, 60s timeout.

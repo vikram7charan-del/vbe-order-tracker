@@ -546,7 +546,18 @@ body:not(.anim-off) .aic-orb .orb-core{animation:orbCore 2.2s ease-in-out infini
 .aic-hi{font-size:15px;font-weight:900;color:#f1f5ff;line-height:1.25;letter-spacing:.2px}
 .aic-sub{font-size:10.5px;color:#8b9bbb;font-weight:700;margin-top:2px}
 .aic-sec{font-size:10.5px;font-weight:900;color:#9fb2d8;letter-spacing:.4px;text-transform:uppercase;margin:14px 2px 9px}
-.aic-resp{background:linear-gradient(160deg,color-mix(in srgb,var(--acc) 16%,#0c1428),#0a1120);border:1px solid color-mix(in srgb,var(--acc) 32%,transparent);border-radius:15px;padding:13px 14px;font-size:13.5px;line-height:1.7;color:#eaf0ff;white-space:pre-wrap;margin-bottom:6px;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+.aic-resp{background:linear-gradient(160deg,color-mix(in srgb,var(--acc) 16%,#0c1428),#0a1120);border:1px solid color-mix(in srgb,var(--acc) 32%,transparent);border-radius:15px;padding:13px 14px;font-size:13.5px;line-height:1.7;color:#eaf0ff;margin-bottom:6px;box-shadow:inset 0 1px 0 rgba(255,255,255,.06);max-height:62vh;overflow-y:auto}
+.ai-body{animation:vIn .3s ease both}
+.ai-body .ai-head{font-size:12.5px;font-weight:900;color:color-mix(in srgb,var(--acc) 80%,#fff);letter-spacing:.2px;margin-bottom:9px;line-height:1.4}
+/* मुख्य काम — बड़ा, golden, आगे चमकता आइकॉन */
+.ai-body .ai-main{display:flex;gap:7px;align-items:baseline;margin:11px 0 1px;line-height:1.5}
+.ai-body .ai-main .dot{flex-shrink:0;width:7px;height:7px;border-radius:50%;align-self:flex-start;margin-top:7px;background:radial-gradient(circle at 35% 30%,#fde68a,#f59e0b 70%);box-shadow:0 0 6px rgba(245,158,11,.7)}
+.ai-body .ai-main .n{flex-shrink:0;font-size:14.5px;font-weight:900;color:#f59e0b;font-variant-numeric:tabular-nums}
+.ai-body .ai-main .tx{font-size:15px;font-weight:800;color:#fcd34d;word-break:break-word;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+/* बाकी (लेट/घड़ी/समय) — बहुत छोटी, दबी हुई */
+.ai-body .ai-sub{font-size:9.5px;color:#7d89a8;font-weight:600;line-height:1.4;margin:0 0 2px 15px;opacity:.9}
+.ai-body .ai-bul{font-size:12.5px;color:#dbe4f5;font-weight:600;line-height:1.6;margin:2px 0}
+.ai-body .ai-tip{font-size:12px;color:#a7d3ff;font-weight:800;margin-top:10px;background:color-mix(in srgb,var(--acc) 14%,transparent);border:1px solid color-mix(in srgb,var(--acc) 30%,transparent);border-radius:9px;padding:7px 10px;line-height:1.5}
 .aic-resp .cur{display:inline-block;width:7px;height:15px;background:var(--acc);vertical-align:-2px;border-radius:1px;animation:aiPulse .8s infinite}
 .aic-sug-item{display:flex;align-items:center;gap:10px;background:linear-gradient(160deg,rgba(24,34,60,.6),rgba(9,14,28,.6));border:1px solid rgba(125,152,214,.18);border-radius:13px;padding:11px 13px;margin-bottom:8px;cursor:pointer;transition:transform .14s cubic-bezier(.2,.9,.3,1.4),border-color .2s;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 .aic-sug-item:active{transform:scale(.97)}
@@ -912,9 +923,9 @@ body:not(.anim-off) .fc-item.over .fc-ring{animation:fcBreath 1.5s ease-in-out i
 .sv-grid>.sv-item:nth-child(even){border-radius:18px 18px 6px 18px}
 .sv-item.overdue{box-shadow:0 10px 22px -12px rgba(0,0,0,.8),0 0 14px -4px rgba(239,68,68,.3),inset 0 1px 0 rgba(255,255,255,.07)}
 
-body.hdr-folded .hdr-btns>*:not(#hdr-fold){display:none}
+body.hdr-folded .hdr-btns>*:not(#hdr-fold):not(#hdr-search){display:none}
 body.hdr-folded .hdr-row2{display:none}
-#hdr-fold{background:color-mix(in srgb,var(--acc) 22%,#0d1526)!important;border-color:color-mix(in srgb,var(--acc) 50%,transparent)!important;color:#fff!important;font-weight:900}
+#hdr-fold{background:linear-gradient(150deg,color-mix(in srgb,var(--acc) 40%,#0d1526),color-mix(in srgb,var(--acc2) 26%,#0d1526))!important;border-color:color-mix(in srgb,var(--acc) 60%,transparent)!important;color:#fff!important;font-weight:900;box-shadow:0 3px 12px -4px color-mix(in srgb,var(--acc) 70%,transparent),inset 0 1px 0 rgba(255,255,255,.2)!important}
 </style>
 </head>
 <body>
@@ -952,6 +963,7 @@ body.hdr-folded .hdr-row2{display:none}
       <a href="./" class="btn-back" title="पुरानी VBE ऐप">← App</a>
     </div>
     <div class="hdr-btns">
+        <button class="btn-icon" id="hdr-fold" onclick="foldHdr()" title="मेन्यू खोलो/बंद करो — इसी बटन को दबाकर" style="cursor:pointer;font-family:inherit">☰ मेन्यू</button>
         <button class="btn-icon btn-ai" onclick="openAiAdd()" title="🎙️ बोलकर काम जोड़ें — AI समझकर समय पर अलार्म लगा देगा" style="cursor:pointer;font-family:inherit">🎙️ बोलो</button>
         <button class="btn-icon" onclick="openBroadcast()" title="भेजो Mode — सबको एक-एक करके WhatsApp" style="cursor:pointer;font-family:inherit">📤</button>
         <button class="btn-icon" onclick="openHub()" title="श्रेणी Hub — category-wise सारे काम" style="cursor:pointer;font-family:inherit">🗂️</button>
@@ -964,7 +976,6 @@ body.hdr-folded .hdr-row2{display:none}
         <button class="btn-icon" onclick="setAiKey()" title="🤖 Anthropic AI key डालें/बदलें" style="cursor:pointer;font-family:inherit">⚙️</button>
         <a href="./quick-add.html" class="btn-icon" title="Quick Order Add">📦</a>
         <button class="btn-icon" id="day-btn" onclick="gotoDay()" title="📅 मेरा दिन — इसी पेज पर timeline" style="cursor:pointer;font-family:inherit">📅 दिन</button>
-        <button class="btn-icon" id="hdr-fold" onclick="foldHdr()" title="मेन्यू खोलो/बंद करो" style="cursor:pointer;font-family:inherit">✕ बंद</button>
         <span id="hdr-search" style="flex:1;min-width:110px;max-width:230px;position:relative;display:flex">
           <input class="inp" id="search-inp" style="padding:7px 30px 7px 11px;font-size:12.5px;border-radius:9px;width:100%"
                  placeholder="🔍 नाम या नंबर खोजें..." oninput="onSearchInput(this.value)">
@@ -1772,8 +1783,8 @@ window.foldHdr=function(){
   localStorage.setItem('vbe_hdr_fold',on?'1':'');
   const b=document.getElementById('hdr-fold'); if(b) b.textContent=on?'☰ मेन्यू':'✕ बंद';
 };
-if(localStorage.getItem('vbe_hdr_fold')===null) localStorage.setItem('vbe_hdr_fold','1'); // पहली बार: ऊपर के बटन छुपे — ⌃ से खुलें
-if(localStorage.getItem('vbe_hdr_fold')==='1'){ document.body.classList.add('hdr-folded'); const _fb=document.getElementById('hdr-fold'); if(_fb)_fb.textContent='☰ मेन्यू'; }
+if(localStorage.getItem('vbe_hdr_fold')===null) localStorage.setItem('vbe_hdr_fold','1'); // पहली बार: मेन्यू बंद — ☰ से खुले
+(function(){ const folded=localStorage.getItem('vbe_hdr_fold')==='1'; if(folded) document.body.classList.add('hdr-folded'); const _fb=document.getElementById('hdr-fold'); if(_fb)_fb.textContent=folded?'☰ मेन्यू':'✕ बंद'; })();
 
 /* Smart View — 2-column grid, पूरा नाम + छोटा गोल icon */
 function renderSmart(list){
@@ -3313,11 +3324,27 @@ function _aicCacheSet(q,a){
     localStorage.setItem('vbe_ai_cache',JSON.stringify(c));
   }catch(e){}
 }
+/* जवाब को पढ़ने-लायक बनाओ: मुख्य काम बड़ा golden + आइकॉन, बाकी जानकारी बहुत छोटी दबी */
+function _aicRender(txt){
+  const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  let headDone=false;
+  return String(txt).split('\n').map(ln=>{
+    if(!ln.trim()) return '<div style="height:7px"></div>';
+    const t=ln.trim();
+    if(/^\s{2,}/.test(ln)) return `<div class="ai-sub">${esc(t)}</div>`;              // इंडेंट = छोटी दबी जानकारी (लेट/घड़ी/समय)
+    const m=ln.match(/^\s*(\d+)\.\s+(.*)$/);
+    if(m) return `<div class="ai-main"><span class="dot"></span><span class="n">${m[1]}.</span><span class="tx">${esc(m[2])}</span></div>`; // मुख्य काम — बड़ा golden
+    if(/^👉/.test(t)) return `<div class="ai-tip">${esc(t)}</div>`;
+    if(!headDone){ headDone=true; return `<div class="ai-head">${esc(t)}</div>`; }
+    if(/^[•·]/.test(t)) return `<div class="ai-bul">${esc(t)}</div>`;
+    return `<div class="ai-bul">${esc(t)}</div>`;
+  }).join('');
+}
 function _aicShow(rp,tag,text){
   rp.innerHTML='';
   const tg=document.createElement('div'); tg.style.cssText='font-size:9.5px;font-weight:800;color:#7d8db0;margin-bottom:7px;letter-spacing:.3px'; tg.textContent=tag;
-  const bd=document.createElement('div'); rp.appendChild(tg); rp.appendChild(bd);
-  _aicType(bd,text);
+  const bd=document.createElement('div'); bd.className='ai-body'; bd.innerHTML=_aicRender(text);
+  rp.appendChild(tg); rp.appendChild(bd);
 }
 async function _aicRun(q){
   const rp=document.getElementById('aic-resp'); const orb=document.getElementById('ai-orb');
@@ -5112,6 +5139,7 @@ function orderedTokens(){
 }
 window.fbSearchOpen=function(){
   document.body.classList.remove('hdr-folded'); localStorage.setItem('vbe_hdr_fold','');
+  { const b=document.getElementById('hdr-fold'); if(b) b.textContent='✕ बंद'; }
   setTimeout(()=>{ const e=document.getElementById('search-inp'); if(e){ e.focus(); e.scrollIntoView({block:'center'}); } },100);
 };
 function tokLabel(tok){

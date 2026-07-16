@@ -1579,8 +1579,13 @@ function matchesSearch(c){
   if(name.includes(q) || name.replace(/\s+/g,'').includes(qn)) return true;
   if((c.aliases||'').toLowerCase().includes(q)) return true;
   // 🔤 हिंदी⇄English — "naveen" लिखो तो "नवीन" भी मिले (और उल्टा भी)
+  // + अक्षर-दर-अक्षर: "nav" लिखते ही नवीन आ जाए (शब्द-शुरुआत की आवाज़-कुंजी से)
   const qk=_phonKey(q);
-  if(qk.length>=3 && (_phonKey(c.name).includes(qk) || (c.aliases&&_phonKey(c.aliases).includes(qk)))) return true;
+  if(qk.length>=2){
+    if(qk.length>=3 && (_phonKey(c.name).includes(qk) || (c.aliases&&_phonKey(c.aliases).includes(qk)))) return true;
+    const wrds=((c.name||'')+' '+(c.aliases||'')).split(/[\s,;]+/);
+    if(wrds.some(w=>{ const wk=_phonKey(w); return wk.length>=2 && wk.startsWith(qk); })) return true;
+  }
   const digits=q.replace(/[^0-9]/g,'');
   if(digits.length>=3){
     // query के variants: जैसा है + बिना 91 + बिना आगे के 0 — stored नंबर भी साफ़ करके मिलान

@@ -52,7 +52,14 @@ jobs:
           ANTHROPIC_KEY: ${{ secrets.ANTHROPIC_KEY }}
         run: node scripts/ai-day-plan.js
 
-      # 🧠 रात 23:20+ IST में आज का Daily Memory सारांश (0 token, structured)
+      # 🔮 शाम 19:30-21:00 IST में एक बार "कल की तैयारी" push (0 token)
+      - name: Evening brief push
+        continue-on-error: true
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
+        run: node scripts/ai-evening-brief.js
+
+      # 🧠 रात 23:20+ IST में आज का Daily Memory सारांश (+ रविवार weekly, माह-अंत monthly)
       - name: Nightly daily memory
         continue-on-error: true
         env:

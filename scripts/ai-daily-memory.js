@@ -1,7 +1,8 @@
 /* 🧠 Daily Memory — रात ~23:20+ IST हर दिन का सारांश vbe_call_tracker/mem_YYYY-MM-DD
    में पक्का सहेजता है (0 token — सिर्य structured data, कोई AI call नहीं)।
-   इससे "पिछले मंगलवार / 3 दिन पहले क्या हुआ / कौन से काम-संपर्क जुड़े" जैसे सवाल
-   हमेशा सटीक जवाब देते हैं — भले ही live docs से पुराना data हट जाए।
+   + रविवार रात: हफ़्ते का स्थायी सार (mem_week_...)
+   + महीने की आख़िरी रात: महीने का स्थायी सार (mem_month_YYYY-MM)
+   इससे "पिछले मंगलवार / 3 दिन पहले क्या हुआ" जैसे सवाल हमेशा सटीक रहते हैं।
    Secret: FIREBASE_SA (service account JSON) */
 const admin = require('firebase-admin');
 
@@ -17,7 +18,7 @@ async function main(){
   admin.initializeApp({ credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SA)) });
   const db = admin.firestore();
 
-  // सिर्य़ रात 23:20-23:59 IST विंडो में आज का सारांश (cron हर 5 min चलता है)
+  // सिर्य़ रात 23:20-23:59 IST विंडो में (cron हर 5 min चलता है)
   const parts={}; new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kolkata',hour12:false,hour:'2-digit',minute:'2-digit'})
     .formatToParts(new Date()).forEach(x=>{ parts[x.type]=x.value; });
   const istMin = Number(parts.hour)*60 + Number(parts.minute);
@@ -58,8 +59,40 @@ async function main(){
     staffPerf: staff, text,
     at: new Date().toISOString()
   }, { merge:true });
-
   console.log('✅ daily memory saved:', text);
+
+  // पुराने daily docs से अवधि का जोड़ (आज का ऊपर वाला data भी शामिल)
+  function aggregate(matchFn){
+    let a=tasksAdded.length, dn=tasksDone, ca=contactsAdded.length; const st={...staff};
+    snap.forEach(d=>{
+      if(d.id.indexOf('mem_')!==0 || d.id.indexOf('mem_week')===0 || d.id.indexOf('mem_month')===0) return;
+      const m=d.data()||{}; if(!m.date || m.date===today || !matchFn(m.date)) return;
+      a+=(m.tasksAdded||[]).length; dn+=(m.tasksDone||0); ca+=(m.contactsAdded||[]).length;
+      const sp=m.staffPerf||{}; for(const k in sp) st[k]=(st[k]||0)+sp[k];
+    });
+    return {tasksAdded:a, tasksDone:dn, contactsAdded:ca, staffPerf:st};
+  }
+
+  // 📅 रविवार रात — हफ़्ते का स्थायी सार
+  const wd=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Kolkata',weekday:'short'}).format(new Date());
+  if(wd==='Sun'){
+    const wk=aggregate(dt=>{ const t=new Date(dt+'T12:00:00').getTime(); return now-t < 7*864e5; });
+    await db.collection('vbe_call_tracker').doc('mem_week_'+today).set({
+      id:'mem_week_'+today, week:today, ...wk, pending, lateCount, at:new Date().toISOString()
+    },{merge:true});
+    console.log('✅ weekly memory saved:', JSON.stringify({added:wk.tasksAdded,done:wk.tasksDone}));
+  }
+
+  // 🗓️ महीने की आख़िरी रात — महीने का स्थायी सार
+  const tomorrow=dayKey(now+864e5);
+  if(tomorrow.slice(0,7)!==today.slice(0,7)){
+    const mo=today.slice(0,7);
+    const mk=aggregate(dt=>dt.slice(0,7)===mo);
+    await db.collection('vbe_call_tracker').doc('mem_month_'+mo).set({
+      id:'mem_month_'+mo, month:mo, ...mk, pending, lateCount, at:new Date().toISOString()
+    },{merge:true});
+    console.log('✅ monthly memory saved:', mo);
+  }
 }
 
 main().then(()=>process.exit(0)).catch(e=>{ console.error('ERROR:', e.message); process.exit(1); });

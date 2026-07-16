@@ -555,6 +555,10 @@ body:not(.anim-off) .aic-orb .orb-core{animation:orbCore 2.2s ease-in-out infini
 .aic-sug-item .t1{font-size:13px;font-weight:800;color:#e6ecfb;line-height:1.3}
 .aic-sug-item .t2{font-size:10px;color:#8b9bbb;font-weight:700;margin-top:1px}
 .aic-sug-item .go{font-size:15px;color:color-mix(in srgb,var(--acc) 85%,#fff);flex-shrink:0}
+.aic-act{font-family:inherit;font-size:10.5px;font-weight:800;color:#c6d2e8;cursor:pointer;
+  background:linear-gradient(160deg,rgba(32,44,74,.7),rgba(12,20,37,.7));border:1px solid rgba(125,152,214,.26);border-radius:9px;padding:6px 10px;
+  transition:transform .13s cubic-bezier(.2,.9,.3,1.4),border-color .18s;touch-action:manipulation}
+.aic-act:active{transform:scale(.92);border-color:color-mix(in srgb,var(--acc) 60%,transparent)}
 .aic-askrow{display:flex;gap:7px;align-items:flex-end;margin-top:4px}
 .aic-q{flex:1;min-width:0;resize:none;font-family:inherit;font-size:13px;color:#eaf0ff;background:rgba(8,13,26,.7);border:1px solid rgba(125,152,214,.24);border-radius:13px;padding:11px 12px;line-height:1.4;max-height:110px}
 .aic-q:focus{outline:none;border-color:color-mix(in srgb,var(--acc) 60%,transparent)}
@@ -2938,8 +2942,36 @@ window.openAiComp=function(){
 window.closeAiComp=function(){ document.getElementById('ai-comp').classList.remove('on'); const m=document.getElementById('aic-mic'); if(m)m.classList.remove('rec'); try{ _aicRec&&_aicRec.stop(); }catch(e){} };
 /* सुझाव दबाओ → जवाब वहीं companion में (list दिखे, page न बदले) */
 function _aicShowLocal(tag,q){ const rp=document.getElementById('aic-resp'); rp.style.display='block'; const a=aicRuleAnswer(q)||'यह जानकारी रिकॉर्ड में नहीं है।'; _aicShow(rp,tag,a); }
+/* 🤖 Autonomous actions — सिफ़ारिश सूची में एक-tap बटन: AI सुझाए, आप मंज़ूर करो, काम वहीं हो जाए */
+function aicRecoHTML(){
+  const rp=document.getElementById('aic-resp'); rp.style.display='block';
+  const R=ableRecommend(7);
+  let h='<div style="font-size:9.5px;font-weight:800;color:#7d8db0;margin-bottom:5px">🎯 AI सिफ़ारिश — बटन दबाओ, काम वहीं हो जाएगा (0 token)</div>';
+  if(!R.length){ rp.innerHTML=h+'अभी कोई दबाव वाला काम नहीं — सब समय पर है ✅'; return; }
+  R.forEach((r,i)=>{
+    h+=`<div style="border-top:1px solid rgba(125,152,214,.14);padding:9px 0 7px">
+      <div style="font-size:13px;font-weight:800;color:#eaf0ff;line-height:1.4">${i+1}. ${escH(r.t.name)} — ${r.t.pri==='high'?'🔴 ':''}${escH(r.t.t)}</div>
+      <div style="font-size:10px;color:#8b9bbb;margin:2px 0 7px">${escH(r.why.join(' · ')||'महत्वपूर्ण संपर्क')}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="aic-act" onclick="aicAct('done','${r.t.cid}',${r.t.ti})">✅ पूरा</button>
+        <button class="aic-act" onclick="aicAct('sched','${r.t.cid}',${r.t.ti})">⏰ समय</button>
+        <button class="aic-act" onclick="aicAct('pri','${r.t.cid}',${r.t.ti})">${r.t.pri==='high'?'⚪ ज़रूरी हटाओ':'🔴 ज़रूरी'}</button>
+        ${r.t.phone?`<button class="aic-act" onclick="aicAct('call','${r.t.cid}',${r.t.ti})">📞 Call</button>`:''}
+        <button class="aic-act" onclick="aicAct('open','${r.t.cid}',${r.t.ti})">👁️ खोलो</button>
+      </div></div>`;
+  });
+  rp.innerHTML=h;
+}
+window.aicAct=function(a,cid,ti){
+  const c=contacts.find(x=>x.id===cid); if(!c){ toast('संपर्क नहीं मिला','err'); return; }
+  if(a==='done'){ doneTopic(cid,ti); setTimeout(aicRecoHTML,150); return; }
+  if(a==='pri'){ spTogglePri(cid,ti); aicRecoHTML(); return; }
+  if(a==='sched'){ closeAiComp(); openSchedPick('t',cid,ti); return; }
+  if(a==='call'){ if(c.phone) location.href='tel:'+c.phone; else toast('नंबर दर्ज नहीं','warn'); return; }
+  if(a==='open'){ closeAiComp(); openSmartPop(cid); return; }
+};
 window.aicDo=function(act){
-  if(act==='reco'){ const rp=document.getElementById('aic-resp'); rp.style.display='block'; _aicShow(rp,'🎯 AI सिफ़ारिश — आपके रिकॉर्ड से, 0 token',ableRecoText()); return; }
+  if(act==='reco'){ aicRecoHTML(); return; }
   if(act==='risk'){ const rp=document.getElementById('aic-resp'); rp.style.display='block'; _aicShow(rp,'🔮 भविष्यवाणी — आपके रिकॉर्ड से, 0 token',ableRiskText()); return; }
   if(act==='staff'){ const rp=document.getElementById('aic-resp'); rp.style.display='block'; _aicShow(rp,'👥 Staff Intelligence — 0 token',ableStaffText()); return; }
   if(act==='late'){ _aicShowLocal('🧠 आपके रिकॉर्ड से — 0 token','सारे लेट काम पूरी सूची'); return; }
@@ -2990,9 +3022,44 @@ function _dmy(iso,withTime){ if(!iso)return ''; const d=new Date(iso); if(isNaN(
 function _allTasks(){
   const out=[];
   contacts.forEach(c=>{ if(c.active===false) return;
-    normTopics(c).forEach(x=>out.push({name:c.name||'?',phone:c.phone||'',t:x.t,done:!!x.done,doneAt:x.doneAt||null,at:x.at||null,addedAt:x.addedAt||null,cat:x.cat||'',assignTo:x.assignTo||'',pri:x.pri||'',nextCallAt:c.nextCallAt||null}));
+    normTopics(c).forEach((x,i)=>out.push({cid:c.id,ti:i,name:c.name||'?',phone:c.phone||'',t:x.t,done:!!x.done,doneAt:x.doneAt||null,at:x.at||null,addedAt:x.addedAt||null,cat:x.cat||'',assignTo:x.assignTo||'',pri:x.pri||'',nextCallAt:c.nextCallAt||null}));
   });
   return out;
+}
+/* 🗂️ Client Memory — किसी भी संपर्क की पूरी कुंडली (0 token) */
+function _findByName(ql){
+  let best=null,bl=0;
+  contacts.forEach(c=>{ const nm=(c.name||'').toLowerCase(); if(!nm) return;
+    nm.split(/\s+/).forEach(w=>{ if(w.length>=3 && ql.includes(w) && w.length>bl){ best=c; bl=w.length; } });
+  });
+  return best;
+}
+function ableClientText(c){
+  const tps=normTopics(c); const now=Date.now();
+  const done=tps.filter(x=>x.done), pend=tps.filter(x=>!x.done);
+  let late=0; pend.forEach(x=>{ if(x.at&&new Date(x.at).getTime()<now) late++; });
+  if(!late && c.nextCallAt && new Date(c.nextCallAt).getTime()<now && pend.length) late=1;
+  let sumD=0,nD=0; done.forEach(x=>{ if(x.addedAt&&x.doneAt){ const d=(new Date(x.doneAt)-new Date(x.addedAt))/864e5; if(d>=0&&d<90){ sumD+=d; nD++; } } });
+  const cats={}; tps.forEach(x=>{ if(x.cat) cats[x.cat]=(cats[x.cat]||0)+1; });
+  const calls=Array.isArray(c.callLog)?c.callLog.length:0;
+  let lastT=0;
+  if(c.lastCallAt) lastT=Math.max(lastT,new Date(c.lastCallAt).getTime()||0);
+  tps.forEach(x=>{ ['addedAt','doneAt'].forEach(k=>{ if(x[k]) lastT=Math.max(lastT,new Date(x[k]).getTime()||0); }); });
+  (c.hist||[]).forEach(e=>{ if(e.at) lastT=Math.max(lastT,new Date(e.at).getTime()||0); });
+  const out=[`🗂️ ${c.name||'?'} की पूरी कुंडली:`];
+  if(c.phone) out.push(`📱 ${c.phone}`);
+  out.push(`• कुल काम: ${tps.length} — ${done.length} पूरे, ${pend.length} बाकी${late?', 🔴 '+late+' लेट':''}`);
+  if(nD) out.push(`• औसत निपटान: ${(sumD/nD)<1?'उसी दिन':(sumD/nD).toFixed(1)+' दिन में'}`);
+  if(calls) out.push(`• 📞 अब तक ${calls} call दर्ज`);
+  if(lastT) out.push(`• आख़िरी हलचल: ${_dmy(new Date(lastT).toISOString(),true)}`);
+  const ck=Object.keys(cats).sort((a,b)=>cats[b]-cats[a]);
+  if(ck.length) out.push(`• सबसे आम श्रेणी: ${ck.slice(0,3).join(', ')}`);
+  if(c.createdAt) out.push(`• जुड़े: ${_dmy(c.createdAt)}`);
+  if(c.active===false) out.push(`• ⚠️ अभी बंद (archived) है`);
+  if(pend.length){ out.push(`\n📌 बाकी काम (${pend.length}):`); pend.slice(0,12).forEach((x,i)=>out.push(`${i+1}. ${x.pri==='high'?'🔴 ':''}${x.t}${x.at?' ('+_dmy(x.at,true)+')':''}`)); }
+  const ev=(c.hist||[]).slice(-5).reverse();
+  if(ev.length){ out.push(`\n🕘 हाल की गतिविधि:`); ev.forEach(e=>out.push(`• ${_dmy(e.at,true)} — ${e.a==='done'?'✅ पूरा':e.a==='pri'?'🔴 ज़रूरी':'•'} ${e.txt||''}`)); }
+  return out.join('\n');
 }
 /* 📊 अवधि रिपोर्ट (हफ़्ता/महीना) — daily-memory docs + live data से, 0 token */
 function aicPeriodReport(label,from,to){
@@ -3041,6 +3108,11 @@ function aicRuleAnswer(q){
   if(has('सेहत','health','स्कोर','score')&&!has('staff','स्टाफ')){ const h=ableHealth(); const s=aicStats(); return `${h>=75?'💚':h>=45?'🟡':'🔴'} Business सेहत: ${h}/100\n• लेट काम: ${s.late}\n• call बाकी: ${s.callsDue}\n• आज पूरे: ${s.doneN}\nस्कोर बढ़ाने का सीधा रास्ता: सबसे पुराने लेट काम पहले निपटाओ (🎯 सिफ़ारिश देखो)।`; }
   // बाकी सलाह/राय वाले गहरे सवाल → grounded Claude reasoning करे
   if(has('कैसे','सुझाव','सलाह','क्या करना','रणनीति','improve','राय','प्लान बनाओ','मदद कर')) return null;
+  // 🗂️ Client Memory — "मनोज का इतिहास / कुंडली / पूरी जानकारी / हाल"
+  if(has('इतिहास','कुंडली','प्रोफ','profile','के बारे','जानकारी','history','हाल','पूरा हिसाब','details')){
+    const cm=_findByName(ql);
+    if(cm && !has('हफ़्त','हफ्त','सप्ताह','week','महीन','month','staff','स्टाफ','टीम')) return ableClientText(cm);
+  }
   // 📊 हफ़्ते/महीने की रिपोर्ट (हाल/summary/हिसाब) — गतिविधि-लॉग वाले सवाल छोड़कर
   if(has('रिपोर्ट','report','हाल','summary','सारांश','हिसाब','performance','प्रदर्शन','कैसा रहा','कैसा गया') && !has('गतिविधि','activity','लॉग','log','history','इतिहास','क्या क्या','क्या-क्या','बदला')){
     const sod=t=>{ const d=new Date(t); d.setHours(0,0,0,0); return d.getTime(); };

@@ -17,9 +17,17 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html{height:100%;overflow-x:clip;overscroll-behavior-x:none}
+/* ── 🔤 EDS Step 4 — Type & Spacing rhythm (एक ही लय) ── */
+:root{
+  --fs-2xs:9px; --fs-xs:10.5px; --fs-sm:12px; --fs-md:13.5px; --fs-lg:17px; --fs-xl:20px;
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:22px;
+}
 body{
   background:#030810;color:#e2e8f0;
   font-family:'Noto Sans Devanagari',sans-serif;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;
+  font-feature-settings:"kern" 1;font-variant-numeric:tabular-nums;
+  line-height:1.45;letter-spacing:.1px;
   min-height:100dvh;max-width:480px;margin:0 auto;
   padding-bottom:70px;
   /* तिरछी तेज़ स्वाइप पर पूरा पेज बाएँ-दाएँ न खिसके — horizontal scroll/overscroll बंद।
@@ -101,7 +109,7 @@ body{
 }
 .stat-n{font-size:13.5px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums}
 .stat-n.red{color:#f87171}.stat-n.amber{color:#fbbf24}.stat-n.green{color:#4ade80}.stat-n.blue{color:#60a5fa}
-.stat-l{font-size:6.5px;color:#475569;margin-top:1px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.stat-l{font-size:7px;color:#5b6b8a;margin-top:1px;font-weight:800;text-transform:uppercase;letter-spacing:.5px}
 .btn-add-big{
   flex-shrink:0;height:40px;padding:0 16px;border:none;border-radius:13px;
   background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;
@@ -119,7 +127,7 @@ body{
 .bc-bg{position:fixed;inset:0;background:rgba(2,6,14,.95);z-index:300;display:none;overflow-y:auto;backdrop-filter:blur(3px)}
 .bc-wrap{max-width:480px;margin:0 auto;padding:14px 12px 40px;min-height:100dvh}
 .bc-head{display:flex;align-items:center;gap:10px;position:sticky;top:0;background:linear-gradient(180deg,#050a14 75%,transparent);padding:8px 2px 14px;z-index:2}
-.bc-title{flex:1;font-size:18px;font-weight:900;color:#e2e8f0}
+.bc-title{flex:1;font-size:var(--fs-lg);font-weight:900;color:#f1f5ff;letter-spacing:.2px}
 .bc-prog{font-size:12px;font-weight:800;color:#4ade80;background:rgba(34,197,94,.14);border:1px solid rgba(34,197,94,.4);border-radius:20px;padding:5px 12px}
 .bc-item{display:flex;align-items:center;gap:10px;background:#0a1526;border:1px solid rgba(30,58,95,.7);border-left-width:4px;border-radius:12px;padding:10px 11px;margin-bottom:7px;transition:opacity .3s,transform .3s}
 .bc-item.sent{opacity:.5;border-left-color:#22c55e!important}
@@ -134,7 +142,7 @@ body{
 .hub-bg{position:fixed;inset:0;background:rgba(2,6,14,.92);z-index:250;display:none;overflow-y:auto;backdrop-filter:blur(3px)}
 .hub-wrap{max-width:480px;margin:0 auto;padding:14px 12px 40px;min-height:100dvh}
 .hub-head{display:flex;align-items:center;gap:10px;position:sticky;top:0;background:linear-gradient(180deg,#050a14 70%,transparent);padding:6px 2px 12px;z-index:2}
-.hub-title{flex:1;font-size:18px;font-weight:900;color:#e2e8f0}
+.hub-title{flex:1;font-size:var(--fs-lg);font-weight:900;color:#f1f5ff;letter-spacing:.2px}
 .hub-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;scrollbar-width:none}
 .hub-tabs::-webkit-scrollbar{display:none}
 .hub-tab{flex-shrink:0;display:flex;align-items:center;gap:5px;padding:8px 13px;border-radius:20px;font-size:12px;font-weight:800;cursor:pointer;background:#0c1528;border:1.5px solid #1e3a5f;color:#94a3b8;touch-action:manipulation}
@@ -365,7 +373,7 @@ body{
   transition:transform .32s cubic-bezier(.32,1.05,.4,1);max-height:90dvh;overflow-y:auto;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
 .modal-box::before{content:'';position:absolute;top:9px;left:50%;transform:translateX(-50%);width:42px;height:4px;border-radius:3px;background:rgba(255,255,255,.22)}
 .modal-bg.open .modal-box{transform:translateY(0)}
-.modal-title{font-size:16.5px;font-weight:900;color:#f1f5ff;margin:6px 0 18px;display:flex;justify-content:space-between;align-items:center;letter-spacing:.2px}
+.modal-title{font-size:var(--fs-lg);font-weight:900;color:#f1f5ff;margin:6px 0 18px;display:flex;justify-content:space-between;align-items:center;letter-spacing:.2px}
 .modal-x{font-size:20px;color:#7d8db0;cursor:pointer;padding:4px;touch-action:manipulation;transition:transform .15s}
 .modal-x:active{transform:scale(.85)}
 

@@ -3577,12 +3577,19 @@ function aicAssistant(){
   </div>`;
   const orb=document.getElementById('ai-orb'); orb&&orb.classList.add('thinking');
   try{ _asstRec&&_asstRec.stop(); }catch(e){}
-  const r=new SR(); _asstRec=r; r.lang='hi-IN'; r.interimResults=true; r.maxAlternatives=1;
-  let txt='';
+  const r=new SR(); _asstRec=r; r.lang='hi-IN'; r.interimResults=true; r.maxAlternatives=1; r.continuous=false;
+  let txt='', intrLast='';
+  // ⏱️ पहरेदार — 9s में जवाब न आए तो खुद रोको (Android पर SR अटक जाता है), कभी 'खाली' न रहे
+  let guard=setTimeout(()=>{ try{ r.stop(); }catch(e){} },9000);
+  let guard2=setTimeout(()=>{ if(_asstRec===r){ _asstRec=null; orb&&orb.classList.remove('thinking');
+      const t=(txt||intrLast||'').trim();
+      if(t) _asstProcess(t);
+      else rp.innerHTML='⚠️ बोली पकड़ में नहीं आई — phone में Google app/net चालू रखें और mic के पास साफ़ बोलें।'+RB; } },12000);
   r.onresult=e=>{ // live दिखाओ — जो सुना जा रहा है वही अक्षर screen पर
     let fin='',intr='';
     for(let i=0;i<e.results.length;i++){ if(e.results[i].isFinal) fin+=e.results[i][0].transcript; else intr+=e.results[i][0].transcript; }
     if(fin) txt=fin;
+    if(intr) intrLast=intr;
     const lv=document.getElementById('asst-live'); if(lv) lv.textContent='"'+((fin||'')+(intr||'')).slice(0,90)+'"';
   };
   r.onerror=ev=>{ orb&&orb.classList.remove('thinking');
@@ -3591,8 +3598,10 @@ function aicAssistant(){
       ? '⚠️ Mic की permission बंद है — browser की settings में जाकर Microphone को Allow करें, फिर दोबारा।'+RB
       : (code==='network' ? '⚠️ बोली-पहचान के लिए net चाहिए — net देखकर दोबारा।'+RB
       : '⚠️ सुन नहीं पाया ('+escH(code||'error')+') — दोबारा कोशिश करें।'+RB); };
-  r.onend=()=>{ _asstRec=null; orb&&orb.classList.remove('thinking');
-    if(txt.trim()) _asstProcess(txt.trim());
+  r.onend=()=>{ if(_asstRec!==r) return; _asstRec=null; clearTimeout(guard); clearTimeout(guard2);
+    orb&&orb.classList.remove('thinking');
+    const t=(txt||intrLast||'').trim(); // final न मिले तो live-सुना हुआ ही ले लो
+    if(t) _asstProcess(t);
     else if(rp.innerHTML.indexOf('⚠️')<0) rp.innerHTML='⚠️ कुछ सुनाई नहीं दिया — mic के पास साफ़ बोलें।'+RB; };
   try{ r.start(); }catch(e){ rp.innerHTML='⚠️ mic शुरू नहीं हुआ ('+escH(e.message||'')+') — permission देखें।'+RB; }
  }catch(err){ toast('🧞 दिक्कत: '+(err&&err.message||err),'err');

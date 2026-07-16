@@ -1,8 +1,8 @@
 /* 🧠 Daily Memory — रात ~23:20+ IST हर दिन का सारांश vbe_call_tracker/mem_YYYY-MM-DD
-   में पक्का सहेजता है (0 token — सिर्य structured data, कोई AI call नहीं)।
+   में पक्का सहेजता है (0 token — सिर्फ़ structured data, कोई AI call नहीं)।
+   + घंटा-histogram (कब काम जुड़े/पूरे हुए) — nightly learning
    + रविवार रात: हफ़्ते का स्थायी सार (mem_week_...)
    + महीने की आख़िरी रात: महीने का स्थायी सार (mem_month_YYYY-MM)
-   इससे "पिछले मंगलवार / 3 दिन पहले क्या हुआ" जैसे सवाल हमेशा सटीक रहते हैं।
    Secret: FIREBASE_SA (service account JSON) */
 const admin = require('firebase-admin');
 
@@ -12,13 +12,14 @@ function dayKey(t){
     .formatToParts(new Date(t)).forEach(x=>{ p[x.type]=x.value; });
   return p.year+'-'+p.month+'-'+p.day;
 }
+function istHour(t){ return Number(new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Kolkata',hour:'numeric',hour12:false}).format(new Date(t)))%24; }
 
 async function main(){
   if(!process.env.FIREBASE_SA){ console.error('FIREBASE_SA missing'); process.exit(1); }
   admin.initializeApp({ credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SA)) });
   const db = admin.firestore();
 
-  // सिर्य़ रात 23:20-23:59 IST विंडो में (cron हर 5 min चलता है)
+  // रात 23:20-23:59 IST विंडो में ही (cron हर 5 min चलता है)
   const parts={}; new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kolkata',hour12:false,hour:'2-digit',minute:'2-digit'})
     .formatToParts(new Date()).forEach(x=>{ parts[x.type]=x.value; });
   const istMin = Number(parts.hour)*60 + Number(parts.minute);
@@ -29,6 +30,7 @@ async function main(){
   const snap = await db.collection('vbe_call_tracker').get();
 
   const tasksAdded=[], contactsAdded=[]; const staff={};
+  const addH=new Array(24).fill(0), doneH=new Array(24).fill(0);
   let tasksDone=0, lateCount=0, pending=0, callsDue=0;
 
   snap.forEach(d=>{
@@ -37,9 +39,9 @@ async function main(){
     if(c.createdAt && dayKey(c.createdAt)===today) contactsAdded.push(c.name||'?');
     if(c.nextCallAt && new Date(c.nextCallAt).getTime()<=now && topics(c).some(x=>!x.done)) callsDue++;
     topics(c).forEach(x=>{
-      if(x.addedAt && dayKey(x.addedAt)===today) tasksAdded.push({name:c.name||'?', t:x.t||''});
+      if(x.addedAt && dayKey(x.addedAt)===today){ tasksAdded.push({name:c.name||'?', t:x.t||''}); addH[istHour(x.addedAt)]++; }
       if(x.done){
-        if(x.doneAt && dayKey(x.doneAt)===today){ tasksDone++; const s=(x.assignTo||'').trim(); if(s) staff[s]=(staff[s]||0)+1; }
+        if(x.doneAt && dayKey(x.doneAt)===today){ tasksDone++; doneH[istHour(x.doneAt)]++; const s=(x.assignTo||'').trim(); if(s) staff[s]=(staff[s]||0)+1; }
       } else {
         pending++;
         let late=false;
@@ -56,21 +58,24 @@ async function main(){
     tasksAdded: tasksAdded.slice(0,80),
     contactsAdded: contactsAdded.slice(0,80),
     tasksDone, lateCount, pending, callsDue,
-    staffPerf: staff, text,
+    staffPerf: staff, addH, doneH, text,
     at: new Date().toISOString()
   }, { merge:true });
   console.log('✅ daily memory saved:', text);
 
-  // पुराने daily docs से अवधि का जोड़ (आज का ऊपर वाला data भी शामिल)
+  // पुराने daily docs से अवधि का जोड़ (आज का data भी शामिल)
   function aggregate(matchFn){
     let a=tasksAdded.length, dn=tasksDone, ca=contactsAdded.length; const st={...staff};
+    const aH=addH.slice(), dH=doneH.slice();
     snap.forEach(d=>{
       if(d.id.indexOf('mem_')!==0 || d.id.indexOf('mem_week')===0 || d.id.indexOf('mem_month')===0) return;
       const m=d.data()||{}; if(!m.date || m.date===today || !matchFn(m.date)) return;
       a+=(m.tasksAdded||[]).length; dn+=(m.tasksDone||0); ca+=(m.contactsAdded||[]).length;
       const sp=m.staffPerf||{}; for(const k in sp) st[k]=(st[k]||0)+sp[k];
+      (m.addH||[]).forEach((v,i)=>{ aH[i]+=(v||0); });
+      (m.doneH||[]).forEach((v,i)=>{ dH[i]+=(v||0); });
     });
-    return {tasksAdded:a, tasksDone:dn, contactsAdded:ca, staffPerf:st};
+    return {tasksAdded:a, tasksDone:dn, contactsAdded:ca, staffPerf:st, addH:aH, doneH:dH};
   }
 
   // 📅 रविवार रात — हफ़्ते का स्थायी सार

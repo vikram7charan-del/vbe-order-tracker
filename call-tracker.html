@@ -1033,14 +1033,15 @@ body.hdr-folded .hdr-row2{display:none}
       <span class="modal-x" onclick="closeAiComp()" style="align-self:flex-start">✕</span>
     </div>
     <div id="aic-resp" class="aic-resp" style="display:none"></div>
-    <div class="aic-sec">💡 अभी के सुझाव</div>
-    <div id="aic-sug"></div>
-    <div class="aic-sec">🎤 कुछ भी पूछो</div>
+    <div class="aic-sec">🎤 कुछ भी पूछो · <span style="text-transform:none;color:#a78bfa">🧞 बोलकर काम = नीचे बटन</span></div>
     <div class="aic-askrow">
       <textarea id="aic-q" class="aic-q" rows="1" placeholder="जैसे: आज किसको पहले call करूँ? कितने काम लेट हैं?"></textarea>
       <button class="aic-mic" id="aic-mic" onclick="aicVoice()" title="बोलकर पूछो">🎙️</button>
+      <button class="aic-mic" onclick="aicAssistant()" title="🧞 बोलकर काम जोड़ो (Assistant)" style="background:linear-gradient(150deg,#4c1d95,#2e1065);border-color:rgba(168,85,247,.5)">🧞</button>
       <button class="aic-send" onclick="aicAsk()" title="पूछो">➤</button>
     </div>
+    <div class="aic-sec">💡 अभी के सुझाव</div>
+    <div id="aic-sug"></div>
   </div>
 </div>
 
@@ -1090,6 +1091,10 @@ body.hdr-folded .hdr-row2{display:none}
     <div class="fg">
       <label class="lbl">👤 नाम *</label>
       <input class="inp" id="f-name" placeholder="Ramesh Gupta, Sharma Ji...">
+    </div>
+    <div class="fg">
+      <label class="lbl">🗣️ बोलचाल के नाम (aliases) <span style="color:#334155;font-weight:600;font-size:9px">— comma से; 🧞 बोलने पर इन नामों से भी पहचानेगा</span></label>
+      <input class="inp" id="f-alias" placeholder="जैसे: नवीन, Naveen, प्रिंटर वाले नवीन">
     </div>
     <div class="fg">
       <label class="lbl">📱 Calling Mobile (+91 भी ठीक है)</label>
@@ -3078,8 +3083,15 @@ function _allTasks(){
 /* 🗂️ Client Memory — किसी भी संपर्क की पूरी कुंडली (0 token) */
 function _findByName(ql){
   let best=null,bl=0;
-  contacts.forEach(c=>{ const nm=(c.name||'').toLowerCase(); if(!nm) return;
+  contacts.forEach(c=>{
+    // नाम + 🗣️ बोलचाल के नाम (aliases) दोनों से पहचान — alias पूरा मिले तो सबसे ऊँचा भरोसा
+    const nm=(c.name||'').toLowerCase();
     nm.split(/\s+/).forEach(w=>{ if(w.length>=3 && ql.includes(w) && w.length>bl){ best=c; bl=w.length; } });
+    String(c.aliases||'').toLowerCase().split(/[,;]/).forEach(al=>{
+      al=al.trim(); if(!al) return;
+      if(al.length>=3 && ql.includes(al) && al.length+10>bl){ best=c; bl=al.length+10; } // alias को नाम से ऊपर वज़न
+      else al.split(/\s+/).forEach(w=>{ if(w.length>=3 && ql.includes(w) && w.length>bl){ best=c; bl=w.length; } });
+    });
   });
   return best;
 }
@@ -3505,11 +3517,12 @@ function aicAssistant(){
   const r=new SR(); _asstRec=r; r.lang='hi-IN'; r.interimResults=false; r.maxAlternatives=1;
   let txt='';
   r.onresult=e=>{ txt=e.results[0][0].transcript||''; };
-  r.onerror=()=>{ orb&&orb.classList.remove('thinking'); rp.innerHTML='⚠️ सुन नहीं पाया — orb दबाकर रखें और साफ़ बोलें।'; };
+  const RB='<div><button class="aic-act" style="margin-top:9px" onclick="aicAssistant()">🎙️ फिर बोलो</button></div>';
+  r.onerror=()=>{ orb&&orb.classList.remove('thinking'); rp.innerHTML='⚠️ सुन नहीं पाया — साफ़ बोलें।'+RB; };
   r.onend=()=>{ _asstRec=null; orb&&orb.classList.remove('thinking');
     if(txt.trim()) _asstProcess(txt.trim());
-    else if(rp.innerHTML.indexOf('⚠️')<0) rp.innerHTML='⚠️ कुछ सुनाई नहीं दिया — orb दबाकर रखकर दोबारा बोलें।'; };
-  try{ r.start(); }catch(e){ rp.innerHTML='⚠️ mic शुरू नहीं हुआ — permission देखें।'; }
+    else if(rp.innerHTML.indexOf('⚠️')<0) rp.innerHTML='⚠️ कुछ सुनाई नहीं दिया।'+RB; };
+  try{ r.start(); }catch(e){ rp.innerHTML='⚠️ mic शुरू नहीं हुआ — permission देखें।'+RB; }
 }
 async function _asstProcess(raw){
   if(_asstBusy) return; _asstBusy=true;
@@ -3518,6 +3531,14 @@ async function _asstProcess(raw){
   orb&&orb.classList.add('thinking');
   try{
     const wantFocus=_wantsFocus(raw), bld=_bldScan(raw);
+    // 🔁 Conversation memory — "वही काम फिर से / पिछला काम दोबारा लगा दो"
+    let prev=null; try{ prev=window._asstPrev||JSON.parse(localStorage.getItem('vbe_asst_prev')||'null'); }catch(e){}
+    if(prev && /वही\s*(काम|वाला)|पिछला\s*काम|(फिर\s*से|दोबारा)\s*(लगा|डाल|वही)/.test(raw)){
+      const w=_aiParseWhen(raw)||new Date(Date.now()+3600000);
+      const tasks2=(prev.tasks||[]).map(x=>({t:x.t,when:w,cat:x.cat||'',pri:x.pri||''}));
+      const mc2=prev.mcId?contacts.find(x=>x.id===prev.mcId):null;
+      if(tasks2.length){ _asstShow(raw,tasks2,mc2,wantFocus,'',true); _asstBusy=false; orb&&orb.classList.remove('thinking'); return; }
+    }
     let tasks=null, name=null;
     if(aiKey() && (sessionStorage.getItem('vbe_ai_ok')==='1'||askPinAI())){
       try{
@@ -3546,11 +3567,15 @@ async function _asstProcess(raw){
     window._asstF=false;
   } finally{ _asstBusy=false; orb&&orb.classList.remove('thinking'); }
 }
-function _asstShow(raw,tasks,mc,wantFocus,name){
-  window._asstData={raw,tasks,mcId:mc?mc.id:null,wantFocus,name:name||''};
+function _asstShow(raw,tasks,mc,wantFocus,name,repeated){
+  // 💬 "बोल दो/बता देना" = WhatsApp draft भी तैयार रखो
+  const wantWA=/(बोल|बता|कह)\s*(दो|देना|दे)|whatsapp|व्हाट्सएप|व्हाट्सऐप|मैसेज|message/i.test(raw) && !!(mc&&(mc.waPhone||mc.phone));
+  window._asstData={raw,tasks,mcId:mc?mc.id:null,wantFocus,name:name||'',wantWA};
   const rp=document.getElementById('aic-resp');
   const why=[]; // 🔍 explain — किस आधार पर क्या समझा
+  if(repeated) why.push('🔁 पिछला काम दोहराया');
   if(mc) why.push('नाम मिला → '+(mc.name||''));
+  if(wantWA) why.push('"बोल दो" → 💬 WhatsApp draft');
   tasks.forEach(t=>{ if(t.pri==='high'&&why.indexOf('"आज ही/तुरंत" → 🔴 ज़रूरी')<0) why.push('"आज ही/तुरंत" → 🔴 ज़रूरी'); if(t.cat&&catInfo(t.cat)) why.push('श्रेणी → '+catInfo(t.cat).label); });
   if(wantFocus) why.push('"फोकस" बोला → 🎯 घड़ी');
   let h='<div style="font-size:9.5px;font-weight:800;color:#7d8db0;margin-bottom:7px">🧞 समझ गया — एक नज़र देखकर ✅ दबाओ</div>';
@@ -3563,9 +3588,11 @@ function _asstShow(raw,tasks,mc,wantFocus,name){
     </div>`;
   });
   if(wantFocus) h+='<div style="font-size:11px;font-weight:800;color:#c4b5fd;margin-top:6px">🎯 Focus Mode में भी लगेगा (विक्रम, 15 min)</div>';
+  if(window._asstData.wantWA) h+='<div style="font-size:11px;font-weight:800;color:#4ade80;margin-top:4px">💬 WhatsApp draft भी तैयार रहेगा</div>';
   if(why.length) h+='<div style="font-size:9.5px;color:#7d8db0;margin-top:7px">🔍 कैसे समझा: '+why.map(escH).join(' · ')+'</div>';
-  h+=`<div style="display:flex;gap:7px;margin-top:12px">
-    <button class="aic-act" style="flex:1;background:linear-gradient(135deg,#059669,#22c55e);border:none;color:#fff;font-size:12.5px;padding:10px" onclick="asstConfirm()">✅ ठीक है — बना दो</button>
+  h+=`<div style="display:flex;gap:7px;margin-top:12px;flex-wrap:wrap">
+    <button class="aic-act" style="flex:1;min-width:120px;background:linear-gradient(135deg,#059669,#22c55e);border:none;color:#fff;font-size:12.5px;padding:10px" onclick="asstConfirm()">✅ ठीक है — बना दो</button>
+    <button class="aic-act" onclick="aicAssistant()" title="गलत समझा? दोबारा बोलो">🎙️ फिर बोलो</button>
     <button class="aic-act" onclick="asstEdit()">✏️ सुधारो</button>
     <button class="aic-act" onclick="this.closest('#aic-resp').innerHTML='रद्द किया।'">❌</button>
   </div>`;
@@ -3608,10 +3635,28 @@ window.asstConfirm=function(){
   }
   _asstUndo={cid:target.id,isNew,marks,focusKey};
   clearTimeout(_asstUndoT); _asstUndoT=setTimeout(()=>{ _asstUndo=null; },30000);
+  // 🔁 conversation memory — "वही काम फिर से" के लिए याद रखो (अगले session में भी)
+  window._asstPrev={mcId:target.id,tasks:d.tasks.map(x=>({t:x.t,cat:x.cat||'',pri:x.pri||''}))};
+  try{ localStorage.setItem('vbe_asst_prev',JSON.stringify(window._asstPrev)); }catch(e){}
+  // 💬 "बोल दो" → WhatsApp draft (0 token) — नंबर हो तो एक tap में भेजने लायक
+  let waBtn='';
+  if(d.wantWA){
+    const ph=String(target.waPhone||target.phone||'').replace(/[^0-9]/g,'');
+    if(ph.length>=10){
+      const num=ph.length===10?'91'+ph:ph;
+      const wtxt='राम राम '+(target.name||'')+' जी 🙏\n\n'+d.tasks.map((r,i)=>(d.tasks.length>1?(i+1)+'. ':'')+r.t).join('\n')+'\n\n🙏 — विक्रम, Vande Bharat Enterprises';
+      window._asstWA={url:'https://wa.me/'+num+'?text='+encodeURIComponent(wtxt)};
+      waBtn='<button class="aic-act" style="background:linear-gradient(135deg,#059669,#22c55e);border:none;color:#fff" onclick="window.open(window._asstWA.url,\'_blank\')">💬 WhatsApp भेजो (draft तैयार)</button>';
+    }
+  }
   const rp=document.getElementById('aic-resp');
   rp.innerHTML=`<div style="font-size:14px;font-weight:900;color:#4ade80">✅ हो गया! ${d.tasks.length} काम ${mc?escH(mc.name)+' के कार्ड में':'नए कार्ड में'} जुड़ ${d.tasks.length>1?'गए':'गया'}${d.wantFocus?' + 🎯 Focus चालू':''}</div>
     <div style="font-size:10.5px;color:#8b9bbb;margin-top:4px">🔔 ${_aiFmt(d.tasks[0].when)} पर अलार्म</div>
-    <button class="aic-act" style="margin-top:10px" onclick="asstUndoNow()">↩️ Undo (30 सेकंड तक)</button>`;
+    <div style="display:flex;gap:7px;margin-top:10px;flex-wrap:wrap">
+      ${waBtn}
+      <button class="aic-act" onclick="aicAssistant()">🎙️ और बोलो</button>
+      <button class="aic-act" onclick="asstUndoNow()">↩️ Undo (30s)</button>
+    </div>`;
   try{ navigator.vibrate&&navigator.vibrate([15,30,15]); }catch(e){}
   window._asstData=null;
 };
@@ -5279,6 +5324,7 @@ window.editContact=function(id){
   if(!c) return;
   editingId=id;
   document.getElementById('f-name').value=c.name||'';
+  { const _fa=document.getElementById('f-alias'); if(_fa) _fa.value=c.aliases||''; }
   document.getElementById('f-phone').value=c.phone||'';
   document.getElementById('f-waph').value=c.waPhone||'';
   const actT=normTopics(c).filter(x=>!x.done);
@@ -5311,6 +5357,7 @@ window.openAddModal=function(){
   editingId=null;
   { const ab=document.getElementById('f-arch-btn'); if(ab) ab.style.display='none'; }
   document.getElementById('f-name').value='';
+  { const _fa=document.getElementById('f-alias'); if(_fa) _fa.value=''; }
   document.getElementById('f-phone').value='';
   document.getElementById('f-waph').value='';
   selTopics=[{t:'',cat:'',assignTo:''}];
@@ -5357,12 +5404,13 @@ window.saveContact=function(){
     return;
   }
   const alarmTime=(document.getElementById('f-alarm').value||'').trim();
+  const aliases=((document.getElementById('f-alias')||{}).value||'').trim(); // 🗣️ बोलचाल के नाम
   let saved;
   if(editingId){
     const c=contacts.find(x=>x.id===editingId);
-    if(c){ Object.assign(c,{name,phone,waPhone,note,topics,tag:selTag,intervalMins:selInterval,color:selColor,emoji:selEmoji,alarmTime}); saved=c; }
+    if(c){ Object.assign(c,{name,phone,waPhone,note,topics,tag:selTag,intervalMins:selInterval,color:selColor,emoji:selEmoji,alarmTime,aliases}); saved=c; }
   } else {
-    saved={id:genId(),name,phone,waPhone,note,topics,tag:selTag,color:selColor,emoji:selEmoji,intervalMins:selInterval,alarmTime,lastCallAt:null,nextCallAt:null,callLog:[],pinned:false,createdAt:new Date().toISOString()};
+    saved={id:genId(),name,phone,waPhone,note,topics,tag:selTag,color:selColor,emoji:selEmoji,intervalMins:selInterval,alarmTime,aliases,lastCallAt:null,nextCallAt:null,callLog:[],pinned:false,createdAt:new Date().toISOString()};
     contacts.push(saved);
   }
   closeModal('m-add'); render();

@@ -4920,6 +4920,15 @@ function renderAiTags(){
     TAG_LIST.map(t=>`<button class="sk-chip sm ${_aiTag===t.k?'on':''}" onclick="aiPickTag('${t.k}')">${escH(t.label)}</button>`).join('');
 }
 window.aiPickTag=function(k){ _aiTag=k; renderAiTags(); };
+/* ══ 🗣️ NLBCE — Business Language Dictionary (लोकल, 0 token) ══ */
+const BLD_PRI=['आज ही','अभी','तुरंत','जल्दी','urgent','रुकना नहीं','ज़रूरी','जरूरी','सबसे पहले','critical'];
+const BLD_CAT={market:['मार्केट','बाज़ार','बाजार','market'],computer:['कंप्यूटर','कम्प्यूटर','computer','प्रिंटर','printer','ईमेल','email'],jalipa:['जालीपा','jalipa','कैंटीन'],golden:['गोल्डन','golden','gem','जेम','कोटेशन','quotation','टेंडर','tender']};
+function _bldScan(s){
+  const q=String(s||'').toLowerCase();
+  const r={pri:BLD_PRI.some(w=>q.includes(w))?'high':'',cat:''};
+  for(const k in BLD_CAT){ if(BLD_CAT[k].some(w=>q.includes(w))){ r.cat=k; break; } }
+  return r;
+}
 /* बोले वाक्य से focus-निर्देश शब्द हटाओ (काम साफ़ रहे) */
 function _stripFocusWords(t){ return String(t||'').replace(/(फ़ोकस|फोकस|फॉक्स|फोक्स|focus)\s*(mode|मोड)?\s*(में)?\s*(भी)?\s*(डाल\s*(दो|देना|दे)|डालो|रखो|लगा\s*दो|कर\s*दो)?/gi,'').replace(/\s{2,}/g,' ').replace(/\s+(और|aur|तथा|उसे|उसको|इसे)\s*$/,'').trim(); }
 function _wantsFocus(s){ return /फ़ोकस|फोकस|फॉक्स|फोक्स|focus/i.test(String(s||'')); }
@@ -4937,25 +4946,33 @@ window.aiPreviewLocal=function(){
   if(!when) when=new Date(Date.now()+60*60*1000); // समझ न आए तो 1 घंटा बाद, user खुद ठीक करे
   if(!task) task=whenRaw?_aiCleanTask(whenRaw):'काम';
   if(wantFocus) task=_stripFocusWords(task)||task;
-  showAiPreview(task,when,guessed,false,wantFocus);
+  const b=_bldScan(raw+' '+whenRaw); // 🗣️ BLD — आपकी बोली से श्रेणी/priority (लोकल)
+  showAiPreview([{t:task,when,cat:b.cat,pri:b.pri}],guessed,false,wantFocus);
 };
-function showAiPreview(task,when,guessed,ai,wantFocus){
+/* tasks = [{t,when,cat,pri}] — एक वाक्य में कई काम भी (max 3) */
+function showAiPreview(tasks,guessed,ai,wantFocus){
+  if(!Array.isArray(tasks)) tasks=[tasks];
+  window._aiTasks=tasks;
   const pv=document.getElementById('ai-preview');
   // 📇 नाम से मौजूदा contact पहचानो — काम उसी कार्ड में जुड़ेगा
   const nmv=((document.getElementById('ai-name')||{}).value||'').trim();
   const mc=nmv?_findByName(nmv.toLowerCase()):null;
+  const rows=tasks.map((x,i)=>{
+    const ci=x.cat?catInfo(x.cat):null;
+    return `
+      <div style="font-size:10px;color:#64748b;margin:${i?'13px':'0'} 0 3px">📝 काम${tasks.length>1?' '+(i+1):''} ${ci?ci.logo+' '+ci.label:''} ${x.pri==='high'?'· <span style="color:#f87171">🔴 ज़रूरी</span>':''}</div>
+      <div id="ai-ptask-${i}" contenteditable="true"
+           style="font-size:15px;font-weight:800;color:#e2e8f0;margin-bottom:6px;outline:none;
+                  border-bottom:1px dashed #1e3a5f;padding-bottom:4px">${String(x.t||'').replace(/</g,'&lt;')}</div>
+      <input class="inp" type="datetime-local" id="ai-when-${i}" value="${_toLocalInput(x.when)}" style="font-size:13.5px">`;
+  }).join('');
   pv.innerHTML=`
     <div style="background:#0d1526;border:1px solid ${ai?'rgba(168,85,247,.6)':'#1e3a5f'};border-radius:12px;padding:13px">
-      ${ai?'<div style="font-size:9px;font-weight:900;color:#c4b5fd;margin-bottom:5px">🤖 AI ने समझा — जाँच लें</div>':''}
-      <div style="font-size:10px;color:#64748b;margin-bottom:3px">📝 काम</div>
-      <div id="ai-ptask" contenteditable="true"
-           style="font-size:15px;font-weight:800;color:#e2e8f0;margin-bottom:11px;outline:none;
-                  border-bottom:1px dashed #1e3a5f;padding-bottom:4px">${task.replace(/</g,'&lt;')}</div>
-      ${mc?`<div style="font-size:11px;font-weight:800;color:#4ade80;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.35);border-radius:9px;padding:6px 10px;margin-bottom:10px">📇 यह काम <b>${escH(mc.name)}</b> के मौजूदा कार्ड में जुड़ेगा (नया कार्ड नहीं बनेगा)</div>`
-          :(nmv?`<div style="font-size:10.5px;color:#8b9bbb;margin-bottom:10px">🆕 "${escH(nmv)}" नाम का contact नहीं मिला — नया कार्ड बनेगा</div>`:'')}
-      <label class="lbl">⏰ कब? ${guessed?'(समझ लिया — चाहें तो बदलें)':'<span style="color:#fbbf24">(समय समझ नहीं आया — खुद चुनें)</span>'}</label>
-      <input class="inp" type="datetime-local" id="ai-when" value="${_toLocalInput(when)}" style="font-size:14px">
-      <div style="font-size:11px;color:#a855f7;font-weight:700;margin-top:7px">🔔 ${_aiFmt(when)} — इस समय अलार्म आएगा</div>
+      ${ai?'<div style="font-size:9px;font-weight:900;color:#c4b5fd;margin-bottom:5px">🤖 AI ने समझा — जाँच लें'+(tasks.length>1?' ('+tasks.length+' काम पहचाने)':'')+'</div>':''}
+      ${rows}
+      ${mc?`<div style="font-size:11px;font-weight:800;color:#4ade80;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.35);border-radius:9px;padding:6px 10px;margin:10px 0 2px">📇 ${tasks.length>1?'ये काम':'यह काम'} <b>${escH(mc.name)}</b> के मौजूदा कार्ड में जुड़ेंगे (नया कार्ड नहीं बनेगा)</div>`
+          :(nmv?`<div style="font-size:10.5px;color:#8b9bbb;margin:10px 0 2px">🆕 "${escH(nmv)}" नाम का contact नहीं मिला — नया कार्ड बनेगा</div>`:'')}
+      <div style="font-size:11px;color:#a855f7;font-weight:700;margin-top:8px">🔔 ${guessed?'समय समझ लिया — चाहें तो बदलें':'समय समझ नहीं आया — ऊपर खुद चुनें'}; तय समय पर अलार्म आएगा</div>
       <label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:12.5px;font-weight:800;color:#c4b5fd;cursor:pointer">
         <input type="checkbox" id="ai-focus" ${wantFocus?'checked':''} style="width:18px;height:18px;accent-color:#a855f7"> 🎯 Focus Mode में भी डालो (विक्रम की घड़ी, 15 min)
       </label>
@@ -4973,61 +4990,85 @@ window.aiPreview=async function(){
   try{
     const now=new Date(), pd=n=>String(n).padStart(2,'0');
     const nowS=now.getFullYear()+'-'+pd(now.getMonth()+1)+'-'+pd(now.getDate())+' '+pd(now.getHours())+':'+pd(now.getMinutes());
-    const txt=await aiAsk('अभी समय (IST): '+nowS+'\nबोले हुए वाक्य से जानकारी निकालो, जवाब सिर्फ़ JSON:\n{"task":"काम पूरा हूबहू (सिर्फ़ समय-शब्द और focus-निर्देश हटाओ, बाकी एक शब्द मत बदलो)","when":"YYYY-MM-DD HH:MM (आने वाला समय; न हो तो null)","name":"जिस व्यक्ति को काम बोलना/करवाना है उसका नाम या null (जैसे \'नवीन भाई को बोल दो\' → नवीन)","cat":"golden|computer|market|jalipa या null","focus":true/false (वाक्य में focus/फोकस में डालने को कहा हो तो true)}\nसमय-वाक्य: '+(whenRaw||'—')+'\nकाम-वाक्य: '+(raw||'—'),260);
+    const txt=await aiAsk('अभी समय (IST): '+nowS+'\nबोले हुए वाक्य से जानकारी निकालो, जवाब सिर्फ़ JSON:\n{"tasks":[{"task":"काम हूबहू (समय-शब्द और focus-निर्देश हटाओ, बाकी एक शब्द मत बदलो)","when":"YYYY-MM-DD HH:MM या null","cat":"golden|computer|market|jalipa या null","pri":"high (अगर तुरंत/आज ही/ज़रूरी जैसा दबाव हो) या null"}],"name":"जिस व्यक्ति को काम बोलना/करवाना है उसका नाम या null (जैसे \'नवीन भाई को बोल दो\' → नवीन)","focus":true/false (focus/फोकस में डालने को कहा हो तो true)}\nनियम: एक वाक्य में कई अलग काम हों (जैसे \'... और शाम को भुगतान भी कर देना\') तो हर एक अलग task बनाओ, max 3।\nसमय-वाक्य: '+(whenRaw||'—')+'\nकाम-वाक्य: '+(raw||'—'),380);
     const m=txt.match(/\{[\s\S]*\}/);
     const j=JSON.parse(m?m[0]:txt);
-    let when=j.when?new Date(String(j.when).replace(' ','T')):null;
-    if(when&&(isNaN(when.getTime())||when.getTime()<=Date.now())) when=null;
-    let task=(j.task||raw||whenRaw||'काम').trim();
     const wantFocus=!!j.focus||_wantsFocus(raw+' '+whenRaw);
-    if(wantFocus) task=_stripFocusWords(task)||task;
+    const bld=_bldScan(raw+' '+whenRaw); // 🗣️ BLD merge — Claude चूके तो लोकल शब्दकोश पकड़े
+    let arr=Array.isArray(j.tasks)&&j.tasks.length?j.tasks:[{task:j.task,when:j.when,cat:j.cat,pri:j.pri}];
+    let anyWhen=false;
+    const tasks=arr.slice(0,3).map(x=>{
+      let w=x.when?new Date(String(x.when).replace(' ','T')):null;
+      if(w&&(isNaN(w.getTime())||w.getTime()<=Date.now())) w=null;
+      if(w) anyWhen=true;
+      let t=(x.task||raw||whenRaw||'काम').trim();
+      if(wantFocus) t=_stripFocusWords(t)||t;
+      return { t, when:w||new Date(Date.now()+3600000),
+        cat:(x.cat&&TASK_CATS.find(c=>c.k===x.cat))?x.cat:bld.cat,
+        pri:(x.pri==='high')?'high':bld.pri };
+    });
     if(j.name){ const ne=document.getElementById('ai-name'); if(ne&&!ne.value) ne.value=j.name; }
-    window._aiCat=(j.cat&&TASK_CATS.find(t=>t.k===j.cat))?j.cat:'';
-    showAiPreview(task, when||new Date(Date.now()+3600000), !!when, true, wantFocus);
+    window._aiCat=tasks[0].cat||'';
+    showAiPreview(tasks, anyWhen, true, wantFocus);
   }catch(e){ window.aiPreviewLocal(); }
   finally{ window._aiBusy=false; }
 };
 window.aiConfirm=function(){
-  const wv=document.getElementById('ai-when').value;
-  const when=wv?new Date(wv):null;
-  if(!when||isNaN(when.getTime())){ toast('⚠️ समय सही नहीं','err'); return; }
-  let task=(document.getElementById('ai-ptask').textContent||'').trim();
-  if(!task) task='काम';
+  const meta=Array.isArray(window._aiTasks)?window._aiTasks:[{}];
+  // हर काम की row (edit के बाद का text + समय) पढ़ो
+  const rows=[];
+  for(let i=0;i<meta.length;i++){
+    const el=document.getElementById('ai-ptask-'+i); if(!el) continue;
+    const t=(el.textContent||'').trim(); if(!t) continue;
+    const wv=((document.getElementById('ai-when-'+i)||{}).value)||'';
+    const w=wv?new Date(wv):null;
+    if(!w||isNaN(w.getTime())){ toast('⚠️ काम '+(meta.length>1?(i+1)+' का ':'')+'समय सही नहीं','err'); return; }
+    rows.push({t,when:w,cat:meta[i].cat||'',pri:meta[i].pri||''});
+  }
+  if(!rows.length){ toast('⚠️ कोई काम नहीं','err'); return; }
   const nm=((document.getElementById('ai-name')||{}).value||'').trim();
   const phRaw=((document.getElementById('ai-phone')||{}).value||'').trim();
   const ph=phRaw?normalizePhone(phRaw):'';
   const wantFocus=!!((document.getElementById('ai-focus')||{}).checked);
   // 📇 नाम से मौजूदा contact मिले तो काम उसी के कार्ड में जुड़े (नया कार्ड नहीं)
   const mc=nm?_findByName(nm.toLowerCase()):null;
-  let target, ti;
+  // ♻️ duplicate जाँच — वैसा ही pending काम पहले से हो तो पूछो
+  if(mc){
+    const nrm=s=>String(s).replace(/\s+/g,'').toLowerCase();
+    const pend=normTopics(mc).filter(x=>!x.done);
+    for(const r of rows){
+      const d=pend.find(x=>{ const a=nrm(x.t), b=nrm(r.t); return a.length>6&&b.length>6&&(a.includes(b)||b.includes(a)); });
+      if(d && !confirm('⚠️ ऐसा काम '+(mc.name||'')+' पर पहले से है:\n"'+d.t.slice(0,50)+'"\n\nफिर भी नया जोड़ें?')) return;
+    }
+  }
+  let target, firstTi;
   if(mc){
     const tps=normTopics(mc);
     const act=tps.filter(x=>!x.done), don=tps.filter(x=>x.done);
-    act.push({t:task,done:false,doneAt:null,cat:(window._aiCat||''),assignTo:'',addedAt:new Date().toISOString(),at:when.toISOString()});
+    firstTi=act.length;
+    rows.forEach(r=>{ act.push({t:r.t,done:false,doneAt:null,cat:r.cat,pri:r.pri,assignTo:'',addedAt:new Date().toISOString(),at:r.when.toISOString()}); _logHist(mc,'add',r.t); });
     mc.topics=[...act,...don];
-    ti=act.length-1;
     mc.note=mc.topics.filter(x=>!x.done).map(x=>x.t).join(' · ');
-    _logHist(mc,'add',task);
     target=mc;
     render(); fbSave(mc);
   } else {
     const entry={
-      id:genId(), name:nm||task.slice(0,44), phone:(ph&&ph.length>=10)?ph:'', waPhone:'', note:task,
-      topics:[{t:task,done:false,doneAt:null,cat:(window._aiCat||''),assignTo:'',addedAt:new Date().toISOString()}],
+      id:genId(), name:nm||rows[0].t.slice(0,44), phone:(ph&&ph.length>=10)?ph:'', waPhone:'', note:rows.map(r=>r.t).join(' · '),
+      topics:rows.map(r=>({t:r.t,done:false,doneAt:null,cat:r.cat,pri:r.pri,assignTo:'',addedAt:new Date().toISOString(),at:r.when.toISOString()})),
       tag:_aiTag||'', color:'#a855f7', emoji:'📅', intervalMins:30, alarmTime:'',
-      lastCallAt:null, nextCallAt:when.toISOString(), callLog:[], pinned:false,
+      lastCallAt:null, nextCallAt:rows[0].when.toISOString(), callLog:[], pinned:false,
       createdAt:new Date().toISOString(), aiQuick:true
     };
-    contacts.push(entry); target=entry; ti=0;
+    contacts.push(entry); target=entry; firstTi=0;
     render(); fbSave(entry);
   }
-  // 🎯 बोले में focus कहा हो / checkbox लगा हो → विक्रम की घड़ी भी चालू
+  // 🎯 focus कहा/checkbox लगा → पहला काम विक्रम की घड़ी में
   if(wantFocus&&target){
-    _focus.push({key:target.id+'_'+ti+'_'+Date.now(), id:target.id, i:ti, t:task, own:'v', start:Date.now(), until:Date.now()+15*60000, mins:15});
+    _focus.push({key:target.id+'_'+firstTi+'_'+Date.now(), id:target.id, i:firstTi, t:rows[0].t, own:'v', start:Date.now(), until:Date.now()+15*60000, mins:15});
     saveFocus(); renderFocusBar();
   }
   closeModal('m-ai');
-  toast((mc?'✅ '+(mc.name||'').slice(0,18)+' के कार्ड में जुड़ गया':'✅ जुड़ गया')+(wantFocus?' + 🎯 Focus चालू':'')+' — 🔔 '+_aiFmt(when));
+  toast((mc?'✅ '+(mc.name||'').slice(0,18)+' के कार्ड में ':'✅ ')+rows.length+' काम जुड़'+(rows.length>1?'े':' गया')+(wantFocus?' + 🎯 Focus चालू':'')+' — 🔔 '+_aiFmt(rows[0].when));
 };
 
 /* ⏱ 15 मिनट बाद call करने का reminder */

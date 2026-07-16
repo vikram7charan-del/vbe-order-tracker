@@ -3157,11 +3157,15 @@ function aicRuleAnswer(q){
   if(qCat && !has('जोड़','ऐड','add','डाले') && !_relRange(ql,now)){
     let list=_allTasks().filter(t=>t.cat===qCat);
     const used=[qCatL];
-    // मालिक/स्टाफ छनाई — "विक्रम/मेरे" = खुद के (बिना सौंपे) + vikram को सौंपे
+    // व्यक्ति छनाई — दोनों जगह देखो: (1) उसे सौंपे काम, (2) उसके संपर्क-कार्ड पर दर्ज काम
     const stf=[['विक्रम','vikram'],['दिनेश','dinesh'],['कैलाश','kailash'],['मनोज','manoj'],['कोड़ा','koda'],['स्वरूप','swaroop']];
     for(const [hn,en] of stf){
       if(ql.includes(hn.toLowerCase())||ql.includes(en)||((en==='vikram')&&has('मेरे','मेरा','मेरी','my'))){
-        list=list.filter(t=>{ const a=(t.assignTo||'').toLowerCase(); return en==='vikram' ? (!a||a.includes('vikram')) : a.includes(en); });
+        list=list.filter(t=>{
+          const a=(t.assignTo||'').toLowerCase(), nm=(t.name||'').toLowerCase();
+          const asg = en==='vikram' ? (!a||a.includes('vikram')) : a.includes(en);
+          return asg || nm.includes(hn.toLowerCase()) || nm.includes(en);
+        });
         used.push(hn); break;
       }
     }
@@ -3298,11 +3302,18 @@ function aicRuleAnswer(q){
     due.slice(0,80).forEach((c,i)=>{ const tk=normTopics(c).filter(x=>!x.done).map(x=>x.t); out.push(`${i+1}. ${c.name||'?'}${c.phone?' ('+c.phone+')':''}${tk.length?'\n    → '+tk.slice(0,4).join('; '):''}`); });
     return out.join('\n');
   }
-  // staff-wise
+  // staff/व्यक्ति-wise — boss-report: दोनों जगह से पूरा हिसाब (सौंपे + उनके संपर्क-कार्ड के काम)
   const staff=[['विक्रम','vikram','vikram'],['दिनेश','dinesh','dinesh'],['कैलाश','kailash','kailash'],['मनोज','manoj','manoj'],['कोड़ा','koda','koda'],['स्वरूप','swaroop','swaroop']];
   for(const st of staff){ if(ql.includes(st[0].toLowerCase())||ql.includes(st[1])){
-    const mine=tasks.filter(t=>!t.done && (t.assignTo||'').toLowerCase().includes(st[1]));
-    if(has('काम','task','कितने','सौंप')) return mine.length?`${st[0]} जी के ज़िम्मे ${mine.length} काम:\n`+mine.slice(0,60).map((t,i)=>`${i+1}. ${t.name} — ${t.t}`).join('\n'):`${st[0]} जी को अभी कोई काम नहीं सौंपा गया (रिकॉर्ड में)।`;
+    if(has('काम','task','कितने','सौंप')){
+      const asg=tasks.filter(t=>!t.done && (t.assignTo||'').toLowerCase().includes(st[1]));
+      const onCard=tasks.filter(t=>!t.done && ((t.name||'').toLowerCase().includes(st[0].toLowerCase())||(t.name||'').toLowerCase().includes(st[1])) && !((t.assignTo||'').toLowerCase().includes(st[1])));
+      if(!asg.length && !onCard.length) return `${st[0]} जी के नाम पर कोई बाकी काम नहीं — न सौंपा हुआ, न उनके संपर्क-कार्ड पर। ✅`;
+      const out=[`${st[0]} जी — कुल ${asg.length+onCard.length} काम बाकी:`];
+      if(asg.length){ out.push(`\n👤 सौंपे हुए (${asg.length}):`); asg.slice(0,40).forEach((t,i)=>{ out.push(`${i+1}. ${t.pri==='high'?'🔴 ':''}${t.t} (${t.name})`); if(t.at) out.push(`    ⏰ ${_dmy(t.at,true)}${new Date(t.at).getTime()<now?' — लेट':''}`); }); }
+      if(onCard.length){ out.push(`\n📇 इनके कार्ड पर दर्ज (${onCard.length}):`); onCard.slice(0,40).forEach((t,i)=>{ out.push(`${i+1}. ${t.pri==='high'?'🔴 ':''}${catInfo(t.cat)?catInfo(t.cat).logo+' ':''}${t.t}`); if(t.at) out.push(`    ⏰ ${_dmy(t.at,true)}${new Date(t.at).getTime()<now?' — लेट':''}`); }); }
+      return out.join('\n');
+    }
   }}
   // कुल पेंडिंग — पूरी सूची
   if(has('पेंडिंग','pending','बाकी','अधूरे','बचे','कितने काम','सारे काम','पूरी सूची','सब काम')){

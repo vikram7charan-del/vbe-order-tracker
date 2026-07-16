@@ -198,7 +198,7 @@ h2.sec-title{font-size:14px;font-weight:900;color:#1e293b;margin-bottom:10px}
       <div style="margin-top:10px">
         <div class="sec"><label class="lbl">Cloud Function Proxy URL (recommended)</label>
           <input class="inp" id="set-proxy" placeholder="https://...cloudfunctions.net/aiBillExtract" style="font-size:12px"></div>
-        <div class="sec"><label class="lbl">या Anthropic API Key (सिर्फ इस device के localStorage में)</label>
+        <div class="sec"><label class="lbl">या Anthropic API Key (Admin सेव करे तो हर फ़ोन पर अपने-आप चलती है)</label>
           <input class="inp" id="set-key" type="password" placeholder="sk-ant-..." style="font-size:12px"></div>
         <button class="btn btn-ghost" onclick="saveAiSettings()">Save Settings</button>
       </div>
@@ -304,6 +304,7 @@ let PHOTO_BLOB = null;  // compressed jpeg blob
 let FILL_PENDING_ID = null; // expense id being completed
 let STAFF_LIST = [];    // for quick entry
 let AI_PROXY_DB = '';   // vbe_settings/kharcha_ai से auto-loaded proxy URL
+let AI_KEY_DB = '';     // vbe_settings/kharcha_ai से auto-loaded API key (सब devices पर एक साथ)
 
 // ── Auth ──
 onAuthStateChanged(auth, async u => {
@@ -359,11 +360,15 @@ async function initApp(){
   document.getElementById('f-firm').innerHTML = opts;
   document.getElementById('q-firm').innerHTML = opts;
   document.getElementById('auto-firm').innerHTML = opts;
-  // AI proxy URL — deploy workflow इसे vbe_settings/kharcha_ai में लिख देता है (कुछ paste नहीं करना पड़ता)
+  // AI config — vbe_settings/kharcha_ai से proxy URL *और* API key (एक बार डालो, हर फ़ोन पर चले)
   try{
     const cfgDoc = await getDoc(doc(db,'vbe_settings','kharcha_ai'));
-    if(cfgDoc.exists() && cfgDoc.data().proxyUrl) AI_PROXY_DB = cfgDoc.data().proxyUrl;
+    if(cfgDoc.exists()){
+      if(cfgDoc.data().proxyUrl) AI_PROXY_DB = cfgDoc.data().proxyUrl;
+      if(cfgDoc.data().apiKey) AI_KEY_DB = cfgDoc.data().apiKey;
+    }
   }catch(e){}
+  showAiState();
   // category chips
   document.getElementById('cat-chips').innerHTML = CATEGORIES.map(c=>
     `<button class="chip" id="cat-${c.id}" onclick="setCat('${c.id}')">${c.label}</button>`).join('');
@@ -614,29 +619,57 @@ function compressImage(file, maxDim, quality){
 }
 
 // ── AI bill reading ──
-window.saveAiSettings = function(){
-  localStorage.setItem('vbe_ai_proxy_url', val('set-proxy').trim());
-  localStorage.setItem('vbe_ai_key', val('set-key').trim());
-  toast('✅ AI settings saved');
+window.saveAiSettings = async function(){
+  const proxy=val('set-proxy').trim(), key=val('set-key').trim();
+  localStorage.setItem('vbe_ai_proxy_url', proxy);
+  localStorage.setItem('vbe_ai_key', key);
+  // Admin की डाली key Firestore में भी — ताकि हर फ़ोन/स्टाफ़ के device पर अपने-आप चले
+  if(ME && ME.role==='admin'){
+    try{
+      await setDoc(doc(db,'vbe_settings','kharcha_ai'), { apiKey:key, ...(proxy?{proxyUrl:proxy}:{}) }, {merge:true});
+      AI_KEY_DB=key; if(proxy) AI_PROXY_DB=proxy;
+      toast('✅ AI चाबी सेव — अब हर फ़ोन पर चलेगी');
+    }catch(e){ toast('⚠️ इस फ़ोन पर सेव हुई, बाकी devices पर नहीं: '+e.message,'err'); }
+  } else {
+    toast('✅ AI settings saved');
+  }
+  showAiState();
 };
 const AI_PROMPT = `यह एक खरीदारी का bill / tax-invoice है। ध्यान से पढ़कर सिर्फ यह JSON दो (कोई और text नहीं):
 {"vendor":"दुकान/कंपनी का नाम","gstin":"GSTIN/UIN या null","phone":"दुकान का mobile या null","address":"दुकान का पता या null","date":"YYYY-MM-DD या null","category":"kaccha/fuel/army/repair/salary/other","items":[{"name":"सामान का सही नाम जैसा बिल पर छपा है","qty":संख्या,"unit":"kg/पीस/लीटर/ग्राम/बॉक्स/बोरी/crt","rate":GST-सहित-प्रति-यूनिट-रेट,"amount":qty×rate}],"other_charges":[{"label":"Wages/Freight/हम्माली/छूट आदि","amount":संख्या}],"tax_total":कुल-GST-राशि-या-0,"grand_total":बिल-का-आखिरी-कुल}
 जरूरी नियम:
-1. item का नाम बिल पर जैसा छपा है बिल्कुल वैसा पढ़ें — अंदाज़ा/guess मत लगाइए। ये अक्सर तेल/घी/राशन/सब्ज़ी/किराना के सामान होते हैं (जैसे Sarso=सरसों तेल, Soya=सोया तेल)।
+1. item का नाम बिल पर जैसा छपा है बिल्कुल वैसा पढ़ें — अंदाज़ा/guess मत लगाइए। ये अक्सर तेल/घी/राशन/सब्ज़ी/किराना के सामान होते हैं। अगर नाम English/short-form में छपा है तो साथ में हिंदी भी लिखें — जैसे "Sarso Oil (सरसों तेल)", "MDH Deggi (देगी मिर्च)" — ताकि मालिक तुरंत पहचान लें।
 2. rate = प्रति-यूनिट **GST सहित** कीमत। अगर बिल में "Rate (Incl. of Tax)" कॉलम है तो वही लें; वरना base rate में CGST+SGST जोड़कर।
 3. amount = qty × (GST-सहित rate)। सारे items के amount + other_charges मिलकर grand_total के बराबर होने चाहिए।
 4. Wages/हम्माली/freight/packing जैसे extra को other_charges में डालें (item में नहीं)।
 5. जो field साफ़ न दिखे उसे null/0 रखें। Hindi नाम Devanagari में ही रखें अगर बिल पर हैं।`;
 
 function aiConfigured(){
-  return AI_PROXY_DB || localStorage.getItem('vbe_ai_proxy_url') || localStorage.getItem('vbe_ai_key');
+  return AI_PROXY_DB || AI_KEY_DB || localStorage.getItem('vbe_ai_proxy_url') || localStorage.getItem('vbe_ai_key');
+}
+// फोटो card पर AI की हालत पहले से दिखाओ — photo खींचने के बाद surprise नहीं
+function showAiState(){
+  const st=document.getElementById('auto-status'); if(!st) return;
+  if(aiConfigured()){ st.innerHTML='🟢 AI तैयार है — फोटो लो, नाम-रेट-GST सब AI भरेगा'; st.style.color='#059669'; }
+  else{ st.innerHTML='🔴 AI की चाबी अभी नहीं लगी — नीचे <b>⚙️ AI Settings</b> में API key एक बार डालो (सेव करते ही <b>हर फ़ोन</b> पर चल जाएगी)'; st.style.color='#b91c1c'; }
+}
+// Google/API के अंग्रेज़ी errors → मालिक की भाषा में
+function aiErrHindi(e){
+  const s=String(e&&e.message||e);
+  if(/401|invalid.*key|authentication/i.test(s)) return 'AI की चाबी गलत या पुरानी है — ⚙️ AI Settings में नई key डालो';
+  if(/429|rate.?limit/i.test(s)) return 'AI अभी बहुत busy है — 1 मिनट रुककर दोबारा try करो';
+  if(/402|credit|billing|insufficient/i.test(s)) return 'AI के credits ख़त्म हो गए — console.anthropic.com पर recharge करो';
+  if(/529|500|overloaded/i.test(s)) return 'AI server busy है — थोड़ी देर में दोबारा try करो';
+  if(/Failed to fetch|NetworkError|network/i.test(s)) return 'इंटरनेट slow/बंद है — net चालू करके दोबारा try करो';
+  if(/धीमा|Abort/i.test(s)) return 'AI बहुत धीमा था (60 sec) — दोबारा try करो';
+  return s;
 }
 
 // Bill photo → Claude vision → parsed JSON {vendor, date, category, items[], total}
 async function aiExtract(b64){
   const proxy = (localStorage.getItem('vbe_ai_proxy_url')||'') || AI_PROXY_DB;
-  const key = localStorage.getItem('vbe_ai_key')||'';
-  if(!proxy && !key) throw new Error('AI अभी setup नहीं हुआ — Vikram को बताएं');
+  const key = localStorage.getItem('vbe_ai_key')||'' || AI_KEY_DB;
+  if(!proxy && !key) throw new Error('AI की चाबी नहीं लगी है — नीचे ⚙️ AI Settings में API key एक बार डाल दो, फिर हर फ़ोन पर चलेगी');
   const ac = new AbortController();
   const tm = setTimeout(()=>ac.abort(), 60000); // 60s से ज्यादा कभी न लटके
   let text;
@@ -662,7 +695,7 @@ async function aiExtract(b64){
       },
       body: JSON.stringify({
         model:'claude-sonnet-4-6',
-        max_tokens:2500,
+        max_tokens:4000,
         messages:[{role:'user',content:[
           {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},
           {type:'text',text:AI_PROMPT}
@@ -725,8 +758,9 @@ window.aiReadBill = async function(){
     toast('✅ Bill पढ़ लिया — check करें!');
     saveDraft();
   }catch(e){
-    st.textContent='❌ '+e.message;
-    toast('❌ AI fail: '+e.message,'err');
+    const m=aiErrHindi(e);
+    st.textContent='❌ '+m;
+    toast('❌ '+m,'err');
   }finally{ btn.disabled=false; }
 };
 
@@ -756,8 +790,9 @@ window.autoEntry = async function(ev){
     res.style.display='block';
     document.getElementById('form-title').scrollIntoView({behavior:'smooth', block:'start'});
   }catch(e){
-    st.textContent='❌ '+e.message;
-    toast('❌ '+e.message,'err');
+    const m=aiErrHindi(e);
+    st.textContent='❌ '+m;
+    toast('❌ '+m,'err');
   }finally{ btn.disabled=false; }
 };
 

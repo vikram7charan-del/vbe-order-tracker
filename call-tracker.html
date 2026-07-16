@@ -2805,10 +2805,69 @@ function aicGreeting(){
   if(h<19) return 'शुभ संध्या विक्रम भाई 🌆';
   return 'शुभ रात्रि विक्रम भाई 🌙';
 }
+/* ══ 🎯 ABLE — लोकल business intelligence (0 token): सिफ़ारिश, staff profile, health ══ */
+function ableStaff(){
+  const P={}; const now=Date.now();
+  _allTasks().forEach(t=>{
+    const s=(t.assignTo||'').trim(); if(!s) return;
+    const k=s.toLowerCase();
+    P[k]=P[k]||{name:(typeof staffName==='function'?staffName(s):s)||s,done:0,pend:0,late:0,sumD:0,nD:0};
+    if(t.done){ P[k].done++;
+      if(t.addedAt&&t.doneAt){ const d=(new Date(t.doneAt)-new Date(t.addedAt))/864e5; if(d>=0&&d<90){ P[k].sumD+=d; P[k].nD++; } }
+    } else { P[k].pend++; if(t.at&&new Date(t.at).getTime()<now) P[k].late++; }
+  });
+  return P;
+}
+function ableHealth(){
+  const s=aicStats();
+  let h=100 - Math.min(45,s.late*2) - Math.min(20,Math.round(s.callsDue*1.5)) + Math.min(15,s.doneN*3);
+  return Math.max(5,Math.min(100,Math.round(h)));
+}
+/* हर बाकी काम को score दो — लेट घंटे + 🔴 ज़रूरी + call due + VIP (जिनसे सबसे ज़्यादा काम/call) */
+function ableRecommend(n){
+  const now=Date.now(); const vip={};
+  contacts.forEach(c=>{ if(c.active===false)return; vip[c.name||'?']=(Array.isArray(c.callLog)?c.callLog.length:0)+normTopics(c).length*0.5+(c.pinned?5:0); });
+  const rows=[];
+  _allTasks().forEach(t=>{
+    if(t.done) return;
+    let sc=0; const why=[];
+    const at=t.at?new Date(t.at).getTime():null;
+    if(at&&at<now){ sc+=Math.min(50,10+((now-at)/3600e3)*0.5); why.push(_dmy(t.at,true)+' से लेट'); }
+    else if(at&&at-now<3*3600e3){ sc+=25; why.push('जल्द समय: '+_dmy(t.at,true)); }
+    if(t.pri==='high'){ sc+=30; why.push('🔴 ज़रूरी'); }
+    if(t.nextCallAt&&new Date(t.nextCallAt).getTime()<=now){ sc+=15; why.push('call due'); }
+    sc+=Math.min(10,(vip[t.name]||0)*0.5);
+    if(sc>4) rows.push({sc,t,why});
+  });
+  rows.sort((a,b)=>b.sc-a.sc);
+  return rows.slice(0,n||7);
+}
+function ableRecoText(){
+  const R=ableRecommend(7);
+  if(!R.length) return 'अभी कोई दबाव वाला काम नहीं — सब समय पर है ✅';
+  const out=['🎯 अभी इस क्रम में करो (आपके अपने रिकॉर्ड से):'];
+  R.forEach((r,i)=>out.push(`${i+1}. ${r.t.name} — ${r.t.t}\n    (${r.why.join(' · ')||'महत्वपूर्ण संपर्क'})`));
+  return out.join('\n');
+}
+function ableStaffText(){
+  const P=ableStaff(); const ks=Object.keys(P);
+  if(!ks.length) return 'अभी किसी staff को काम सौंपा नहीं गया — किसी काम पर 👤 दबाकर सौंपना शुरू करें, फिर मैं हर एक का प्रदर्शन आँकता रहूँगा।';
+  ks.sort((a,b)=>P[b].done-P[a].done);
+  const out=['👥 Staff प्रदर्शन (आपके रिकॉर्ड से):'];
+  ks.forEach(k=>{ const p=P[k]; const rel=(p.done+p.late)>0?Math.round(p.done/(p.done+p.late)*100):null; const avg=p.nD?(p.sumD/p.nD):null;
+    out.push(`• ${p.name}: ${p.done} पूरे, ${p.pend} बाकी${p.late?', 🔴 '+p.late+' लेट':''}${avg!=null?', औसत '+(avg<1?'उसी दिन':avg.toFixed(1)+' दिन में'):''}${rel!=null?' — भरोसा '+rel+'%':''}`);
+  });
+  if(P[ks[0]].done>0) out.push(`🏆 सबसे आगे: ${P[ks[0]].name}`);
+  const worst=ks.filter(k=>P[k].late>0).sort((a,b)=>P[b].late-P[a].late)[0];
+  if(worst) out.push(`⚠️ सबसे ज़्यादा लेट: ${P[worst].name} (${P[worst].late} काम)`);
+  return out.join('\n');
+}
 function aicSuggests(){
   const s=aicStats(); const out=[];
+  out.push({ico:'🎯',t1:'अभी सबसे पहले क्या करूँ?',t2:'AI की सिफ़ारिश — लेट+ज़रूरी+VIP के हिसाब से क्रम',act:'reco'});
   if(s.late>0) out.push({ico:'🔴',t1:`${s.late} काम लेट चल रहे हैं`,t2:s.lateNames.slice(0,3).join(', ')+(s.late>3?` +${s.late-3}`:''),act:'late'});
   if(s.callsDue>0) out.push({ico:'📞',t1:`${s.callsDue} call अभी करनी हैं`,t2:s.dueNames.slice(0,3).join(', ')+(s.callsDue>3?` +${s.callsDue-3}`:''),act:'calls'});
+  out.push({ico:'👥',t1:'Staff का प्रदर्शन',t2:'कौन तेज़, कौन लेट, किस पर कितना भरोसा',act:'staff'});
   out.push({ico:'📈',t1:'इस हफ़्ते का हाल',t2:'नए/पूरे काम, दर, देरी वाले, top staff',act:'week'});
   out.push({ico:'📊',t1:'आज का पूरा हिसाब — AI सार',t2:`आज ${s.todayN} काम · ${s.doneN} पूरे`,act:'summary'});
   out.push({ico:'🗓️',t1:'दिन का प्लान बनवाओ',t2:'बीते छूटे + आज + आगे 7 दिन',act:'plan'});
@@ -2818,7 +2877,8 @@ function aicSuggests(){
 window.openAiComp=function(){
   document.getElementById('aic-hi').textContent=aicGreeting();
   const s=aicStats();
-  document.getElementById('aic-sub').textContent = s.late>0 ? `${s.late} काम ध्यान माँग रहे हैं 🙏` : (s.callsDue>0?`${s.callsDue} call बाकी हैं`:'सब काबू में है — बढ़िया! 👍');
+  const hlt=ableHealth();
+  document.getElementById('aic-sub').textContent = `${hlt>=75?'💚':hlt>=45?'🟡':'🔴'} Business सेहत ${hlt}/100 · ` + (s.late>0 ? `${s.late} काम ध्यान माँग रहे हैं` : (s.callsDue>0?`${s.callsDue} call बाकी`:'सब काबू में 👍'));
   const sug=document.getElementById('aic-sug');
   sug.innerHTML=aicSuggests().map(x=>`<div class="aic-sug-item" onclick="aicDo('${x.act}')"><span class="ico">${x.ico}</span><span class="tx"><div class="t1">${escH(x.t1)}</div><div class="t2">${escH(x.t2)}</div></span><span class="go">›</span></div>`).join('');
   const rp=document.getElementById('aic-resp'); rp.style.display='none'; rp.textContent='';
@@ -2828,6 +2888,8 @@ window.closeAiComp=function(){ document.getElementById('ai-comp').classList.remo
 /* सुझाव दबाओ → जवाब वहीं companion में (list दिखे, page न बदले) */
 function _aicShowLocal(tag,q){ const rp=document.getElementById('aic-resp'); rp.style.display='block'; const a=aicRuleAnswer(q)||'यह जानकारी रिकॉर्ड में नहीं है।'; _aicShow(rp,tag,a); }
 window.aicDo=function(act){
+  if(act==='reco'){ const rp=document.getElementById('aic-resp'); rp.style.display='block'; _aicShow(rp,'🎯 AI सिफ़ारिश — आपके रिकॉर्ड से, 0 token',ableRecoText()); return; }
+  if(act==='staff'){ const rp=document.getElementById('aic-resp'); rp.style.display='block'; _aicShow(rp,'👥 Staff Intelligence — 0 token',ableStaffText()); return; }
   if(act==='late'){ _aicShowLocal('🧠 आपके रिकॉर्ड से — 0 token','सारे लेट काम पूरी सूची'); return; }
   if(act==='calls'){ _aicShowLocal('🧠 आपके रिकॉर्ड से — 0 token','call बाकी किसकी है पूरी सूची'); return; }
   if(act==='summary'){ _aicShowLocal('🧠 आज का हिसाब — 0 token','आज के काम पूरी सूची'); return; }
@@ -2915,8 +2977,14 @@ function aicRuleAnswer(q){
   const today=_dayKeyN(now), yest=_dayKeyN(now-864e5);
   const tasks=_allTasks();
   const has=(...w)=>w.some(x=>ql.includes(x));
-  // सलाह/राय/प्राथमिकता वाले सवाल → लोकल नहीं, grounded Claude reasoning करे
-  if(has('कैसे','सुझाव','सलाह','क्या करूँ','क्या करना','रणनीति','improve','राय','किसको पहले','कौन सा पहले','प्लान बनाओ','मदद कर')) return null;
+  // 🎯 सिफ़ारिश — "किसको पहले / अभी क्या करूँ" → लोकल recommendation engine (Claude नहीं)
+  if(has('किसको पहले','कौन सा पहले','पहले क्या','सबसे पहले','अभी क्या करूँ','अभी क्या करूं','आज क्या करूँ','आज क्या करूं','priority क्या','क्रम')) return ableRecoText();
+  // 👥 staff intelligence — कौन तेज़/लेट/भरोसेमंद
+  if((has('स्टाफ','staff','टीम','team')&&has('प्रदर्शन','performance','हाल','रिपोर्ट','कैसा','कौन'))||has('कौन लेट करता','कौन जल्दी करता','कौन तेज़','कौन भरोसे','सबसे तेज़ कौन','सबसे लेट कौन')) return ableStaffText();
+  // सेहत/health score
+  if(has('सेहत','health','स्कोर','score')&&!has('staff','स्टाफ')){ const h=ableHealth(); const s=aicStats(); return `${h>=75?'💚':h>=45?'🟡':'🔴'} Business सेहत: ${h}/100\n• लेट काम: ${s.late}\n• call बाकी: ${s.callsDue}\n• आज पूरे: ${s.doneN}\nस्कोर बढ़ाने का सीधा रास्ता: सबसे पुराने लेट काम पहले निपटाओ (🎯 सिफ़ारिश देखो)।`; }
+  // बाकी सलाह/राय वाले गहरे सवाल → grounded Claude reasoning करे
+  if(has('कैसे','सुझाव','सलाह','क्या करना','रणनीति','improve','राय','प्लान बनाओ','मदद कर')) return null;
   // 📊 हफ़्ते/महीने की रिपोर्ट (हाल/summary/हिसाब) — गतिविधि-लॉग वाले सवाल छोड़कर
   if(has('रिपोर्ट','report','हाल','summary','सारांश','हिसाब','performance','प्रदर्शन','कैसा रहा','कैसा गया') && !has('गतिविधि','activity','लॉग','log','history','इतिहास','क्या क्या','क्या-क्या','बदला')){
     const sod=t=>{ const d=new Date(t); d.setHours(0,0,0,0); return d.getTime(); };
@@ -3048,7 +3116,7 @@ function _aicGrounded(q){
     return `- ${t.name}: ${t.t}${t.at?' | समय:'+_dmy(t.at,true):''}${t.addedAt?' | जोड़ा:'+_dmy(t.addedAt):''}${t.assignTo?' | सौंपा:'+t.assignTo:''}${t.cat?' | '+t.cat:''}${late}`;
   }).join('\n');
   const nowS=new Date().toLocaleString('hi-IN',{timeZone:'Asia/Kolkata'});
-  return `तुम विक्रम चारण (Vande Bharat Enterprises, जालीपा कैंट, बाड़मेर — army supply) के निजी AI साथी हो।
+  return `तुम विक्रम चारण (Vande Bharat Enterprises, जालीपा कैंट, बाड़मेर — army supply) के अनुभवी Chief Operating Officer (COO) हो — आत्मविश्वासी, शांत, तथ्य-आधारित; कभी बढ़ा-चढ़ाकर नहीं।
 सख़्त नियम (कभी मत तोड़ो):
 1. सिर्फ़ नीचे "DATA" में दी जानकारी से जवाब दो। DATA में जो नहीं है, उसे कभी मत बनाओ।
 2. "शायद", "हो सकता है", "संभवतः", "मुमकिन है" जैसे शब्द कभी मत लिखो।

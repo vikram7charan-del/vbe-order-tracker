@@ -2807,8 +2807,8 @@ function aicGreeting(){
 }
 function aicSuggests(){
   const s=aicStats(); const out=[];
-  if(s.late>0) out.push({ico:'🔴',t1:`${s.late} काम लेट चल रहे हैं`,t2:s.lateNames.slice(0,3).join(', ')+(s.late>3?` +${s.late-3}`:''),act:'day'});
-  if(s.callsDue>0) out.push({ico:'📞',t1:`${s.callsDue} call अभी करनी हैं`,t2:s.dueNames.slice(0,3).join(', ')+(s.callsDue>3?` +${s.callsDue-3}`:''),act:'day'});
+  if(s.late>0) out.push({ico:'🔴',t1:`${s.late} काम लेट चल रहे हैं`,t2:s.lateNames.slice(0,3).join(', ')+(s.late>3?` +${s.late-3}`:''),act:'late'});
+  if(s.callsDue>0) out.push({ico:'📞',t1:`${s.callsDue} call अभी करनी हैं`,t2:s.dueNames.slice(0,3).join(', ')+(s.callsDue>3?` +${s.callsDue-3}`:''),act:'calls'});
   out.push({ico:'📈',t1:'इस हफ़्ते का हाल',t2:'नए/पूरे काम, दर, देरी वाले, top staff',act:'week'});
   out.push({ico:'📊',t1:'आज का पूरा हिसाब — AI सार',t2:`आज ${s.todayN} काम · ${s.doneN} पूरे`,act:'summary'});
   out.push({ico:'🗓️',t1:'दिन का प्लान बनवाओ',t2:'बीते छूटे + आज + आगे 7 दिन',act:'plan'});
@@ -2825,11 +2825,14 @@ window.openAiComp=function(){
   document.getElementById('ai-comp').classList.add('on');
 };
 window.closeAiComp=function(){ document.getElementById('ai-comp').classList.remove('on'); const m=document.getElementById('aic-mic'); if(m)m.classList.remove('rec'); try{ _aicRec&&_aicRec.stop(); }catch(e){} };
+/* सुझाव दबाओ → जवाब वहीं companion में (list दिखे, page न बदले) */
+function _aicShowLocal(tag,q){ const rp=document.getElementById('aic-resp'); rp.style.display='block'; const a=aicRuleAnswer(q)||'यह जानकारी रिकॉर्ड में नहीं है।'; _aicShow(rp,tag,a); }
 window.aicDo=function(act){
-  if(act==='day'){ closeAiComp(); if(_view!=='day') gotoDay(); toast('📅 समय-रेखा पर देखो — लेट काम ऊपर'); return; }
-  if(act==='summary'){ closeAiComp(); if(_view!=='day') gotoDay(); _dvAI=false; setTimeout(()=>{ try{ genDaySummary(); }catch(e){} },250); toast('🤖 AI सार बन रहा है...'); return; }
+  if(act==='late'){ _aicShowLocal('🧠 आपके रिकॉर्ड से — 0 token','सारे लेट काम पूरी सूची'); return; }
+  if(act==='calls'){ _aicShowLocal('🧠 आपके रिकॉर्ड से — 0 token','call बाकी किसकी है पूरी सूची'); return; }
+  if(act==='summary'){ _aicShowLocal('🧠 आज का हिसाब — 0 token','आज के काम पूरी सूची'); return; }
+  if(act==='week'){ _aicShowLocal('🧠 आपके रिकॉर्ड से — 0 token','इस हफ़्ते का हाल'); return; }
   if(act==='plan'){ closeAiComp(); if(_view!=='day') gotoDay(); _dvAI=true; render(); setTimeout(()=>{ try{ window.genDayPlan(); }catch(e){} },250); toast('🤖 दिन का प्लान बन रहा है...'); return; }
-  if(act==='week'){ document.getElementById('aic-q').value=''; _aicRun('इस हफ़्ते का हाल'); return; }
   if(act==='wa'){ closeAiComp(); openBroadcast(); return; }
 };
 /* ══ 🧠 HAMIE — पहले लोकल (बिना token), फिर grounded Claude ══ */
@@ -2925,7 +2928,7 @@ function aicRuleAnswer(q){
   // 🔴 ज़रूरी / प्राथमिकता वाले काम
   if(has('ज़रूरी','जरूरी','प्राथमिकता','urgent','important','priority','अहम','ज़रुरी')){
     const hi=tasks.filter(t=>!t.done && t.pri==='high');
-    return hi.length?`🔴 ${hi.length} ज़रूरी काम:\n`+hi.slice(0,25).map((t,i)=>`${i+1}. ${t.name} — ${t.t}`).join('\n'):`अभी कोई काम "ज़रूरी" चिह्नित नहीं है। किसी काम पर 🔴 दबाकर ज़रूरी बनाएँ।`;
+    return hi.length?`🔴 ${hi.length} ज़रूरी काम:\n`+hi.slice(0,60).map((t,i)=>`${i+1}. ${t.name} — ${t.t}`).join('\n'):`अभी कोई काम "ज़रूरी" चिह्नित नहीं है। किसी काम पर 🔴 दबाकर ज़रूरी बनाएँ।`;
   }
   // 🕘 हाल की गतिविधि / क्या-क्या बदला
   if((has('गतिविधि','activity','हाल में','recent','क्या क्या','क्या-क्या','बदला','हुआ हाल','लॉग','log','history','इतिहास')) && !has('जोड़','ऐड','add')){
@@ -2935,7 +2938,7 @@ function aicRuleAnswer(q){
     return `🕘 हाल की गतिविधि:\n`+ev.slice(0,15).map(e=>`• ${_dmy(e.at,true)} — ${e.name}: ${e.a==='done'?'✅ पूरा':e.a==='pri'?'🔴 ज़रूरी':e.a==='add'?'➕ जोड़ा':e.a} "${e.txt||''}"`).join('\n');
   }
   // 📅 दायरा — "पिछले N दिन / इस हफ़्ते / इस महीने में कौन से contact/काम जोड़े (उनके काम भी)"
-  if(has('जोड़','ऐड','add','बनाए','बनाया','नए','new','डाले','किए')){
+  if((has('जोड़','ऐड','add','बनाए','बनाया','नए','new','डाले','किए','जुड़े','आए')||has('काम','task','कार्य','contact','कांटेक्ट','संपर्क','पार्टी','ग्राहक','लोग')) && !has('लेट','देर','पेंडिंग','report','रिपोर्ट','हाल','गतिविधि')){
     const rg=_relRange(ql,now);
     if(rg){
       const inRg=iso=>{ if(!iso)return false; const t=new Date(iso).getTime(); return !isNaN(t)&&t>=rg.from&&t<=rg.to; };
@@ -2947,15 +2950,16 @@ function aicRuleAnswer(q){
       if(wantC||!wantT){
         if(cs.length){
           out.push(`${rg.label} में जोड़े गए ${cs.length} संपर्क:`);
-          cs.slice(0,30).forEach((c,i)=>{ const tk=normTopics(c).filter(x=>!x.done).map(x=>x.t); out.push(`${i+1}. ${c.name||'?'}${c.phone?' ('+c.phone+')':''}${tk.length?' — काम: '+tk.slice(0,4).join(', '):''}`); });
+          cs.slice(0,60).forEach((c,i)=>{ const tk=normTopics(c).filter(x=>!x.done).map(x=>x.t); out.push(`${i+1}. ${c.name||'?'}${c.phone?' ('+c.phone+')':''}${tk.length?' — काम: '+tk.slice(0,4).join(', '):''}`); });
         } else out.push(`${rg.label} में कोई नया संपर्क दर्ज नहीं मिला।${contacts.some(c=>c.createdAt)?'':' (पुराने संपर्कों पर तारीख नहीं थी)'}`);
       }
       if(wantT&&!wantC){
-        out.push(ts.length?`${rg.label} में जोड़े गए ${ts.length} काम:\n`+ts.slice(0,30).map((t,i)=>`${i+1}. ${t.name} — ${t.t}`).join('\n'):`${rg.label} में जोड़ा गया कोई काम दर्ज नहीं${_allTasks().some(t=>t.addedAt)?' मिला।':' — पुराने कामों पर तारीख नहीं थी।'}`);
+        out.push(ts.length?`${rg.label} में जोड़े गए ${ts.length} काम:\n`+ts.slice(0,60).map((t,i)=>`${i+1}. ${t.name} — ${t.t}`).join('\n'):`${rg.label} में जोड़ा गया कोई काम दर्ज नहीं${_allTasks().some(t=>t.addedAt)?' मिला।':' — पुराने कामों पर तारीख नहीं थी।'}`);
       }
       return out.join('\n');
     }
-    const dk=_relDayKey(ql,now);
+    // एक दिन (आज/कल/N दिन पहले) — सिर्फ़ तभी जब सचमुच "जोड़ना" पूछा हो
+    const dk=(has('जोड़','ऐड','add','बनाए','बनाया','डाले','किए','जुड़े','आए')) ? _relDayKey(ql,now) : null;
     if(dk){
       const wantC=has('contact','कांटेक्ट','संपर्क','पार्टी','ग्राहक','client','कस्टमर','नंबर','लोग','व्यक्ति');
       const wantT=has('काम','task','कार्य');
@@ -2991,34 +2995,44 @@ function aicRuleAnswer(q){
     const addedToday=tasks.filter(t=>t.addedAt&&_dayKeyN(t.addedAt)===today);
     const dueToday=tasks.filter(t=>!t.done&&t.at&&_dayKeyN(t.at)===today);
     const doneToday=tasks.filter(t=>t.done&&t.doneAt&&_dayKeyN(t.doneAt)===today);
-    if(has('पूरे','पूरा','complete','हो गए','निपटा','done')) return doneToday.length?`आज ${doneToday.length} काम पूरे हुए:\n`+doneToday.slice(0,20).map((t,i)=>`${i+1}. ${t.name} — ${t.t}`).join('\n'):`आज अभी तक कोई काम पूरा दर्ज नहीं हुआ। एक निपटा दें तो शुरुआत हो! 💪`;
+    if(has('पूरे','पूरा','complete','हो गए','निपटा','done')) return doneToday.length?`आज ${doneToday.length} काम पूरे हुए:\n`+doneToday.slice(0,60).map((t,i)=>`${i+1}. ${t.name} — ${t.t}`).join('\n'):`आज अभी तक कोई काम पूरा दर्ज नहीं हुआ। एक निपटा दें तो शुरुआत हो! 💪`;
     let out=[];
-    if(addedToday.length) out.push(`आज जोड़े ${addedToday.length}:\n`+addedToday.slice(0,15).map((t,i)=>`${i+1}. ${t.name} — ${t.t}`).join('\n'));
-    if(dueToday.length) out.push(`आज समय पर लगे ${dueToday.length}:\n`+dueToday.slice(0,15).map((t,i)=>`${i+1}. ${t.name} — ${t.t} (${_dmy(t.at,true)})`).join('\n'));
+    if(addedToday.length) out.push(`आज जोड़े ${addedToday.length}:\n`+addedToday.slice(0,40).map((t,i)=>`${i+1}. ${t.name} — ${t.t}`).join('\n'));
+    if(dueToday.length) out.push(`आज समय पर लगे ${dueToday.length}:\n`+dueToday.slice(0,40).map((t,i)=>`${i+1}. ${t.name} — ${t.t} (${_dmy(t.at,true)})`).join('\n'));
     if(!out.length) return `आज का न कोई नया काम दर्ज है, न कोई समय पर लगा।`;
     return out.join('\n\n');
   }
-  // लेट / देर
+  // लेट / देर — पूरी सूची (contact-वार समूह)
   if(has('लेट','देर','late','overdue','पिछड़','देरी')){
     const L=lateList();
-    return L.length?`अभी ${L.length} काम लेट चल रहे हैं:\n`+L.slice(0,20).map((t,i)=>`${i+1}. ${t.name} — ${t.t}${t.at?' ('+_dmy(t.at,true)+')':''}`).join('\n'):`शाबाश! अभी कोई काम लेट नहीं है ✅`;
+    if(!L.length) return `शाबाश! अभी कोई काम लेट नहीं है ✅`;
+    const grp={}; L.forEach(t=>{ (grp[t.name]=grp[t.name]||[]).push(t); });
+    const names=Object.keys(grp);
+    let out=[`🔴 ${L.length} काम लेट चल रहे हैं (${names.length} लोगों के):`];
+    names.slice(0,80).forEach((nm,i)=>{ const ts=grp[nm]; out.push(`${i+1}. ${nm}${ts[0].phone?' ('+ts[0].phone+')':''}\n    → ${ts.map(t=>t.t+(t.at?' ['+_dmy(t.at,true)+']':'')).join('; ')}`); });
+    return out.join('\n');
   }
-  // call बाकी
-  if(has('कॉल','call') && has('बाकी','due','करनी','पेंडिंग','pending','remaining')){
-    const d=tasks.filter(t=>!t.done&&t.nextCallAt&&new Date(t.nextCallAt).getTime()<=now);
-    const names=[...new Set(d.map(t=>t.name))];
-    return names.length?`${names.length} लोगों को call करनी है:\n`+names.slice(0,25).map((n,i)=>`${i+1}. ${n}`).join('\n'):`अभी कोई call बाकी नहीं ✅`;
+  // call बाकी — नाम + नंबर + उनके काम, पूरी सूची
+  if(has('कॉल','call') && has('बाकी','due','करनी','पेंडिंग','pending','remaining','किसकी','किसको','कौन')){
+    const due=contacts.filter(c=>c.active!==false && c.nextCallAt && new Date(c.nextCallAt).getTime()<=now && normTopics(c).some(x=>!x.done));
+    if(!due.length) return `अभी कोई call बाकी नहीं ✅`;
+    let out=[`📞 ${due.length} लोगों को call करनी है:`];
+    due.slice(0,80).forEach((c,i)=>{ const tk=normTopics(c).filter(x=>!x.done).map(x=>x.t); out.push(`${i+1}. ${c.name||'?'}${c.phone?' ('+c.phone+')':''}${tk.length?'\n    → '+tk.slice(0,4).join('; '):''}`); });
+    return out.join('\n');
   }
   // staff-wise
   const staff=[['विक्रम','vikram','vikram'],['दिनेश','dinesh','dinesh'],['कैलाश','kailash','kailash'],['मनोज','manoj','manoj'],['कोड़ा','koda','koda'],['स्वरूप','swaroop','swaroop']];
   for(const st of staff){ if(ql.includes(st[0].toLowerCase())||ql.includes(st[1])){
     const mine=tasks.filter(t=>!t.done && (t.assignTo||'').toLowerCase().includes(st[1]));
-    if(has('काम','task','कितने','सौंप')) return mine.length?`${st[0]} जी के ज़िम्मे ${mine.length} काम:\n`+mine.slice(0,20).map((t,i)=>`${i+1}. ${t.name} — ${t.t}`).join('\n'):`${st[0]} जी को अभी कोई काम नहीं सौंपा गया (रिकॉर्ड में)।`;
+    if(has('काम','task','कितने','सौंप')) return mine.length?`${st[0]} जी के ज़िम्मे ${mine.length} काम:\n`+mine.slice(0,60).map((t,i)=>`${i+1}. ${t.name} — ${t.t}`).join('\n'):`${st[0]} जी को अभी कोई काम नहीं सौंपा गया (रिकॉर्ड में)।`;
   }}
-  // कुल पेंडिंग
-  if(has('पेंडिंग','pending','बाकी','अधूरे','बचे','कितने काम')){
+  // कुल पेंडिंग — पूरी सूची
+  if(has('पेंडिंग','pending','बाकी','अधूरे','बचे','कितने काम','सारे काम','पूरी सूची','सब काम')){
     const p=tasks.filter(t=>!t.done);
-    return `कुल ${p.length} काम बाकी हैं (${[...new Set(p.map(t=>t.name))].length} लोगों के)।\nसबसे ऊपर: `+p.slice(0,8).map(t=>t.name).join(', ');
+    if(!p.length) return `कोई काम बाकी नहीं — सब निपट गया! ✅`;
+    let out=[`कुल ${p.length} काम बाकी (${[...new Set(p.map(t=>t.name))].length} लोगों के):`];
+    p.slice(0,80).forEach((t,i)=>out.push(`${i+1}. ${t.name} — ${t.t}`));
+    return out.join('\n');
   }
   // कितने लोग/contact
   if(has('कितने') && has('लोग','contact','संपर्क','पार्टी','कस्टमर','client')){
@@ -3096,8 +3110,9 @@ function _aicType(el,txt){
   el.textContent=''; let i=0; const cur=document.createElement('span'); cur.className='cur';
   el.appendChild(cur);
   clearInterval(el._ti);
+  const step=Math.max(2,Math.ceil(txt.length/120)); // लंबी सूची ~1.7s में पूरी दिखे
   el._ti=setInterval(()=>{
-    i+=2; el.textContent=txt.slice(0,i); el.appendChild(cur);
+    i+=step; el.textContent=txt.slice(0,i); el.appendChild(cur);
     if(i>=txt.length){ clearInterval(el._ti); cur.remove(); }
   },14);
 }

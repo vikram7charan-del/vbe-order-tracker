@@ -2793,8 +2793,31 @@ function askPinAI(){
   sessionStorage.setItem('vbe_ai_ok','1');
   return true;
 }
+function gemKey(){ return (window._settings&&window._settings.gemKey)||localStorage.getItem('vbe_gem_key')||''; }
+/* 🤖 दो-इंजन AI: Gemini (मुफ़्त) पहले → fail हो तो Claude — सारा app अपने-आप इसी से चलता है */
 async function aiAsk(prompt,maxTok){
-  const key=aiKey();
+  const gk=gemKey(), ck=aiKey();
+  if(!gk&&!ck) throw new Error('no-key');
+  if(gk){
+    try{ return await _gemAsk(prompt,maxTok,gk); }
+    catch(e){ if(!ck) throw e; }
+  }
+  return await _claudeAsk(prompt,maxTok,ck);
+}
+async function _gemAsk(prompt,maxTok,key){
+  const ctl=new AbortController();
+  const to=setTimeout(()=>ctl.abort(),25000);
+  try{
+    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key='+encodeURIComponent(key),
+      {method:'POST',signal:ctl.signal,headers:{'content-type':'application/json'},
+       body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:Math.max(400,(maxTok||1200)+300)}})});
+    const j=await r.json();
+    const t=j&&j.candidates&&j.candidates[0]&&j.candidates[0].content&&j.candidates[0].content.parts&&j.candidates[0].content.parts.map(p=>p.text||'').join('');
+    if(t&&t.trim()) return t.trim();
+    throw new Error(j.error?j.error.message:'no text');
+  } finally{ clearTimeout(to); }
+}
+async function _claudeAsk(prompt,maxTok,key){
   if(!key) throw new Error('no-key');
   const ctl=new AbortController();
   const to=setTimeout(()=>ctl.abort(),25000);
@@ -3483,7 +3506,7 @@ async function _aicRun(q){
   const cached=_aicCacheGet(q);
   if(cached){ _aicShow(rp,'💾 सहेजा जवाब — दोबारा पूछा, token नहीं लगा',cached); return; }
   // 3) 🤖 Grounded Claude — सिर्फ़ ज़रूरी data + no-guess
-  if(!aiKey()){ rp.innerHTML='⚠️ पहले ⚙️ से Anthropic AI key डालें — तभी गहरे सवाल का जवाब दे पाऊँगा।'; return; }
+  if(!gemKey()&&!aiKey()){ rp.innerHTML='⚠️ पहले ⚙️ से AI key डालें (Gemini AIza… मुफ़्त, या Claude sk-ant…) — तभी गहरे सवाल का जवाब दे पाऊँगा।'; return; }
   if(!askPinAI()) return;
   rp.innerHTML='<span style="color:#8b9bbb">🔎 रिकॉर्ड देख रहा हूँ…</span> <span class="cur"></span>';
   orb&&orb.classList.add('thinking');
@@ -3575,7 +3598,7 @@ async function _asstProcess(raw){
       if(tasks2.length){ _asstShow(raw,tasks2,mc2,wantFocus,'',true); _asstBusy=false; orb&&orb.classList.remove('thinking'); return; }
     }
     let tasks=null, name=null;
-    if(aiKey() && (sessionStorage.getItem('vbe_ai_ok')==='1'||askPinAI())){
+    if((gemKey()||aiKey()) && (sessionStorage.getItem('vbe_ai_ok')==='1'||askPinAI())){
       try{
         const now=new Date(), pd=n=>String(n).padStart(2,'0');
         const nowS=now.getFullYear()+'-'+pd(now.getMonth()+1)+'-'+pd(now.getDate())+' '+pd(now.getHours())+':'+pd(now.getMinutes());
@@ -4242,16 +4265,25 @@ window.clearSchedPick=function(){
 window.spSchedTask=function(id,i){ openSchedPick('t',id,i); };
 /* ⚙️ से AI key set — localStorage + _settings दोनों में (सब device) */
 window.setAiKey=async function(){
-  const cur=aiKey();
-  const v=prompt('🤖 Anthropic API key (sk-ant-...):', cur?cur.slice(0,14)+'…':'');
+  const cur=gemKey()||aiKey();
+  const v=prompt('🤖 AI key डालें — दोनों चलती हैं:\n• Google Gemini (AIza... — मुफ़्त)\n• Anthropic Claude (sk-ant-...)', cur?cur.slice(0,12)+'…':'');
   if(v===null) return;
   const k=v.trim();
-  if(k&&!k.startsWith('sk-ant')){ toast('⚠️ key sk-ant से शुरू होती है','err'); return; }
   if(k.includes('…')) return; // बिना बदले OK दबाया
-  localStorage.setItem('vbe_ai_key',k);
-  window._settings=window._settings||{}; window._settings.aiKey=k;
-  try{ await setDoc(doc(db,'vbe_call_tracker','_settings'),{id:'_settings',aiKey:k},{merge:true}); }catch(e){}
-  toast(k?'✅ AI key save — 🎙️/✨/🤖 सब AI चालू!':'AI key हटाई');
+  window._settings=window._settings||{};
+  if(!k){ localStorage.setItem('vbe_ai_key',''); localStorage.setItem('vbe_gem_key',''); window._settings.aiKey=''; window._settings.gemKey='';
+    try{ await setDoc(doc(db,'vbe_call_tracker','_settings'),{id:'_settings',aiKey:'',gemKey:''},{merge:true}); }catch(e){}
+    toast('AI keys हटाईं'); return; }
+  // key की क़िस्म अपने-आप पहचानो — AIza = Google Gemini, sk-ant = Anthropic
+  if(k.startsWith('AIza')){
+    localStorage.setItem('vbe_gem_key',k); window._settings.gemKey=k;
+    try{ await setDoc(doc(db,'vbe_call_tracker','_settings'),{id:'_settings',gemKey:k},{merge:true}); }catch(e){}
+    toast('✅ Gemini key save — अब सारा AI मुफ़्त Gemini से चलेगा! 🎉');
+  } else if(k.startsWith('sk-ant')){
+    localStorage.setItem('vbe_ai_key',k); window._settings.aiKey=k;
+    try{ await setDoc(doc(db,'vbe_call_tracker','_settings'),{id:'_settings',aiKey:k},{merge:true}); }catch(e){}
+    toast('✅ Claude key save — 🎙️/✨/🤖 सब चालू!');
+  } else toast('⚠️ key AIza (Gemini) या sk-ant (Claude) से शुरू होती है','err');
 };
 window.spSchedMain=function(){ openSchedPick('c',_spId); };
 
@@ -4571,8 +4603,8 @@ window.spFreshAI=async function(){
   const tasks=[...tps.map(x=>(catInfo(x.cat)?catInfo(x.cat).logo+' ':'')+x.t),
                ...asg.map(x=>(catInfo(x.cat)?catInfo(x.cat).logo+' ':'')+x.t+' ('+x.srcName+')')];
   toast('🤖 विक्रम-अंदाज़ का नया message बन रहा है...'); document.body.classList.add('ai-busy');
-  // पहला रास्ता: सीधा Anthropic (नया दमदार prompt)
-  if(aiKey()){
+  // पहला रास्ता: सीधा AI (Gemini/Claude — नया दमदार prompt)
+  if(gemKey()||aiKey()){
     try{
       const msg=await aiAsk(vikramWaPrompt(c.name||'जी',tasks),1400);
       c.waMsg=msg; c.waMsgAt=new Date().toISOString();
@@ -5224,7 +5256,7 @@ window.aiPreview=async function(){
   const raw=(document.getElementById('ai-inp').value||'').trim();
   const whenRaw=((document.getElementById('ai-whentxt')||{}).value||'').trim();
   if(!raw&&!whenRaw){ toast('⚠️ पहले बोलें या लिखें','warn'); return; }
-  if(!aiKey()||window._aiBusy){ window.aiPreviewLocal(); return; }
+  if((!gemKey()&&!aiKey())||window._aiBusy){ window.aiPreviewLocal(); return; }
   if(sessionStorage.getItem('vbe_ai_ok')!=='1'){ if(!askPinAI()){ window.aiPreviewLocal(); return; } }
   window._aiBusy=true; toast('🤖 AI समझ रहा है…');
   try{

@@ -1381,6 +1381,7 @@ const TASK_CATS = [
 function catInfo(k){ return TASK_CATS.find(x=>x.k===k)||null; }
 
 let contacts = [];
+let _memory = {}; // 🧠 mem_YYYY-MM-DD → daily summary docs (background job से)
 let editingId = null;
 let selInterval = 30;
 let selColor = COLORS[0];
@@ -1438,11 +1439,12 @@ let _fsUnsub=null;
 function startFirestoreSync(){
   if(_fsUnsub) _fsUnsub();
   _fsUnsub=onSnapshot(CT_COL, snap=>{
-    contacts=[];
+    contacts=[]; _memory={};
     let settings=null;
     snap.docs.forEach(d=>{
       if(d.id==='_settings'){ settings=d.data(); return; }
       if(d.id==='_focus'){ const it=(d.data()||{}).items; if(Array.isArray(it)){ _focus=it; localStorage.setItem('vbe_focus',JSON.stringify(it)); renderFocusBar(); } return; }
+      if(d.id.indexOf('mem_')===0){ _memory[d.id]=d.data(); return; } // 🧠 Daily Memory docs
       contacts.push(d.data());
     });
     window._settings=settings||{};
@@ -2817,6 +2819,30 @@ window.aicDo=function(act){
 };
 /* ══ 🧠 HAMIE — पहले लोकल (बिना token), फिर grounded Claude ══ */
 function _dayKeyN(t){ const d=new Date(t); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function _hnum(ql){
+  const map={'एक':1,'दो':2,'तीन':3,'चार':4,'पाँच':5,'पांच':5,'छह':6,'छः':6,'सात':7,'आठ':8,'नौ':9,'दस':10};
+  let m=ql.match(/(\d+)\s*(दिन|day)/); if(m)return +m[1];
+  for(const k in map){ if(ql.includes(k+' दिन')||ql.includes(k+'दिन')) return map[k]; }
+  return null;
+}
+/* सवाल से पिछली तारीख़ (dayKey) निकालो — आज/कल/परसों/N दिन पहले */
+function _relDayKey(ql,now){
+  if(ql.includes('परसों')) return _dayKeyN(now-2*864e5);
+  const n=_hnum(ql); if(n!=null && (ql.includes('पहले')||ql.includes('पूर्व')||ql.includes('ago')||ql.includes('back')||ql.includes('पीछे'))) return _dayKeyN(now-n*864e5);
+  if(ql.includes('कल')||ql.includes('yesterday')) return _dayKeyN(now-864e5);
+  if(ql.includes('आज')||ql.includes('today')) return _dayKeyN(now);
+  return null;
+}
+function _dayLabel(dk){
+  const t=new Date(); t.setHours(0,0,0,0);
+  const d=new Date(dk+'T00:00:00'); const diff=Math.round((t.getTime()-d.getTime())/864e5);
+  const dstr=d.toLocaleDateString('hi-IN',{day:'numeric',month:'short'});
+  if(diff===0) return `आज (${dstr})`;
+  if(diff===1) return `कल (${dstr})`;
+  if(diff===2) return `परसों (${dstr})`;
+  if(diff>0) return `${diff} दिन पहले (${dstr})`;
+  return dstr;
+}
 function _dmy(iso,withTime){ if(!iso)return ''; const d=new Date(iso); if(isNaN(d))return ''; const s=d.toLocaleDateString('hi-IN',{day:'numeric',month:'short'}); return withTime?s+' '+d.toLocaleTimeString('hi-IN',{hour:'2-digit',minute:'2-digit',hour12:true}):s; }
 function _allTasks(){
   const out=[];
@@ -2833,7 +2859,31 @@ function aicRuleAnswer(q){
   const tasks=_allTasks();
   const has=(...w)=>w.some(x=>ql.includes(x));
   // सलाह/राय/प्राथमिकता वाले सवाल → लोकल नहीं, grounded Claude reasoning करे
-  if(has('पहले','प्राथमिकता','कैसे','सुझाव','सलाह','क्या करूँ','क्या करना','रणनीति','बेहतर','improve','राय','कौन सा पहले','किसको पहले','प्लान बनाओ','मदद')) return null;
+  if(has('कैसे','सुझाव','सलाह','क्या करूँ','क्या करना','रणनीति','improve','राय','किसको पहले','कौन सा पहले','प्लान बनाओ','मदद कर')) return null;
+  // 📅 पुरानी तारीख़ — "N दिन पहले / परसों / कल / आज कौन से contact/काम जोड़े"
+  if(has('जोड़','ऐड','add','बनाए','बनाया','नए','new','डाले','किए')){
+    const dk=_relDayKey(ql,now);
+    if(dk){
+      const wantC=has('contact','कांटेक्ट','संपर्क','पार्टी','ग्राहक','client','कस्टमर','नंबर','लोग','व्यक्ति');
+      const wantT=has('काम','task','कार्य');
+      const cs=contacts.filter(c=>c.createdAt&&_dayKeyN(c.createdAt)===dk);
+      const ts=_allTasks().filter(t=>t.addedAt&&_dayKeyN(t.addedAt)===dk);
+      const mem=_memory['mem_'+dk];
+      const label=_dayLabel(dk);
+      let out=[];
+      if(wantC||!wantT){
+        if(cs.length) out.push(`${label} जोड़े गए ${cs.length} संपर्क:\n`+cs.slice(0,25).map((c,i)=>`${i+1}. ${c.name||'?'}${c.phone?' ('+c.phone+')':''}`).join('\n'));
+        else if(mem&&Array.isArray(mem.contactsAdded)&&mem.contactsAdded.length) out.push(`${label} जोड़े गए ${mem.contactsAdded.length} संपर्क:\n`+mem.contactsAdded.slice(0,25).map((n,i)=>`${i+1}. ${n}`).join('\n'));
+        else out.push(`${label} कोई नया संपर्क दर्ज नहीं मिला।${contacts.some(c=>c.createdAt)?'':' (पुराने संपर्कों पर तारीख नहीं थी)'}`);
+      }
+      if(wantT||!wantC){
+        if(ts.length) out.push(`${label} जोड़े गए ${ts.length} काम:\n`+ts.slice(0,25).map((t,i)=>`${i+1}. ${t.name} — ${t.t}`).join('\n'));
+        else if(mem&&Array.isArray(mem.tasksAdded)&&mem.tasksAdded.length) out.push(`${label} जोड़े गए ${mem.tasksAdded.length} काम:\n`+mem.tasksAdded.slice(0,25).map((t,i)=>`${i+1}. ${(t.name?t.name+' — ':'')+(t.t||t)}`).join('\n'));
+        else out.push(`${label} जोड़ा गया कोई काम दर्ज नहीं${_allTasks().some(t=>t.addedAt)?' मिला।':' — पुराने कामों पर तारीख नहीं थी।'}`);
+      }
+      return out.join('\n\n');
+    }
+  }
   const lateList=()=>{ const L=[]; tasks.forEach(t=>{ if(t.done)return; let late=false; if(t.at&&new Date(t.at).getTime()<now)late=true; if(t.nextCallAt&&new Date(t.nextCallAt).getTime()<now)late=true; if(late)L.push(t); }); return L; };
   // कल (yesterday) जोड़े/किए
   if(has('कल','yesterday','बीता') && has('जोड़','ऐड','add','किए','किया','बनाए','बनाया','थे','मैंने','डाले','लगाए')){
@@ -2904,6 +2954,23 @@ ${recs||'(कोई active काम नहीं)'}
 
 विक्रम भाई का सवाल: ${q}`;
 }
+/* 💾 Caching — वही सवाल दोबारा + data नहीं बदला → सहेजा जवाब (0 token) */
+function _aicSig(){ const s=aicStats(); return s.late+'|'+s.callsDue+'|'+s.doneN+'|'+_allTasks().filter(t=>!t.done).length; }
+function _aicCacheGet(q){
+  try{ const c=JSON.parse(localStorage.getItem('vbe_ai_cache')||'{}');
+    if(c.sig!==_aicSig()) return null;
+    const it=c.items&&c.items[q.toLowerCase().trim()];
+    if(it && Date.now()-it.at < 12*3600e3) return it.a;
+  }catch(e){} return null;
+}
+function _aicCacheSet(q,a){
+  try{ const sig=_aicSig(); let c={}; try{c=JSON.parse(localStorage.getItem('vbe_ai_cache')||'{}');}catch(e){}
+    if(c.sig!==sig) c={sig,items:{}}; c.items=c.items||{};
+    c.items[q.toLowerCase().trim()]={a,at:Date.now()};
+    const ks=Object.keys(c.items); while(ks.length>30){ delete c.items[ks.shift()]; }
+    localStorage.setItem('vbe_ai_cache',JSON.stringify(c));
+  }catch(e){}
+}
 function _aicShow(rp,tag,text){
   rp.innerHTML='';
   const tg=document.createElement('div'); tg.style.cssText='font-size:9.5px;font-weight:800;color:#7d8db0;margin-bottom:7px;letter-spacing:.3px'; tg.textContent=tag;
@@ -2916,13 +2983,17 @@ async function _aicRun(q){
   // 1) 🧠 Rule Engine — बिना token, तुरंत, सटीक
   const local=aicRuleAnswer(q);
   if(local){ _aicShow(rp,'🧠 आपके रिकॉर्ड से — तुरंत, बिना AI (0 token)',local); return; }
-  // 2) 🤖 Grounded Claude — सिर्फ़ ज़रूरी data + no-guess
+  // 2) 💾 Cache — वही सवाल, data नहीं बदला → सहेजा जवाब (0 token)
+  const cached=_aicCacheGet(q);
+  if(cached){ _aicShow(rp,'💾 सहेजा जवाब — दोबारा पूछा, token नहीं लगा',cached); return; }
+  // 3) 🤖 Grounded Claude — सिर्फ़ ज़रूरी data + no-guess
   if(!aiKey()){ rp.innerHTML='⚠️ पहले ⚙️ से Anthropic AI key डालें — तभी गहरे सवाल का जवाब दे पाऊँगा।'; return; }
   if(!askPinAI()) return;
   rp.innerHTML='<span style="color:#8b9bbb">🔎 रिकॉर्ड देख रहा हूँ…</span> <span class="cur"></span>';
   orb&&orb.classList.add('thinking');
   try{
     const ans=await aiAsk(_aicGrounded(q),700);
+    _aicCacheSet(q,ans);
     _aicShow(rp,'🤖 AI — आपके रिकॉर्ड के आधार पर',ans);
   }catch(e){
     rp.textContent = e.message==='no-key' ? '⚠️ AI key नहीं मिली — ⚙️ से डालें।' : '⚠️ अभी जवाब नहीं ला पाया — net/key देखें और दोबारा पूछें।';

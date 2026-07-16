@@ -176,6 +176,7 @@ Learned from the owner's legacy "My Business Cloud Systems" report (Jan–Feb 20
 | `statement.html` | **बही** — date-grouped ledger, account-filter chips (auto from `vbe_payment_accounts`), 3D; row tap → detail popup with items + bill photo |
 | `kharcha-dashboard.html` | Admin analytics + staff accounts (with `whatsapp` field) + payment-account manage + 📥 one-click embedded data import |
 | `search.html` | **खोज / Universal search** — one box across parties/items/vendor/UTR/GSTIN/phone/amount (client-side, no AI). Party result → profile popup (totals, tel/WhatsApp, recent हिसाब); txn result → same detail popup as बही. Reached from ☰ menu tile + home header 🔍 |
+| `hisab.html` | **महीने का हिसाब** — monthly money-flow: आमदनी + खर्च + बचत (net) with prev-month comparison, firm-wise in/out net, category-wise खर्च, top-6 biggest expenses (tap → detail). Month switcher (‹ ›, up to 13 months, one query). Reached from ☰ menu + home cash-flow hero tap. Complements `kharcha-dashboard.html` (which is expense-only admin analytics) |
 
 ### AI bill reading (`kharcha-entry.html`)
 - Only for **photo bills** (statements need no AI). Model `claude-sonnet-4-6`, image ≤1568px, 60s timeout.

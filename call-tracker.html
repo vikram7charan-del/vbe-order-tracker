@@ -2815,22 +2815,115 @@ window.aicDo=function(act){
   if(act==='plan'){ closeAiComp(); if(_view!=='day') gotoDay(); _dvAI=true; render(); setTimeout(()=>{ try{ window.genDayPlan(); }catch(e){} },250); toast('🤖 दिन का प्लान बन रहा है...'); return; }
   if(act==='wa'){ closeAiComp(); openBroadcast(); return; }
 };
-async function _aicRun(q){
-  const rp=document.getElementById('aic-resp'); const orb=document.getElementById('ai-orb');
-  if(!aiKey()){ rp.style.display='block'; rp.textContent='⚠️ पहले ⚙️ से Anthropic AI key डालें — तभी मैं जवाब दे पाऊँगा।'; return; }
-  if(!askPinAI()) return;
-  rp.style.display='block'; rp.innerHTML='<span style="color:#8b9bbb">सोच रहा हूँ…</span> <span class="cur"></span>';
-  orb&&orb.classList.add('thinking');
-  const s=aicStats();
-  const ctx=`तुम विक्रम चारण (Vande Bharat Enterprises, जालीपा कैंट, बाड़मेर — army supply) के निजी AI साथी हो। छोटा, सीधा, गर्मजोशी वाला हिंदी जवाब दो (4-7 पंक्तियाँ, ज़रूरत हो तो बुलेट)। सलाह practical हो।
-आज के आँकड़े: कुल आज ${s.todayN} काम, लेट ${s.late}, पूरे ${s.doneN}, call बाकी ${s.callsDue}।
-लेट काम: ${s.lateNames.slice(0,8).join(', ')||'कोई नहीं'}।
-call बाकी: ${s.dueNames.slice(0,8).join(', ')||'कोई नहीं'}।
+/* ══ 🧠 HAMIE — पहले लोकल (बिना token), फिर grounded Claude ══ */
+function _dayKeyN(t){ const d=new Date(t); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function _dmy(iso,withTime){ if(!iso)return ''; const d=new Date(iso); if(isNaN(d))return ''; const s=d.toLocaleDateString('hi-IN',{day:'numeric',month:'short'}); return withTime?s+' '+d.toLocaleTimeString('hi-IN',{hour:'2-digit',minute:'2-digit',hour12:true}):s; }
+function _allTasks(){
+  const out=[];
+  contacts.forEach(c=>{ if(c.active===false) return;
+    normTopics(c).forEach(x=>out.push({name:c.name||'?',phone:c.phone||'',t:x.t,done:!!x.done,doneAt:x.doneAt||null,at:x.at||null,addedAt:x.addedAt||null,cat:x.cat||'',assignTo:x.assignTo||'',nextCallAt:c.nextCallAt||null}));
+  });
+  return out;
+}
+/* लोकल Rule Engine — आम सवाल यहीं से (ज़ीरो token, कभी अनुमान नहीं) */
+function aicRuleAnswer(q){
+  const ql=(q||'').toLowerCase();
+  const now=Date.now();
+  const today=_dayKeyN(now), yest=_dayKeyN(now-864e5);
+  const tasks=_allTasks();
+  const has=(...w)=>w.some(x=>ql.includes(x));
+  // सलाह/राय/प्राथमिकता वाले सवाल → लोकल नहीं, grounded Claude reasoning करे
+  if(has('पहले','प्राथमिकता','कैसे','सुझाव','सलाह','क्या करूँ','क्या करना','रणनीति','बेहतर','improve','राय','कौन सा पहले','किसको पहले','प्लान बनाओ','मदद')) return null;
+  const lateList=()=>{ const L=[]; tasks.forEach(t=>{ if(t.done)return; let late=false; if(t.at&&new Date(t.at).getTime()<now)late=true; if(t.nextCallAt&&new Date(t.nextCallAt).getTime()<now)late=true; if(late)L.push(t); }); return L; };
+  // कल (yesterday) जोड़े/किए
+  if(has('कल','yesterday','बीता') && has('जोड़','ऐड','add','किए','किया','बनाए','बनाया','थे','मैंने','डाले','लगाए')){
+    const y=tasks.filter(t=>t.addedAt&&_dayKeyN(t.addedAt)===yest);
+    if(y.length) return `कल (${yest}) आपने ${y.length} काम जोड़े थे:\n`+y.slice(0,20).map((t,i)=>`${i+1}. ${t.name} — ${t.t}`).join('\n');
+    const anyAdded=tasks.some(t=>t.addedAt);
+    if(!anyAdded) return `कल जोड़े काम का रिकॉर्ड अभी नहीं है — पुराने कामों पर "जोड़ने की तारीख" दर्ज नहीं थी।\nअब से हर नए काम की तारीख अपने आप दर्ज हो रही है, तो कल से यह सवाल बिल्कुल सटीक चलेगा। ✅\n(अनुमान मैं नहीं लगाऊँगा।)`;
+    return `कल (${yest}) जोड़ा गया कोई काम रिकॉर्ड में नहीं मिला।`;
+  }
+  // आज जोड़े/के काम (सिर्फ़ list/गिनती वाले सवाल; "आज मौसम" जैसे नहीं)
+  if(has('आज','today') && has('काम','task','कितने','कौन','जोड़','पूरे','लगे','सूची','list','निपटा','complete','done','बाकी')){
+    const addedToday=tasks.filter(t=>t.addedAt&&_dayKeyN(t.addedAt)===today);
+    const dueToday=tasks.filter(t=>!t.done&&t.at&&_dayKeyN(t.at)===today);
+    const doneToday=tasks.filter(t=>t.done&&t.doneAt&&_dayKeyN(t.doneAt)===today);
+    if(has('पूरे','पूरा','complete','हो गए','निपटा','done')) return doneToday.length?`आज ${doneToday.length} काम पूरे हुए:\n`+doneToday.slice(0,20).map((t,i)=>`${i+1}. ${t.name} — ${t.t}`).join('\n'):`आज अभी तक कोई काम पूरा दर्ज नहीं हुआ। एक निपटा दें तो शुरुआत हो! 💪`;
+    let out=[];
+    if(addedToday.length) out.push(`आज जोड़े ${addedToday.length}:\n`+addedToday.slice(0,15).map((t,i)=>`${i+1}. ${t.name} — ${t.t}`).join('\n'));
+    if(dueToday.length) out.push(`आज समय पर लगे ${dueToday.length}:\n`+dueToday.slice(0,15).map((t,i)=>`${i+1}. ${t.name} — ${t.t} (${_dmy(t.at,true)})`).join('\n'));
+    if(!out.length) return `आज का न कोई नया काम दर्ज है, न कोई समय पर लगा।`;
+    return out.join('\n\n');
+  }
+  // लेट / देर
+  if(has('लेट','देर','late','overdue','पिछड़','देरी')){
+    const L=lateList();
+    return L.length?`अभी ${L.length} काम लेट चल रहे हैं:\n`+L.slice(0,20).map((t,i)=>`${i+1}. ${t.name} — ${t.t}${t.at?' ('+_dmy(t.at,true)+')':''}`).join('\n'):`शाबाश! अभी कोई काम लेट नहीं है ✅`;
+  }
+  // call बाकी
+  if(has('कॉल','call') && has('बाकी','due','करनी','पेंडिंग','pending','remaining')){
+    const d=tasks.filter(t=>!t.done&&t.nextCallAt&&new Date(t.nextCallAt).getTime()<=now);
+    const names=[...new Set(d.map(t=>t.name))];
+    return names.length?`${names.length} लोगों को call करनी है:\n`+names.slice(0,25).map((n,i)=>`${i+1}. ${n}`).join('\n'):`अभी कोई call बाकी नहीं ✅`;
+  }
+  // staff-wise
+  const staff=[['विक्रम','vikram','vikram'],['दिनेश','dinesh','dinesh'],['कैलाश','kailash','kailash'],['मनोज','manoj','manoj'],['कोड़ा','koda','koda'],['स्वरूप','swaroop','swaroop']];
+  for(const st of staff){ if(ql.includes(st[0].toLowerCase())||ql.includes(st[1])){
+    const mine=tasks.filter(t=>!t.done && (t.assignTo||'').toLowerCase().includes(st[1]));
+    if(has('काम','task','कितने','सौंप')) return mine.length?`${st[0]} जी के ज़िम्मे ${mine.length} काम:\n`+mine.slice(0,20).map((t,i)=>`${i+1}. ${t.name} — ${t.t}`).join('\n'):`${st[0]} जी को अभी कोई काम नहीं सौंपा गया (रिकॉर्ड में)।`;
+  }}
+  // कुल पेंडिंग
+  if(has('पेंडिंग','pending','बाकी','अधूरे','बचे','कितने काम')){
+    const p=tasks.filter(t=>!t.done);
+    return `कुल ${p.length} काम बाकी हैं (${[...new Set(p.map(t=>t.name))].length} लोगों के)।\nसबसे ऊपर: `+p.slice(0,8).map(t=>t.name).join(', ');
+  }
+  // कितने लोग/contact
+  if(has('कितने') && has('लोग','contact','संपर्क','पार्टी','कस्टमर','client')){
+    const n=contacts.filter(c=>c.active!==false).length;
+    return `अभी ${n} active संपर्क आपकी list में हैं।`;
+  }
+  return null;
+}
+/* grounded — सिर्फ़ ज़रूरी records + सख़्त no-guess नियम */
+function _aicGrounded(q){
+  const recs=_allTasks().filter(t=>!t.done).slice(0,60).map(t=>{
+    const late=(t.at&&new Date(t.at).getTime()<Date.now())?' [लेट]':'';
+    return `- ${t.name}: ${t.t}${t.at?' | समय:'+_dmy(t.at,true):''}${t.addedAt?' | जोड़ा:'+_dmy(t.addedAt):''}${t.assignTo?' | सौंपा:'+t.assignTo:''}${t.cat?' | '+t.cat:''}${late}`;
+  }).join('\n');
+  const nowS=new Date().toLocaleString('hi-IN',{timeZone:'Asia/Kolkata'});
+  return `तुम विक्रम चारण (Vande Bharat Enterprises, जालीपा कैंट, बाड़मेर — army supply) के निजी AI साथी हो।
+सख़्त नियम (कभी मत तोड़ो):
+1. सिर्फ़ नीचे "DATA" में दी जानकारी से जवाब दो। DATA में जो नहीं है, उसे कभी मत बनाओ।
+2. "शायद", "हो सकता है", "संभवतः", "मुमकिन है" जैसे शब्द कभी मत लिखो।
+3. अगर जवाब DATA में नहीं है, तो साफ़ लिखो: "यह जानकारी रिकॉर्ड में नहीं है।" और बताओ कि कौन सी जानकारी दर्ज करने से यह मिल पाएगी।
+4. छोटा, सीधा, गर्मजोशी वाला हिंदी (4-7 पंक्तियाँ, ज़रूरत हो तो बुलेट)। सलाह practical।
+आज: ${nowS}
+
+DATA (active काम):
+${recs||'(कोई active काम नहीं)'}
 
 विक्रम भाई का सवाल: ${q}`;
+}
+function _aicShow(rp,tag,text){
+  rp.innerHTML='';
+  const tg=document.createElement('div'); tg.style.cssText='font-size:9.5px;font-weight:800;color:#7d8db0;margin-bottom:7px;letter-spacing:.3px'; tg.textContent=tag;
+  const bd=document.createElement('div'); rp.appendChild(tg); rp.appendChild(bd);
+  _aicType(bd,text);
+}
+async function _aicRun(q){
+  const rp=document.getElementById('aic-resp'); const orb=document.getElementById('ai-orb');
+  rp.style.display='block';
+  // 1) 🧠 Rule Engine — बिना token, तुरंत, सटीक
+  const local=aicRuleAnswer(q);
+  if(local){ _aicShow(rp,'🧠 आपके रिकॉर्ड से — तुरंत, बिना AI (0 token)',local); return; }
+  // 2) 🤖 Grounded Claude — सिर्फ़ ज़रूरी data + no-guess
+  if(!aiKey()){ rp.innerHTML='⚠️ पहले ⚙️ से Anthropic AI key डालें — तभी गहरे सवाल का जवाब दे पाऊँगा।'; return; }
+  if(!askPinAI()) return;
+  rp.innerHTML='<span style="color:#8b9bbb">🔎 रिकॉर्ड देख रहा हूँ…</span> <span class="cur"></span>';
+  orb&&orb.classList.add('thinking');
   try{
-    const ans=await aiAsk(ctx,700);
-    _aicType(rp,ans);
+    const ans=await aiAsk(_aicGrounded(q),700);
+    _aicShow(rp,'🤖 AI — आपके रिकॉर्ड के आधार पर',ans);
   }catch(e){
     rp.textContent = e.message==='no-key' ? '⚠️ AI key नहीं मिली — ⚙️ से डालें।' : '⚠️ अभी जवाब नहीं ला पाया — net/key देखें और दोबारा पूछें।';
   } finally{ orb&&orb.classList.remove('thinking'); }
@@ -2873,7 +2966,7 @@ window.spPromoteAsg=function(srcId,i){
   src.topics=tp; src.note=tp.filter(t=>!t.done).map(t=>t.t).join(' · ');
   const mine=normTopics(me);
   const act=mine.filter(t=>!t.done), don=mine.filter(t=>t.done);
-  me.topics=[...act,{t:x.t+(src.name?' — ('+src.name+' का)':''),done:false,doneAt:null,cat:x.cat||'',assignTo:''},...don];
+  me.topics=[...act,{t:x.t+(src.name?' — ('+src.name+' का)':''),done:false,doneAt:null,cat:x.cat||'',assignTo:'',addedAt:x.addedAt||new Date().toISOString()},...don];
   me.note=me.topics.filter(t=>!t.done).map(t=>t.t).join(' · ');
   render(); fbSave(src); fbSave(me); renderSmartPop();
   toast('⬆️ काम मुख्य list में आ गया — अब ⏰/श्रेणी सब लग सकता है');
@@ -3540,7 +3633,7 @@ window.spSaveNewTasks=function(){
   if(!c) return;
   const v1=(document.getElementById('sp-new1')||{}).value||'';
   const v2=(document.getElementById('sp-new2')||{}).value||'';
-  const add=[v1.trim(),v2.trim()].filter(Boolean).map(t=>({t,done:false,doneAt:null,cat:'',assignTo:''}));
+  const add=[v1.trim(),v2.trim()].filter(Boolean).map(t=>({t,done:false,doneAt:null,cat:'',assignTo:'',addedAt:new Date().toISOString()}));
   if(!add.length){ toast('⚠️ पहले काम लिखें','warn'); return; }
   const tps=normTopics(c);
   const act=tps.filter(x=>!x.done), don=tps.filter(x=>x.done);
@@ -4366,7 +4459,7 @@ window.aiConfirm=function(){
   const ph=phRaw?normalizePhone(phRaw):'';
   const entry={
     id:genId(), name:nm||task.slice(0,44), phone:(ph&&ph.length>=10)?ph:'', waPhone:'', note:task,
-    topics:[{t:task,done:false,doneAt:null,cat:(window._aiCat||''),assignTo:''}],
+    topics:[{t:task,done:false,doneAt:null,cat:(window._aiCat||''),assignTo:'',addedAt:new Date().toISOString()}],
     tag:_aiTag||'', color:'#a855f7', emoji:'📅', intervalMins:30, alarmTime:'',
     lastCallAt:null, nextCallAt:when.toISOString(), callLog:[], pinned:false,
     createdAt:new Date().toISOString(), aiQuick:true
@@ -4476,7 +4569,7 @@ window.saveContact=function(){
   const waPhoneRaw=normalizePhone(document.getElementById('f-waph').value||'');
   const waPhone=(waPhoneRaw&&waPhoneRaw.length>=10)?waPhoneRaw:'';
   readTopicInputs();
-  const activeTopics=selTopics.filter(x=>x.t.trim()).map(x=>({t:x.t.trim(),done:false,doneAt:null,cat:x.cat||'',assignTo:x.assignTo||''}));
+  const activeTopics=selTopics.filter(x=>x.t.trim()).map(x=>({t:x.t.trim(),done:false,doneAt:null,cat:x.cat||'',assignTo:x.assignTo||'',addedAt:x.addedAt||new Date().toISOString()}));
   // पूरे हुए काम edit में नहीं दिखते — उन्हें preserve करो
   const oldC=editingId?contacts.find(x=>x.id===editingId):null;
   const doneTopics=oldC?normTopics(oldC).filter(x=>x.done):[];

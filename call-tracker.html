@@ -2862,9 +2862,60 @@ function ableStaffText(){
   if(worst) out.push(`⚠️ सबसे ज़्यादा लेट: ${P[worst].name} (${P[worst].late} काम)`);
   return out.join('\n');
 }
+/* 🔮 Predictive Engine — लेट होने वाले, भूले हुए, reminder-भारी संपर्क (0 token) */
+function ableRiskText(){
+  const now=Date.now(); const tasks=_allTasks();
+  const soon=[], forgot=[];
+  // contact-wise लेट history — जिसके काम पहले भी लेट, उसका ख़तरा ज़्यादा
+  const lateHist={};
+  tasks.forEach(t=>{ if(!t.done && t.at && new Date(t.at).getTime()<now) lateHist[t.name]=(lateHist[t.name]||0)+1; });
+  tasks.forEach(t=>{
+    if(t.done) return;
+    const at=t.at?new Date(t.at).getTime():null;
+    if(at && at>now && at-now<24*3600e3) soon.push({t,at,risk:(lateHist[t.name]||0)>0});
+    if(!at && t.addedAt){ const age=(now-new Date(t.addedAt).getTime())/864e5; if(age>=5) forgot.push({t,age:Math.floor(age)}); }
+  });
+  soon.sort((a,b)=>(b.risk-a.risk)||(a.at-b.at));
+  forgot.sort((a,b)=>b.age-a.age);
+  const remind=[];
+  contacts.forEach(c=>{ if(c.active===false)return; const pend=normTopics(c).filter(x=>!x.done).length; const calls=Array.isArray(c.callLog)?c.callLog.length:0; if(pend>0&&calls>=5) remind.push({name:c.name||'?',calls,pend}); });
+  remind.sort((a,b)=>b.calls-a.calls);
+  const out=['🔮 आगे का ख़तरा (आपके रिकॉर्ड से भविष्यवाणी):'];
+  if(soon.length){ out.push(`\n⏳ अगले 24 घंटे में समय पूरा — लेट होने का ख़तरा (${soon.length}):`); soon.slice(0,15).forEach((r,i)=>out.push(`${i+1}. ${r.t.name} — ${r.t.t} (${_dmy(r.at,true)})${r.risk?' ⚠️ इनके काम पहले भी लेट रहे':''}`)); }
+  if(forgot.length){ out.push(`\n🕳️ भूले हुए काम — 5+ दिन से बिना समय पड़े (${forgot.length}):`); forgot.slice(0,15).forEach((r,i)=>out.push(`${i+1}. ${r.t.name} — ${r.t.t} (${r.age} दिन पुराना)`)); }
+  if(remind.length){ out.push(`\n🔁 बार-बार call/reminder वाले (${remind.length}):`); remind.slice(0,10).forEach((r,i)=>out.push(`${i+1}. ${r.name} — ${r.calls} बार call, फिर भी ${r.pend} काम बाकी`)); }
+  if(out.length===1) return '🔮 अभी कोई ख़तरा नहीं दिखता — न कोई काम 24 घंटे में लेट होने वाला, न कोई भूला हुआ ✅';
+  return out.join('\n');
+}
+/* 🧭 Owner Behaviour Model — आपकी काम-आदतें data से (0 token) */
+function ablePatternsText(){
+  const tasks=_allTasks();
+  const addH=new Array(24).fill(0), doneH=new Array(24).fill(0), wd=new Array(7).fill(0);
+  let sumD=0,nD=0,nAdd=0,nDone=0; const cats={};
+  tasks.forEach(t=>{
+    if(t.addedAt){ const d=new Date(t.addedAt); addH[d.getHours()]++; wd[d.getDay()]++; nAdd++; }
+    if(t.done&&t.doneAt){ const d=new Date(t.doneAt); doneH[d.getHours()]++; nDone++;
+      if(t.addedAt){ const dd=(new Date(t.doneAt)-new Date(t.addedAt))/864e5; if(dd>=0&&dd<60){ sumD+=dd; nD++; } } }
+    if(t.cat) cats[t.cat]=(cats[t.cat]||0)+1;
+  });
+  if(!nAdd&&!nDone) return 'अभी इतना data नहीं जुड़ा कि आपकी आदतें बता सकूँ — जैसे-जैसे काम जुड़ेंगे/पूरे होंगे, मैं आपका pattern सीखता जाऊँगा।';
+  const topI=a=>{ let b=0; a.forEach((v,i)=>{ if(v>a[b]) b=i; }); return a[b]>0?b:null; };
+  const WD=['रविवार','सोमवार','मंगलवार','बुधवार','गुरुवार','शुक्रवार','शनिवार'];
+  const hr=h=>`${h}:00–${(h+1)%24}:00`;
+  const out=['🧭 आपकी काम-आदतें (data से सीखा):'];
+  const ah=topI(addH); if(ah!=null) out.push(`• नए काम सबसे ज़्यादा ${hr(ah)} बजे जोड़ते हैं`);
+  const dh=topI(doneH); if(dh!=null) out.push(`• काम सबसे ज़्यादा ${hr(dh)} बजे पूरे होते हैं — यही आपका productive समय है 💪`);
+  const bw=topI(wd); if(bw!=null) out.push(`• सबसे व्यस्त दिन: ${WD[bw]}`);
+  if(nD) out.push(`• काम जोड़ने से पूरा होने तक औसत: ${(sumD/nD)<1?'उसी दिन':(sumD/nD).toFixed(1)+' दिन'}`);
+  const ck=Object.keys(cats).sort((a,b)=>cats[b]-cats[a]);
+  if(ck.length) out.push(`• सबसे आम श्रेणी: ${ck.slice(0,3).map(k=>k+' ('+cats[k]+')').join(', ')}`);
+  out.push(`(आधार: ${nAdd} जोड़े गए + ${nDone} पूरे काम — हर हफ़्ते और सटीक होता जाएगा)`);
+  return out.join('\n');
+}
 function aicSuggests(){
   const s=aicStats(); const out=[];
   out.push({ico:'🎯',t1:'अभी सबसे पहले क्या करूँ?',t2:'AI की सिफ़ारिश — लेट+ज़रूरी+VIP के हिसाब से क्रम',act:'reco'});
+  out.push({ico:'🔮',t1:'आगे का ख़तरा — भविष्यवाणी',t2:'कौन से काम लेट होने वाले, कौन से भूले पड़े',act:'risk'});
   if(s.late>0) out.push({ico:'🔴',t1:`${s.late} काम लेट चल रहे हैं`,t2:s.lateNames.slice(0,3).join(', ')+(s.late>3?` +${s.late-3}`:''),act:'late'});
   if(s.callsDue>0) out.push({ico:'📞',t1:`${s.callsDue} call अभी करनी हैं`,t2:s.dueNames.slice(0,3).join(', ')+(s.callsDue>3?` +${s.callsDue-3}`:''),act:'calls'});
   out.push({ico:'👥',t1:'Staff का प्रदर्शन',t2:'कौन तेज़, कौन लेट, किस पर कितना भरोसा',act:'staff'});
@@ -2889,6 +2940,7 @@ window.closeAiComp=function(){ document.getElementById('ai-comp').classList.remo
 function _aicShowLocal(tag,q){ const rp=document.getElementById('aic-resp'); rp.style.display='block'; const a=aicRuleAnswer(q)||'यह जानकारी रिकॉर्ड में नहीं है।'; _aicShow(rp,tag,a); }
 window.aicDo=function(act){
   if(act==='reco'){ const rp=document.getElementById('aic-resp'); rp.style.display='block'; _aicShow(rp,'🎯 AI सिफ़ारिश — आपके रिकॉर्ड से, 0 token',ableRecoText()); return; }
+  if(act==='risk'){ const rp=document.getElementById('aic-resp'); rp.style.display='block'; _aicShow(rp,'🔮 भविष्यवाणी — आपके रिकॉर्ड से, 0 token',ableRiskText()); return; }
   if(act==='staff'){ const rp=document.getElementById('aic-resp'); rp.style.display='block'; _aicShow(rp,'👥 Staff Intelligence — 0 token',ableStaffText()); return; }
   if(act==='late'){ _aicShowLocal('🧠 आपके रिकॉर्ड से — 0 token','सारे लेट काम पूरी सूची'); return; }
   if(act==='calls'){ _aicShowLocal('🧠 आपके रिकॉर्ड से — 0 token','call बाकी किसकी है पूरी सूची'); return; }
@@ -2981,6 +3033,10 @@ function aicRuleAnswer(q){
   if(has('किसको पहले','कौन सा पहले','पहले क्या','सबसे पहले','अभी क्या करूँ','अभी क्या करूं','आज क्या करूँ','आज क्या करूं','priority क्या','क्रम')) return ableRecoText();
   // 👥 staff intelligence — कौन तेज़/लेट/भरोसेमंद
   if((has('स्टाफ','staff','टीम','team')&&has('प्रदर्शन','performance','हाल','रिपोर्ट','कैसा','कौन'))||has('कौन लेट करता','कौन जल्दी करता','कौन तेज़','कौन भरोसे','सबसे तेज़ कौन','सबसे लेट कौन')) return ableStaffText();
+  // 🔮 भविष्यवाणी — लेट होने वाले / भूले हुए / बार-बार reminder
+  if(has('ख़तरा','खतरा','risk','लेट होने वाले','लेट हो सकते','लेट होगा','भूले','भूला','भूल गए','forgotten','छूटने','miss होने','भविष्यवाणी','predict','बार-बार','बार बार','reminder देना')) return ableRiskText();
+  // 🧭 owner आदतें / pattern
+  if(has('आदत','पैटर्न','pattern','कब जोड़ता','कब जोड़ते','किस समय','productive समय','मेरा तरीका','मेरी habit','busy दिन','व्यस्त दिन')) return ablePatternsText();
   // सेहत/health score
   if(has('सेहत','health','स्कोर','score')&&!has('staff','स्टाफ')){ const h=ableHealth(); const s=aicStats(); return `${h>=75?'💚':h>=45?'🟡':'🔴'} Business सेहत: ${h}/100\n• लेट काम: ${s.late}\n• call बाकी: ${s.callsDue}\n• आज पूरे: ${s.doneN}\nस्कोर बढ़ाने का सीधा रास्ता: सबसे पुराने लेट काम पहले निपटाओ (🎯 सिफ़ारिश देखो)।`; }
   // बाकी सलाह/राय वाले गहरे सवाल → grounded Claude reasoning करे

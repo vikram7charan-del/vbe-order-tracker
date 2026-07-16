@@ -65,3 +65,10 @@ jobs:
         env:
           FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
         run: node scripts/ai-daily-memory.js
+
+      # 🔒 रात 23:20+ IST — पूरा data cloud backup (हर तारीख़ की अलग फ़ाइल, कभी नहीं मिटती)
+      - name: Nightly cloud backup
+        continue-on-error: true
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
+        run: node scripts/ai-backup.js

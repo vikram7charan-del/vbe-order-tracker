@@ -2843,6 +2843,17 @@ function _dayLabel(dk){
   if(diff>0) return `${diff} दिन पहले (${dstr})`;
   return dstr;
 }
+/* सवाल से तारीख़-दायरा (range) — पिछले N दिन / इस-पिछले हफ़्ते / इस-पिछले महीने */
+function _relRange(ql,now){
+  const sod=t=>{ const d=new Date(t); d.setHours(0,0,0,0); return d.getTime(); };
+  if(ql.includes('इस हफ')||ql.includes('इस सप्ताह')||ql.includes('this week')) return {from:sod(now-6*864e5),to:now,label:'इस हफ़्ते (पिछले 7 दिन)'};
+  if(ql.includes('पिछले हफ')||ql.includes('पिछले सप्ताह')||ql.includes('गत सप्ताह')||ql.includes('last week')) return {from:sod(now-13*864e5),to:sod(now-7*864e5)+864e5-1,label:'पिछले हफ़्ते'};
+  if(ql.includes('इस महीने')||ql.includes('this month')){ const d=new Date(); return {from:new Date(d.getFullYear(),d.getMonth(),1).getTime(),to:now,label:'इस महीने'}; }
+  if(ql.includes('पिछले महीने')||ql.includes('गत महीने')||ql.includes('last month')){ const d=new Date(); return {from:new Date(d.getFullYear(),d.getMonth()-1,1).getTime(),to:new Date(d.getFullYear(),d.getMonth(),1).getTime()-1,label:'पिछले महीने'}; }
+  const n=_hnum(ql);
+  if(n!=null && (ql.includes('पिछले')||ql.includes('बीते')||ql.includes('दिनों में')||ql.includes('दिन में')||ql.includes('last')||ql.includes('past'))) return {from:sod(now-(n-1)*864e5),to:now,label:`पिछले ${n} दिन`};
+  return null;
+}
 function _dmy(iso,withTime){ if(!iso)return ''; const d=new Date(iso); if(isNaN(d))return ''; const s=d.toLocaleDateString('hi-IN',{day:'numeric',month:'short'}); return withTime?s+' '+d.toLocaleTimeString('hi-IN',{hour:'2-digit',minute:'2-digit',hour12:true}):s; }
 function _allTasks(){
   const out=[];
@@ -2860,8 +2871,27 @@ function aicRuleAnswer(q){
   const has=(...w)=>w.some(x=>ql.includes(x));
   // सलाह/राय/प्राथमिकता वाले सवाल → लोकल नहीं, grounded Claude reasoning करे
   if(has('कैसे','सुझाव','सलाह','क्या करूँ','क्या करना','रणनीति','improve','राय','किसको पहले','कौन सा पहले','प्लान बनाओ','मदद कर')) return null;
-  // 📅 पुरानी तारीख़ — "N दिन पहले / परसों / कल / आज कौन से contact/काम जोड़े"
+  // 📅 दायरा — "पिछले N दिन / इस हफ़्ते / इस महीने में कौन से contact/काम जोड़े (उनके काम भी)"
   if(has('जोड़','ऐड','add','बनाए','बनाया','नए','new','डाले','किए')){
+    const rg=_relRange(ql,now);
+    if(rg){
+      const inRg=iso=>{ if(!iso)return false; const t=new Date(iso).getTime(); return !isNaN(t)&&t>=rg.from&&t<=rg.to; };
+      const cs=contacts.filter(c=>inRg(c.createdAt));
+      const ts=_allTasks().filter(t=>inRg(t.addedAt));
+      const wantC=has('contact','कांटेक्ट','संपर्क','पार्टी','ग्राहक','client','कस्टमर','नंबर','लोग','व्यक्ति');
+      const wantT=has('काम','task','कार्य');
+      let out=[];
+      if(wantC||!wantT){
+        if(cs.length){
+          out.push(`${rg.label} में जोड़े गए ${cs.length} संपर्क:`);
+          cs.slice(0,30).forEach((c,i)=>{ const tk=normTopics(c).filter(x=>!x.done).map(x=>x.t); out.push(`${i+1}. ${c.name||'?'}${c.phone?' ('+c.phone+')':''}${tk.length?' — काम: '+tk.slice(0,4).join(', '):''}`); });
+        } else out.push(`${rg.label} में कोई नया संपर्क दर्ज नहीं मिला।${contacts.some(c=>c.createdAt)?'':' (पुराने संपर्कों पर तारीख नहीं थी)'}`);
+      }
+      if(wantT&&!wantC){
+        out.push(ts.length?`${rg.label} में जोड़े गए ${ts.length} काम:\n`+ts.slice(0,30).map((t,i)=>`${i+1}. ${t.name} — ${t.t}`).join('\n'):`${rg.label} में जोड़ा गया कोई काम दर्ज नहीं${_allTasks().some(t=>t.addedAt)?' मिला।':' — पुराने कामों पर तारीख नहीं थी।'}`);
+      }
+      return out.join('\n');
+    }
     const dk=_relDayKey(ql,now);
     if(dk){
       const wantC=has('contact','कांटेक्ट','संपर्क','पार्टी','ग्राहक','client','कस्टमर','नंबर','लोग','व्यक्ति');

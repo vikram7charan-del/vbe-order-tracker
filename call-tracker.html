@@ -3108,8 +3108,12 @@ function aicRuleAnswer(q){
   const today=_dayKeyN(now), yest=_dayKeyN(now-864e5);
   const tasks=_allTasks();
   const has=(...w)=>w.some(x=>ql.includes(x));
+  // 🕸️ श्रेणी-पहचान (knowledge-graph खोज के लिए) — market/golden/computer/jalipa
+  const _CATW={market:['market','मार्केट','मारकेट','बाज़ार','बाजार'],golden:['golden','गोल्डन','गोल्डेन'],computer:['computer','कंप्यूटर','कम्प्यूटर','कम्पूटर'],jalipa:['jalipa','जालीपा','जलीपा']};
+  let qCat=null; for(const k in _CATW){ if(_CATW[k].some(w=>ql.includes(w))){ qCat=k; break; } }
+  const qCatL=qCat?(catInfo(qCat)?catInfo(qCat).logo+' '+catInfo(qCat).label:qCat):'';
   // 🎯 FOCUS MODE — सबसे ऊँची प्राथमिकता: "focus" शब्द आया तो सिर्फ़ focus-database से जवाब,
-  // लेट/पेंडिंग सूची से कभी नहीं (FMIE नियम)
+  // लेट/पेंडिंग सूची से कभी नहीं (FMIE नियम); मालिक + श्रेणी दोनों से छान सकता है
   if(has('focus','फोकस','फ़ोकस','फॉक्स','फोक्स')){
     const F=Array.isArray(_focus)?_focus.slice():[];
     const ownName={v:'विक्रम',d:'दिनेश',k:'कैलाश'};
@@ -3117,14 +3121,17 @@ function aicRuleAnswer(q){
     if(has('विक्रम','मेरे','मेरा','मेरी','my')) own='v';
     else if(has('दिनेश')) own='d';
     else if(has('कैलाश')) own='k';
-    const items=(own?F.filter(f=>(f.own||'v')===own):F);
-    if(!items.length) return own
-      ? `${ownName[own]} के नाम पर अभी कोई काम Focus Mode में नहीं है।${F.length?` (कुल ${F.length} focus दूसरों के नाम पर हैं)`:''}\nकिसी काम पर 🎯 दबाकर focus शुरू करें।`
+    let items=(own?F.filter(f=>(f.own||'v')===own):F);
+    // 🕸️ श्रेणी से भी छानो — "विक्रम के market वाले focus काम"
+    if(qCat) items=items.filter(f=>{ const c=contacts.find(x=>x.id===f.id); const tp=c?normTopics(c)[f.i]:null; return tp&&tp.cat===qCat; });
+    const fl=[own?ownName[own]:null,qCat?qCatL:null].filter(Boolean).join(' + ');
+    if(!items.length) return fl
+      ? `${fl} के हिसाब से Focus Mode में कोई काम नहीं मिला।${F.length?` (कुल ${F.length} काम focus में हैं — बिना छनाई के "focus में क्या है" पूछें)`:''}`
       : `अभी कोई भी काम Focus Mode में नहीं है।\nकिसी काम पर 🎯 दबाकर 15-min घड़ी शुरू करें।`;
     // क्रम: पहले लेट (सबसे पुराना पहले), फिर जिनका समय जल्दी पूरा होगा
     items.sort((a,b)=>{ const la=a.until-now, lb=b.until-now; const oa=la<=0?0:1, ob=lb<=0?0:1; return oa-ob || (oa===0? a.until-b.until : a.until-b.until); });
     const mmss=ms=>{ const m=Math.floor(Math.abs(ms)/60000), s=Math.floor((Math.abs(ms)%60000)/1000); return m+' min '+s+'s'; };
-    const out=[`🎯 Focus Mode में ${items.length} काम${own?' — '+ownName[own]:''}:`];
+    const out=[`🎯 Focus Mode में ${items.length} काम${own?' — '+ownName[own]:''}${qCat?' · '+qCatL:''}:`];
     let lateN=0;
     items.forEach((f,i)=>{
       const left=f.until-now; if(left<=0) lateN++;
@@ -3145,6 +3152,31 @@ function aicRuleAnswer(q){
       setTimeout(()=>URL.revokeObjectURL(a.href),5000);
       return `⬇️ Backup फ़ाइल download हो गई — ${contacts.length} संपर्क, आज की तारीख़ के नाम से (JSON)।\nइसके अलावा हर रात cloud backup भी अपने-आप होता है — हर तारीख़ की अलग फ़ाइल, कभी मिटती नहीं। 🔒`;
     }catch(e){ return '⚠️ Backup नहीं बन पाया: '+(e.message||e); }
+  }
+  // 🕸️ श्रेणी-खोज (knowledge-graph) — "market के काम", "कैलाश के golden काम", "market के लेट काम"
+  if(qCat && !has('जोड़','ऐड','add','डाले') && !_relRange(ql,now)){
+    let list=_allTasks().filter(t=>t.cat===qCat);
+    const used=[qCatL];
+    // मालिक/स्टाफ छनाई — "विक्रम/मेरे" = खुद के (बिना सौंपे) + vikram को सौंपे
+    const stf=[['विक्रम','vikram'],['दिनेश','dinesh'],['कैलाश','kailash'],['मनोज','manoj'],['कोड़ा','koda'],['स्वरूप','swaroop']];
+    for(const [hn,en] of stf){
+      if(ql.includes(hn.toLowerCase())||ql.includes(en)||((en==='vikram')&&has('मेरे','मेरा','मेरी','my'))){
+        list=list.filter(t=>{ const a=(t.assignTo||'').toLowerCase(); return en==='vikram' ? (!a||a.includes('vikram')) : a.includes(en); });
+        used.push(hn); break;
+      }
+    }
+    // हालत छनाई
+    if(has('पूरे','पूरा','complete','done','हो गए','निपटा')){ list=list.filter(t=>t.done); used.push('✅ पूरे'); }
+    else if(has('लेट','late','देर')){ list=list.filter(t=>!t.done&&((t.at&&new Date(t.at).getTime()<now)||(t.nextCallAt&&new Date(t.nextCallAt).getTime()<now))); used.push('🔴 लेट'); }
+    else list=list.filter(t=>!t.done);
+    if(!list.length) return `${used.join(' + ')} के हिसाब से कोई काम नहीं मिला।\n(छनाई: ${used.join(' → ')} — रिकॉर्ड में इस मेल का काम दर्ज नहीं)`;
+    const out=[`${used.join(' + ')} — ${list.length} काम:`];
+    list.slice(0,60).forEach((t,i)=>{
+      out.push(`${i+1}. ${t.pri==='high'?'🔴 ':''}${t.t} (${t.name})`);
+      const sub=[t.at?_dmy(t.at,true):null,t.assignTo?'👤 '+t.assignTo:null,t.done&&t.doneAt?'✅ '+_dmy(t.doneAt):null].filter(Boolean).join(' · ');
+      if(sub) out.push(`    ${sub}`);
+    });
+    return out.join('\n');
   }
   // 🎯 सिफ़ारिश — "किसको पहले / अभी क्या करूँ" → लोकल recommendation engine (Claude नहीं)
   if(has('किसको पहले','कौन सा पहले','पहले क्या','सबसे पहले','अभी क्या करूँ','अभी क्या करूं','आज क्या करूँ','आज क्या करूं','priority क्या','क्रम')) return ableRecoText();

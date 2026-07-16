@@ -87,6 +87,14 @@ svg{display:block}
 .li .amt{font-size:14.5px;font-weight:800;letter-spacing:-.02em;white-space:nowrap}
 .pos{color:var(--emerald)} .neg{color:var(--ink)}
 .empty{padding:34px 20px;text-align:center;color:var(--ink3);font-size:13px;font-weight:600}
+/* insight cards */
+.ins{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:15px;padding:12px 14px;box-shadow:var(--sh-sm)}
+.ins .ib{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-size:19px}
+.ins .it{flex:1;min-width:0}
+.ins .it .t1{font-size:13.5px;font-weight:800;letter-spacing:-.01em}
+.ins .it .t2{font-size:11.5px;color:var(--ink2);margin-top:1px}
+.ins .big{font-size:15px;font-weight:900;white-space:nowrap}
+.ib-up{background:#ffeef1;color:#e11d48} .ib-dn{background:#e7f7f0;color:#059669} .ib-ok{background:#eff4ff;color:#2563eb}
 
 /* bottom nav */
 .nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;height:76px;background:rgba(255,255,255,.92);backdrop-filter:blur(14px);border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-around;z-index:60;padding-bottom:env(safe-area-inset-bottom)}
@@ -164,6 +172,12 @@ svg{display:block}
     </div>
   </div>
 
+  <!-- 💡 Intelligence — आज की समझ -->
+  <div id="insights-wrap" style="display:none">
+    <div class="sec-h"><div class="t">💡 आज की समझ</div><a class="a" href="./pricebook.html">प्राइसबुक <svg class="ico" style="width:15px;height:15px" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></a></div>
+    <div id="insights" style="padding:0 16px;display:flex;flex-direction:column;gap:9px"></div>
+  </div>
+
   <!-- quick actions -->
   <div class="sec-h"><div class="t">तुरंत करें</div></div>
   <div class="qa">
@@ -236,7 +250,44 @@ onAuthStateChanged(auth, async u=>{
   document.getElementById('nav').style.display='flex';
   document.getElementById('greet').textContent = hourGreet();
   try{ await loadDash(); }catch(e){ console.warn(e); }
+  try{ await loadInsights(); }catch(e){ console.warn(e); }
 });
+
+// 💡 Price Intelligence — हर item का latest rate उसके औसत से मिलाकर "महँगा हुआ" alert
+async function loadInsights(){
+  const PB=collection(db,'vbe_pricebook');
+  let snap; try{ snap=await getDocs(query(PB, orderBy('date','desc'), limit(400))); }catch(e){ return; }
+  const byItem={};
+  snap.forEach(d=>{ const p=d.data(); const k=p.item_key||(p.item_name||'').toLowerCase(); if(!k||!(+p.rate>0))return;
+    (byItem[k]=byItem[k]||{name:p.item_name||k, recs:[]}).recs.push({rate:+p.rate, date:p.date||'', vendor:p.vendor||''}); });
+  const alerts=[];
+  for(const k in byItem){
+    const g=byItem[k]; if(g.recs.length<2) continue;
+    g.recs.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+    const latest=g.recs[0]; const prior=g.recs.slice(1);
+    const avg=prior.reduce((s,r)=>s+r.rate,0)/prior.length;
+    if(!avg) continue;
+    const pct=Math.round(((latest.rate-avg)/avg)*100);
+    if(pct>=6) alerts.push({dir:'up', name:g.name, rate:latest.rate, avg:Math.round(avg), pct, vendor:latest.vendor, date:latest.date});
+    else if(pct<=-8) alerts.push({dir:'dn', name:g.name, rate:latest.rate, avg:Math.round(avg), pct, vendor:latest.vendor, date:latest.date});
+  }
+  alerts.sort((a,b)=>Math.abs(b.pct)-Math.abs(a.pct));
+  const box=document.getElementById('insights'); const wrap=document.getElementById('insights-wrap');
+  const top=alerts.slice(0,4);
+  if(!top.length){ wrap.style.display='none'; return; }
+  wrap.style.display='block';
+  box.innerHTML=top.map(a=>{
+    const up=a.dir==='up';
+    return `<div class="ins" onclick="location.href='./pricebook.html'" style="cursor:pointer">
+      <div class="ib ${up?'ib-up':'ib-dn'}">${up?'🔺':'🔻'}</div>
+      <div class="it">
+        <div class="t1">${esc(a.name)} अब ₹${a.rate}</div>
+        <div class="t2">औसत ₹${a.avg} से ${up?'+':''}${a.pct}% ${up?'महँगा':'सस्ता'}${a.vendor?(' · '+esc(a.vendor)):''}</div>
+      </div>
+      <div class="big" style="color:${up?'#e11d48':'#059669'}">${up?'+':''}${a.pct}%</div>
+    </div>`;
+  }).join('');
+}
 
 async function loadDash(){
   const t=today(), m=t.slice(0,7), mStart=m+'-01';

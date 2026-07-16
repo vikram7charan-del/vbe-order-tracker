@@ -566,6 +566,8 @@ body:not(.anim-off) .aic-orb .orb-core{animation:orbCore 2.2s ease-in-out infini
 .aic-sug-item .t1{font-size:13px;font-weight:800;color:#e6ecfb;line-height:1.3}
 .aic-sug-item .t2{font-size:10px;color:#8b9bbb;font-weight:700;margin-top:1px}
 .aic-sug-item .go{font-size:15px;color:color-mix(in srgb,var(--acc) 85%,#fff);flex-shrink:0}
+.asst-pulse{display:inline-block;animation:asstPulse 1.1s ease-in-out infinite}
+@keyframes asstPulse{0%,100%{transform:scale(1);filter:drop-shadow(0 0 6px rgba(168,85,247,.5))}50%{transform:scale(1.18);filter:drop-shadow(0 0 16px rgba(168,85,247,.9))}}
 .aic-act{font-family:inherit;font-size:10.5px;font-weight:800;color:#c6d2e8;cursor:pointer;
   background:linear-gradient(160deg,rgba(32,44,74,.7),rgba(12,20,37,.7));border:1px solid rgba(125,152,214,.26);border-radius:9px;padding:6px 10px;
   transition:transform .13s cubic-bezier(.2,.9,.3,1.4),border-color .18s;touch-action:manipulation}
@@ -1013,7 +1015,7 @@ body.hdr-folded .hdr-row2{display:none}
   <div id="card-list"></div>
 
   <!-- 🤖 AI साथी — जीता-जागता AI orb -->
-  <button id="ai-orb" onclick="openAiComp()" title="🤖 विक्रम भाई का AI साथी" aria-label="AI साथी">
+  <button id="ai-orb" onclick="orbTap()" title="🤖 tap = AI साथी · दबाए रखो = बोलकर काम (Assistant)" aria-label="AI साथी">
     <span class="orb-core"></span>
     <span class="orb-badge" id="orb-badge" style="display:none">0</span>
   </button>
@@ -3473,6 +3475,164 @@ window.aicVoice=function(){
   r.onerror=()=>{ toast('सुन नहीं पाया — दोबारा','warn'); };
   r.onend=()=>{ mic.classList.remove('rec'); _aicRec=null; const q=(document.getElementById('aic-q').value||'').trim(); if(q) _aicRun(q); };
   try{ r.start(); }catch(e){ mic.classList.remove('rec'); _aicRec=null; }
+};
+
+/* ══════════ 🧞 Zero-Click Assistant ══════════
+   orb दबाए रखो (0.55s) → तुरंत सुनना शुरू → बोलो → AI खुद समझे →
+   एक smart-summary → एक ✅ → बन गया (30s Undo)। tap = पहले जैसा dashboard। */
+let _orbFired=false,_orbLP=null,_asstRec=null,_asstBusy=false,_asstUndo=null,_asstUndoT=null;
+window.orbTap=function(){ if(_orbFired){ _orbFired=false; return; } openAiComp(); };
+(function(){
+  const orb=document.getElementById('ai-orb'); if(!orb) return;
+  orb.addEventListener('pointerdown',()=>{ _orbFired=false; clearTimeout(_orbLP);
+    _orbLP=setTimeout(()=>{ _orbFired=true; try{ navigator.vibrate&&navigator.vibrate(25); }catch(e){} aicAssistant(); },550); });
+  ['pointerup','pointerleave','pointercancel'].forEach(ev=>orb.addEventListener(ev,()=>clearTimeout(_orbLP)));
+})();
+function aicAssistant(){
+  window.openAiComp();
+  const rp=document.getElementById('aic-resp'); rp.style.display='block';
+  const sub=document.getElementById('aic-sub'); if(sub) sub.textContent='🧞 Assistant — बोलिए, मैं सुन रहा हूँ';
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){ rp.innerHTML='⚠️ इस फ़ोन में बोली-पहचान नहीं चलती — ऊपर 🎙️ बोलो बटन से लिखकर जोड़ें।'; return; }
+  rp.innerHTML=`<div style="text-align:center;padding:12px 0 6px">
+    <div class="asst-pulse" style="font-size:40px">🎙️</div>
+    <div style="font-size:13px;font-weight:800;color:#c4b5fd;margin-top:7px">बोलिए…</div>
+    <div style="font-size:10.5px;color:#8b9bbb;margin-top:3px">जैसे: "नवीन भाई को बोल दो दो प्रिंटर मंगवा दे, फोकस में डाल दो"</div>
+    <button class="aic-act" style="margin-top:11px" onclick="try{_asstRec&&_asstRec.stop()}catch(e){}">⏹ बस, इतना ही</button>
+  </div>`;
+  const orb=document.getElementById('ai-orb'); orb&&orb.classList.add('thinking');
+  try{ _asstRec&&_asstRec.stop(); }catch(e){}
+  const r=new SR(); _asstRec=r; r.lang='hi-IN'; r.interimResults=false; r.maxAlternatives=1;
+  let txt='';
+  r.onresult=e=>{ txt=e.results[0][0].transcript||''; };
+  r.onerror=()=>{ orb&&orb.classList.remove('thinking'); rp.innerHTML='⚠️ सुन नहीं पाया — orb दबाकर रखें और साफ़ बोलें।'; };
+  r.onend=()=>{ _asstRec=null; orb&&orb.classList.remove('thinking');
+    if(txt.trim()) _asstProcess(txt.trim());
+    else if(rp.innerHTML.indexOf('⚠️')<0) rp.innerHTML='⚠️ कुछ सुनाई नहीं दिया — orb दबाकर रखकर दोबारा बोलें।'; };
+  try{ r.start(); }catch(e){ rp.innerHTML='⚠️ mic शुरू नहीं हुआ — permission देखें।'; }
+}
+async function _asstProcess(raw){
+  if(_asstBusy) return; _asstBusy=true;
+  const rp=document.getElementById('aic-resp'); const orb=document.getElementById('ai-orb');
+  rp.innerHTML='<div style="font-size:11px;color:#8b9bbb;margin-bottom:5px">आपने कहा:</div><div style="font-size:13px;font-weight:800;color:#eaf0ff">"'+escH(raw)+'"</div><div style="color:#8b9bbb;margin-top:9px">🤖 समझ रहा हूँ… <span class="cur"></span></div>';
+  orb&&orb.classList.add('thinking');
+  try{
+    const wantFocus=_wantsFocus(raw), bld=_bldScan(raw);
+    let tasks=null, name=null;
+    if(aiKey() && (sessionStorage.getItem('vbe_ai_ok')==='1'||askPinAI())){
+      try{
+        const now=new Date(), pd=n=>String(n).padStart(2,'0');
+        const nowS=now.getFullYear()+'-'+pd(now.getMonth()+1)+'-'+pd(now.getDate())+' '+pd(now.getHours())+':'+pd(now.getMinutes());
+        const txt=await aiAsk('अभी समय (IST): '+nowS+'\nबोले हुए वाक्य से जानकारी निकालो, जवाब सिर्फ़ JSON:\n{"tasks":[{"task":"काम हूबहू (समय-शब्द और focus-निर्देश हटाओ)","when":"YYYY-MM-DD HH:MM या null","cat":"golden|computer|market|jalipa या null","pri":"high या null"}],"name":"जिस व्यक्ति का काम है उसका नाम या null","focus":true/false}\nकई अलग काम हों तो अलग-अलग task (max 3)।\nवाक्य: '+raw,380);
+        const j=JSON.parse((txt.match(/\{[\s\S]*\}/)||[txt])[0]);
+        name=j.name||null;
+        if(j.focus) window._asstF=true;
+        const arr=Array.isArray(j.tasks)&&j.tasks.length?j.tasks:(j.task?[{task:j.task,when:j.when,cat:j.cat,pri:j.pri}]:null);
+        if(arr) tasks=arr.slice(0,3).map(x=>{
+          let w=x.when?new Date(String(x.when).replace(' ','T')):null;
+          if(w&&(isNaN(w.getTime())||w.getTime()<=Date.now())) w=null;
+          let t=(x.task||raw).trim(); t=_stripFocusWords(t)||t;
+          return {t,when:w||new Date(Date.now()+3600000),cat:(x.cat&&TASK_CATS.find(c=>c.k===x.cat))?x.cat:bld.cat,pri:x.pri==='high'?'high':bld.pri};
+        });
+      }catch(e){}
+    }
+    if(!tasks||!tasks.length){ // लोकल fallback — बिना AI भी चले
+      let when=_aiParseWhen(raw); let t=when?_aiCleanTask(raw):raw;
+      t=_stripFocusWords(t)||t;
+      tasks=[{t:t||'काम',when:when||new Date(Date.now()+3600000),cat:bld.cat,pri:bld.pri}];
+    }
+    const mc=_findByName(((name||'')+' '+raw).toLowerCase());
+    _asstShow(raw,tasks,mc,wantFocus||!!window._asstF,name);
+    window._asstF=false;
+  } finally{ _asstBusy=false; orb&&orb.classList.remove('thinking'); }
+}
+function _asstShow(raw,tasks,mc,wantFocus,name){
+  window._asstData={raw,tasks,mcId:mc?mc.id:null,wantFocus,name:name||''};
+  const rp=document.getElementById('aic-resp');
+  const why=[]; // 🔍 explain — किस आधार पर क्या समझा
+  if(mc) why.push('नाम मिला → '+(mc.name||''));
+  tasks.forEach(t=>{ if(t.pri==='high'&&why.indexOf('"आज ही/तुरंत" → 🔴 ज़रूरी')<0) why.push('"आज ही/तुरंत" → 🔴 ज़रूरी'); if(t.cat&&catInfo(t.cat)) why.push('श्रेणी → '+catInfo(t.cat).label); });
+  if(wantFocus) why.push('"फोकस" बोला → 🎯 घड़ी');
+  let h='<div style="font-size:9.5px;font-weight:800;color:#7d8db0;margin-bottom:7px">🧞 समझ गया — एक नज़र देखकर ✅ दबाओ</div>';
+  h+=`<div style="font-size:12px;font-weight:800;color:${mc?'#4ade80':'#fbbf24'};margin-bottom:8px">${mc?'📇 '+escH(mc.name)+' के कार्ड में जुड़ेगा':'🆕 नया कार्ड बनेगा'+(window._asstData.name?' — "'+escH(window._asstData.name)+'"':'')}</div>`;
+  tasks.forEach((x,i)=>{
+    const ci=x.cat?catInfo(x.cat):null;
+    h+=`<div style="padding:6px 0;border-top:1px solid rgba(125,152,214,.14)">
+      <div style="font-size:14px;font-weight:800;color:#fcd34d;line-height:1.45">${x.pri==='high'?'🔴 ':''}${ci?ci.logo+' ':''}${tasks.length>1?(i+1)+'. ':''}${escH(x.t)}</div>
+      <div style="font-size:10.5px;color:#93c5fd;font-weight:700;margin-top:2px">🔔 ${_aiFmt(x.when)}</div>
+    </div>`;
+  });
+  if(wantFocus) h+='<div style="font-size:11px;font-weight:800;color:#c4b5fd;margin-top:6px">🎯 Focus Mode में भी लगेगा (विक्रम, 15 min)</div>';
+  if(why.length) h+='<div style="font-size:9.5px;color:#7d8db0;margin-top:7px">🔍 कैसे समझा: '+why.map(escH).join(' · ')+'</div>';
+  h+=`<div style="display:flex;gap:7px;margin-top:12px">
+    <button class="aic-act" style="flex:1;background:linear-gradient(135deg,#059669,#22c55e);border:none;color:#fff;font-size:12.5px;padding:10px" onclick="asstConfirm()">✅ ठीक है — बना दो</button>
+    <button class="aic-act" onclick="asstEdit()">✏️ सुधारो</button>
+    <button class="aic-act" onclick="this.closest('#aic-resp').innerHTML='रद्द किया।'">❌</button>
+  </div>`;
+  rp.innerHTML=h;
+}
+window.asstConfirm=function(){
+  const d=window._asstData; if(!d||!d.tasks||!d.tasks.length) return;
+  const mc=d.mcId?contacts.find(x=>x.id===d.mcId):null;
+  // duplicate जाँच
+  if(mc){
+    const nrm=s=>String(s).replace(/\s+/g,'').toLowerCase();
+    const pend=normTopics(mc).filter(x=>!x.done);
+    for(const r of d.tasks){
+      const dup=pend.find(x=>{ const a=nrm(x.t),b=nrm(r.t); return a.length>6&&b.length>6&&(a.includes(b)||b.includes(a)); });
+      if(dup && !confirm('⚠️ ऐसा काम पहले से है:\n"'+dup.t.slice(0,50)+'"\nफिर भी जोड़ें?')) return;
+    }
+  }
+  const marks=[]; let target, firstTi, isNew=false;
+  const mkTopic=(r,i)=>{ const aAt=new Date(Date.now()+i).toISOString(); marks.push(aAt+'|'+r.t);
+    return {t:r.t,done:false,doneAt:null,cat:r.cat||'',pri:r.pri||'',assignTo:'',addedAt:aAt,at:r.when.toISOString()}; };
+  if(mc){
+    const tps=normTopics(mc), act=tps.filter(x=>!x.done), don=tps.filter(x=>x.done);
+    firstTi=act.length;
+    d.tasks.forEach((r,i)=>{ act.push(mkTopic(r,i)); _logHist(mc,'add',r.t); });
+    mc.topics=[...act,...don];
+    mc.note=mc.topics.filter(x=>!x.done).map(x=>x.t).join(' · ');
+    target=mc; render(); fbSave(mc);
+  } else {
+    isNew=true;
+    const entry={ id:genId(), name:(d.name||d.tasks[0].t.slice(0,40)), phone:'', waPhone:'', note:d.tasks.map(r=>r.t).join(' · '),
+      topics:d.tasks.map((r,i)=>mkTopic(r,i)), tag:'', color:'#a855f7', emoji:'🧞', intervalMins:30, alarmTime:'',
+      lastCallAt:null, nextCallAt:d.tasks[0].when.toISOString(), callLog:[], pinned:false, createdAt:new Date().toISOString(), aiQuick:true };
+    contacts.push(entry); target=entry; firstTi=0; render(); fbSave(entry);
+  }
+  let focusKey=null;
+  if(d.wantFocus&&target){
+    focusKey=target.id+'_'+firstTi+'_'+Date.now();
+    _focus.push({key:focusKey,id:target.id,i:firstTi,t:d.tasks[0].t,own:'v',start:Date.now(),until:Date.now()+15*60000,mins:15});
+    saveFocus(); renderFocusBar();
+  }
+  _asstUndo={cid:target.id,isNew,marks,focusKey};
+  clearTimeout(_asstUndoT); _asstUndoT=setTimeout(()=>{ _asstUndo=null; },30000);
+  const rp=document.getElementById('aic-resp');
+  rp.innerHTML=`<div style="font-size:14px;font-weight:900;color:#4ade80">✅ हो गया! ${d.tasks.length} काम ${mc?escH(mc.name)+' के कार्ड में':'नए कार्ड में'} जुड़ ${d.tasks.length>1?'गए':'गया'}${d.wantFocus?' + 🎯 Focus चालू':''}</div>
+    <div style="font-size:10.5px;color:#8b9bbb;margin-top:4px">🔔 ${_aiFmt(d.tasks[0].when)} पर अलार्म</div>
+    <button class="aic-act" style="margin-top:10px" onclick="asstUndoNow()">↩️ Undo (30 सेकंड तक)</button>`;
+  try{ navigator.vibrate&&navigator.vibrate([15,30,15]); }catch(e){}
+  window._asstData=null;
+};
+window.asstUndoNow=function(){
+  const u=_asstUndo; if(!u){ toast('Undo का समय निकल गया','warn'); return; }
+  _asstUndo=null; clearTimeout(_asstUndoT);
+  if(u.isNew){ const i=contacts.findIndex(x=>x.id===u.cid); if(i>=0) contacts.splice(i,1); fbDelete(u.cid); }
+  else{ const c=contacts.find(x=>x.id===u.cid);
+    if(c){ c.topics=normTopics(c).filter(t=>u.marks.indexOf((t.addedAt||'')+'|'+t.t)<0);
+      c.note=c.topics.filter(x=>!x.done).map(x=>x.t).join(' · '); fbSave(c); } }
+  if(u.focusKey){ _focus=_focus.filter(f=>f.key!==u.focusKey); saveFocus(); renderFocusBar(); }
+  render();
+  const rp=document.getElementById('aic-resp'); if(rp) rp.innerHTML='↩️ हटा दिया — सब जैसा था वैसा।';
+  toast('↩️ Undo हो गया');
+};
+window.asstEdit=function(){
+  const d=window._asstData; closeAiComp();
+  openAiAdd();
+  setTimeout(()=>{ const inp=document.getElementById('ai-inp'); if(inp&&d) inp.value=d.raw;
+    const ne=document.getElementById('ai-name'); if(ne&&d&&d.name) ne.value=d.name;
+    aiPreview(); },250);
 };
 
 /* सौंपा काम ⬆️ मुख्य कामों में — फिर calendar/श्रेणी सब लग सकता है */

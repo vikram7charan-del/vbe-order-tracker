@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#1d4ed8">
+<meta name="robots" content="noindex,nofollow">
+<title>VBE खोज / Search</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#eef2f6;color:#0f172a;font-family:'Noto Sans Devanagari',sans-serif;min-height:100dvh;max-width:480px;margin:0 auto;padding-bottom:60px}
+.topbar{background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff;padding:14px 16px;border-radius:0 0 18px 18px;box-shadow:0 8px 22px rgba(37,99,235,.34)}
+.topbar h1{font-size:17px;font-weight:900}
+.topbar .sub{font-size:11px;opacity:.9;margin-top:2px}
+.vbe-menu-btn{border:none;background:rgba(255,255,255,.2);color:#fff;font-size:16px;border-radius:9px;padding:7px 12px;font-weight:900;cursor:pointer;font-family:inherit}
+.login-note{text-align:center;padding:60px 20px;color:#64748b;font-size:14px}
+
+/* sticky search box */
+.search-wrap{position:sticky;top:0;z-index:20;background:#eef2f6;padding:12px;box-shadow:0 6px 10px -8px rgba(15,23,42,.25)}
+.search-box{display:flex;align-items:center;gap:9px;background:#fff;border:1.5px solid #cbd5e1;border-radius:14px;padding:11px 14px;box-shadow:0 6px 16px -8px rgba(15,23,42,.28)}
+.search-box:focus-within{border-color:#3b82f6;box-shadow:0 6px 18px -6px rgba(37,99,235,.4)}
+.search-box svg{width:20px;height:20px;stroke:#94a3b8;stroke-width:2.2;fill:none;flex:0 0 auto}
+.search-box input{border:none;outline:none;flex:1;font-size:15px;font-weight:700;font-family:inherit;color:#0f172a;background:transparent;min-width:0}
+.search-box .clr{border:none;background:#f1f5f9;color:#64748b;border-radius:8px;padding:4px 9px;font-weight:900;font-size:13px;cursor:pointer;font-family:inherit;display:none}
+.hint-chips{display:flex;gap:7px;overflow-x:auto;padding:9px 2px 1px;scrollbar-width:none}
+.hint-chips::-webkit-scrollbar{display:none}
+.hint-chips button{flex:0 0 auto;border:1.5px solid #dbeafe;background:#fff;color:#1d4ed8;border-radius:999px;padding:6px 12px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;font-family:inherit}
+
+.sec-title{font-size:12px;font-weight:900;color:#475569;margin:16px 16px 7px;display:flex;align-items:center;gap:6px;text-transform:uppercase;letter-spacing:.02em}
+.sec-title .cnt{background:#e0e7ff;color:#3730a3;font-size:10px;border-radius:999px;padding:1px 8px;font-weight:900}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:16px;margin:0 12px;box-shadow:0 12px 26px -16px rgba(15,23,42,.24),0 2px 6px rgba(15,23,42,.05);overflow:hidden}
+.rw{display:flex;align-items:center;gap:11px;padding:12px 13px;border-bottom:1px solid #f1f5f9;cursor:pointer}
+.rw:last-child{border-bottom:none}
+.rw:active{background:#f8fafc}
+.ic{flex:0 0 auto;width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:inset 0 1px 0 rgba(255,255,255,.5)}
+.ic-party{background:linear-gradient(145deg,#c7d2fe,#6366f1);color:#fff}
+.ic-in{background:linear-gradient(145deg,#bbf7d0,#22c55e);color:#065f46}
+.ic-out{background:linear-gradient(145deg,#fecdd3,#f43f5e);color:#7f1d1d}
+.ic-item{background:linear-gradient(145deg,#bae6fd,#0ea5e9);color:#fff}
+.rw .mid{flex:1;min-width:0}
+.rw .t1{font-size:13.5px;font-weight:800;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rw .t2{font-size:10.5px;color:#94a3b8;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rw .amt{font-size:14px;font-weight:900;white-space:nowrap}
+.amt-in{color:#059669}.amt-out{color:#e11d48}
+.rw mark{background:#fef08a;color:#0f172a;border-radius:3px;padding:0 1px}
+.empty{text-align:center;padding:44px 22px;color:#94a3b8;font-size:13px;line-height:1.7}
+.empty .big{font-size:32px;margin-bottom:8px}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#1d4ed8;color:#fff;padding:11px 22px;border-radius:12px;font-size:13px;font-weight:800;opacity:0;transition:opacity .25s;pointer-events:none;z-index:999;max-width:90%;text-align:center}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <div><h1>🔍 खोज / Search</h1><div class="sub">पार्टी · सामान · बिल · GST · मोबाइल · रकम — सब एक जगह</div></div>
+    <button class="vbe-menu-btn" onclick="vbeMenu(1)">☰ मेनू</button>
+  </div>
+</div>
+
+<div id="s-wait" class="login-note">⏳ Login check...<br><br><a href="./kharcha-entry.html" style="color:#1d4ed8">Login करने के लिए खर्चा एंट्री page पर जाएं</a></div>
+
+<div id="s-app" style="display:none">
+  <div class="search-wrap">
+    <div class="search-box">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="q" type="search" inputmode="search" placeholder="चावल, पार्टी का नाम, मोबाइल, GST, रकम…" autocomplete="off">
+      <button class="clr" id="clr" onclick="clearQ()">✕</button>
+    </div>
+    <div class="hint-chips" id="hints"></div>
+  </div>
+  <div id="results"></div>
+  <div id="empty" class="empty"><div class="big">🔍</div>ऊपर कुछ भी लिखें — पार्टी का नाम, सामान (जैसे <b>चावल</b>), मोबाइल नंबर, GST, UTR या रकम।<br>पूरा हिसाब यहीं से मिल जाएगा।</div>
+</div>
+
+
+<!-- ═══ Unified Navigation (सब pages में एक जैसा) ═══ -->
+<style>
+body{padding-bottom:94px!important}
+.v2nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;height:76px;background:rgba(255,255,255,.94);backdrop-filter:blur(14px);border-top:1px solid #eef1f5;display:flex;align-items:center;justify-content:space-around;z-index:90;padding-bottom:env(safe-area-inset-bottom);font-family:'Inter','Noto Sans Devanagari',sans-serif}
+.v2nav a{display:flex;flex-direction:column;align-items:center;gap:3px;text-decoration:none;color:#94a3b8;font-size:10.5px;font-weight:700;flex:1;padding-top:4px}
+.v2nav a.on{color:#2563eb}
+.v2nav svg{width:23px;height:23px;stroke:currentColor;stroke-width:2.1;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.v2nav .fw{flex:0 0 auto;width:64px;display:flex;justify-content:center}
+.v2fab{width:58px;height:58px;border-radius:20px;background:linear-gradient(135deg,#1d4ed8,#3b82f6);box-shadow:0 12px 24px -8px rgba(37,99,235,.6);display:flex;align-items:center;justify-content:center;color:#fff;margin-top:-24px;text-decoration:none;border:3px solid #f5f6f8}
+.v2fab:active{transform:scale(.94)} .v2fab svg{width:27px;height:27px;stroke-width:2.4}
+.v2sheet-bg{display:none;position:fixed;inset:0;z-index:150;background:rgba(15,23,42,.5);backdrop-filter:blur(2px)}
+.v2sheet{position:absolute;left:0;right:0;bottom:0;max-width:480px;margin:0 auto;background:#fff;border-radius:26px 26px 0 0;padding:16px 16px 30px;box-shadow:0 -14px 44px rgba(15,23,42,.3);animation:v2up .22s cubic-bezier(.2,.8,.2,1);font-family:'Inter','Noto Sans Devanagari',sans-serif}
+@keyframes v2up{from{transform:translateY(30px);opacity:.6}to{transform:translateY(0);opacity:1}}
+.v2sheet .grab{width:40px;height:4px;border-radius:99px;background:#e2e8f0;margin:2px auto 14px}
+.v2grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.v2tile{display:flex;flex-direction:column;align-items:center;gap:7px;text-decoration:none;color:#0f172a;font-size:11px;font-weight:700;padding:12px 4px;border-radius:15px}
+.v2tile:active{background:#f5f6f8}
+.v2tile .tc{width:48px;height:48px;border-radius:15px;display:flex;align-items:center;justify-content:center;color:#fff}
+.v2tile .tc svg{width:22px;height:22px;stroke:currentColor;stroke-width:2.2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+</style>
+<div class="v2nav">
+  <a href="./home.html" data-p="home.html"><svg viewBox="0 0 24 24"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10h14V10"/></svg>होम</a>
+  <a href="./statement.html" data-p="statement.html"><svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>बही</a>
+  <div class="fw"><a class="v2fab" href="./kharcha-entry.html"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></a></div>
+  <a href="./payments.html" data-p="payments.html"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>पेमेंट</a>
+  <a href="javascript:vbeMenu(1)"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>और</a>
+</div>
+<div class="v2sheet-bg" id="vbe-menu" onclick="if(event.target===this)vbeMenu(0)">
+  <div class="v2sheet">
+    <div class="grab"></div>
+    <div class="v2grid">
+      <a class="v2tile" href="./home.html"><div class="tc" style="background:linear-gradient(135deg,#1d4ed8,#3b82f6)"><svg viewBox="0 0 24 24"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10h14V10"/></svg></div>होम</a>
+      <a class="v2tile" href="./kharcha-entry.html"><div class="tc" style="background:linear-gradient(135deg,#059669,#10b981)"><svg viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3"/></svg></div>खर्चा</a>
+      <a class="v2tile" href="./payments.html"><div class="tc" style="background:linear-gradient(135deg,#4f46e5,#6366f1)"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div>पेमेंट</a>
+      <a class="v2tile" href="./statement.html"><div class="tc" style="background:linear-gradient(135deg,#0f766e,#14b8a6)"><svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>बही</a>
+      <a class="v2tile" href="./search.html"><div class="tc" style="background:linear-gradient(135deg,#4338ca,#6366f1)"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></div>खोज</a>
+      <a class="v2tile" href="./pricebook.html"><div class="tc" style="background:linear-gradient(135deg,#047857,#10b981)"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m7 14 3-3 3 3 4-5"/></svg></div>प्राइसबुक</a>
+      <a class="v2tile" href="./marwar-rasoi.html"><div class="tc" style="background:linear-gradient(135deg,#b91c1c,#ef4444)"><svg viewBox="0 0 24 24"><path d="M3 2v7a2 2 0 0 0 2 2 2 2 0 0 0 2-2V2M5 2v20M15 2a4 4 0 0 0-4 4v6h4M15 12v10"/></svg></div>मारवाड़</a>
+      <a class="v2tile" href="./unit-receivables.html"><div class="tc" style="background:linear-gradient(135deg,#166534,#22c55e)"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M8 13 6 22l6-3 6 3-2-9"/></svg></div>Unit पैसा</a>
+      <a class="v2tile" href="./kharcha-dashboard.html"><div class="tc" style="background:linear-gradient(135deg,#0e7490,#06b6d4)"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="7"/><rect x="12" y="6" width="3" height="11"/><rect x="17" y="13" width="3" height="4"/></svg></div>रिपोर्ट</a>
+      <a class="v2tile" href="./"><div class="tc" style="background:linear-gradient(135deg,#334155,#64748b)"><svg viewBox="0 0 24 24"><path d="M3 9 12 2l9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg></div>Order App</a>
+    </div>
+    <div style="text-align:center;margin-top:16px;font-size:11px;color:#94a3b8;font-weight:600">🔒 आपका पूरा डेटा Google पर सुरक्षित है</div>
+  </div>
+</div>
+<script>
+function vbeMenu(v){document.getElementById('vbe-menu').style.display=v?'block':'none'}
+(function(){var p=location.pathname.split('/').pop()||'index.html';
+document.querySelectorAll('.v2nav a[data-p]').forEach(function(a){if(a.getAttribute('data-p')===p)a.classList.add('on')})})();
+</script>
+
+<!-- detail popup -->
+<div id="txn-modal" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(15,23,42,.55)" onclick="if(event.target===this)closeTxn()">
+  <div style="position:absolute;left:0;right:0;bottom:0;max-width:480px;margin:0 auto;background:#fff;border-radius:22px 22px 0 0;max-height:88dvh;overflow-y:auto;padding:18px 16px 26px;box-shadow:0 -10px 40px rgba(15,23,42,.4)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <b style="font-size:16px" id="tm-title">विवरण</b>
+      <button onclick="closeTxn()" style="border:none;background:#f1f5f9;border-radius:9px;padding:7px 14px;font-weight:900;font-size:14px;cursor:pointer">✕ बंद</button>
+    </div>
+    <div id="tm-body"></div>
+    <button onclick="closeTxn()" style="width:100%;margin-top:14px;border:none;background:#1d4ed8;color:#fff;border-radius:12px;padding:13px;font-weight:900;font-size:15px;font-family:inherit;cursor:pointer">← वापस खोज पर</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, initializeFirestore, persistentLocalCache, collection, doc, getDoc, getDocs, query, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const FB_CFG = {
+  apiKey:'AIzaSyBCe5DKNKcthOl4umprfRm2QBfbVaFORg8',
+  authDomain:'vbe-order-tracker-60324.firebaseapp.com',
+  projectId:'vbe-order-tracker-60324',
+  storageBucket:'vbe-order-tracker-60324.firebasestorage.app',
+  messagingSenderId:'894023456122',
+  appId:'1:894023456122:web:6ee548f0913c887c67f2c3'
+};
+const app = initializeApp(FB_CFG, 'vbe-kharcha');
+const auth = getAuth(app);
+let db; try{ db = initializeFirestore(app,{localCache:persistentLocalCache()}); }catch(e){ db = getFirestore(app); }
+
+let ME=null, PARTIES=[], TXNS=[], READY=false;
+
+function fmt(n){ return '₹'+Math.round(+(n||0)).toLocaleString('hi-IN'); }
+function esc(s){ return String(s??'').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+const HMON=['जन','फ़र','मार्च','अप्रैल','मई','जून','जुला','अग','सित','अक्तू','नव','दिस'];
+function hdate(iso){ const d=new Date(iso+'T00:00:00'); if(isNaN(d)) return iso||''; return d.getDate()+' '+HMON[d.getMonth()]+' '+d.getFullYear(); }
+function norm(s){ return String(s??'').toLowerCase().trim(); }
+function digits(s){ return String(s??'').replace(/[^0-9]/g,''); }
+
+onAuthStateChanged(auth, async u=>{
+  if(!u) return;
+  const a = await getDoc(doc(db,'vbe_admins',u.uid));
+  let ok = a.exists();
+  if(!ok){ const s = await getDoc(doc(db,'vbe_users',u.uid)); ok = s.exists() && s.data().role==='staff'; }
+  if(!ok){ document.getElementById('s-wait').innerHTML='❌ सिर्फ admin/staff'; return; }
+  ME={uid:u.uid};
+  document.getElementById('s-wait').style.display='none';
+  document.getElementById('s-app').style.display='block';
+  renderHints();
+  await loadAll();
+});
+
+async function loadAll(){
+  const [ptSnap, exSnap, rcSnap] = await Promise.all([
+    getDocs(collection(db,'vbe_parties')).catch(()=>({forEach:()=>{}})),
+    getDocs(query(collection(db,'vbe_expenses'), orderBy('date','desc'), limit(1500))).catch(()=>({forEach:()=>{}})),
+    getDocs(query(collection(db,'vbe_receipts'), orderBy('date','desc'), limit(1500))).catch(()=>({forEach:()=>{}}))
+  ]);
+  PARTIES=[]; ptSnap.forEach(d=>{ const p=d.data();
+    PARTIES.push({name:p.name||'', phones:(p.phones||[]).join(' '), gstin:p.gstin||'', address:p.address||'', id:d.id}); });
+  TXNS=[];
+  exSnap.forEach(d=>{ const e=d.data();
+    const itemNames=(e.items||[]).map(it=>it.name).join(' ');
+    TXNS.push({kind:'exp', dir:'out', date:e.date||'', amount:+e.total||0, party:e.vendor||'—',
+      account:e.paymentSource||'', utr:e.utr||'', firm:e.firm||'', gstin:e.partyGstin||'', phone:e.partyPhone||'',
+      notes:e.notes||'', items:e.items||[], photo:e.billPhotoUrl||'', bill:e.billStatus==='pending', udhaar:e.payStatus==='udhaar',
+      _hay: norm([e.vendor,itemNames,e.utr,e.firm,e.partyGstin,e.partyPhone,e.notes,e.category].join(' ')),
+      _dig: digits([e.utr,e.partyPhone].join(' ')), _amt:Math.round(+e.total||0) }); });
+  rcSnap.forEach(d=>{ const r=d.data(); if(r.direction!=='in') return;
+    TXNS.push({kind:'rcpt', dir:'in', date:r.date||'', amount:+r.amount||0, party:r.party||'—',
+      account:r.paymentSource||'', utr:r.utr||'', firm:'', gstin:'', phone:'',
+      notes:r.notes||'', items:[], photo:r.photoUrl||'', bill:false, udhaar:false,
+      _hay: norm([r.party,r.utr,r.notes,r.paymentSource].join(' ')),
+      _dig: digits(r.utr||''), _amt:Math.round(+r.amount||0) }); });
+  TXNS.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  PARTIES.forEach(p=>{ p._hay=norm([p.name,p.phones,p.gstin,p.address].join(' ')); p._dig=digits(p.phones+' '+p.gstin); });
+  READY=true;
+  const q=document.getElementById('q').value.trim();
+  if(q) runSearch(q);
+}
+
+// ── हिंट chips ──
+const HINTS=['चावल','तेल','आलू','सुशीला','उज्जवल','Cash'];
+function renderHints(){
+  document.getElementById('hints').innerHTML = HINTS.map(h=>`<button onclick="setQ('${h.replace(/'/g,"\\'")}')">${esc(h)}</button>`).join('');
+}
+window.setQ=function(v){ const el=document.getElementById('q'); el.value=v; el.focus(); onInput(); };
+window.clearQ=function(){ const el=document.getElementById('q'); el.value=''; el.focus(); onInput(); };
+
+// ── search input ──
+const qEl=document.getElementById('q');
+let TMR=null;
+qEl.addEventListener('input', onInput);
+function onInput(){
+  document.getElementById('clr').style.display = qEl.value ? 'block':'none';
+  clearTimeout(TMR); TMR=setTimeout(()=>runSearch(qEl.value.trim()), 130);
+}
+
+function hl(text, q){ // highlight match
+  const s=String(text??''); if(!q) return esc(s);
+  const i=norm(s).indexOf(norm(q)); if(i<0) return esc(s);
+  return esc(s.slice(0,i))+'<mark>'+esc(s.slice(i,i+q.length))+'</mark>'+esc(s.slice(i+q.length));
+}
+
+function runSearch(qraw){
+  const box=document.getElementById('results'); const emp=document.getElementById('empty');
+  const q=norm(qraw);
+  if(!q){ box.innerHTML=''; emp.style.display='block';
+    emp.innerHTML='<div class="big">🔍</div>ऊपर कुछ भी लिखें — पार्टी का नाम, सामान (जैसे <b>चावल</b>), मोबाइल नंबर, GST, UTR या रकम।<br>पूरा हिसाब यहीं से मिल जाएगा।'; return; }
+  if(!READY){ box.innerHTML=''; emp.style.display='block'; emp.innerHTML='<div class="big">⏳</div>डेटा लोड हो रहा है…'; return; }
+  const qd=digits(qraw); const qnum=parseInt(qd||'-1',10);
+  const isNumQ = qd.length>=2 && /^[0-9\s,]+$/.test(qraw.trim());
+  const matchTxt = (o)=> o._hay.includes(q) || (qd.length>=3 && o._dig.includes(qd));
+  const matchAmt = (o)=> isNumQ && (String(o._amt).includes(qd) || o._amt===qnum);
+
+  const parties = PARTIES.filter(p=> p._hay.includes(q) || (qd.length>=3 && p._dig.includes(qd))).slice(0,12);
+  const txns = TXNS.filter(t=> matchTxt(t) || matchAmt(t));
+  const total = parties.length + txns.length;
+  if(!total){ box.innerHTML=''; emp.style.display='block';
+    emp.innerHTML=`<div class="big">😕</div>“${esc(qraw)}” से कुछ नहीं मिला।<br>दूसरे शब्द या नंबर से खोजें।`; return; }
+  emp.style.display='none';
+
+  // aggregate matched txns summary
+  const tin=txns.filter(t=>t.dir==='in').reduce((s,t)=>s+t.amount,0);
+  const tout=txns.filter(t=>t.dir==='out').reduce((s,t)=>s+t.amount,0);
+
+  let html='';
+  if(parties.length){
+    html+=`<div class="sec-title">👥 पार्टी <span class="cnt">${parties.length}</span></div><div class="card">`;
+    html+=parties.map(p=>{
+      const t2=[p.phones.trim(), p.gstin, p.address].filter(Boolean).join(' · ');
+      return `<div class="rw" onclick="openParty('${p.id}')">
+        <div class="ic ic-party">🏢</div>
+        <div class="mid"><div class="t1">${hl(p.name,qraw)}</div><div class="t2">${t2?hl(t2,qraw):'—'}</div></div>
+        <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:#cbd5e1;stroke-width:2.4;fill:none"><path d="m9 18 6-6-6-6"/></svg>
+      </div>`;
+    }).join('')+'</div>';
+  }
+  if(txns.length){
+    const shown=txns.slice(0,80);
+    html+=`<div class="sec-title">🧾 हिसाब <span class="cnt">${txns.length}</span>`;
+    html+=`<span style="margin-left:auto;font-weight:800;font-size:11px">${tin?('<span style="color:#059669">+'+fmt(tin)+'</span>'):''}${tin&&tout?' · ':''}${tout?('<span style="color:#e11d48">−'+fmt(tout)+'</span>'):''}</span></div>`;
+    html+='<div class="card">'+shown.map((t,i)=>{
+      const gi=TXNS.indexOf(t);
+      const meta=[t.date?hdate(t.date):'', t.account, t.firm, t.utr].filter(Boolean).join(' · ');
+      const itemHit=(t.items||[]).map(it=>it.name).filter(n=>norm(n).includes(q)).slice(0,2).join(', ');
+      return `<div class="rw" onclick="openTxn(${gi})">
+        <div class="ic ${t.dir==='in'?'ic-in':'ic-out'}">${t.dir==='in'?'💰':'💸'}</div>
+        <div class="mid"><div class="t1">${hl(t.party,qraw)}${itemHit?(' · '+hl(itemHit,qraw)):''}</div><div class="t2">${meta?hl(meta,qraw):'—'}</div></div>
+        <div class="amt ${t.dir==='in'?'amt-in':'amt-out'}">${t.dir==='in'?'+':'−'}${fmt(t.amount)}</div>
+      </div>`;
+    }).join('')+'</div>';
+    if(txns.length>80) html+=`<div style="text-align:center;color:#94a3b8;font-size:11.5px;margin:10px">और ${txns.length-80} — ज़्यादा सटीक शब्द लिखें</div>`;
+  }
+  box.innerHTML=html;
+}
+
+window.openParty=function(id){
+  const p=PARTIES.find(x=>x.id===id); if(!p) return;
+  // party के सारे txns (नाम मैच)
+  const key=norm(p.name);
+  const mine=TXNS.filter(t=>norm(t.party)===key || (key && norm(t.party).includes(key)));
+  const tin=mine.filter(t=>t.dir==='in').reduce((s,t)=>s+t.amount,0);
+  const tout=mine.filter(t=>t.dir==='out').reduce((s,t)=>s+t.amount,0);
+  document.getElementById('tm-title').textContent='🏢 '+p.name;
+  const line=(k,v)=> v?`<div style="display:flex;justify-content:space-between;padding:8px 2px;border-bottom:1px solid #f1f5f9;font-size:13px"><span style="color:#64748b">${k}</span><span style="font-weight:700;text-align:right;max-width:62%">${esc(v)}</span></div>`:'';
+  const ph=p.phones.trim().split(/\s+/).filter(Boolean);
+  let h='<div style="margin-top:4px">';
+  h+=line('कुल दिया (खर्च)', tout?fmt(tout):'');
+  h+=line('कुल आया', tin?fmt(tin):'');
+  h+=line('कितने बार', mine.length?String(mine.length)+' बार':'');
+  if(ph.length) h+=`<div style="display:flex;justify-content:space-between;padding:8px 2px;border-bottom:1px solid #f1f5f9;font-size:13px"><span style="color:#64748b">📞 मोबाइल</span><span style="text-align:right">${ph.map(n=>`<a href="tel:${esc(n)}" style="color:#1d4ed8;font-weight:800;margin-left:8px">${esc(n)}</a>`).join('')}</span></div>`;
+  h+=line('GSTIN', p.gstin);
+  h+=line('पता', p.address);
+  h+='</div>';
+  if(ph[0]) h+=`<a href="https://wa.me/91${digits(ph[0]).slice(-10)}" target="_blank" style="display:block;text-align:center;margin-top:12px;background:#dcfce7;color:#166534;border-radius:12px;padding:12px;font-weight:900;text-decoration:none">💬 WhatsApp करें</a>`;
+  if(mine.length){
+    h+='<div style="margin-top:14px;font-weight:900;font-size:13px">📜 हाल का हिसाब</div><div style="margin-top:6px">';
+    h+=mine.slice(0,12).map(t=>`<div style="display:flex;justify-content:space-between;padding:7px 2px;border-bottom:1px solid #f6f7f9;font-size:12.5px"><span style="color:#64748b">${hdate(t.date)}</span><span class="amt ${t.dir==='in'?'amt-in':'amt-out'}" style="font-weight:900">${t.dir==='in'?'+':'−'}${fmt(t.amount)}</span></div>`).join('')+'</div>';
+  }
+  document.getElementById('tm-body').innerHTML=h;
+  document.getElementById('txn-modal').style.display='block';
+};
+
+window.openTxn=function(gi){
+  const t=TXNS[gi]; if(!t) return;
+  document.getElementById('tm-title').textContent=(t.dir==='in'?'💰 आया पैसा':'💸 गया पैसा');
+  const line=(k,v)=> v?`<div style="display:flex;justify-content:space-between;padding:7px 2px;border-bottom:1px solid #f1f5f9;font-size:13px"><span style="color:#64748b">${k}</span><span style="font-weight:700;text-align:right;max-width:62%">${esc(v)}</span></div>`:'';
+  const rows=[];
+  rows.push(`<div style="font-size:20px;font-weight:900;color:${t.dir==='in'?'#059669':'#e11d48'}">${t.dir==='in'?'+':'−'}${fmt(t.amount)}</div>`);
+  rows.push(`<div style="font-size:15px;font-weight:800;margin-top:4px">${esc(t.party)}</div>`);
+  rows.push('<div style="margin-top:10px">');
+  rows.push(line('तारीख', hdate(t.date)));
+  rows.push(line('🏦 खाता', t.account));
+  rows.push(line('🏢 Firm', t.firm));
+  rows.push(line('🔖 UTR', t.utr));
+  rows.push(line('GSTIN', t.gstin));
+  rows.push('</div>');
+  if(t.items && t.items.length){
+    rows.push('<div style="margin-top:12px;font-weight:900;font-size:13px">📦 सामान (GST सहित)</div>');
+    rows.push('<div style="margin-top:5px">'+t.items.map(it=>`<div style="display:flex;justify-content:space-between;padding:6px 2px;border-bottom:1px solid #f6f7f9;font-size:12.5px"><span>${esc(it.name)} <span style="color:#94a3b8">${it.qty||''}${esc(it.unit||'')}${it.rate?(' × ₹'+it.rate):''}</span></span><b>₹${Math.round(it.amount||0).toLocaleString('hi-IN')}</b></div>`).join('')+'</div>');
+  }
+  if(t.notes && !/Statement import/.test(t.notes)) rows.push(`<div style="margin-top:10px;font-size:12px;color:#64748b">📝 ${esc(t.notes)}</div>`);
+  if(t.photo){ rows.push(`<div style="margin-top:12px;font-weight:900;font-size:13px">🧾 बिल फोटो</div><img src="${esc(t.photo)}" style="max-width:100%;border-radius:12px;margin-top:6px" loading="lazy">`); }
+  document.getElementById('tm-body').innerHTML=rows.join('');
+  document.getElementById('txn-modal').style.display='block';
+};
+window.closeTxn=function(){ document.getElementById('txn-modal').style.display='none'; };
+
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.className='toast show'; clearTimeout(t._tm); t._tm=setTimeout(()=>t.classList.remove('show'),2600); }
+</script>
+</body>
+</html>

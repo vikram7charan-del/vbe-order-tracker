@@ -3559,28 +3559,44 @@ window.orbTap=function(){ if(_orbFired){ _orbFired=false; return; } openAiComp()
   ['pointerup','pointerleave','pointercancel'].forEach(ev=>orb.addEventListener(ev,()=>clearTimeout(_orbLP)));
 })();
 function aicAssistant(){
+ try{
   window.openAiComp();
   const rp=document.getElementById('aic-resp'); rp.style.display='block';
   const sub=document.getElementById('aic-sub'); if(sub) sub.textContent='🧞 Assistant — बोलिए, मैं सुन रहा हूँ';
+  const RB='<div><button class="aic-act" style="margin-top:9px" onclick="aicAssistant()">🎙️ फिर बोलो</button> <button class="aic-act" style="margin-top:9px" onclick="asstEdit()">⌨️ लिखकर जोड़ो</button></div>';
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){ rp.innerHTML='⚠️ इस फ़ोन में बोली-पहचान नहीं चलती — ऊपर 🎙️ बोलो बटन से लिखकर जोड़ें।'; return; }
+  if(!SR){ // बोली-पहचान नहीं → सीधे पुराना 🎙️ form खोल दो, dead-end नहीं
+    closeAiComp(); openAiAdd(); toast('इस browser में बोली-पहचान नहीं — 🎤 से बोलें या लिखें','warn'); return;
+  }
   rp.innerHTML=`<div style="text-align:center;padding:12px 0 6px">
     <div class="asst-pulse" style="font-size:40px">🎙️</div>
     <div style="font-size:13px;font-weight:800;color:#c4b5fd;margin-top:7px">बोलिए…</div>
+    <div id="asst-live" style="min-height:20px;font-size:12.5px;font-weight:800;color:#fcd34d;margin-top:6px"></div>
     <div style="font-size:10.5px;color:#8b9bbb;margin-top:3px">जैसे: "नवीन भाई को बोल दो दो प्रिंटर मंगवा दे, फोकस में डाल दो"</div>
     <button class="aic-act" style="margin-top:11px" onclick="try{_asstRec&&_asstRec.stop()}catch(e){}">⏹ बस, इतना ही</button>
   </div>`;
   const orb=document.getElementById('ai-orb'); orb&&orb.classList.add('thinking');
   try{ _asstRec&&_asstRec.stop(); }catch(e){}
-  const r=new SR(); _asstRec=r; r.lang='hi-IN'; r.interimResults=false; r.maxAlternatives=1;
+  const r=new SR(); _asstRec=r; r.lang='hi-IN'; r.interimResults=true; r.maxAlternatives=1;
   let txt='';
-  r.onresult=e=>{ txt=e.results[0][0].transcript||''; };
-  const RB='<div><button class="aic-act" style="margin-top:9px" onclick="aicAssistant()">🎙️ फिर बोलो</button></div>';
-  r.onerror=()=>{ orb&&orb.classList.remove('thinking'); rp.innerHTML='⚠️ सुन नहीं पाया — साफ़ बोलें।'+RB; };
+  r.onresult=e=>{ // live दिखाओ — जो सुना जा रहा है वही अक्षर screen पर
+    let fin='',intr='';
+    for(let i=0;i<e.results.length;i++){ if(e.results[i].isFinal) fin+=e.results[i][0].transcript; else intr+=e.results[i][0].transcript; }
+    if(fin) txt=fin;
+    const lv=document.getElementById('asst-live'); if(lv) lv.textContent='"'+((fin||'')+(intr||'')).slice(0,90)+'"';
+  };
+  r.onerror=ev=>{ orb&&orb.classList.remove('thinking');
+    const code=(ev&&ev.error)||'';
+    rp.innerHTML=(code==='not-allowed'||code==='service-not-allowed')
+      ? '⚠️ Mic की permission बंद है — browser की settings में जाकर Microphone को Allow करें, फिर दोबारा।'+RB
+      : (code==='network' ? '⚠️ बोली-पहचान के लिए net चाहिए — net देखकर दोबारा।'+RB
+      : '⚠️ सुन नहीं पाया ('+escH(code||'error')+') — दोबारा कोशिश करें।'+RB); };
   r.onend=()=>{ _asstRec=null; orb&&orb.classList.remove('thinking');
     if(txt.trim()) _asstProcess(txt.trim());
-    else if(rp.innerHTML.indexOf('⚠️')<0) rp.innerHTML='⚠️ कुछ सुनाई नहीं दिया।'+RB; };
-  try{ r.start(); }catch(e){ rp.innerHTML='⚠️ mic शुरू नहीं हुआ — permission देखें।'+RB; }
+    else if(rp.innerHTML.indexOf('⚠️')<0) rp.innerHTML='⚠️ कुछ सुनाई नहीं दिया — mic के पास साफ़ बोलें।'+RB; };
+  try{ r.start(); }catch(e){ rp.innerHTML='⚠️ mic शुरू नहीं हुआ ('+escH(e.message||'')+') — permission देखें।'+RB; }
+ }catch(err){ toast('🧞 दिक्कत: '+(err&&err.message||err),'err');
+   try{ const rp=document.getElementById('aic-resp'); rp.style.display='block'; rp.innerHTML='⚠️ 🧞 चलाने में दिक्कत: '+escH(err&&err.message||String(err)); }catch(e2){} }
 }
 async function _asstProcess(raw){
   if(_asstBusy) return; _asstBusy=true;

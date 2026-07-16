@@ -2261,11 +2261,15 @@ function topicListHTML(c){
   const multi=act.length>1;
   return `<div class="c-topics">${act.map((x,n)=>{
     const ci=catInfo(x.cat);
-    return `<div class="c-topic"><span class="tp-chk" onclick="event.stopPropagation();doneTopic('${c.id}',${x.i})"></span>${ci?ci.logo+' ':''}${multi?`<span class="tnum">${n+1}.</span>`:''}${escH(x.t)}${x.assignTo?` <span style="font-size:10px;color:#4ade80;font-weight:800">→👤${escH(staffName(x.assignTo))}</span>`:''}</div>`;
+    return `<div class="c-topic"><span class="tp-chk" onclick="event.stopPropagation();doneTopic('${c.id}',${x.i})"></span>${x.pri==='high'?'🔴 ':''}${ci?ci.logo+' ':''}${multi?`<span class="tnum">${n+1}.</span>`:''}${escH(x.t)}${x.assignTo?` <span style="font-size:10px;color:#4ade80;font-weight:800">→👤${escH(staffName(x.assignTo))}</span>`:''}</div>`;
   }).join('')}${asg.map(x=>{
     const ci=catInfo(x.cat);
     return `<div class="c-topic" style="color:#86efac"><span class="tp-chk" style="border-color:#22c55e" onclick="event.stopPropagation();doneTopic('${x.srcId}',${x.i})"></span>${ci?ci.logo+' ':''}${escH(x.t)} <span style="font-size:10px;opacity:.7">(📌 ${escH(x.srcName)})</span></div>`;
   }).join('')}</div>`;
+}
+/* 🕘 हल्का history-log — हर contact पर आख़िरी 40 बदलाव */
+function _logHist(c,a,txt){
+  try{ if(!Array.isArray(c.hist)) c.hist=[]; c.hist.push({a,txt:(txt||'').slice(0,60),at:new Date().toISOString()}); if(c.hist.length>40) c.hist=c.hist.slice(-40); }catch(e){}
 }
 window.doneTopic=function(id,idx){
   const c=contacts.find(x=>x.id===id);
@@ -2273,12 +2277,21 @@ window.doneTopic=function(id,idx){
   const tps=normTopics(c);
   if(!tps[idx]||tps[idx].done) return;
   tps[idx].done=true; tps[idx].doneAt=new Date().toISOString();
-  c.topics=tps;
+  c.topics=tps; _logHist(c,'done',tps[idx].t);
   c.note=tps.filter(x=>!x.done).map(x=>x.t).join(' · ');
   try{ const ev=window.event; celebrate(ev&&ev.clientX,ev&&ev.clientY); }catch(e){ celebrate(); }
   bigCheck(); try{ navigator.vibrate&&navigator.vibrate([18,40,26]); }catch(e){}
   render(); fbSave(c);
   toast('✅ काम पूरा — '+tps[idx].t.slice(0,24));
+};
+window.spTogglePri=function(id,idx){
+  const c=contacts.find(x=>x.id===id); if(!c) return;
+  const tps=normTopics(c); if(!tps[idx]) return;
+  const on = tps[idx].pri!=='high';
+  tps[idx].pri = on?'high':'';
+  c.topics=tps; _logHist(c,'pri',tps[idx].t);
+  render(); if(_spId===id) renderSmartPop(); fbSave(c);
+  toast(on?'🔴 ज़रूरी चिह्नित':'⚪ ज़रूरी हटाया');
 };
 window.undoneTopic=function(id,idx){
   const c=contacts.find(x=>x.id===id);
@@ -2796,6 +2809,7 @@ function aicSuggests(){
   const s=aicStats(); const out=[];
   if(s.late>0) out.push({ico:'🔴',t1:`${s.late} काम लेट चल रहे हैं`,t2:s.lateNames.slice(0,3).join(', ')+(s.late>3?` +${s.late-3}`:''),act:'day'});
   if(s.callsDue>0) out.push({ico:'📞',t1:`${s.callsDue} call अभी करनी हैं`,t2:s.dueNames.slice(0,3).join(', ')+(s.callsDue>3?` +${s.callsDue-3}`:''),act:'day'});
+  out.push({ico:'📈',t1:'इस हफ़्ते का हाल',t2:'नए/पूरे काम, दर, देरी वाले, top staff',act:'week'});
   out.push({ico:'📊',t1:'आज का पूरा हिसाब — AI सार',t2:`आज ${s.todayN} काम · ${s.doneN} पूरे`,act:'summary'});
   out.push({ico:'🗓️',t1:'दिन का प्लान बनवाओ',t2:'बीते छूटे + आज + आगे 7 दिन',act:'plan'});
   out.push({ico:'✨',t1:'किसी को WhatsApp लिखवाओ',t2:'विक्रम-अंदाज़ में, अपने आप',act:'wa'});
@@ -2815,6 +2829,7 @@ window.aicDo=function(act){
   if(act==='day'){ closeAiComp(); if(_view!=='day') gotoDay(); toast('📅 समय-रेखा पर देखो — लेट काम ऊपर'); return; }
   if(act==='summary'){ closeAiComp(); if(_view!=='day') gotoDay(); _dvAI=false; setTimeout(()=>{ try{ genDaySummary(); }catch(e){} },250); toast('🤖 AI सार बन रहा है...'); return; }
   if(act==='plan'){ closeAiComp(); if(_view!=='day') gotoDay(); _dvAI=true; render(); setTimeout(()=>{ try{ window.genDayPlan(); }catch(e){} },250); toast('🤖 दिन का प्लान बन रहा है...'); return; }
+  if(act==='week'){ document.getElementById('aic-q').value=''; _aicRun('इस हफ़्ते का हाल'); return; }
   if(act==='wa'){ closeAiComp(); openBroadcast(); return; }
 };
 /* ══ 🧠 HAMIE — पहले लोकल (बिना token), फिर grounded Claude ══ */
@@ -2858,9 +2873,37 @@ function _dmy(iso,withTime){ if(!iso)return ''; const d=new Date(iso); if(isNaN(
 function _allTasks(){
   const out=[];
   contacts.forEach(c=>{ if(c.active===false) return;
-    normTopics(c).forEach(x=>out.push({name:c.name||'?',phone:c.phone||'',t:x.t,done:!!x.done,doneAt:x.doneAt||null,at:x.at||null,addedAt:x.addedAt||null,cat:x.cat||'',assignTo:x.assignTo||'',nextCallAt:c.nextCallAt||null}));
+    normTopics(c).forEach(x=>out.push({name:c.name||'?',phone:c.phone||'',t:x.t,done:!!x.done,doneAt:x.doneAt||null,at:x.at||null,addedAt:x.addedAt||null,cat:x.cat||'',assignTo:x.assignTo||'',pri:x.pri||'',nextCallAt:c.nextCallAt||null}));
   });
   return out;
+}
+/* 📊 अवधि रिपोर्ट (हफ़्ता/महीना) — daily-memory docs + live data से, 0 token */
+function aicPeriodReport(label,from,to){
+  const now=Date.now(); const tasks=_allTasks();
+  let added=0,done=0,cAdded=0; const staff={};
+  // daily memory docs (जहाँ हैं) — पक्का इतिहास
+  Object.values(_memory).forEach(m=>{ if(!m||!m.date)return; const dt=new Date(m.date+'T12:00:00').getTime(); if(dt>=from&&dt<=to){ added+=(m.tasksAdded||[]).length; done+=(m.tasksDone||0); cAdded+=(m.contactsAdded||[]).length; const sp=m.staffPerf||{}; for(const k in sp) staff[k]=(staff[k]||0)+sp[k]; } });
+  // live fallback अगर memory docs इस अवधि में नहीं
+  const memDays=new Set(Object.values(_memory).map(m=>m&&m.date).filter(Boolean));
+  tasks.forEach(t=>{
+    if(t.addedAt){ const a=new Date(t.addedAt).getTime(); if(a>=from&&a<=to && !memDays.has(_dayKeyN(a))) added++; }
+    if(t.done&&t.doneAt){ const d=new Date(t.doneAt).getTime(); if(d>=from&&d<=to && !memDays.has(_dayKeyN(d))){ done++; const s=(t.assignTo||'').trim(); if(s) staff[s]=(staff[s]||0)+1; } }
+  });
+  contacts.forEach(c=>{ if(c.active===false)return; if(c.createdAt){ const t=new Date(c.createdAt).getTime(); if(t>=from&&t<=to && !memDays.has(_dayKeyN(t))) cAdded++; } });
+  let pendingNow=0,lateNow=0; const lateArr=[];
+  tasks.forEach(t=>{ if(!t.done){ pendingNow++; const at=t.at?new Date(t.at).getTime():(t.nextCallAt?new Date(t.nextCallAt).getTime():null); if(at&&at<now){ lateNow++; lateArr.push({name:t.name,t:t.t,at}); } } });
+  lateArr.sort((a,b)=>a.at-b.at);
+  const rate = added>0?Math.round(done/added*100):(done>0?100:0);
+  let top=null,tn=0; for(const k in staff){ if(staff[k]>tn){tn=staff[k];top=k;} }
+  const out=[`📊 ${label} का हाल:`,
+    `• नए काम जोड़े: ${added}`,
+    `• पूरे हुए: ${done}`,
+    `• नए संपर्क: ${cAdded}`,
+    `• पूरा होने की दर: ${rate}%`];
+  if(top) out.push(`• सबसे आगे: ${staffName?staffName(top):top} — ${tn} काम पूरे 🏆`);
+  out.push(`• अभी बाकी: ${pendingNow} (लेट ${lateNow})`);
+  if(lateArr.length){ out.push(`• सबसे ज़्यादा देरी वाले:`); lateArr.slice(0,4).forEach((t,i)=>out.push(`   ${i+1}. ${t.name} — ${t.t} (${_dmy(t.at,true)})`)); }
+  return out.join('\n');
 }
 /* लोकल Rule Engine — आम सवाल यहीं से (ज़ीरो token, कभी अनुमान नहीं) */
 function aicRuleAnswer(q){
@@ -2871,6 +2914,26 @@ function aicRuleAnswer(q){
   const has=(...w)=>w.some(x=>ql.includes(x));
   // सलाह/राय/प्राथमिकता वाले सवाल → लोकल नहीं, grounded Claude reasoning करे
   if(has('कैसे','सुझाव','सलाह','क्या करूँ','क्या करना','रणनीति','improve','राय','किसको पहले','कौन सा पहले','प्लान बनाओ','मदद कर')) return null;
+  // 📊 हफ़्ते/महीने की रिपोर्ट (हाल/summary/हिसाब) — गतिविधि-लॉग वाले सवाल छोड़कर
+  if(has('रिपोर्ट','report','हाल','summary','सारांश','हिसाब','performance','प्रदर्शन','कैसा रहा','कैसा गया') && !has('गतिविधि','activity','लॉग','log','history','इतिहास','क्या क्या','क्या-क्या','बदला')){
+    const sod=t=>{ const d=new Date(t); d.setHours(0,0,0,0); return d.getTime(); };
+    if(has('महीन','month','मासिक')){ const d=new Date(); if(has('पिछले','गत','last')){ return aicPeriodReport('पिछले महीने',new Date(d.getFullYear(),d.getMonth()-1,1).getTime(),new Date(d.getFullYear(),d.getMonth(),1).getTime()-1); } return aicPeriodReport('इस महीने',new Date(d.getFullYear(),d.getMonth(),1).getTime(),now); }
+    if(has('हफ़्त','हफ्त','सप्ताह','week','साप्ताहिक')){ if(has('पिछले','गत','last')) return aicPeriodReport('पिछले हफ़्ते',sod(now-13*864e5),sod(now-7*864e5)+864e5-1); return aicPeriodReport('इस हफ़्ते',sod(now-6*864e5),now); }
+    // सिर्फ़ "हाल/रिपोर्ट" → default इस हफ़्ता
+    return aicPeriodReport('इस हफ़्ते',sod(now-6*864e5),now);
+  }
+  // 🔴 ज़रूरी / प्राथमिकता वाले काम
+  if(has('ज़रूरी','जरूरी','प्राथमिकता','urgent','important','priority','अहम','ज़रुरी')){
+    const hi=tasks.filter(t=>!t.done && t.pri==='high');
+    return hi.length?`🔴 ${hi.length} ज़रूरी काम:\n`+hi.slice(0,25).map((t,i)=>`${i+1}. ${t.name} — ${t.t}`).join('\n'):`अभी कोई काम "ज़रूरी" चिह्नित नहीं है। किसी काम पर 🔴 दबाकर ज़रूरी बनाएँ।`;
+  }
+  // 🕘 हाल की गतिविधि / क्या-क्या बदला
+  if((has('गतिविधि','activity','हाल में','recent','क्या क्या','क्या-क्या','बदला','हुआ हाल','लॉग','log','history','इतिहास')) && !has('जोड़','ऐड','add')){
+    const ev=[]; contacts.forEach(c=>{ (c.hist||[]).forEach(e=>ev.push({...e,name:c.name||'?'})); });
+    ev.sort((a,b)=>new Date(b.at)-new Date(a.at));
+    if(!ev.length) return `हाल की गतिविधि का लॉग अभी खाली है — अब से हर बदलाव (काम पूरा/ज़रूरी) दर्ज होता रहेगा।`;
+    return `🕘 हाल की गतिविधि:\n`+ev.slice(0,15).map(e=>`• ${_dmy(e.at,true)} — ${e.name}: ${e.a==='done'?'✅ पूरा':e.a==='pri'?'🔴 ज़रूरी':e.a==='add'?'➕ जोड़ा':e.a} "${e.txt||''}"`).join('\n');
+  }
   // 📅 दायरा — "पिछले N दिन / इस हफ़्ते / इस महीने में कौन से contact/काम जोड़े (उनके काम भी)"
   if(has('जोड़','ऐड','add','बनाए','बनाया','नए','new','डाले','किए')){
     const rg=_relRange(ql,now);
@@ -3644,10 +3707,11 @@ function renderSmartPop(){
         return `<div style="display:flex;align-items:flex-start;gap:6px;padding:4px 0">
         <span class="tp-chk" style="margin-top:1px" onclick="doneTopic('${c.id}',${x.i})"></span>
         <span style="flex:1;min-width:0">
-          <span style="font-size:13.5px;font-weight:700;color:#fbbf24;line-height:1.4;word-break:break-word">${ci?ci.logo+' ':''}${tps.length>1?(n+1)+'. ':''}${escH(x.t)}</span>
+          <span style="font-size:13.5px;font-weight:700;color:#fbbf24;line-height:1.4;word-break:break-word">${x.pri==='high'?'🔴 ':''}${ci?ci.logo+' ':''}${tps.length>1?(n+1)+'. ':''}${escH(x.t)}</span>
           ${x.assignTo?`<div style="font-size:10px;color:#4ade80;font-weight:800;margin-top:1px">👤 ${escH(staffName(x.assignTo))} को सौंपा</div>`:''}
           ${x.at?`<div onclick="spSchedTask('${c.id}',${x.i})" style="display:inline-block;cursor:pointer;font-size:9.5px;font-weight:800;color:#93c5fd;background:rgba(30,58,138,.35);border:1px solid rgba(59,130,246,.4);border-radius:7px;padding:2px 7px;margin-top:3px">📅 ${schedLabel(x.at)}</div>`:''}
         </span>
+        <span onclick="spTogglePri('${c.id}',${x.i})" style="cursor:pointer;font-size:12px;width:27px;text-align:center;flex-shrink:0;padding:2px 0;border:1px dashed ${x.pri==='high'?'rgba(239,68,68,.7)':'rgba(100,116,139,.4)'};border-radius:7px;${x.pri==='high'?'background:rgba(239,68,68,.15)':''}" title="ज़रूरी काम — 🔴 चिह्न लगाओ/हटाओ">${x.pri==='high'?'🔴':'⚪'}</span>
         <span onclick="openFocusPick('${c.id}',${x.i})" style="cursor:pointer;font-size:12px;width:27px;text-align:center;flex-shrink:0;padding:2px 0;border:1px dashed rgba(168,85,247,.5);border-radius:7px" title="🎯 Focus mode — घड़ी चालू करो">🎯</span>
         <span onclick="spSchedTask('${c.id}',${x.i})" style="cursor:pointer;font-size:13px;width:27px;text-align:center;flex-shrink:0;padding:2px 0;border:1px dashed ${x.at?'rgba(59,130,246,.65)':'rgba(100,116,139,.4)'};border-radius:7px" title="इस काम को Calendar में डालो — अपना समय/अलार्म">${x.at?'📅':'⏰'}</span>
         <span onclick="spPickAssign('${c.id}',${x.i})" style="cursor:pointer;font-size:13px;width:27px;text-align:center;flex-shrink:0;padding:2px 0;border:1px dashed ${x.assignTo?'rgba(34,197,94,.65)':'rgba(100,116,139,.4)'};border-radius:7px" title="Staff को सौंपें">👤</span>

@@ -159,6 +159,24 @@ td{padding:7px 4px;border-bottom:1px solid #f1f5f9}
       </div>
     </details>
   </div>
+
+  <!-- Google Sheet backup -->
+  <div class="card">
+    <h2 class="sec-title">📊 Google Sheet Backup</h2>
+    <div class="mini" style="margin-bottom:10px">आपका पूरा हिसाब अपने-आप एक <b>Google Sheet</b> में copy होता रहेगा — भरोसा + backup दोनों। हर रात अपने-आप update होगा। <b>सिर्फ़ एक बार setup:</b></div>
+    <div id="bk-status" class="mini" style="margin-bottom:10px">⏳ जानकारी लोड हो रही है…</div>
+    <ol style="font-size:13px;line-height:1.7;padding-left:18px;margin-bottom:10px">
+      <li>एक नई <b>Google Sheet</b> बनाओ (sheets.new)।</li>
+      <li>ऊपर <b>Share</b> दबाकर, नीचे वाले <b>email</b> को <b>Editor</b> बनाओ:
+        <div id="bk-email" style="margin-top:5px;background:#f1f5f9;border-radius:8px;padding:8px 10px;font-size:12px;font-weight:800;word-break:break-all;color:#1d4ed8">—</div>
+        <button class="btn btn-ghost" id="bk-copy" onclick="copyBkEmail()" style="margin-top:6px;padding:6px 12px;font-size:12px">📋 email कॉपी करो</button>
+      </li>
+      <li>उस Sheet का <b>link</b> यहाँ paste करके Save करो:</li>
+    </ol>
+    <input class="inp" id="bk-sheet" placeholder="https://docs.google.com/spreadsheets/d/…" style="margin-bottom:8px">
+    <button class="btn" id="bk-save" onclick="saveBackupSheet()">💾 Sheet link सेव करो</button>
+    <div id="bk-msg" class="mini" style="margin-top:8px"></div>
+  </div>
 </div>
 
 <!-- Entry detail modal -->
@@ -268,7 +286,47 @@ onAuthStateChanged(auth, async u=>{
   document.getElementById('r-from').value=t.slice(0,8)+'01';
   document.getElementById('r-to').value=t;
   await loadAll();
+  loadBackupInfo();
 });
+
+// ── Google Sheet Backup setup ──
+async function loadBackupInfo(){
+  const st=document.getElementById('bk-status');
+  try{
+    const snap=await getDoc(doc(db,'vbe_settings','backup'));
+    const s=snap.exists()?snap.data():{};
+    const email=s.serviceAccountEmail||'';
+    document.getElementById('bk-email').textContent = email || 'पहली backup चलने पर यहाँ email आ जाएगा';
+    window._BK_EMAIL = email;
+    if(s.sheetId) document.getElementById('bk-sheet').value = s.sheetId;
+    if(s.lastError){
+      st.innerHTML = '⚠️ पिछली बार दिक्कत आई: <span style="color:#b91c1c">'+esc(s.lastError).slice(0,140)+'</span><br>शायद Sheet अभी इस email से share नहीं हुई।';
+    } else if(s.lastBackupStamp){
+      st.innerHTML = '✅ आखिरी backup: <b>'+esc(s.lastBackupStamp)+'</b> — सब सुरक्षित।';
+    } else if(s.sheetId){
+      st.innerHTML = '🕒 Sheet सेट है — आज रात पहली backup अपने-आप चलेगी (या मुझसे "अभी backup चलाओ" कहो)।';
+    } else {
+      st.innerHTML = '👉 नीचे दिए 3 step एक बार कर दो — फिर सब अपने-आप।';
+    }
+  }catch(e){ st.textContent='जानकारी लोड नहीं हो पाई: '+(e.message||e); }
+}
+window.copyBkEmail=function(){
+  const em=window._BK_EMAIL||''; if(!em){ toast('email अभी नहीं आया — पहली बार setup के बाद आएगा'); return; }
+  navigator.clipboard?.writeText(em).then(()=>toast('📋 email कॉपी हो गया'),()=>toast('कॉपी नहीं हुआ — हाथ से चुन लो'));
+};
+window.saveBackupSheet=async function(){
+  const raw=document.getElementById('bk-sheet').value.trim();
+  const msg=document.getElementById('bk-msg');
+  const m=raw.match(/[-\w]{25,}/);
+  if(!m){ msg.innerHTML='<span style="color:#b91c1c">यह सही Google Sheet link नहीं लगता — पूरा link paste करो।</span>'; return; }
+  const btn=document.getElementById('bk-save'); btn.disabled=true; const old=btn.textContent; btn.textContent='⏳ सेव हो रहा है…';
+  try{
+    await setDoc(doc(db,'vbe_settings','backup'), { sheetId:m[0], sheetSavedAt:new Date().toISOString() }, {merge:true});
+    msg.innerHTML='✅ Sheet सेव हो गई! आज रात पहली backup अपने-आप चलेगी। जल्दी चाहिए तो मुझसे कहो "अभी backup चलाओ"।';
+    toast('✅ Google Sheet जुड़ गई');
+  }catch(e){ msg.innerHTML='<span style="color:#b91c1c">सेव नहीं हुई: '+esc(e.message||e)+'</span>'; }
+  btn.disabled=false; btn.textContent=old;
+};
 
 async function loadAll(){
   const [expSnap, recvSnap, mrSnap] = await Promise.all([

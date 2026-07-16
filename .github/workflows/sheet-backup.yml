@@ -1,0 +1,37 @@
+# ══════════════════════════════════════════════════════════
+# VBE — Google Sheet Backup (मालिक का पूरा हिसाब एक Sheet में)
+# हर रात ~1:30 AM IST + हाथ से भी (workflow_dispatch)।
+#
+# Sheet ID app में सेट होता है (Firestore: vbe_settings/backup)।
+# पहली बार Sheet ID न हो, तो script service-account का email
+# Firestore में लिख देती है — app उसे दिखा देता है।
+#
+# ⚠️ ज़रूरी (एक बार): Google Cloud Console → project
+#    vbe-order-tracker-60324 → "Google Sheets API" Enable।
+# ══════════════════════════════════════════════════════════
+name: 📊 Google Sheet Backup
+
+on:
+  schedule:
+    - cron: '0 20 * * *'   # 20:00 UTC = 1:30 AM IST रोज़
+  workflow_dispatch:
+
+concurrency:
+  group: sheet-backup
+  cancel-in-progress: false
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install deps
+        run: npm install firebase-admin googleapis --no-save --no-audit --no-fund
+      - name: Mirror Firestore → Google Sheet
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
+        run: node scripts/sheet-backup.js

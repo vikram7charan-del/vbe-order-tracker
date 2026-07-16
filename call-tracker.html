@@ -2328,6 +2328,7 @@ window.delTopicPermanent=function(id,idx){
   const tps=normTopics(c);
   if(!tps[idx]) return;
   if(!confirm(`"${tps[idx].t.slice(0,40)}" हमेशा के लिए मिटाएं?`)) return;
+  _logHist(c,'del',tps[idx].t); // मिटा भी दो तो history में निशान रहे (soft-delete trail)
   tps.splice(idx,1);
   c.topics=tps;
   c.note=tps.filter(x=>!x.done).map(x=>x.t).join(' · ');
@@ -3096,6 +3097,17 @@ function aicRuleAnswer(q){
   const today=_dayKeyN(now), yest=_dayKeyN(now-864e5);
   const tasks=_allTasks();
   const has=(...w)=>w.some(x=>ql.includes(x));
+  // 🔒 Backup — "backup लो/दो" → पूरा data JSON फ़ाइल में download
+  if(has('backup','बैकअप','बैक अप','बैक-अप')){
+    try{
+      const data=JSON.stringify({app:'vbe-call-tracker',at:new Date().toISOString(),contacts},null,1);
+      const b=new Blob([data],{type:'application/json'});
+      const a=document.createElement('a'); a.href=URL.createObjectURL(b);
+      a.download='vbe-call-tracker-backup-'+_dayKeyN(now)+'.json'; a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+      return `⬇️ Backup फ़ाइल download हो गई — ${contacts.length} संपर्क, आज की तारीख़ के नाम से (JSON)।\nइसके अलावा हर रात cloud backup भी अपने-आप होता है — हर तारीख़ की अलग फ़ाइल, कभी मिटती नहीं। 🔒`;
+    }catch(e){ return '⚠️ Backup नहीं बन पाया: '+(e.message||e); }
+  }
   // 🎯 सिफ़ारिश — "किसको पहले / अभी क्या करूँ" → लोकल recommendation engine (Claude नहीं)
   if(has('किसको पहले','कौन सा पहले','पहले क्या','सबसे पहले','अभी क्या करूँ','अभी क्या करूं','आज क्या करूँ','आज क्या करूं','priority क्या','क्रम')) return ableRecoText();
   // 👥 staff intelligence — कौन तेज़/लेट/भरोसेमंद
@@ -3131,7 +3143,7 @@ function aicRuleAnswer(q){
     const ev=[]; contacts.forEach(c=>{ (c.hist||[]).forEach(e=>ev.push({...e,name:c.name||'?'})); });
     ev.sort((a,b)=>new Date(b.at)-new Date(a.at));
     if(!ev.length) return `हाल की गतिविधि का लॉग अभी खाली है — अब से हर बदलाव (काम पूरा/ज़रूरी) दर्ज होता रहेगा।`;
-    return `🕘 हाल की गतिविधि:\n`+ev.slice(0,15).map(e=>`• ${_dmy(e.at,true)} — ${e.name}: ${e.a==='done'?'✅ पूरा':e.a==='pri'?'🔴 ज़रूरी':e.a==='add'?'➕ जोड़ा':e.a} "${e.txt||''}"`).join('\n');
+    return `🕘 हाल की गतिविधि:\n`+ev.slice(0,15).map(e=>`• ${_dmy(e.at,true)} — ${e.name}: ${e.a==='done'?'✅ पूरा':e.a==='pri'?'🔴 ज़रूरी':e.a==='add'?'➕ जोड़ा':e.a==='del'?'🗑️ मिटाया':e.a} "${e.txt||''}"`).join('\n');
   }
   // 📅 दायरा — "पिछले N दिन / इस हफ़्ते / इस महीने में कौन से contact/काम जोड़े (उनके काम भी)"
   if((has('जोड़','ऐड','add','बनाए','बनाया','नए','new','डाले','किए','जुड़े','आए')||has('काम','task','कार्य','contact','कांटेक्ट','संपर्क','पार्टी','ग्राहक','लोग')) && !has('लेट','देर','पेंडिंग','report','रिपोर्ट','हाल','गतिविधि')){

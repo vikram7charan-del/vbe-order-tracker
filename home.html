@@ -4,112 +4,212 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#1d4ed8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="robots" content="noindex,nofollow">
-<title>VBE खर्चा — मुख्य</title>
+<title>VBE Business OS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+Devanagari:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
+:root{
+  --blue:#2563eb; --blue-d:#1d4ed8; --emerald:#059669; --amber:#d97706; --red:#e11d48;
+  --ink:#0f172a; --ink2:#475569; --ink3:#94a3b8; --bg:#f5f6f8; --card:#ffffff; --line:#eef1f5;
+  --r:22px; --r2:16px;
+  --sh-sm:0 1px 2px rgba(16,24,40,.05);
+  --sh:0 4px 16px -6px rgba(16,24,40,.12),0 1px 3px rgba(16,24,40,.04);
+  --sh-lg:0 18px 40px -20px rgba(16,24,40,.28),0 2px 8px rgba(16,24,40,.05);
+  --font:'Inter','Noto Sans Devanagari',system-ui,sans-serif;
+}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{background:#eef2f6;color:#0f172a;font-family:'Noto Sans Devanagari',sans-serif;min-height:100dvh;max-width:480px;margin:0 auto;padding-bottom:30px}
-.hero{background:linear-gradient(150deg,#1d4ed8 0%,#3b82f6 60%,#0ea5e9 100%);color:#fff;padding:20px 18px 24px;border-radius:0 0 26px 26px;position:relative;overflow:hidden;box-shadow:0 14px 30px -12px rgba(29,78,216,.55)}
-.hero::after{content:"";position:absolute;top:-40%;right:-12%;width:190px;height:190px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.22),transparent 70%)}
-.hero h1{font-size:20px;font-weight:900}
-.hero .sub{font-size:12px;opacity:.92;margin-top:3px}
-.hero .safe{margin-top:12px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:9px 12px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:7px}
-.today{margin:-14px 14px 0;position:relative;z-index:2;background:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 12px 26px -14px rgba(15,23,42,.3);display:flex;justify-content:space-around;text-align:center}
-.today .k{font-size:10.5px;color:#64748b;font-weight:700}
-.today .v{font-size:16px;font-weight:900;margin-top:2px}
-.big-actions{padding:16px 14px 0;display:flex;flex-direction:column;gap:13px}
-.act{display:flex;align-items:center;gap:14px;text-decoration:none;color:#0f172a;border-radius:20px;padding:18px 16px;position:relative;overflow:hidden;
-  box-shadow:0 14px 28px -14px rgba(15,23,42,.4),inset 0 1px 0 rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.5)}
-.act:active{transform:scale(.98)}
-.act .emoji{flex:0 0 auto;width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;
-  box-shadow:0 8px 16px -6px rgba(15,23,42,.35),inset 0 1px 0 rgba(255,255,255,.5)}
-.act .txt{flex:1}
-.act .t1{font-size:17px;font-weight:900}
-.act .t2{font-size:11.5px;color:#475569;margin-top:2px;font-weight:600}
-.act .arrow{font-size:20px;color:#94a3b8;font-weight:900}
-.a-stmt{background:linear-gradient(180deg,#eff6ff,#dbeafe)}
-.a-stmt .emoji{background:linear-gradient(145deg,#93c5fd,#2563eb);color:#fff}
-.a-photo{background:linear-gradient(180deg,#f5f3ff,#ede9fe)}
-.a-photo .emoji{background:linear-gradient(145deg,#c4b5fd,#7c3aed);color:#fff}
-.a-bahi{background:linear-gradient(180deg,#f0fdfa,#ccfbf1)}
-.a-bahi .emoji{background:linear-gradient(145deg,#5eead4,#0d9488);color:#fff}
-.more-wrap{padding:20px 14px 0;text-align:center}
-.more-btn{background:#e2e8f0;color:#334155;border:none;border-radius:14px;padding:13px 22px;font-size:14px;font-weight:900;font-family:inherit;cursor:pointer}
-.login-note{text-align:center;padding:70px 20px;color:#64748b;font-size:14px}
-/* menu */
-.vbe-tile{display:flex;flex-direction:column;align-items:center;gap:7px;text-decoration:none;padding:14px 4px;border-radius:16px;color:#fff;font-weight:800;font-size:11.5px;font-family:'Noto Sans Devanagari',sans-serif;box-shadow:0 10px 20px -8px rgba(15,23,42,.4);text-align:center}
-.vbe-tile .ic{font-size:30px;filter:drop-shadow(0 4px 8px rgba(0,0,0,.28))}
-.vbe-tile:active{transform:scale(.95)}
-@keyframes vbeSlide{from{transform:translateY(-14px);opacity:.5}to{transform:translateY(0);opacity:1}}
-.mini{font-size:11px;color:#64748b}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);min-height:100dvh;max-width:480px;margin:0 auto;padding-bottom:96px;letter-spacing:-.01em;-webkit-font-smoothing:antialiased}
+.wrap{padding:0 16px}
+svg{display:block}
+.ico{width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+
+/* top bar */
+.top{display:flex;align-items:center;justify-content:space-between;padding:20px 16px 8px}
+.top .hi{font-size:13px;color:var(--ink2);font-weight:600}
+.top .nm{font-size:22px;font-weight:800;letter-spacing:-.03em;margin-top:1px}
+.iconbtn{width:42px;height:42px;border-radius:13px;background:var(--card);border:1px solid var(--line);box-shadow:var(--sh-sm);display:flex;align-items:center;justify-content:center;color:var(--ink2);cursor:pointer}
+.iconbtn:active{transform:scale(.94)}
+.iconbtn .ico{width:21px;height:21px}
+
+/* hero cashflow */
+.hero{margin:12px 16px 0;border-radius:24px;padding:20px;color:#fff;position:relative;overflow:hidden;
+  background:linear-gradient(135deg,#1e40af 0%,#2563eb 52%,#3b82f6 100%);
+  box-shadow:0 20px 40px -18px rgba(37,99,235,.6),inset 0 1px 0 rgba(255,255,255,.22)}
+.hero::after{content:"";position:absolute;right:-30px;top:-40px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.18),transparent 68%)}
+.hero .cap{font-size:12px;font-weight:600;opacity:.85;display:flex;align-items:center;gap:6px}
+.hero .big{font-size:34px;font-weight:800;letter-spacing:-.03em;margin-top:6px;line-height:1}
+.hero .sub{font-size:12px;opacity:.85;margin-top:6px;font-weight:500}
+.hero .split{display:flex;gap:10px;margin-top:18px}
+.hero .cell{flex:1;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.16);border-radius:15px;padding:12px 13px}
+.hero .cell .l{font-size:11px;opacity:.9;font-weight:600;display:flex;align-items:center;gap:5px}
+.hero .cell .v{font-size:18px;font-weight:800;margin-top:5px;letter-spacing:-.02em}
+.hero .cell .ico{width:15px;height:15px;stroke-width:2.4}
+
+/* section */
+.sec-h{display:flex;align-items:center;justify-content:space-between;margin:22px 16px 10px}
+.sec-h .t{font-size:15px;font-weight:800;letter-spacing:-.02em}
+.sec-h .a{font-size:12.5px;font-weight:700;color:var(--blue);text-decoration:none;display:flex;align-items:center;gap:2px}
+
+/* stat row */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 16px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r2);padding:14px;box-shadow:var(--sh-sm)}
+.stat .row{display:flex;align-items:center;justify-content:space-between}
+.stat .chip{width:34px;height:34px;border-radius:11px;display:flex;align-items:center;justify-content:center}
+.stat .chip .ico{width:18px;height:18px;stroke-width:2.2}
+.stat .v{font-size:21px;font-weight:800;letter-spacing:-.03em;margin-top:11px}
+.stat .l{font-size:11.5px;color:var(--ink2);font-weight:600;margin-top:1px}
+.c-blue{background:#eff4ff;color:var(--blue)} .c-amber{background:#fff5e8;color:var(--amber)}
+.c-red{background:#ffeef1;color:var(--red)} .c-emerald{background:#e7f7f0;color:var(--emerald)}
+
+/* quick actions */
+.qa{display:flex;gap:10px;padding:0 16px;overflow-x:auto;scrollbar-width:none}
+.qa::-webkit-scrollbar{display:none}
+.qa .q{flex:0 0 auto;min-width:112px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:15px 14px;text-decoration:none;color:var(--ink);box-shadow:var(--sh-sm);transition:transform .15s}
+.qa .q:active{transform:scale(.96)}
+.qa .q .chip{width:40px;height:40px;border-radius:13px;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+.qa .q .chip .ico{width:21px;height:21px;stroke-width:2.2}
+.qa .q .t{font-size:13.5px;font-weight:800;letter-spacing:-.02em}
+.qa .q .s{font-size:10.5px;color:var(--ink3);font-weight:600;margin-top:2px}
+
+/* recent list */
+.list{background:var(--card);border:1px solid var(--line);border-radius:var(--r2);margin:0 16px;box-shadow:var(--sh-sm);overflow:hidden}
+.li{display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid var(--line);cursor:pointer}
+.li:last-child{border-bottom:none}
+.li:active{background:#fafbfc}
+.li .av{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.li .av .ico{width:19px;height:19px;stroke-width:2.3}
+.li .mid{flex:1;min-width:0}
+.li .p{font-size:14px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li .m{font-size:11px;color:var(--ink3);font-weight:600;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li .amt{font-size:14.5px;font-weight:800;letter-spacing:-.02em;white-space:nowrap}
+.pos{color:var(--emerald)} .neg{color:var(--ink)}
+.empty{padding:34px 20px;text-align:center;color:var(--ink3);font-size:13px;font-weight:600}
+
+/* bottom nav */
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;height:76px;background:rgba(255,255,255,.92);backdrop-filter:blur(14px);border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-around;z-index:60;padding-bottom:env(safe-area-inset-bottom)}
+.nav a{display:flex;flex-direction:column;align-items:center;gap:3px;text-decoration:none;color:var(--ink3);font-size:10.5px;font-weight:700;flex:1;padding-top:4px}
+.nav a.on{color:var(--blue)}
+.nav a .ico{width:23px;height:23px;stroke-width:2.1}
+.nav .fabwrap{flex:0 0 auto;width:64px;display:flex;justify-content:center}
+.fab{width:58px;height:58px;border-radius:20px;background:linear-gradient(135deg,var(--blue-d),#3b82f6);box-shadow:0 12px 24px -8px rgba(37,99,235,.6);display:flex;align-items:center;justify-content:center;color:#fff;margin-top:-24px;cursor:pointer;text-decoration:none;border:3px solid var(--bg)}
+.fab:active{transform:scale(.94)}
+.fab .ico{width:27px;height:27px;stroke-width:2.4}
+
+/* menu sheet */
+.sheet-bg{display:none;position:fixed;inset:0;z-index:120;background:rgba(15,23,42,.5);backdrop-filter:blur(2px)}
+.sheet{position:absolute;left:0;right:0;bottom:0;max-width:480px;margin:0 auto;background:#fff;border-radius:26px 26px 0 0;padding:16px 16px 30px;box-shadow:0 -14px 44px rgba(15,23,42,.3);animation:up .22s cubic-bezier(.2,.8,.2,1)}
+@keyframes up{from{transform:translateY(30px);opacity:.6}to{transform:translateY(0);opacity:1}}
+.sheet .grab{width:40px;height:4px;border-radius:99px;background:#e2e8f0;margin:2px auto 14px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.tile{display:flex;flex-direction:column;align-items:center;gap:7px;text-decoration:none;color:var(--ink);font-size:11px;font-weight:700;padding:12px 4px;border-radius:15px}
+.tile:active{background:#f5f6f8}
+.tile .tc{width:48px;height:48px;border-radius:15px;display:flex;align-items:center;justify-content:center;color:#fff}
+.tile .tc .ico{width:22px;height:22px;stroke-width:2.2}
+.login-note{text-align:center;padding:80px 24px;color:var(--ink2);font-size:14px;font-weight:600}
+.skel{color:var(--ink3)}
 </style>
 </head>
 <body>
 
-<div id="s-wait" class="login-note">⏳ Login check...<br><br><a href="./kharcha-entry.html" style="color:#1d4ed8">Login करने के लिए यहाँ tap करें</a></div>
+<div id="s-wait" class="login-note">एक क्षण…<br><br><a href="./kharcha-entry.html" style="color:var(--blue);font-weight:800;text-decoration:none">Login के लिए यहाँ tap करें</a></div>
 
 <div id="s-app" style="display:none">
+  <div class="top">
+    <div>
+      <div class="hi" id="greet">नमस्ते</div>
+      <div class="nm">विक्रम जी</div>
+    </div>
+    <div class="iconbtn" onclick="openMenu()" aria-label="menu">
+      <svg class="ico" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </div>
+  </div>
+
+  <!-- Cash flow hero -->
   <div class="hero">
-    <h1>🙏 राम राम, विक्रम जी</h1>
-    <div class="sub" id="hero-date">आपका खर्चा-हिसाब — एकदम आसान</div>
-    <div class="safe">🔒 आपका पूरा डेटा Google पर सुरक्षित है — कभी कुछ नहीं खोएगा।</div>
+    <div class="cap"><svg class="ico" style="width:14px;height:14px" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg> आज का कैश-फ्लो</div>
+    <div class="big" id="h-net">₹0</div>
+    <div class="sub" id="h-netsub">आज आया − गया</div>
+    <div class="split">
+      <div class="cell">
+        <div class="l"><svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg> आया</div>
+        <div class="v" id="h-in">₹0</div>
+      </div>
+      <div class="cell">
+        <div class="l"><svg class="ico" viewBox="0 0 24 24"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg> गया</div>
+        <div class="v" id="h-out">₹0</div>
+      </div>
+    </div>
   </div>
 
-  <div class="today">
-    <div><div class="k">आज खर्च 💸</div><div class="v" id="t-out" style="color:#e11d48">—</div></div>
-    <div><div class="k">आज आया 💰</div><div class="v" id="t-in" style="color:#059669">—</div></div>
-    <div><div class="k">इस महीने खर्च</div><div class="v" id="t-month" style="color:#1d4ed8">—</div></div>
+  <!-- stat cards -->
+  <div class="stats" style="margin-top:14px">
+    <div class="stat">
+      <div class="row"><div class="chip c-blue"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg></div></div>
+      <div class="v" id="s-month">₹0</div><div class="l">इस महीने खर्च</div>
+    </div>
+    <div class="stat">
+      <div class="row"><div class="chip c-amber"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></div></div>
+      <div class="v" id="s-bill">0</div><div class="l">बिल फोटो बाकी</div>
+    </div>
+    <div class="stat">
+      <div class="row"><div class="chip c-red"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg></div></div>
+      <div class="v" id="s-udhaar">₹0</div><div class="l">उधार बाकी</div>
+    </div>
+    <div class="stat">
+      <div class="row"><div class="chip c-emerald"><svg class="ico" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div></div>
+      <div class="v" id="s-count">0</div><div class="l">आज की entries</div>
+    </div>
   </div>
 
-  <div class="big-actions">
-    <a class="act a-stmt" href="./payments.html">
-      <div class="emoji">📄</div>
-      <div class="txt"><div class="t1">बैंक Statement डालो</div><div class="t2">PDF डालें — पूरा हिसाब अपने-आप बन जाएगा</div></div>
-      <div class="arrow">›</div>
-    </a>
-    <a class="act a-photo" href="./kharcha-entry.html">
-      <div class="emoji">📸</div>
-      <div class="txt"><div class="t1">फोटो से खर्चा जोड़ो</div><div class="t2">बिल की फोटो लो — AI खुद entry बना देगा</div></div>
-      <div class="arrow">›</div>
-    </a>
-    <a class="act a-bahi" href="./statement.html">
-      <div class="emoji">📖</div>
-      <div class="txt"><div class="t1">बही देखो</div><div class="t2">तारीख-वार · खाते के हिसाब से पूरा हिसाब</div></div>
-      <div class="arrow">›</div>
-    </a>
+  <!-- quick actions -->
+  <div class="sec-h"><div class="t">तुरंत करें</div></div>
+  <div class="qa">
+    <a class="q" href="./payments.html"><div class="chip c-blue"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 15h6M9 11h2"/></svg></div><div class="t">Statement</div><div class="s">PDF से पूरा हिसाब</div></a>
+    <a class="q" href="./kharcha-entry.html"><div class="chip c-emerald"><svg class="ico" viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3"/></svg></div><div class="t">फोटो से खर्चा</div><div class="s">AI भर देगा</div></a>
+    <a class="q" href="./statement.html"><div class="chip c-amber"><svg class="ico" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div><div class="t">बही</div><div class="s">तारीख-वार</div></a>
+    <a class="q" href="./kharcha-dashboard.html"><div class="chip c-red"><svg class="ico" viewBox="0 0 24 24"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="7"/><rect x="12" y="6" width="3" height="11"/><rect x="17" y="13" width="3" height="4"/></svg></div><div class="t">रिपोर्ट</div><div class="s">पूरा विश्लेषण</div></a>
   </div>
 
-  <div class="more-wrap">
-    <button class="more-btn" onclick="vbeMenu(1)">☰ बाकी सब (Dashboard, पार्टी, प्राइसबुक…)</button>
-    <div class="mini" style="margin-top:14px">रोज़ बस ऊपर के 3 बटन काफी हैं 👍</div>
+  <!-- recent -->
+  <div class="sec-h"><div class="t">हाल की गतिविधि</div><a class="a" href="./statement.html">सब देखें <svg class="ico" style="width:15px;height:15px" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></a></div>
+  <div class="list" id="recent"><div class="empty skel">लोड हो रहा है…</div></div>
+</div>
+
+<!-- bottom nav -->
+<div class="nav" id="nav" style="display:none">
+  <a href="./home.html" class="on"><svg class="ico" viewBox="0 0 24 24"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10h14V10"/></svg>होम</a>
+  <a href="./statement.html"><svg class="ico" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>बही</a>
+  <div class="fabwrap"><a class="fab" href="./kharcha-entry.html"><svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></a></div>
+  <a href="./payments.html"><svg class="ico" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>पेमेंट</a>
+  <a href="javascript:openMenu()"><svg class="ico" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>और</a>
+</div>
+
+<!-- menu sheet -->
+<div class="sheet-bg" id="sheet" onclick="if(event.target===this)closeMenu()">
+  <div class="sheet">
+    <div class="grab"></div>
+    <div class="grid">
+      <a class="tile" href="./home.html"><div class="tc" style="background:linear-gradient(135deg,#1d4ed8,#3b82f6)"><svg class="ico" viewBox="0 0 24 24"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10h14V10"/></svg></div>होम</a>
+      <a class="tile" href="./kharcha-entry.html"><div class="tc" style="background:linear-gradient(135deg,#059669,#10b981)"><svg class="ico" viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3"/></svg></div>खर्चा</a>
+      <a class="tile" href="./payments.html"><div class="tc" style="background:linear-gradient(135deg,#4f46e5,#6366f1)"><svg class="ico" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div>पेमेंट</a>
+      <a class="tile" href="./statement.html"><div class="tc" style="background:linear-gradient(135deg,#0f766e,#14b8a6)"><svg class="ico" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>बही</a>
+      <a class="tile" href="./pricebook.html"><div class="tc" style="background:linear-gradient(135deg,#047857,#10b981)"><svg class="ico" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m7 14 3-3 3 3 4-5"/></svg></div>प्राइसबुक</a>
+      <a class="tile" href="./marwar-rasoi.html"><div class="tc" style="background:linear-gradient(135deg,#b91c1c,#ef4444)"><svg class="ico" viewBox="0 0 24 24"><path d="M3 2v7c0 1.1.9 2 2 2h0a2 2 0 0 0 2-2V2M5 2v20M15 2a4 4 0 0 0-4 4v6h4M15 12v10"/></svg></div>मारवाड़</a>
+      <a class="tile" href="./unit-receivables.html"><div class="tc" style="background:linear-gradient(135deg,#166534,#22c55e)"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M8 13 6 22l6-3 6 3-2-9"/></svg></div>Unit पैसा</a>
+      <a class="tile" href="./kharcha-dashboard.html"><div class="tc" style="background:linear-gradient(135deg,#0e7490,#06b6d4)"><svg class="ico" viewBox="0 0 24 24"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="7"/><rect x="12" y="6" width="3" height="11"/><rect x="17" y="13" width="3" height="4"/></svg></div>रिपोर्ट</a>
+      <a class="tile" href="./"><div class="tc" style="background:linear-gradient(135deg,#334155,#64748b)"><svg class="ico" viewBox="0 0 24 24"><path d="M3 9 12 2l9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg></div>Order App</a>
+    </div>
+    <div style="text-align:center;margin-top:16px;font-size:11px;color:var(--ink3);font-weight:600">🔒 आपका पूरा डेटा Google पर सुरक्षित है</div>
   </div>
 </div>
 
-
-<!-- ═══ VBE Apps Menu ═══ -->
-<div id="vbe-menu" style="display:none;position:fixed;inset:0;z-index:120;background:rgba(15,23,42,.45)" onclick="if(event.target===this)vbeMenu(0)">
-  <div style="background:#fff;border-radius:0 0 24px 24px;padding:16px 14px 18px;max-width:480px;margin:0 auto;box-shadow:0 18px 40px rgba(15,23,42,.35);animation:vbeSlide .18s ease">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <b style="font-size:15px;color:#0f172a">🏢 VBE Apps</b>
-      <button onclick="vbeMenu(0)" style="border:none;background:#f1f5f9;border-radius:8px;padding:6px 12px;font-weight:900;cursor:pointer;font-size:13px">✕</button>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
-      <a class="vbe-tile" href="./home.html" style="background:linear-gradient(135deg,#0369a1,#0ea5e9)"><span class="ic">🏠</span>होम</a>
-      <a class="vbe-tile" href="./kharcha-entry.html" style="background:linear-gradient(135deg,#1d4ed8,#3b82f6)"><span class="ic">🧾</span>खर्चा एंट्री</a>
-      <a class="vbe-tile" href="./payments.html" style="background:linear-gradient(135deg,#3730a3,#6366f1)"><span class="ic">💳</span>पेमेंट</a>
-      <a class="vbe-tile" href="./statement.html" style="background:linear-gradient(135deg,#0f766e,#14b8a6)"><span class="ic">📖</span>बही</a>
-      <a class="vbe-tile" href="./pricebook.html" style="background:linear-gradient(135deg,#047857,#10b981)"><span class="ic">📗</span>प्राइसबुक</a>
-      <a class="vbe-tile" href="./marwar-rasoi.html" style="background:linear-gradient(135deg,#b91c1c,#ef4444)"><span class="ic">🍽️</span>मारवाड़ रसोई</a>
-      <a class="vbe-tile" href="./unit-receivables.html" style="background:linear-gradient(135deg,#166534,#22c55e)"><span class="ic">🎖️</span>Unit पैसा</a>
-      <a class="vbe-tile" href="./kharcha-dashboard.html" style="background:linear-gradient(135deg,#0e7490,#06b6d4)"><span class="ic">📊</span>Dashboard</a>
-      <a class="vbe-tile" href="./" style="background:linear-gradient(135deg,#334155,#64748b)"><span class="ic">📦</span>Order App</a>
-    </div>
-  </div>
-</div>
-
-<script>function vbeMenu(v){document.getElementById('vbe-menu').style.display=v?'block':'none'}</script>
+<script>
+function openMenu(){document.getElementById('sheet').style.display='block';}
+function closeMenu(){document.getElementById('sheet').style.display='none';}
+</script>
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
@@ -118,32 +218,73 @@ import { getFirestore, collection, doc, getDoc, getDocs } from 'https://www.gsta
 const FB_CFG = { apiKey:'AIzaSyBCe5DKNKcthOl4umprfRm2QBfbVaFORg8', authDomain:'vbe-order-tracker-60324.firebaseapp.com', projectId:'vbe-order-tracker-60324', storageBucket:'vbe-order-tracker-60324.firebasestorage.app', messagingSenderId:'894023456122', appId:'1:894023456122:web:6ee548f0913c887c67f2c3' };
 const app = initializeApp(FB_CFG, 'vbe-kharcha');
 const auth = getAuth(app); const db = getFirestore(app);
-const fmt=n=>'₹'+Math.round(+(n||0)).toLocaleString('hi-IN');
+const fmt=n=>{ n=Math.round(+n||0); return '₹'+n.toLocaleString('hi-IN'); };
 const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+const hourGreet=()=>{const h=new Date().getHours(); return h<12?'शुभ प्रभात':h<17?'नमस्ते':'शुभ संध्या';};
+const HMON=['जन','फ़र','मार्च','अप्रैल','मई','जून','जुला','अग','सित','अक्तू','नव','दिस'];
+const hdate=iso=>{const d=new Date(iso+'T00:00:00');return isNaN(d)?iso:d.getDate()+' '+HMON[d.getMonth()];};
 
 onAuthStateChanged(auth, async u=>{
   if(!u) return;
   const a=await getDoc(doc(db,'vbe_admins',u.uid));
   let ok=a.exists();
   if(!ok){ const s=await getDoc(doc(db,'vbe_users',u.uid)); ok=s.exists()&&s.data().role==='staff'; }
-  if(!ok){ document.getElementById('s-wait').innerHTML='❌ सिर्फ admin/staff'; return; }
+  if(!ok){ document.getElementById('s-wait').innerHTML='सिर्फ admin/staff के लिए'; return; }
   document.getElementById('s-wait').style.display='none';
   document.getElementById('s-app').style.display='block';
-  const d=new Date(); document.getElementById('hero-date').textContent = d.toLocaleDateString('hi-IN',{weekday:'long',day:'numeric',month:'long'})+' · आपका खर्चा-हिसाब';
-  try{
-    const t=today(), m=t.slice(0,7);
-    const [exSnap, rcSnap]=await Promise.all([
-      getDocs(collection(db,'vbe_expenses')).catch(()=>({forEach:()=>{}})),
-      getDocs(collection(db,'vbe_receipts')).catch(()=>({forEach:()=>{}}))
-    ]);
-    let tout=0, tin=0, mout=0;
-    exSnap.forEach(x=>{const e=x.data(); if(e.date===t) tout+=+e.total||0; if((e.date||'').slice(0,7)===m) mout+=+e.total||0;});
-    rcSnap.forEach(x=>{const r=x.data(); if(r.direction==='in'&&r.date===t) tin+=+r.amount||0;});
-    document.getElementById('t-out').textContent=fmt(tout);
-    document.getElementById('t-in').textContent=fmt(tin);
-    document.getElementById('t-month').textContent=fmt(mout);
-  }catch(e){}
+  document.getElementById('nav').style.display='flex';
+  document.getElementById('greet').textContent = hourGreet();
+  try{ await loadDash(); }catch(e){ console.warn(e); }
 });
+
+async function loadDash(){
+  const t=today(), m=t.slice(0,7);
+  const [exSnap, rcSnap]=await Promise.all([
+    getDocs(collection(db,'vbe_expenses')).catch(()=>({forEach:()=>{}})),
+    getDocs(collection(db,'vbe_receipts')).catch(()=>({forEach:()=>{}}))
+  ]);
+  let tout=0,tin=0,mout=0,billPend=0,udhaar=0,todayN=0;
+  const acts=[];
+  exSnap.forEach(x=>{const e=x.data();
+    if(e.date===t){ tout+=+e.total||0; todayN++; }
+    if((e.date||'').slice(0,7)===m) mout+=+e.total||0;
+    if(e.billStatus==='pending') billPend++;
+    if(e.payStatus==='udhaar') udhaar+=+e.total||0;
+    acts.push({dir:'out', party:e.vendor||'खर्चा', amount:+e.total||0, date:e.date||'', firm:e.firm||'', ts:e.createdAt||e.date||''});
+  });
+  rcSnap.forEach(x=>{const r=x.data(); if(r.direction!=='in')return;
+    if(r.date===t){ tin+=+r.amount||0; todayN++; }
+    acts.push({dir:'in', party:r.party||'आमदनी', amount:+r.amount||0, date:r.date||'', firm:'', ts:r.createdAt||r.date||''});
+  });
+  const net=tin-tout;
+  document.getElementById('h-net').textContent=(net>=0?'+':'−')+fmt(Math.abs(net));
+  document.getElementById('h-netsub').textContent=`आया ${fmt(tin)}  ·  गया ${fmt(tout)}`;
+  document.getElementById('h-in').textContent=fmt(tin);
+  document.getElementById('h-out').textContent=fmt(tout);
+  document.getElementById('s-month').textContent=fmt(mout);
+  document.getElementById('s-bill').textContent=billPend;
+  document.getElementById('s-udhaar').textContent=fmt(udhaar);
+  document.getElementById('s-count').textContent=todayN;
+  // recent
+  acts.sort((a,b)=>String(b.ts).localeCompare(String(a.ts)));
+  const box=document.getElementById('recent');
+  const top=acts.slice(0,6);
+  if(!top.length){ box.innerHTML='<div class="empty">अभी कोई entry नहीं — नीचे ➕ से शुरू करें</div>'; return; }
+  box.innerHTML=top.map(a=>`
+    <div class="li" onclick="location.href='./statement.html'">
+      <div class="av ${a.dir==='in'?'c-emerald':'c-red'}">
+        ${a.dir==='in'
+          ? '<svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>'
+          : '<svg class="ico" viewBox="0 0 24 24"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg>'}
+      </div>
+      <div class="mid">
+        <div class="p">${esc(a.party)}</div>
+        <div class="m">${hdate(a.date)}${a.firm?(' · '+esc(a.firm)):''}</div>
+      </div>
+      <div class="amt ${a.dir==='in'?'pos':'neg'}">${a.dir==='in'?'+':'−'}${fmt(a.amount)}</div>
+    </div>`).join('');
+}
+function esc(s){return String(s??'').replace(/</g,'&lt;');}
 </script>
 </body>
 </html>

@@ -241,10 +241,22 @@ window.startVoiceSearch=function(){
   try{ r.start(); }catch(e){}
 };
 
-// ── हिंट chips ──
+// ── हिंट chips — self-learning: जो आप बार-बार खोजते हो, वही पहले ──
 const HINTS=['चावल','तेल','आलू','सुशीला','उज्जवल','Cash'];
+function recentQs(){ try{ return JSON.parse(localStorage.getItem('vbe_recent_q')||'[]'); }catch(e){ return []; } }
+function rememberQ(q){
+  q=String(q||'').trim(); if(q.length<2) return;
+  try{
+    const list=recentQs().filter(x=>norm(x)!==norm(q)); list.unshift(q);
+    localStorage.setItem('vbe_recent_q', JSON.stringify(list.slice(0,6)));
+  }catch(e){}
+  renderHints();
+}
 function renderHints(){
-  document.getElementById('hints').innerHTML = HINTS.map(h=>`<button onclick="setQ('${h.replace(/'/g,"\\'")}')">${esc(h)}</button>`).join('');
+  const rec=recentQs();
+  const seen=new Set(rec.map(norm));
+  const all=[...rec.map(h=>({h,rec:true})), ...HINTS.filter(h=>!seen.has(norm(h))).map(h=>({h,rec:false}))].slice(0,8);
+  document.getElementById('hints').innerHTML = all.map(o=>`<button onclick="setQ('${o.h.replace(/'/g,"\\'")}')">${o.rec?'🕘 ':''}${esc(o.h)}</button>`).join('');
 }
 window.setQ=function(v){ const el=document.getElementById('q'); el.value=v; el.focus(); onInput(); };
 window.clearQ=function(){ const el=document.getElementById('q'); el.value=''; el.focus(); onInput(); };
@@ -319,6 +331,7 @@ function runSearch(qraw){
 
 window.openParty=function(id){
   const p=PARTIES.find(x=>x.id===id); if(!p) return;
+  rememberQ(document.getElementById('q').value);   // self-learning: काम की खोज याद रखो
   // party के सारे txns (नाम मैच)
   const key=norm(p.name);
   const mine=TXNS.filter(t=>norm(t.party)===key || (key && norm(t.party).includes(key)));
@@ -346,6 +359,7 @@ window.openParty=function(id){
 
 window.openTxn=function(gi){
   const t=TXNS[gi]; if(!t) return;
+  rememberQ(document.getElementById('q').value);   // self-learning: काम की खोज याद रखो
   document.getElementById('tm-title').textContent=(t.dir==='in'?'💰 आया पैसा':'💸 गया पैसा');
   const line=(k,v)=> v?`<div style="display:flex;justify-content:space-between;padding:7px 2px;border-bottom:1px solid #f1f5f9;font-size:13px"><span style="color:#64748b">${k}</span><span style="font-weight:700;text-align:right;max-width:62%">${esc(v)}</span></div>`:'';
   const rows=[];

@@ -95,7 +95,7 @@ svg{display:block}
 .ins .it .t1{font-size:13.5px;font-weight:800;letter-spacing:-.01em}
 .ins .it .t2{font-size:11.5px;color:var(--ink2);margin-top:1px}
 .ins .big{font-size:15px;font-weight:900;white-space:nowrap}
-.ib-up{background:#ffeef1;color:#e11d48} .ib-dn{background:#e7f7f0;color:#059669} .ib-ok{background:#eff4ff;color:#2563eb}
+.ib-up{background:#ffeef1;color:#e11d48} .ib-dn{background:#e7f7f0;color:#059669} .ib-ok{background:#eff4ff;color:#2563eb} .ib-warn{background:#fff7ed;color:#c2410c}
 
 /* bottom nav */
 .nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;height:76px;background:rgba(255,255,255,.92);backdrop-filter:blur(14px);border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-around;z-index:60;padding-bottom:env(safe-area-inset-bottom)}
@@ -319,10 +319,17 @@ async function loadInsights(){
   }
   alerts.sort((a,b)=>Math.abs(b.pct)-Math.abs(a.pct));
   const box=document.getElementById('insights'); const wrap=document.getElementById('insights-wrap');
-  const top=alerts.slice(0,4);
-  if(!top.length){ wrap.style.display='none'; return; }
+  // 🧠 पहले Business Brain (उधार/खर्च-तुलना/top-firm), फिर रेट-alerts
+  const brain=(window._BRAIN||[]).slice(0,3);
+  const brainHtml=brain.map(b=>`<div class="ins" onclick="location.href='${b.href}'" style="cursor:pointer">
+      <div class="ib ${b.cls}">${b.icon}</div>
+      <div class="it"><div class="t1">${esc(b.t1)}</div><div class="t2">${esc(b.t2)}</div></div>
+      ${b.big?`<div class="big" style="color:${b.bigColor||'#2563eb'}">${b.big}</div>`:''}
+    </div>`).join('');
+  const top=alerts.slice(0,3);
+  if(!top.length && !brain.length){ wrap.style.display='none'; return; }
   wrap.style.display='block';
-  box.innerHTML=top.map(a=>{
+  box.innerHTML=brainHtml+top.map(a=>{
     const up=a.dir==='up';
     return `<div class="ins" onclick="location.href='./pricebook.html'" style="cursor:pointer">
       <div class="ib ${up?'ib-up':'ib-dn'}">${up?'🔺':'🔻'}</div>
@@ -337,18 +344,22 @@ async function loadInsights(){
 
 async function loadDash(){
   const t=today(), m=t.slice(0,7), mStart=m+'-01';
+  const pmD=new Date(); pmD.setDate(1); pmD.setMonth(pmD.getMonth()-1);
+  const pm=pmD.getFullYear()+'-'+String(pmD.getMonth()+1).padStart(2,'0');
   const EX=collection(db,'vbe_expenses'), RC=collection(db,'vbe_receipts');
-  // सिर्फ़ इस महीने का डेटा (पूरी बही नहीं) — इसी में आज भी है → हल्का + तेज़
+  // पिछले+इस महीने का डेटा एक query में (तुलना के लिए) — फिर भी हल्का
   const [exSnap, rcSnap, exRecent, rcRecent] = await Promise.all([
-    getDocs(query(EX, where('date','>=',mStart))).catch(()=>({forEach:()=>{}})),
+    getDocs(query(EX, where('date','>=',pm+'-01'))).catch(()=>({forEach:()=>{}})),
     getDocs(query(RC, where('date','>=',mStart))).catch(()=>({forEach:()=>{}})),
     getDocs(query(EX, orderBy('createdAt','desc'), limit(6))).catch(()=>({forEach:()=>{}})),
     getDocs(query(RC, orderBy('createdAt','desc'), limit(6))).catch(()=>({forEach:()=>{}}))
   ]);
-  let tout=0,tin=0,mout=0,todayN=0;
-  exSnap.forEach(x=>{const e=x.data();
-    if((e.date||'').slice(0,7)===m) mout+=+e.total||0;
-    if(e.date===t){ tout+=+e.total||0; todayN++; }
+  const dayOfMonth=+t.slice(8,10);
+  let tout=0,tin=0,mout=0,pmout=0,todayN=0; const firmOut={};
+  exSnap.forEach(x=>{const e=x.data(); const d=e.date||'';
+    if(d.slice(0,7)===m){ mout+=+e.total||0; const f=e.firm||'—'; firmOut[f]=(firmOut[f]||0)+(+e.total||0); }
+    else if(d.slice(0,7)===pm && +d.slice(8,10)<=dayOfMonth) pmout+=+e.total||0;
+    if(d===t){ tout+=+e.total||0; todayN++; }
   });
   rcSnap.forEach(x=>{const r=x.data(); if(r.direction!=='in')return;
     if(r.date===t){ tin+=+r.amount||0; todayN++; }
@@ -358,9 +369,29 @@ async function loadDash(){
   exRecent.forEach(x=>{const e=x.data(); acts.push({dir:'out', party:e.vendor||'खर्चा', amount:+e.total||0, date:e.date||'', firm:e.firm||'', ts:e.createdAt||e.date||''});});
   rcRecent.forEach(x=>{const r=x.data(); if(r.direction!=='in')return; acts.push({dir:'in', party:r.party||'आमदनी', amount:+r.amount||0, date:r.date||'', firm:'', ts:r.createdAt||r.date||''});});
   // bill-बाकी count (डाउनलोड नहीं — सिर्फ़ गिनती) + उधार (कम entries)
-  let billPend='—', udhaar=0;
+  let billPend='—', udhaar=0; const udhaarBy={};
   try{ billPend=(await getCountFromServer(query(EX, where('billStatus','==','pending')))).data().count; }catch(e){}
-  try{ (await getDocs(query(EX, where('payStatus','==','udhaar')))).forEach(x=>udhaar+=+x.data().total||0); }catch(e){}
+  try{ (await getDocs(query(EX, where('payStatus','==','udhaar')))).forEach(x=>{const e=x.data(); const a=+e.total||0; udhaar+=a; const v=e.vendor||'—'; udhaarBy[v]=(udhaarBy[v]||0)+a;}); }catch(e){}
+  // 🧠 Business Brain — आज की सबसे ज़रूरी बातें (कोई AI खर्च नहीं, सिर्फ़ आपका data)
+  const brain=[];
+  if(udhaar>0){
+    const topU=Object.entries(udhaarBy).sort((a,b)=>b[1]-a[1])[0];
+    brain.push({icon:'🟠', cls:'ib-warn', t1:`उधार बाकी ${fmt(udhaar)}`,
+      t2:(topU?`सबसे ज़्यादा ${topU[0]} पर ${fmt(topU[1])} — `:'')+'वसूली/चुकाना याद रखें', href:'./statement.html'});
+  }
+  if(pmout>1000 && mout>0){
+    const pct=Math.round(((mout-pmout)/pmout)*100);
+    if(pct>=15) brain.push({icon:'📈', cls:'ib-up', t1:`इस महीने खर्च ${pct}% ज़्यादा`,
+      t2:`पिछले महीने इसी तारीख तक ${fmt(pmout)}, अब ${fmt(mout)}`, href:'./hisab.html', big:'+'+pct+'%', bigColor:'#e11d48'});
+    else if(pct<=-15) brain.push({icon:'📉', cls:'ib-dn', t1:`खर्च पिछले महीने से ${Math.abs(pct)}% कम`,
+      t2:`इसी तारीख तक: पिछले महीने ${fmt(pmout)} → अब ${fmt(mout)} — बढ़िया!`, href:'./hisab.html', big:pct+'%', bigColor:'#059669'});
+  }
+  const topF=Object.entries(firmOut).sort((a,b)=>b[1]-a[1])[0];
+  if(topF && Object.keys(firmOut).length>1){
+    brain.push({icon:'🏢', cls:'ib-ok', t1:`सबसे ज़्यादा खर्च: ${topF[0]}`,
+      t2:`इस महीने ${fmt(topF[1])} — tap करके पूरा हिसाब देखें`, href:'./hisab.html'});
+  }
+  window._BRAIN=brain;
   const net=tin-tout;
   document.getElementById('h-net').textContent=(net>=0?'+':'−')+fmt(Math.abs(net));
   document.getElementById('h-netsub').textContent=`आया ${fmt(tin)}  ·  गया ${fmt(tout)}`;

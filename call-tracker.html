@@ -3893,8 +3893,12 @@ function renderBulk(keepQ){
           <span class="bw-badge" style="background:#1e293b;border:1px solid rgba(125,152,214,.3)" onclick="bwCyclePri('${key}')" title="Priority — tap">${pri[1]}</span>
         </div>
       </div>
-      ${t.done?'':`<span class="bw-act" onclick="doneTopic('${t.cid}',${t.ti});renderBulk()" title="पूरा">✅</span>`}
-      <span class="bw-act" onclick="closeBulk();openSmartPop('${t.cid}')" title="खोलो">👁️</span>
+      <div style="display:grid;grid-template-columns:30px 30px;gap:4px;flex-shrink:0">
+        ${t.done?'<span></span>':`<span class="bw-act" onclick="doneTopic('${t.cid}',${t.ti});renderBulk()" title="पूरा">✅</span>`}
+        <span class="bw-act" onclick="bwEditTxt('${key}')" title="काम का text सुधारो">✏️</span>
+        <span class="bw-act" onclick="closeBulk();openSchedPick('t','${t.cid}',${t.ti})" title="समय/अलार्म">⏰</span>
+        <span class="bw-act" onclick="closeBulk();openSmartPop('${t.cid}')" title="पूरा खोलो">👁️</span>
+      </div>
     </div>`;
   }).join('');
   document.getElementById('bw-list').innerHTML=rows||'<div style="text-align:center;color:#64748b;padding:30px 0">इस छनाई में कोई काम नहीं</div>';
@@ -3935,24 +3939,59 @@ function bwPatch(mut){
 window.bwBulkCat=function(k){ bwPatch(t=>{t.cat=k;}); toast('श्रेणी बदली — '+_bwSel.size+' काम'); };
 window.bwBulkPri=function(k){ bwPatch(t=>{t.pri=k;}); toast('Priority बदली'); };
 window.bwBulkDone=function(){ if(!confirm(_bwSel.size+' काम पूरे करें?'))return; bwPatch((t,c)=>{ if(!t.done){t.done=true;t.doneAt=new Date().toISOString(); _logHist(c,'done',t.t);} }); _bwSel.clear(); renderBulk(true); toast('✅ पूरे हुए'); };
+/* 👥 Multi-Staff assign — checkbox की तरह कई staff चुनो, फिर बदलो या पुराने के साथ जोड़ो */
 window.bwAssignUI=function(){
   const names=new Set(['vikram','dinesh','kailash','manoj','koda','swaroop']);
   contacts.forEach(c=>normTopics(c).forEach(x=>{ if(x.assignTo)String(x.assignTo).split(',').forEach(a=>{a=a.trim();if(a)names.add(a);}); }));
+  window._bwNames=[...names]; window._bwPick=new Set();
   const el=document.getElementById('bw-as');
   el.innerHTML=`<div style="margin-top:9px">
-    <input class="inp" id="bw-asq" placeholder="🔍 staff खोजो या नया नाम लिखो" oninput="bwAsFilter(this.value)" style="font-size:12px;margin-bottom:6px">
-    <div id="bw-asl" style="display:flex;gap:6px;flex-wrap:wrap">${[...names].map(n=>`<button class="bb" onclick="bwAssign('${escH(n)}')">${escH(n)}</button>`).join('')}</div>
-    <button class="bb" style="margin-top:6px" onclick="bwAssign('')">✖ सौंपना हटाओ</button>
+    <input class="inp" id="bw-asq" placeholder="🔍 staff खोजो या नया नाम लिखकर ➕" oninput="bwAsFilter(this.value)" style="font-size:12px;margin-bottom:6px">
+    <div id="bw-asl" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+      <button class="bb" style="border-color:rgba(34,197,94,.6);color:#4ade80" onclick="bwAssignApply('set')">✔ इन्हें सौंपो (बदलकर)</button>
+      <button class="bb" onclick="bwAssignApply('add')">➕ पुराने के साथ जोड़ो</button>
+      <button class="bb" onclick="bwAssignApply('clear')">✖ सौंपना हटाओ</button>
+    </div>
   </div>`;
-  window._bwNames=[...names];
+  bwAsFilter('');
 };
 window.bwAsFilter=function(v){
-  v=(v||'').trim().toLowerCase(); const vk=_phonKey(v);
-  const list=(window._bwNames||[]).filter(n=>!v||n.toLowerCase().includes(v)||(vk.length>=2&&_phonKey(n).startsWith(vk)));
-  const el=document.getElementById('bw-asl');
-  el.innerHTML=list.map(n=>`<button class="bb" onclick="bwAssign('${escH(n)}')">${escH(n)}</button>`).join('')+(v?`<button class="bb" style="border-color:rgba(34,197,94,.5)" onclick="bwAssign('${escH(v)}')">➕ "${escH(v)}"</button>`:'');
+  v=(v||'').trim(); const vl=v.toLowerCase(), vk=_phonKey(v);
+  const list=(window._bwNames||[]).filter(n=>!vl||n.toLowerCase().includes(vl)||(vk.length>=2&&_phonKey(n).startsWith(vk)));
+  const el=document.getElementById('bw-asl'); if(!el) return;
+  el.innerHTML=list.map(n=>{ const on=window._bwPick.has(n);
+    return `<button class="bb" style="${on?'border-color:rgba(168,85,247,.8);background:rgba(124,58,237,.3);color:#fff':''}" onclick="bwPickTgl('${escH(n)}')">${on?'☑️ ':''}${escH(n)}</button>`; }).join('')
+    +(v&&!list.some(n=>n.toLowerCase()===vl)?`<button class="bb" style="border-color:rgba(34,197,94,.5)" onclick="bwPickAdd('${escH(v)}')">➕ "${escH(v)}"</button>`:'');
 };
-window.bwAssign=function(n){ bwPatch((t,c)=>{ t.assignTo=n; if(n)_logHist(c,'assign',t.t+' → '+n); }); toast(n?('👤 '+n+' को सौंपा'):'सौंपना हटाया'); };
+window.bwPickTgl=function(n){ window._bwPick.has(n)?window._bwPick.delete(n):window._bwPick.add(n); bwAsFilter((document.getElementById('bw-asq')||{}).value||''); };
+window.bwPickAdd=function(n){ if(!window._bwNames.includes(n)) window._bwNames.push(n); window._bwPick.add(n); const q=document.getElementById('bw-asq'); if(q)q.value=''; bwAsFilter(''); };
+window.bwAssignApply=function(mode){
+  if(mode==='clear'){ bwPatch(t=>{ t.assignTo=''; }); toast('सौंपना हटाया'); return; }
+  const picks=[...(window._bwPick||[])];
+  if(!picks.length){ toast('पहले staff चुनो ☑️','warn'); return; }
+  bwPatch((t,c)=>{
+    if(mode==='add'){
+      const cur=String(t.assignTo||'').split(',').map(x=>x.trim()).filter(Boolean);
+      picks.forEach(n=>{ if(!cur.some(x=>x.toLowerCase()===n.toLowerCase())) cur.push(n); });
+      t.assignTo=cur.join(', ');
+    } else t.assignTo=picks.join(', ');
+    _logHist(c,'assign',t.t+' → '+t.assignTo);
+  });
+  toast('👥 '+picks.join(', ')+' को सौंपा — '+_bwSel.size+' काम');
+};
+/* ✏️ बिना खोले काम का text सुधारो */
+window.bwEditTxt=function(key){
+  const [cid,ti]=key.split('|'); const c=contacts.find(x=>x.id===cid); if(!c)return;
+  const tps=normTopics(c); const t=tps[+ti]; if(!t)return;
+  const v=prompt('✏️ काम सुधारो:',t.t);
+  if(v===null||!v.trim()||v.trim()===t.t) return;
+  t.t=v.trim();
+  c.topics=tps; c.note=tps.filter(x=>!x.done).map(x=>x.t).join(' · ');
+  _logHist(c,'edit',t.t);
+  fbSave(c); render(); renderBulk(true);
+  toast('✏️ सुधर गया');
+};
 window.bwCycleCat=function(key){
   const [cid,ti]=key.split('|'); const c=contacts.find(x=>x.id===cid); if(!c)return;
   const tps=normTopics(c); const t=tps[+ti]; if(!t)return;

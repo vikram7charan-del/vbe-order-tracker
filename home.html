@@ -374,6 +374,24 @@ async function loadDash(){
   try{ (await getDocs(query(EX, where('payStatus','==','udhaar')))).forEach(x=>{const e=x.data(); const a=+e.total||0; udhaar+=a; const v=e.vendor||'—'; udhaarBy[v]=(udhaarBy[v]||0)+a;}); }catch(e){}
   // 🧠 Business Brain — आज की सबसे ज़रूरी बातें (कोई AI खर्च नहीं, सिर्फ़ आपका data)
   const brain=[];
+  // ❤️ धंधे की सेहत (0-100): महीने की कमाई-खर्च, खर्च की रफ़्तार, उधार, bill-अनुशासन — सबका एक नंबर
+  {
+    let min=0; rcSnap.forEach(x=>{const r=x.data(); if(r.direction==='in'&&(r.date||'').slice(0,7)===m) min+=+r.amount||0;});
+    let score=100; const why=[];
+    if(min>0 && mout>min){ score-=20; why.push('खर्च कमाई से ज़्यादा'); }
+    if(pmout>1000 && mout>pmout*1.3){ score-=15; why.push('खर्च की रफ़्तार तेज़'); }
+    if(udhaar>0 && mout>0 && udhaar>mout*0.2){ score-=15; why.push('उधार ज़्यादा'); }
+    else if(udhaar>0){ score-=5; why.push('थोड़ा उधार बाकी'); }
+    if(typeof billPend==='number'){ if(billPend>10){ score-=10; why.push(billPend+' bills के photo बाकी'); } else if(billPend>0){ score-=5; why.push(billPend+' bill photo बाकी'); } }
+    if(mout===0 && min===0) score=0;   // इस महीने data ही नहीं → score मत दिखाओ
+    if(score>0){
+      const good=score>=80, mid=score>=60&&score<80;
+      brain.push({icon:good?'💚':(mid?'🧡':'❤️'), cls:good?'ib-dn':(mid?'ib-warn':'ib-up'),
+        t1:`धंधे की सेहत ${score}/100`,
+        t2: why.length? ('सुधारो: '+why.slice(0,2).join(' · ')) : 'सब बढ़िया चल रहा है — ऐसे ही रखो!',
+        href:'./hisab.html', big:String(score), bigColor:good?'#059669':(mid?'#c2410c':'#e11d48')});
+    }
+  }
   if(udhaar>0){
     const topU=Object.entries(udhaarBy).sort((a,b)=>b[1]-a[1])[0];
     brain.push({icon:'🟠', cls:'ib-warn', t1:`उधार बाकी ${fmt(udhaar)}`,

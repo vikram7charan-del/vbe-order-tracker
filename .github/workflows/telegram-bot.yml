@@ -8,9 +8,13 @@
 # ══════════════════════════════════════════════════════════
 name: 📩 Telegram Bot
 
-# ⚠️ schedule हटा दिया — अब webhook (functions/telegramWebhook) हमेशा जागता है।
-# यह poller सिर्फ़ manual fallback है (webhook चालू हो तो 409 पर चुपचाप बंद)।
+# 🔁 हमेशा-जागता bot (free): एक run ~5.8 घंटे लगातार long-poll करता है
+# (message आते ही तुरंत जवाब)। schedule हर घंटे एक ताज़ा run queue में रखता है
+# जो पुराने के खत्म होते ही संभाल ले — 24/7 coverage, public repo = मुफ़्त।
+# (Cloud Function webhook के लिए Blaze/billing चाहिए — इसलिए यह रास्ता।)
 on:
+  schedule:
+    - cron: '*/5 * * * *'   # GitHub इसे ~हर घंटे चलाता है — restarter काफ़ी है
   workflow_dispatch:
     inputs:
       ref:
@@ -25,7 +29,7 @@ concurrency:
 jobs:
   bot:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 355   # ~5.8 घंटे (GitHub job की अधिकतम सीमा 6 घंटे)
     steps:
       - uses: actions/checkout@v4
         with:
@@ -35,8 +39,8 @@ jobs:
           node-version: 20
       - name: Install firebase-admin
         run: npm install firebase-admin --no-save --no-audit --no-fund
-      - name: Run Telegram bot poller
+      - name: Run Telegram bot (long-poll ~5.8h)
         env:
           FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
-          TG_LOOP_MS: '210000'
+          TG_LOOP_MS: '20400000'   # 340 min लगातार poll, फिर अगला run संभालता है
         run: node scripts/telegram-bot.js

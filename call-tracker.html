@@ -574,7 +574,13 @@ body:not(.anim-off) .aic-orb .orb-core{animation:orbCore 2.2s ease-in-out infini
 .bw-chips{display:flex;gap:6px;overflow-x:auto;padding:0 0 10px;scrollbar-width:none}
 .bw-chip{flex-shrink:0;font-size:10.5px;font-weight:800;color:#8b9bbb;border:1.5px solid rgba(125,152,214,.2);border-radius:16px;padding:5px 12px;cursor:pointer;background:rgba(12,20,37,.6);white-space:nowrap}
 .bw-chip.on{border-color:color-mix(in srgb,var(--acc) 70%,transparent);color:#fff;background:linear-gradient(150deg,color-mix(in srgb,var(--acc) 30%,transparent),color-mix(in srgb,var(--acc2) 16%,transparent))}
-.bw-row{display:flex;gap:8px;align-items:flex-start;background:linear-gradient(163deg,rgba(20,30,56,.9),rgba(8,13,26,.96));border:1px solid rgba(125,152,214,.16);border-left-width:4px;border-radius:13px;padding:9px 10px;margin-bottom:7px}
+.bw-row{display:flex;gap:8px;align-items:flex-start;background:linear-gradient(163deg,rgba(20,30,56,.9),rgba(8,13,26,.96));border:1px solid rgba(125,152,214,.16);border-left-width:4px;border-radius:13px;padding:9px 10px;margin-bottom:7px;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.bw-row.dragging{opacity:.45;border-style:dashed}
+.bw-ghost{position:fixed;z-index:9999;pointer-events:none;background:linear-gradient(160deg,#312e81,#1e1b4b);color:#fcd34d;font-size:12px;font-weight:900;padding:8px 14px;border-radius:12px;border:1px solid rgba(168,85,247,.6);box-shadow:0 12px 30px rgba(0,0,0,.55);max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bw-dz{position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:9998;display:flex;gap:6px;flex-wrap:wrap;justify-content:center;background:rgba(5,10,20,.94);border:1px solid rgba(125,152,214,.35);border-radius:14px;padding:8px;max-width:96vw;backdrop-filter:blur(8px);animation:dzIn .18s ease-out}
+@keyframes dzIn{from{opacity:0;transform:translateX(-50%) translateY(-14px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.bw-dzi{font-size:10.5px;font-weight:900;color:#e2e8f0;border:2px dashed #475569;border-radius:10px;padding:7px 9px;transition:transform .12s}
+.bw-dzi.on{background:rgba(124,58,237,.4);border-style:solid;transform:scale(1.14)}
 .bw-row.sel{border-color:color-mix(in srgb,var(--acc) 65%,transparent);box-shadow:0 0 0 1px color-mix(in srgb,var(--acc) 45%,transparent)}
 .bw-ck{width:19px;height:19px;accent-color:#a855f7;margin-top:2px;flex-shrink:0}
 .bw-badge{display:inline-block;font-size:8.5px;font-weight:900;letter-spacing:.4px;border-radius:6px;padding:2px 7px;cursor:pointer;color:#fff;vertical-align:1px}
@@ -1346,6 +1352,7 @@ body.hdr-folded .hdr-row2{display:none}
     <div class="bw-sumrow" id="bw-sum"></div>
     <input class="inp" id="bw-q" placeholder="🔍 काम / नाम / नंबर / श्रेणी खोजो — live" oninput="bwQ(this.value)" style="margin-bottom:10px">
     <div class="bw-chips" id="bw-chips"></div>
+    <div style="font-size:9.5px;color:#64748b;font-weight:700;margin:-2px 0 8px">🖐️ किसी काम को देर तक दबाओ → खींचकर ऊपर श्रेणी/✅ पर छोड़ दो (badge पर tap से भी बदलता है)</div>
     <div id="bw-list"></div>
     <div class="bw-bar" id="bw-bar" style="display:none"></div>
   </div>
@@ -3881,7 +3888,7 @@ function renderBulk(keepQ){
     const ci=catInfo(t.cat), cc=BW_CATC[t.cat||''];
     const late=!t.done&&t.at&&new Date(t.at).getTime()<now;
     const pri=BW_PRI.find(p=>p[0]===(t.pri||''))||BW_PRI[0];
-    return `<div class="bw-row ${sel?'sel':''}" style="border-left-color:${cc}">
+    return `<div class="bw-row ${sel?'sel':''}" data-bwkey="${key}" style="border-left-color:${cc}">
       <input type="checkbox" class="bw-ck" ${sel?'checked':''} onchange="bwTgl('${key}')">
       <div style="flex:1;min-width:0">
         <div style="font-size:13.5px;font-weight:800;color:${t.done?'#64748b':'#fcd34d'};line-height:1.4;word-break:break-word;${t.done?'text-decoration:line-through':''}">${escH(t.t)}</div>
@@ -3924,9 +3931,9 @@ function bwBar(){
       <button class="bb" onclick="_bwSel.clear();renderBulk(true)">✖</button>
     </div><div id="bw-as"></div>`;
 }
-function bwPatch(mut){
+function _bwApplyKeys(keys,mut){
   const byC={};
-  _bwSel.forEach(k=>{ const [cid,ti]=k.split('|'); (byC[cid]=byC[cid]||[]).push(+ti); });
+  keys.forEach(k=>{ const [cid,ti]=k.split('|'); (byC[cid]=byC[cid]||[]).push(+ti); });
   Object.keys(byC).forEach(cid=>{
     const c=contacts.find(x=>x.id===cid); if(!c) return;
     const tps=normTopics(c);
@@ -3936,6 +3943,7 @@ function bwPatch(mut){
   });
   render(); renderBulk(true);
 }
+function bwPatch(mut){ _bwApplyKeys([..._bwSel],mut); }
 window.bwBulkCat=function(k){ bwPatch(t=>{t.cat=k;}); toast('श्रेणी बदली — '+_bwSel.size+' काम'); };
 window.bwBulkPri=function(k){ bwPatch(t=>{t.pri=k;}); toast('Priority बदली'); };
 window.bwBulkDone=function(){ if(!confirm(_bwSel.size+' काम पूरे करें?'))return; bwPatch((t,c)=>{ if(!t.done){t.done=true;t.doneAt=new Date().toISOString(); _logHist(c,'done',t.t);} }); _bwSel.clear(); renderBulk(true); toast('✅ पूरे हुए'); };
@@ -4006,6 +4014,81 @@ window.bwCyclePri=function(key){
   t.pri=order[(order.indexOf(t.pri||'')+1)%order.length];
   c.topics=tps; fbSave(c); render(); renderBulk(true);
 };
+/* 🖐️ Drag & Drop — काम को देर तक दबाओ, उठाकर ऊपर श्रेणी/✅ ज़ोन पर छोड़ो।
+   चुने हुए (☑️) कामों में से किसी एक को खींचो तो सब चुने हुओं पर लागू। */
+let _bwDrag=null,_bwLpT=null,_bwSupp=false;
+function _bwDragStart(row,x,y){
+  _bwDrag={key:row.dataset.bwkey};
+  if(navigator.vibrate)navigator.vibrate(30);
+  row.classList.add('dragging');
+  const g=document.createElement('div'); g.id='bw-ghost'; g.className='bw-ghost';
+  const tt=row.querySelector('div div'); g.textContent='🖐️ '+((tt&&tt.textContent)||'काम').slice(0,24);
+  document.body.appendChild(g);
+  const dz=document.createElement('div'); dz.id='bw-dz'; dz.className='bw-dz';
+  dz.innerHTML=[['golden','🏆 गोल्डन'],['computer','💻 कंप्यूटर'],['market','🛒 बाज़ार'],['jalipa','🏪 जालिपा'],['','⬜ श्रेणी हटाओ'],['__done','✅ पूरा']]
+    .map(z=>`<div class="bw-dzi" data-zone="${z[0]}" style="border-color:${z[0]==='__done'?'#22c55e':(BW_CATC[z[0]]||'#475569')}">${z[1]}</div>`).join('');
+  document.body.appendChild(dz);
+  _bwGhostMove(x,y);
+}
+function _bwGhostMove(x,y){
+  const g=document.getElementById('bw-ghost'); if(g){ g.style.left=Math.max(4,x-60)+'px'; g.style.top=Math.max(4,y-52)+'px'; }
+  document.querySelectorAll('.bw-dzi.on').forEach(z=>z.classList.remove('on'));
+  const el=document.elementFromPoint(x,y), zi=el&&el.closest('.bw-dzi');
+  if(zi)zi.classList.add('on');
+}
+function _bwDragEnd(x,y){
+  const g=document.getElementById('bw-ghost'), dz=document.getElementById('bw-dz');
+  const el=document.elementFromPoint(x,y), zi=el&&el.closest('.bw-dzi');
+  const key=_bwDrag&&_bwDrag.key; _bwDrag=null;
+  _bwSupp=true; setTimeout(()=>{_bwSupp=false;},400);
+  if(g)g.remove(); if(dz)dz.remove();
+  document.querySelectorAll('.bw-row.dragging').forEach(r=>r.classList.remove('dragging'));
+  if(!zi||!key)return;
+  const zone=zi.dataset.zone;
+  const keys=(_bwSel.has(key)&&_bwSel.size>1)?[..._bwSel]:[key];
+  if(zone==='__done'){
+    _bwApplyKeys(keys,(t,c)=>{ if(!t.done){t.done=true;t.doneAt=new Date().toISOString();_logHist(c,'done',t.t);} });
+    toast('✅ पूरा — '+keys.length+' काम');
+  } else {
+    _bwApplyKeys(keys,t=>{ t.cat=zone; });
+    const ci=catInfo(zone); toast((ci?ci.logo+' '+ci.label:'⬜ बिना श्रेणी')+' — '+keys.length+' काम');
+  }
+  if(navigator.vibrate)navigator.vibrate([20,40,20]);
+}
+(function(){
+  const list=document.getElementById('bw-list'); if(!list)return;
+  let sx=0,sy=0;
+  list.addEventListener('touchstart',e=>{
+    const row=e.target.closest('.bw-row'); if(!row)return;
+    const t=e.touches[0]; sx=t.clientX; sy=t.clientY;
+    clearTimeout(_bwLpT); _bwLpT=setTimeout(()=>{ _bwLpT=null; _bwDragStart(row,sx,sy); },380);
+  },{passive:true});
+  document.addEventListener('touchmove',e=>{
+    const t=e.touches[0]; if(!t)return;
+    if(_bwDrag){ e.preventDefault(); _bwGhostMove(t.clientX,t.clientY); return; }
+    if(_bwLpT&&(Math.abs(t.clientX-sx)>12||Math.abs(t.clientY-sy)>12)){ clearTimeout(_bwLpT); _bwLpT=null; }
+  },{passive:false});
+  document.addEventListener('touchend',e=>{
+    if(_bwLpT){ clearTimeout(_bwLpT); _bwLpT=null; }
+    if(_bwDrag){ const t=e.changedTouches[0]; e.preventDefault(); _bwDragEnd(t.clientX,t.clientY); }
+  },{passive:false});
+  document.addEventListener('touchcancel',()=>{ clearTimeout(_bwLpT); _bwLpT=null; if(_bwDrag)_bwDragEnd(-99,-99); },{passive:true});
+  list.addEventListener('mousedown',e=>{
+    const row=e.target.closest('.bw-row'); if(!row)return;
+    sx=e.clientX; sy=e.clientY;
+    clearTimeout(_bwLpT); _bwLpT=setTimeout(()=>{ _bwLpT=null; _bwDragStart(row,sx,sy); },380);
+  });
+  document.addEventListener('mousemove',e=>{
+    if(_bwDrag){ _bwGhostMove(e.clientX,e.clientY); return; }
+    if(_bwLpT&&(Math.abs(e.clientX-sx)>12||Math.abs(e.clientY-sy)>12)){ clearTimeout(_bwLpT); _bwLpT=null; }
+  });
+  document.addEventListener('mouseup',e=>{
+    if(_bwLpT){ clearTimeout(_bwLpT); _bwLpT=null; }
+    if(_bwDrag)_bwDragEnd(e.clientX,e.clientY);
+  });
+  list.addEventListener('click',e=>{ if(_bwSupp){ e.stopPropagation(); e.preventDefault(); _bwSupp=false; } },true);
+  list.addEventListener('contextmenu',e=>{ if(_bwDrag||_bwLpT)e.preventDefault(); });
+})();
 
 /* सौंपा काम ⬆️ मुख्य कामों में — फिर calendar/श्रेणी सब लग सकता है */
 window.spPromoteAsg=function(srcId,i){

@@ -8,9 +8,9 @@
 # ══════════════════════════════════════════════════════════
 name: 📩 Telegram Bot
 
+# ⚠️ schedule हटा दिया — अब webhook (functions/telegramWebhook) हमेशा जागता है।
+# यह poller सिर्फ़ manual fallback है (webhook चालू हो तो 409 पर चुपचाप बंद)।
 on:
-  schedule:
-    - cron: '*/5 * * * *'
   workflow_dispatch:
     inputs:
       ref:

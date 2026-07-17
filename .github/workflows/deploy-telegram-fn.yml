@@ -1,0 +1,70 @@
+# ══════════════════════════════════════════════════════════
+# 📩 Deploy Telegram Webhook Function (हाथ से dispatch)
+# 1. functions:default deploy (telegramWebhook + callReminders)
+# 2. Firestore से bot token पढ़ो → Telegram setWebhook (हमेशा-जागता bot)
+# ज़रूरी secret: FIREBASE_SA
+# ══════════════════════════════════════════════════════════
+name: 📩 Deploy Telegram Function
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'किस branch से deploy'
+        required: true
+        default: 'claude/vande-bharat-firebase-jo82rc'
+
+concurrency:
+  group: deploy-telegram-fn
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Write service account
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
+        run: printf '%s' "$FIREBASE_SA" > "$RUNNER_TEMP/sa.json"
+      - name: Deploy telegramWebhook (functions:default)
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/sa.json
+        run: |
+          npx firebase-tools@latest deploy --only functions:default \
+            --project vbe-order-tracker-60324 --non-interactive --force
+      - name: Register Telegram webhook (token Firestore से)
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/sa.json
+        run: |
+          npm install --no-audit --no-fund firebase-admin@12
+          node - <<'EOF'
+          const admin = require('firebase-admin');
+          admin.initializeApp({ credential: admin.credential.applicationDefault() });
+          const db = admin.firestore();
+          const URL = 'https://asia-south1-vbe-order-tracker-60324.cloudfunctions.net/telegramWebhook';
+          (async () => {
+            const s = await db.doc('vbe_call_tracker/_settings').get();
+            const st = s.exists ? s.data() : {};
+            const token = st.tgBotToken;
+            if (!token) { console.log('⚠️ tgBotToken नहीं — app में 📩 से token डालें, फिर दोबारा चलाएँ'); process.exit(0); }
+            const secret = st.tgWebhookSecret || ('vbe' + Math.random().toString(36).slice(2) + Date.now().toString(36));
+            await db.doc('vbe_call_tracker/_settings').set({ tgWebhookSecret: secret, tgWebhookUrl: URL }, { merge: true });
+            const r = await fetch(`https://api.telegram.org/bot${token}/setWebhook`, {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ url: URL, secret_token: secret, allowed_updates: ['message', 'edited_message', 'callback_query'], drop_pending_updates: false }),
+            }).then(x => x.json());
+            console.log('setWebhook:', JSON.stringify(r));
+            const info = await fetch(`https://api.telegram.org/bot${token}/getWebhookInfo`).then(x => x.json());
+            console.log('webhookInfo:', JSON.stringify(info.result || info));
+            if (!r.ok) process.exit(1);
+            console.log('✅ Telegram webhook चालू — bot अब हमेशा जागता है, तुरंत जवाब देगा');
+            process.exit(0);
+          })().catch(e => { console.error('ERROR:', e.message); process.exit(1); });
+          EOF

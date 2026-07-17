@@ -11,9 +11,55 @@
    ══════════════════════════════════════════════════════════ */
 
 const { onSchedule } = require('firebase-functions/v2/scheduler');
+const { onRequest } = require('firebase-functions/v2/https');
 const admin = require('firebase-admin');
+const tg = require('./telegram-core');
 
 admin.initializeApp();
+
+// ══════════════════════════════════════════════════════════
+// 📩 Telegram Webhook — हमेशा जागता, message आते ही तुरंत जवाब।
+// URL: https://asia-south1-vbe-order-tracker-60324.cloudfunctions.net/telegramWebhook
+// token/chat/secret Firestore _settings से। setWebhook deploy workflow करता है।
+// ══════════════════════════════════════════════════════════
+async function tgApi(token, method, body) {
+  try {
+    const r = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}),
+    });
+    return await r.json();
+  } catch (e) { console.log('tgApi', method, 'err:', e.message); return { ok: false }; }
+}
+
+exports.telegramWebhook = onRequest(
+  { region: 'asia-south1', memory: '256MiB', timeoutSeconds: 30, cors: false },
+  async (req, res) => {
+    if (req.method !== 'POST') { res.status(200).send('ok'); return; }
+    const db = admin.firestore();
+    const col = db.collection('vbe_call_tracker');
+    let settings = {};
+    try { const s = await col.doc('_settings').get(); settings = s.exists ? s.data() : {}; } catch (e) {}
+    const token = settings.tgBotToken;
+    if (!token) { res.status(200).send('no-token'); return; }
+    // secret verify (अगर set है)
+    if (settings.tgWebhookSecret) {
+      const got = req.get('X-Telegram-Bot-Api-Secret-Token');
+      if (got !== settings.tgWebhookSecret) { res.status(200).send('bad-secret'); return; }
+    }
+    const update = req.body;
+    if (!update || typeof update !== 'object') { res.status(200).send('ok'); return; }
+    // तुरंत 200 दो (Telegram retries रोको), फिर process करो
+    res.status(200).send('ok');
+    try {
+      const snap = await col.get();
+      const data = tg.collectAll(snap);
+      data.settings = settings;
+      const ownerChat = settings.tgChatId ? String(settings.tgChatId) : '';
+      const { calls } = await tg.handleUpdate(col, data, update, ownerChat);
+      for (const c of calls) await tgApi(token, c.method, c.body);
+    } catch (e) { console.log('webhook process err:', e.message); }
+  }
+);
 
 const APP_LINK = 'https://vbe-order-tracker-60324.web.app/call-tracker.html';
 const REMIND_GAP_MS = 30 * 60 * 1000; // दोबारा याद दिलाने का gap — 30 min
@@ -46,9 +92,10 @@ exports.callReminders = onSchedule(
     const snap = await db.collection('vbe_call_tracker').get();
     const due = [];
     const batch = db.batch();
+    let settings = {};
 
     snap.forEach((d) => {
-      if (d.id === '_settings') return;
+      if (d.id === '_settings') { settings = d.data() || {}; return; }
       const c = d.data();
       if (c.active === false) return;
       if (!c.nextCallAt) return;
@@ -62,6 +109,20 @@ exports.callReminders = onSchedule(
       due.push({ name: c.name || '?', phone: c.phone || '' });
       batch.update(d.ref, { lastNotifiedAt: new Date().toISOString() });
     });
+
+    // 📩 Telegram — ⚡ नए काम auto-push + ⏰ due reminders (Cloud Scheduler = भरोसेमंद)
+    const tgTok = settings.tgBotToken, tgChat = settings.tgChatId ? String(settings.tgChatId) : '';
+    if (tgTok && tgChat) {
+      try {
+        const data = tg.collectAll(snap); data.settings = settings;
+        const pushCalls = await tg.autoPushNew(db.collection('vbe_call_tracker'), data, tgChat);
+        for (const c of pushCalls) await tgApi(tgTok, c.method, c.body);
+        if (due.length) {
+          const b = due.slice(0, 6).map((c) => `• ${c.name}${c.phone ? ' — ' + c.phone : ''}`).join('\n') + (due.length > 6 ? `\n…और ${due.length - 6}` : '');
+          await tgApi(tgTok, 'sendMessage', { chat_id: tgChat, text: `📞 *${due.length} call बाकी*\n${b}\n\n👉 ${APP_LINK}`, parse_mode: 'Markdown', disable_web_page_preview: true });
+        }
+      } catch (e) { console.log('📩 tg reminder err:', e.message); }
+    }
 
     if (!due.length) {
       console.log('कोई call due नहीं');

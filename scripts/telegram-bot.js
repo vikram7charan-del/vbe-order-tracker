@@ -271,6 +271,36 @@ async function main(){
   const t0=Date.now();
   let handled=0, dirty=false;
 
+  /* ⚡ Auto-push — पिछली जाँच के बाद जुड़े नए काम (app से) → तुरंत Telegram पर।
+     bot से जुड़े काम (src:'tg') पहले ही confirm हो चुके — उन्हें दोबारा नहीं। */
+  if(ownerChat){
+    try{
+      const lastScan=Number(data.settings.tgLastNewScan||0);
+      const nowS=Date.now();
+      const fresh=[];
+      allTasks(data.contacts).forEach(x=>{
+        if(x.done||x.src==='tg'||!x.addedAt) return;
+        const at=new Date(x.addedAt).getTime();
+        if(isNaN(at)||at<=lastScan) return;
+        if(nowS-at>6*3600e3) return; // 6h से पुराना नहीं (पहली बार का शोर रोको)
+        fresh.push(x);
+      });
+      if(lastScan===0){
+        // पहली बार — सिर्फ़ बिंदु सेट करो, पुराने सब push मत करो
+        await col.doc('_settings').set({tgLastNewScan:nowS},{merge:true}); data.settings.tgLastNewScan=nowS;
+      } else if(fresh.length){
+        const text='🆕 *'+fresh.length+' नया काम जुड़ा*\n\n'+fresh.slice(0,12).map((x,i)=>
+          `${i+1}. ${CATS[x.cat]?CATS[x.cat].logo+' ':''}${x.t}\n   👤 ${x.name}${x.assignTo?' → '+x.assignTo:''}`
+        ).join('\n')+(fresh.length>12?`\n…और ${fresh.length-12}`:'')+'\n\n👉 '+APP_LINK;
+        await tgApi(tok,'sendMessage',{chat_id:ownerChat,text,parse_mode:'Markdown',disable_web_page_preview:true});
+        await col.doc('_settings').set({tgLastNewScan:nowS},{merge:true}); data.settings.tgLastNewScan=nowS;
+        console.log('⚡ auto-push:',fresh.length,'नए काम');
+      } else {
+        await col.doc('_settings').set({tgLastNewScan:nowS},{merge:true}); data.settings.tgLastNewScan=nowS;
+      }
+    }catch(e){ console.log('auto-push err:',e.message); }
+  }
+
   console.log('📩 bot चालू — loop', Math.round(LOOP_MS/1000)+'s');
   while(Date.now()-t0<LOOP_MS){
     let j;

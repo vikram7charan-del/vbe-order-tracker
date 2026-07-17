@@ -51,6 +51,16 @@ async function main(){
   if(lateNames.size) lines.push(`🔴 ${lateNames.size} लोगों के काम लेट चल रहे`);
   if(forgot) lines.push(`🕳️ ${forgot} काम भूले पड़े (5+ दिन, बिना समय)`);
 
+  // 📩 Telegram — शाम की तैयारी (token+chat _settings से)
+  if(settings.tgBotToken && settings.tgChatId){
+    try{
+      const text='🔮 *कल की तैयारी — '+dueSoon.length+' काम समय पर*\n\n'+lines.join('\n')+'\n\n👉 '+APP_LINK;
+      await fetch('https://api.telegram.org/bot'+settings.tgBotToken+'/sendMessage',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({chat_id:settings.tgChatId,text,parse_mode:'Markdown',disable_web_page_preview:true})});
+      console.log('📩 evening-brief Telegram भेजा');
+    }catch(e){ console.log('📩 Telegram err:',e.message); }
+  }
+
   const toks=[]; (await db.collection('vbe_fcm_tokens').get()).forEach(d=>{ const t=(d.data()||{}).token; if(t) toks.push(t); });
   if(toks.length){
     await admin.messaging().sendEachForMulticast({

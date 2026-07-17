@@ -45,6 +45,15 @@ async function main(){
   if(!Array.isArray(j.lines)) throw new Error('bad lines');
   await db.collection('vbe_call_tracker').doc('_settings').set(
     {aiDayPlan:{at:new Date().toISOString(),lines:j.lines.slice(0,16)},lastAiPlan:today},{merge:true});
+  // 📩 Telegram — पूरा प्लान (token+chat _settings से)
+  if(settings.tgBotToken && settings.tgChatId){
+    try{
+      const text='🌅 *आज का प्लान — '+today+'*\n\n'+j.lines.slice(0,16).map((l,i)=>`${i+1}. ${String(l.txt).replace(/[*_`\[]/g,'')}`).join('\n')+'\n\n👉 https://vbe-order-tracker-60324.web.app/call-tracker.html';
+      await fetch('https://api.telegram.org/bot'+settings.tgBotToken+'/sendMessage',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({chat_id:settings.tgChatId,text,parse_mode:'Markdown',disable_web_page_preview:true})});
+      console.log('📩 day-plan Telegram भेजा');
+    }catch(e){ console.log('📩 Telegram err:',e.message); }
+  }
   // push
   const toks=[]; (await db.collection('vbe_fcm_tokens').get()).forEach(d=>{const t=(d.data()||{}).token;if(t)toks.push(t);});
   if(toks.length){

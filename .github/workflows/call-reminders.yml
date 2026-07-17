@@ -1,11 +1,11 @@
-# ══════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════
 # VBE Call Tracker — हर 5 मिनट में due calls की push notification
 # App बंद होने पर भी phone पर reminder आएगा (FCM)
 #
 # ⚠️ SETUP (एक बार): repo → Settings → Secrets and variables →
 #    Actions → New repository secret →
 #    Name: FIREBASE_SA   Value: (service account JSON पूरा paste)
-# ══════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════
 name: 📞 Call Reminders
 
 on:
@@ -29,9 +29,46 @@ jobs:
           node-version: 20
 
       - name: Install firebase-admin
-        run: npm install firebase-admin --no-save --no-audit --no-fund
+        run: npm install firebase-admin@13 googleapis --no-save --no-audit --no-fund # v14 ने पुराना API हटाया
 
       - name: Send due call reminders
         env:
           FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
         run: node scripts/call-reminders.js
+
+      # Calendar भी यहीं से हर 5 मिनट sync — नई चीज़ जल्दी calendar में दिखे
+      # (अलग calendar-sync.yml भी है, पर GitHub उसका cron घंटों टाल देता था)
+      - name: Sync Google Calendar too
+        continue-on-error: true
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
+        run: node scripts/calendar-sync.js
+
+      # 🌅 सुबह 7:00-8:00 IST में एक बार आज का AI प्लान (Claude Haiku)
+      - name: Morning AI day plan
+        continue-on-error: true
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
+          ANTHROPIC_KEY: ${{ secrets.ANTHROPIC_KEY }}
+        run: node scripts/ai-day-plan.js
+
+      # 🔮 शाम 19:30-21:00 IST में एक बार "कल की तैयारी" push (0 token)
+      - name: Evening brief push
+        continue-on-error: true
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
+        run: node scripts/ai-evening-brief.js
+
+      # 🧠 रात 23:20+ IST में आज का Daily Memory सारांश (+ रविवार weekly, माह-अंत monthly)
+      - name: Nightly daily memory
+        continue-on-error: true
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
+        run: node scripts/ai-daily-memory.js
+
+      # 🔒 रात 23:20+ IST — पूरा data cloud backup (हर तारीख़ की अलग फ़ाइल, कभी नहीं मिटती)
+      - name: Nightly cloud backup
+        continue-on-error: true
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
+        run: node scripts/ai-backup.js

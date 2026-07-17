@@ -1,4 +1,4 @@
-const CACHE = 'padho-seekho-v3';
+const CACHE = 'padho-seekho-v6';
 const PRECACHE = [
   './kids-learn.html',
   './kids-icons/icon-192.png',

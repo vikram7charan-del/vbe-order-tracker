@@ -1,12 +1,10 @@
 /* ══════════════════════════════════════════════════════════
    VBE Call Tracker — AI WhatsApp Message Generator
    ──────────────────────────────────────────────────────────
-   GitHub Actions पर हर 30 मिनट चलता है:
-   1. जिन contacts के बाकी काम हैं (खुद के या सौंपे हुए),
-      उनके लिए Claude से एक natural WhatsApp reminder बनवाता है
-   2. हर बार अलग भाषा/शब्दों में (ताकि copy-paste न लगे)
-   3. message को उसी contact doc में waMsg + waMsgAt में save करता है
-   App में "📲 WhatsApp" button यही तैयार message इस्तेमाल करता है।
+   GitHub Actions पर हर 30 मिनट चलता है — पर DEFAULT बंद।
+   सिर्फ़ जिसको भेजना है उसी के लिए app में "✨ नया message" (n8n)
+   से on-demand बनता है (API खर्च सिर्फ़ ज़रूरत पर)।
+   पूरे-सबके auto messages चाहिए तो _settings doc में autoGenAll: true.
 
    Secrets: FIREBASE_SA + ANTHROPIC_KEY (GitHub repo secrets)
    ══════════════════════════════════════════════════════════ */

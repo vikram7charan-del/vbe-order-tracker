@@ -49,6 +49,7 @@ async function main() {
 
   const snap = await db.collection('vbe_call_tracker').get();
   const due = [];
+  const dueTasks = []; // हर काम का अपना समय (topic.at) — schedule पेज से लगाया हुआ
   const batch = db.batch();
   let settingsData = null;
 
@@ -56,16 +57,38 @@ async function main() {
     if (d.id === '_settings') { settingsData = d.data() || {}; return; }
     const c = d.data();
     if (c.active === false) return;
-    if (!c.nextCallAt) return;
-    const t = new Date(c.nextCallAt).getTime();
-    if (isNaN(t) || t > now) return;
+    let patch = null;
 
-    // Dedupe — इसी due के लिए पिछले 30 min में remind किया हो तो skip
-    const lastN = c.lastNotifiedAt ? new Date(c.lastNotifiedAt).getTime() : 0;
-    if (lastN >= t && now - lastN < REMIND_GAP_MS) return;
+    // 1) मुख्य समय (nextCallAt)
+    if (c.nextCallAt) {
+      const t = new Date(c.nextCallAt).getTime();
+      if (!isNaN(t) && t <= now) {
+        // Dedupe — इसी due के लिए पिछले 30 min में remind किया हो तो skip
+        const lastN = c.lastNotifiedAt ? new Date(c.lastNotifiedAt).getTime() : 0;
+        if (!(lastN >= t && now - lastN < REMIND_GAP_MS)) {
+          due.push({ name: c.name || '?', phone: c.phone || '' });
+          patch = patch || {}; patch.lastNotifiedAt = new Date().toISOString();
+        }
+      }
+    }
 
-    due.push({ name: c.name || '?', phone: c.phone || '' });
-    batch.update(d.ref, { lastNotifiedAt: new Date().toISOString() });
+    // 2) हर काम का अपना समय (topics[].at)
+    if (Array.isArray(c.topics)) {
+      let changed = false;
+      c.topics.forEach((x) => {
+        if (!x || typeof x !== 'object' || x.done || !x.at) return;
+        const tt = new Date(x.at).getTime();
+        if (isNaN(tt) || tt > now) return;
+        const lastN = x.notifAt ? new Date(x.notifAt).getTime() : 0;
+        if (lastN >= tt && now - lastN < REMIND_GAP_MS) return;
+        dueTasks.push({ task: x.t || 'काम', name: c.name || '' });
+        x.notifAt = new Date().toISOString();
+        changed = true;
+      });
+      if (changed) { patch = patch || {}; patch.topics = c.topics; }
+    }
+
+    if (patch) batch.update(d.ref, patch);
   });
 
   // 🌅 सुबह का digest — रोज़ 7:30-8:00 IST के बीच एक बार, आज की पूरी list
@@ -129,8 +152,8 @@ async function main() {
     }
   }
 
-  if (!due.length && !digest && !sendPing) {
-    console.log('कोई call due नहीं ✓');
+  if (!due.length && !dueTasks.length && !digest && !sendPing) {
+    console.log('कोई call/काम due नहीं ✓');
     await batch.commit();
     return;
   }
@@ -153,6 +176,20 @@ async function main() {
       tag: 'vbe-digest',
     });
   }
+  if (dueTasks.length) {
+    msgs.push({
+      title:
+        dueTasks.length === 1
+          ? `⏰ काम का समय: ${String(dueTasks[0].task).slice(0, 42)}`
+          : `⏰ ${dueTasks.length} कामों का समय हो गया!`,
+      body:
+        dueTasks
+          .slice(0, 6)
+          .map((x) => `• ${x.task}${x.name && x.name !== x.task.slice(0, x.name.length) ? ' (' + x.name + ')' : ''}`)
+          .join('\n') + (dueTasks.length > 6 ? `\n…और ${dueTasks.length - 6}` : ''),
+      tag: 'vbe-task-due',
+    });
+  }
   if (due.length) {
     msgs.push({
       title:
@@ -168,22 +205,18 @@ async function main() {
     });
   }
 
-  // ══════ 📩 Telegram — reminder/plan सीधे Telegram पर (मुफ़्त, भरोसेमंद) ══════
+  // 📩 Telegram भी — token+chat _settings से (FCM हो या न हो, यह चले; मुफ़्त, भरोसेमंद)
   const tgTok = settingsData && settingsData.tgBotToken;
   let tgChat = settingsData && settingsData.tgChatId;
   let tgSent = 0;
   if (tgTok) {
     try {
-      // chat_id अभी save नहीं हुआ तो getUpdates से खुद ढूँढ लो (app में Test दबाना ज़रूरी नहीं)
       if (!tgChat) {
         const gu = await fetch('https://api.telegram.org/bot' + tgTok + '/getUpdates').then((r) => r.json());
         const ups = (gu.ok && gu.result || []).filter((u) => u.message && u.message.chat);
         if (ups.length) {
           tgChat = String(ups[ups.length - 1].message.chat.id);
           batch.set(db.collection('vbe_call_tracker').doc('_settings'), { tgChatId: tgChat }, { merge: true });
-          console.log('📩 Telegram chat_id मिला:', tgChat);
-        } else {
-          console.log('📩 Telegram token है पर chat अभी नहीं — bot को "hi" भेजें');
         }
       }
       if (tgChat) {
@@ -191,20 +224,16 @@ async function main() {
           const link = m.link || APP_LINK;
           const text = '*' + m.title.replace(/[*_`\[]/g, '') + '*\n' + m.body + '\n\n👉 ' + link;
           const rs = await fetch('https://api.telegram.org/bot' + tgTok + '/sendMessage', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ chat_id: tgChat, text, parse_mode: 'Markdown', disable_web_page_preview: true }),
           }).then((r) => r.json());
           if (rs.ok) tgSent++;
-          else console.log('📩 Telegram send fail:', rs.description || '');
         }
       }
-    } catch (e) {
-      console.log('📩 Telegram error:', e.message);
-    }
+    } catch (e) { console.log('📩 Telegram error:', e.message); }
   }
 
-  // ══════ 🔔 FCM push (app वाला) — token हों तभी ══════
+  // 🔔 FCM push — devices registered हों तभी
   const tokSnap = await db.collection('vbe_fcm_tokens').get();
   const tokenDocs = [];
   tokSnap.forEach((d) => {
@@ -212,10 +241,9 @@ async function main() {
     if (t) tokenDocs.push({ id: d.id, token: t });
   });
   const tokens = [...new Set(tokenDocs.map((x) => x.token))];
-
   if (!tokens.length) {
     await batch.commit();
-    console.log(`भेजा: ${due.length} due · FCM device 0 · Telegram ${tgSent} msg`);
+    console.log(`भेजा: FCM 0 device · Telegram ${tgSent} msg`);
     return;
   }
 
@@ -262,7 +290,7 @@ async function main() {
 
   await batch.commit();
   console.log(
-    `भेजा: ${due.length} due · FCM ${resp.successCount}/${tokens.length} · Telegram ${tgSent} msg · ${dead.length} dead हटाए`
+    `भेजा: ${due.length} due, ${resp.successCount}/${tokens.length} devices ok, ${dead.length} dead tokens हटाए`
   );
 }
 

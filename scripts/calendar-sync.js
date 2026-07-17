@@ -17,8 +17,31 @@ const admin = require('firebase-admin');
 const crypto = require('crypto');
 const { google } = require('googleapis');
 
-const DEFAULT_CALENDAR = '177mhwcanteen@gmail.com';
+const DEFAULT_CALENDAR = 'vikram7charan@gmail.com';
 const TASK_CATS = { golden: '🏆', computer: '💻', market: '🛒', jalipa: '🏪' };
+
+// Calendar API नई-नई enable हुई है → quota कम। हर call के बीच थोड़ा रुको
+// ताकि "Rate Limit Exceeded" न आए। साथ ही rate-limit पर 2 बार दोबारा कोशिश।
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const THROTTLE_MS = 600;
+function isRateLimit(e) {
+  return e && (e.code === 403 || e.code === 429 ||
+    (e.errors && e.errors[0] && /rate limit|quota|userRateLimit/i.test(e.errors[0].reason || e.errors[0].message || '')) ||
+    /rate limit/i.test(e.message || ''));
+}
+async function withRetry(fn) {
+  let lastErr;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try { return await fn(); }
+    catch (e) {
+      lastErr = e;
+      if (e.code === 409) throw e; // duplicate → caller खुद patch करेगा
+      if (!isRateLimit(e)) throw e;
+      await sleep(1500 * (attempt + 1)); // 1.5s, 3s
+    }
+  }
+  throw lastErr;
+}
 
 function normTopics(c) {
   if (Array.isArray(c.topics) && c.topics.length)
@@ -28,6 +51,19 @@ function normTopics(c) {
 function eventId(id) {
   // Google event id: सिर्फ़ a-v, 0-9 — sha1 hex (0-9a-f) safe है
   return 'vbe' + crypto.createHash('sha1').update(String(id)).digest('hex');
+}
+const APP_URL = 'https://vbe-order-tracker-60324.web.app/call-tracker.html';
+/* event description के नीचे Call/WhatsApp/App के सीधे link —
+   Google Calendar में नंबर और URL अपने-आप tap करने लायक बन जाते हैं */
+function contactLinks(id, d) {
+  const ph = (d.phone || '').replace(/[^0-9]/g, '');
+  const wa = ((d.waPhone || d.phone) || '').replace(/[^0-9]/g, '');
+  let s = '\n';
+  if (ph) s += `\n📞 Call: +91 ${ph}`;
+  if (wa) s += `\n💬 WhatsApp: https://wa.me/${wa.length === 10 ? '91' + wa : wa}`;
+  s += `\n🔗 App में खोलें: ${APP_URL}?open=${id}`;
+  s += '\n— VBE Call Tracker';
+  return s;
 }
 
 async function main() {
@@ -57,6 +93,11 @@ async function main() {
   const now = Date.now();
   let made = 0, upd = 0, del = 0, err = 0;
 
+  // sync की हालत doc में वापस लिखो — app इसी से "📅 Calendar में" badge दिखाता है
+  async function markSync(id, patch) {
+    try { await db.collection('vbe_call_tracker').doc(id).set(patch, { merge: true }); } catch (e) { /* non-fatal */ }
+  }
+
   for (const c of all) {
     const d = c.data;
     const evId = eventId(c.id);
@@ -67,20 +108,28 @@ async function main() {
       (t > now - 2 * 24 * 60 * 60 * 1000);
 
     if (!wantEvent) {
-      // पुराना event हो तो हटा दो
-      try { await cal.events.delete({ calendarId, eventId: evId }); del++; } catch (e) { /* था ही नहीं */ }
+      // event था (या पुराने docs में पता नहीं) तो हटाओ; calSynced:false लिखो
+      if (d.calSynced !== false) {
+        try { await cal.events.delete({ calendarId, eventId: evId }); del++; console.log('- ', d.name); } catch (e) { /* था ही नहीं */ }
+        await markSync(c.id, { calSynced: false });
+        await sleep(THROTTLE_MS);
+      }
+      // main event नहीं, पर नीचे per-task events फिर भी sync होंगे
+      await syncTopicEvents(c, d);
       continue;
     }
 
     const start = new Date(t);
-    const end = new Date(t + 15 * 60 * 1000);
+    const durMin = Number(d.durationMins) > 0 ? Number(d.durationMins) : 15;
+    const end = new Date(t + durMin * 60 * 1000);
     const desc = active.map((x, i) =>
       `${i + 1}. ${x.cat && TASK_CATS[x.cat] ? TASK_CATS[x.cat] + ' ' : ''}${x.t}`
-    ).join('\n') + `\n\n📱 ${d.phone || ''}\n— VBE Call Tracker`;
+    ).join('\n') + contactLinks(c.id, d);
 
     const body = {
       id: evId,
-      summary: '📞 Call: ' + (d.name || '?'),
+      // खुद के task (aiQuick) पर 📅, contact call पर 📞 Call:
+      summary: (d.aiQuick ? ((d.emoji || '📅') + ' ') : '📞 Call: ') + (d.name || '?'),
       description: desc,
       start: { dateTime: start.toISOString(), timeZone: 'Asia/Kolkata' },
       end: { dateTime: end.toISOString(), timeZone: 'Asia/Kolkata' },
@@ -93,18 +142,90 @@ async function main() {
       },
     };
 
+    let synced = false;
     try {
-      await cal.events.insert({ calendarId, requestBody: body });
-      made++; console.log('+ ', d.name);
+      await withRetry(() => cal.events.insert({ calendarId, requestBody: body }));
+      made++; synced = true; console.log('+ ', d.name);
     } catch (e) {
       if (e.code === 409 || (e.errors && e.errors[0] && e.errors[0].reason === 'duplicate')) {
         try {
-          await cal.events.patch({ calendarId, eventId: evId, requestBody: body });
-          upd++; console.log('~ ', d.name);
+          await withRetry(() => cal.events.patch({ calendarId, eventId: evId, requestBody: body }));
+          upd++; synced = true; console.log('~ ', d.name);
         } catch (e2) { err++; console.error('✗', d.name, e2.message); }
       } else { err++; console.error('✗', d.name, e.message); }
     }
+    if (synced) await markSync(c.id, { calSynced: true, calSyncedAt: new Date().toISOString(), calEventFor: d.nextCallAt });
+    await sleep(THROTTLE_MS); // अगली call से पहले रुको (rate limit से बचाव)
+
+    await syncTopicEvents(c, d);
   }
+
+  /* ── हर काम का अपना समय (topic.at + tid) → अलग calendar event ──
+     schedule.html से किसी काम पर ⏰ लगाने से topic में {at, tid} आता है।
+     tid स्थायी id है — event उसी से बनता/हटता है। doc में calTopicsSynced
+     map ({tid: at}) लिखते हैं ताकि app badge दिखा सके और हटे काम का event
+     अगले run में साफ़ हो। */
+  async function syncTopicEvents(c, d) {
+    const topics = normTopics(d);
+    const tmap = (d.calTopicsSynced && typeof d.calTopicsSynced === 'object') ? d.calTopicsSynced : {};
+    const newMap = {};
+    let touched = false;
+    for (const x of topics) {
+      if (!x || !x.tid) continue;
+      const tt = x.at ? new Date(x.at).getTime() : 0;
+      const evTid = eventId(c.id + '_' + x.tid);
+      const wantT = d.active !== false && !x.done && tt > 0 && tt > now - 2 * 24 * 60 * 60 * 1000;
+      if (!wantT) {
+        if (tmap[x.tid]) {
+          try { await cal.events.delete({ calendarId, eventId: evTid }); del++; console.log('-⏰', String(x.t).slice(0, 30)); } catch (e) { /* था ही नहीं */ }
+          touched = true;
+          await sleep(THROTTLE_MS);
+        }
+        continue;
+      }
+      const tb = {
+        id: evTid,
+        summary: '⏰ ' + String(x.t).slice(0, 80) + (d.aiQuick ? '' : ' — ' + (d.name || '')),
+        description: (x.t || '') + `\n\n📌 ${d.name || ''}` + contactLinks(c.id, d),
+        start: { dateTime: new Date(tt).toISOString(), timeZone: 'Asia/Kolkata' },
+        end: { dateTime: new Date(tt + 15 * 60000).toISOString(), timeZone: 'Asia/Kolkata' },
+        reminders: {
+          useDefault: false,
+          overrides: [
+            { method: 'popup', minutes: 0 },
+            { method: 'popup', minutes: 10 },
+          ],
+        },
+      };
+      let ok = false;
+      try {
+        await withRetry(() => cal.events.insert({ calendarId, requestBody: tb }));
+        made++; ok = true; console.log('+⏰', String(x.t).slice(0, 30));
+      } catch (e) {
+        if (e.code === 409 || (e.errors && e.errors[0] && e.errors[0].reason === 'duplicate')) {
+          try {
+            await withRetry(() => cal.events.patch({ calendarId, eventId: evTid, requestBody: tb }));
+            upd++; ok = true; console.log('~⏰', String(x.t).slice(0, 30));
+          } catch (e2) { err++; console.error('✗⏰', String(x.t).slice(0, 30), e2.message); }
+        } else { err++; console.error('✗⏰', String(x.t).slice(0, 30), e.message); }
+      }
+      if (ok) newMap[x.tid] = x.at;
+      if (tmap[x.tid] !== newMap[x.tid]) touched = true;
+      await sleep(THROTTLE_MS);
+    }
+    // topics से हटे tids के events भी साफ़ करो
+    for (const tid of Object.keys(tmap)) {
+      if (topics.find((x) => x && x.tid === tid)) continue;
+      try { await cal.events.delete({ calendarId, eventId: eventId(c.id + '_' + tid) }); del++; } catch (e) { /* था ही नहीं */ }
+      touched = true;
+      await sleep(THROTTLE_MS);
+    }
+    if (touched) {
+      // पूरा map बदलो (merge नहीं) ताकि हटे tids भी साफ़ हों
+      try { await db.collection('vbe_call_tracker').doc(c.id).update({ calTopicsSynced: newMap }); } catch (e) { /* non-fatal */ }
+    }
+  }
+
   console.log(`Calendar: ${made} बने, ${upd} अपडेट, ${del} हटाए, ${err} error (calendar=${calendarId})`);
 }
 

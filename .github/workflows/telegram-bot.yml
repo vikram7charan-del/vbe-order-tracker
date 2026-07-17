@@ -1,0 +1,42 @@
+# ══════════════════════════════════════════════════════════
+# 📩 VBE Telegram Bot — two-way (हर 5 min, ~3.5 min long-poll)
+# जवाब लगभग तुरंत। Token/chat app के _settings से आते हैं —
+# कोई नया secret नहीं चाहिए (सिर्फ़ FIREBASE_SA, पहले से है)।
+#
+# ⚠️ यह background bot सिर्फ़ DEFAULT (main) branch से चलता है —
+#    GitHub का नियम। इसलिए इसे main में merge करना ज़रूरी है।
+# ══════════════════════════════════════════════════════════
+name: 📩 Telegram Bot
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'किस branch से चलाएँ'
+        required: false
+        default: 'main'
+
+concurrency:
+  group: telegram-bot
+  cancel-in-progress: false
+
+jobs:
+  bot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install firebase-admin
+        run: npm install firebase-admin --no-save --no-audit --no-fund
+      - name: Run Telegram bot poller
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
+          TG_LOOP_MS: '210000'
+        run: node scripts/telegram-bot.js

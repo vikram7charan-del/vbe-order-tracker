@@ -3443,6 +3443,10 @@ function _aicGrounded(q){
     const late=(t.at&&new Date(t.at).getTime()<Date.now())?' [लेट]':'';
     return `- ${t.name}: ${t.t}${t.at?' | समय:'+_dmy(t.at,true):''}${t.addedAt?' | जोड़ा:'+_dmy(t.addedAt):''}${t.assignTo?' | सौंपा:'+t.assignTo:''}${t.cat?' | '+t.cat:''}${late}`;
   }).join('\n');
+  // 🧠 अमीर context — आज की हालत + focus + staff, ताकि जवाब हर कोण से समझदार हो
+  const st=aicStats();
+  const F=(Array.isArray(_focus)?_focus:[]).slice(0,6).map(f=>{const own={v:'विक्रम',d:'दिनेश',k:'कैलाश'}[f.own||'v'];return own+': '+f.t+(f.until<Date.now()?' [लेट]':'');}).join(' | ')||'कोई नहीं';
+  const SP=(()=>{try{const P=ableStaff();return Object.keys(P).slice(0,5).map(k=>P[k].name+' '+P[k].done+'✓/'+P[k].pend+' बाकी'+(P[k].late?'/'+P[k].late+' लेट':'')).join(', ')||'—';}catch(e){return '—';}})();
   const nowS=new Date().toLocaleString('hi-IN',{timeZone:'Asia/Kolkata'});
   return `तुम विक्रम चारण (Vande Bharat Enterprises, जालीपा कैंट, बाड़मेर — army supply) के अनुभवी Chief Operating Officer (COO) हो — आत्मविश्वासी, शांत, तथ्य-आधारित; कभी बढ़ा-चढ़ाकर नहीं।
 सख़्त नियम (कभी मत तोड़ो):
@@ -3450,7 +3454,11 @@ function _aicGrounded(q){
 2. "शायद", "हो सकता है", "संभवतः", "मुमकिन है" जैसे शब्द कभी मत लिखो।
 3. अगर जवाब DATA में नहीं है, तो साफ़ लिखो: "यह जानकारी रिकॉर्ड में नहीं है।" और बताओ कि कौन सी जानकारी दर्ज करने से यह मिल पाएगी।
 4. छोटा, सीधा, गर्मजोशी वाला हिंदी (4-7 पंक्तियाँ, ज़रूरत हो तो बुलेट)। सलाह practical।
+5. पहले सीधा जवाब दो, फिर ज़रूरत हो तो 1 practical सुझाव।
 आज: ${nowS}
+आज की हालत: ${st.todayN} काम आज, ${st.late} लेट, ${st.doneN} पूरे, ${st.callsDue} call बाकी।
+🎯 Focus में: ${F}
+👥 Staff: ${SP}
 
 DATA (active काम):
 ${recs||'(कोई active काम नहीं)'}
@@ -4755,12 +4763,14 @@ const BG_SCENES=[
   {k:'orbs',  em:'🫧',nm:'ऊर्जा'},
   {k:'fire',  em:'🔥',nm:'जुगनू'},
   {k:'silk',  em:'🌊',nm:'लहरें'},
+  {k:'rain',  em:'🌧️',nm:'बारिश'},
+  {k:'fw',    em:'🎆',nm:'आतिशबाज़ी'},
   {k:'none',  em:'🚫',nm:'सादा'},
 ];
 const LVL_SHORT={off:'🚫 बंद',soft:'🍃 हल्की',premium:'✨ Premium',max:'🚀 Max'};
 let _scene=localStorage.getItem('vbe_ct_scene')||'aurora';
 let _bgCv=null,_bgX=null,_bgW=0,_bgH=0,_bgDpr=1,_bgParts=[],_bgT=0,_bgRAF=0,_bgPaused=false;
-let _bgSprites={},_bgBase=null,_bgVig=null,_bgLite=[],_bgShoot=null;
+let _bgSprites={},_bgBase=null,_bgVig=null,_bgLite=[],_bgShoot=null,_bgFw=[],_bgPal=null;
 function _cssv(v){ return (getComputedStyle(document.body).getPropertyValue(v)||'').trim(); }
 function _rgb(h){ h=(h||'a855f7').replace('#',''); if(h.length===3)h=h.split('').map(c=>c+c).join(''); const n=parseInt(h,16); return [(n>>16)&255,(n>>8)&255,n&255]; }
 function _inten(){ return _anim==='soft'?.6:_anim==='max'?1.4:1; }
@@ -4795,8 +4805,9 @@ function bgResize(){
   _buildBase(); _buildVig();
 }
 function bgInit(){
-  _bgParts=[]; _bgSprites={}; _bgShoot=null;
+  _bgParts=[]; _bgSprites={}; _bgShoot=null; _bgFw=[];
   const a=_rgb(_cssv('--acc')||'#a855f7'), a2=_rgb(_cssv('--acc2')||'#6366f1'), a3=[96,72,214], gold=[255,214,120], white=[224,231,255];
+  _bgPal={a,a2,gold};
   const D=Math.max(_bgW,_bgH);
   // ✦ ambient cinematic lighting — हर scene में गहराई देता है
   _bgLite=[
@@ -4819,6 +4830,9 @@ function bgInit(){
   } else if(_scene==='silk'){
     const n=_cnt(6);
     for(let i=0;i<n;i++)_bgParts.push({k:'w',y:(_bgH*(i+1))/(n+1),amp:22+Math.random()*44,freq:0.005+Math.random()*0.006,sp:0.4+Math.random()*0.8,ph:Math.random()*7,c:i%2?a2:a});
+  } else if(_scene==='rain'){
+    const n=_cnt(70);
+    for(let i=0;i<n;i++)_bgParts.push({k:'r',x:Math.random()*_bgW,y:Math.random()*_bgH,len:9+Math.random()*15,sp:6.5+Math.random()*7,dr:0.8+Math.random()*1.2,al:0.18+Math.random()*0.3});
   }
 }
 function bgDraw(){
@@ -4873,6 +4887,38 @@ function bgDraw(){
     }
     x.globalAlpha=1;
   }
+  // 🌧️ बारिश — तिरछी बूँदें
+  if(_scene==='rain'){
+    x.lineWidth=1.3; x.lineCap='round';
+    for(const p of _bgParts){
+      if(p.k!=='r') continue;
+      p.y+=p.sp; p.x+=p.dr;
+      if(p.y>_bgH+20){ p.y=-20; p.x=Math.random()*_bgW; }
+      if(p.x>_bgW+10) p.x=-10;
+      x.strokeStyle='rgba(165,200,255,'+(p.al*IN)+')';
+      x.beginPath(); x.moveTo(p.x,p.y); x.lineTo(p.x-p.dr*2.2,p.y-p.len); x.stroke();
+    }
+  }
+  // 🎆 आतिशबाज़ी — रह-रहकर रंगीन फूल
+  if(_scene==='fw'){
+    if(_bgPal && Math.random()<0.035*IN && _bgFw.length<6){
+      const cols=[_bgPal.a,_bgPal.a2,_bgPal.gold,[255,120,160],[130,255,180]];
+      const col=cols[Math.floor(Math.random()*cols.length)];
+      const bx=_bgW*(0.12+Math.random()*0.76), by=_bgH*(0.12+Math.random()*0.45);
+      const sp=[]; const N2=26;
+      for(let k=0;k<N2;k++){ const an=Math.PI*2*k/N2+Math.random()*0.22, v=1.4+Math.random()*2.6;
+        sp.push({x:bx,y:by,vx:Math.cos(an)*v,vy:Math.sin(an)*v,life:1,c:col}); }
+      _bgFw.push(sp);
+    }
+    x.globalCompositeOperation='lighter';
+    _bgFw.forEach(burst=>burst.forEach(p=>{
+      if(p.life<=0) return;
+      p.x+=p.vx; p.y+=p.vy; p.vy+=0.028; p.vx*=0.985; p.life-=0.012;
+      if(p.life>0){ const R=5.5; x.globalAlpha=Math.max(0,p.life)*IN; x.drawImage(_glow(p.c),p.x-R,p.y-R,R*2,R*2); }
+    }));
+    _bgFw=_bgFw.filter(b=>b.some(p=>p.life>0));
+    x.globalAlpha=1; x.globalCompositeOperation='source-over';
+  }
   // 3b) shooting star (सिर्फ़ तारे scene में, कभी-कभी)
   if(_scene==='stars'){
     if(!_bgShoot && Math.random()<0.004) _bgShoot={x:Math.random()*_bgW*0.6,y:Math.random()*_bgH*0.35,len:110+Math.random()*110,vx:6+Math.random()*4,vy:2.2+Math.random()*1.8,life:1};
@@ -4913,6 +4959,8 @@ function scenePreview(k){
     case 'orbs':   return `radial-gradient(circle at 34% 40%,${a}88,transparent 55%),radial-gradient(circle at 68% 66%,${a2}77,transparent 50%),#0a1022`;
     case 'fire':   return `radial-gradient(2.5px 2.5px at 30% 42%,#ffe27a,transparent),radial-gradient(2.5px 2.5px at 70% 56%,#ffd24d,transparent),radial-gradient(2px 2px at 50% 76%,#ffe27a,transparent),#0a0f1e`;
     case 'silk':   return `linear-gradient(160deg,${a}55,transparent 42%),linear-gradient(20deg,${a2}55,transparent 46%),#0a1022`;
+    case 'rain':   return `repeating-linear-gradient(105deg,transparent 0 7px,rgba(165,200,255,.30) 7px 8.5px),#08101f`;
+    case 'fw':     return `radial-gradient(circle at 30% 30%,${a}99,transparent 22%),radial-gradient(circle at 70% 55%,#ffd24d88,transparent 20%),radial-gradient(circle at 50% 75%,${a2}88,transparent 18%),#090c1a`;
     default:       return 'linear-gradient(160deg,#12203f,#0a1022)';
   }
 }

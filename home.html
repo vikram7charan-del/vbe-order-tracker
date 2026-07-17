@@ -32,6 +32,7 @@ svg{display:block}
 .top .nm{font-size:22px;font-weight:800;letter-spacing:-.03em;margin-top:1px}
 .iconbtn{width:42px;height:42px;border-radius:13px;background:var(--card);border:1px solid var(--line);box-shadow:var(--sh-sm);display:flex;align-items:center;justify-content:center;color:var(--ink2);cursor:pointer}
 .iconbtn:active{transform:scale(.94)}
+@keyframes micpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12);box-shadow:0 0 0 7px rgba(37,99,235,.22)}}
 .iconbtn .ico{width:21px;height:21px}
 
 /* hero cashflow */
@@ -131,6 +132,9 @@ svg{display:block}
       <div class="nm">विक्रम जी</div>
     </div>
     <div style="display:flex;gap:9px">
+      <div class="iconbtn" id="mic-btn" onclick="startVoice()" aria-label="बोलकर काम" style="background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff;border:none">
+        <svg class="ico" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v1a7 7 0 0 0 14 0v-1M12 18v4"/></svg>
+      </div>
       <a class="iconbtn" href="./search.html" aria-label="search" style="text-decoration:none">
         <svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
       </a>
@@ -230,6 +234,41 @@ svg{display:block}
 <script>
 function openMenu(){document.getElementById('sheet').style.display='block';}
 function closeMenu(){document.getElementById('sheet').style.display='none';}
+
+// ── 🎙️ बोलकर काम (2027 workflow) — हिंदी में बोलो, app सही जगह ले जाएगा ──
+function voiceRoute(t, go){
+  const s=String(t||'').toLowerCase();
+  let u='./search.html?q='+encodeURIComponent(String(t||'').trim());
+  if(/(हिसाब|महीने|महीना|बचत|मुनाफ|कमाई|profit)/.test(s)) u='./hisab.html';
+  else if(/(खर्च|खर्चा).*(कितना|दिखा|बता)/.test(s)) u='./hisab.html';
+  else if(/(बही|स्टेटमेंट|statement|लेन ?देन)/.test(s)) u='./statement.html';
+  else if(/(एंट्री|entry)|((खर्चा|खर्च|बिल).*(डाल|लिख|जोड़|बना))|फोटो/.test(s)) u='./kharcha-entry.html';
+  else if(/(बैकअप|backup|रिपोर्ट|डैशबोर्ड|dashboard)/.test(s)) u='./kharcha-dashboard.html';
+  else if(/(रेट|भाव|price)/.test(s)){
+    const item=String(t).replace(/(का|की|के)?\s*(रेट|भाव|price)[\s\S]*$/i,'').replace(/^(आज|अभी|क्या)\s*/,'').trim();
+    u='./search.html?q='+encodeURIComponent(item||String(t).trim());
+  }
+  if(go!==false) location.href=u;
+  return u;
+}
+window.voiceRoute=voiceRoute;
+window.startVoice=function(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){ location.href='./search.html'; return; }
+  const r=new SR(); r.lang='hi-IN'; r.interimResults=false; r.maxAlternatives=1;
+  const mic=document.getElementById('mic-btn');
+  mic.style.animation='micpulse 1s infinite';
+  const hint=document.createElement('div');
+  hint.id='voice-hint';
+  hint.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:110px;background:#0f172a;color:#fff;padding:12px 22px;border-radius:14px;font-weight:800;font-size:14px;z-index:300;box-shadow:0 10px 30px rgba(15,23,42,.4)';
+  hint.textContent='🎙️ बोलिए… जैसे "आलू का रेट" या "महीने का हिसाब"';
+  document.body.appendChild(hint);
+  const done=()=>{ mic.style.animation=''; hint.remove(); };
+  r.onresult=e=>{ done(); voiceRoute(e.results[0][0].transcript||''); };
+  r.onerror=e=>{ done(); if(e.error==='not-allowed') alert('माइक की permission दो — browser ऊपर पूछेगा'); };
+  r.onend=done;
+  try{ r.start(); }catch(e){ done(); }
+};
 </script>
 
 <script type="module">

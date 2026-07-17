@@ -24,6 +24,10 @@ body{background:#eef2f6;color:#0f172a;font-family:'Noto Sans Devanagari',sans-se
 .search-box svg{width:20px;height:20px;stroke:#94a3b8;stroke-width:2.2;fill:none;flex:0 0 auto}
 .search-box input{border:none;outline:none;flex:1;font-size:15px;font-weight:700;font-family:inherit;color:#0f172a;background:transparent;min-width:0}
 .search-box .clr{border:none;background:#f1f5f9;color:#64748b;border-radius:8px;padding:4px 9px;font-weight:900;font-size:13px;cursor:pointer;font-family:inherit;display:none}
+.search-box .mic{border:none;background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff;border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto;box-shadow:0 4px 10px -3px rgba(37,99,235,.5)}
+.search-box .mic svg{width:18px;height:18px;stroke:#fff;stroke-width:2.2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.search-box .mic.rec{animation:micpulse 1s infinite}
+@keyframes micpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15);box-shadow:0 0 0 6px rgba(37,99,235,.25)}}
 .hint-chips{display:flex;gap:7px;overflow-x:auto;padding:9px 2px 1px;scrollbar-width:none}
 .hint-chips::-webkit-scrollbar{display:none}
 .hint-chips button{flex:0 0 auto;border:1.5px solid #dbeafe;background:#fff;color:#1d4ed8;border-radius:999px;padding:6px 12px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;font-family:inherit}
@@ -68,6 +72,7 @@ body{background:#eef2f6;color:#0f172a;font-family:'Noto Sans Devanagari',sans-se
       <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
       <input id="q" type="search" inputmode="search" placeholder="चावल, पार्टी का नाम, मोबाइल, GST, रकम…" autocomplete="off">
       <button class="clr" id="clr" onclick="clearQ()">✕</button>
+      <button class="mic" id="mic-btn" onclick="startVoiceSearch()" aria-label="बोलकर खोजो"><svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v1a7 7 0 0 0 14 0v-1M12 18v4"/></svg></button>
     </div>
     <div class="hint-chips" id="hints"></div>
   </div>
@@ -209,6 +214,32 @@ async function loadAll(){
   const q=document.getElementById('q').value.trim();
   if(q) runSearch(q);
 }
+
+// ── URL से सीधी खोज (voice/links के लिए): search.html?q=चावल ──
+(function(){
+  try{
+    const uq=new URLSearchParams(location.search).get('q');
+    if(uq){ const el=document.getElementById('q'); el.value=uq;
+      document.getElementById('clr').style.display='block';
+      runSearch(uq.trim()); }  // data आने पर loadAll दोबारा चला देगा
+  }catch(e){}
+})();
+
+// ── 🎙️ बोलकर खोजो ──
+window.startVoiceSearch=function(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){ toast('इस browser में voice नहीं चलता — Chrome इस्तेमाल करो'); return; }
+  const r=new SR(); r.lang='hi-IN'; r.interimResults=false; r.maxAlternatives=1;
+  const mic=document.getElementById('mic-btn');
+  mic.classList.add('rec'); toast('🎙️ बोलिए…');
+  r.onresult=e=>{ const t=e.results[0][0].transcript||'';
+    const el=document.getElementById('q'); el.value=t;
+    document.getElementById('clr').style.display='block';
+    runSearch(t.trim()); };
+  r.onerror=e=>{ toast(e.error==='not-allowed'?'माइक की permission दो (browser पूछेगा)':'सुनाई नहीं दिया — दोबारा बोलो'); };
+  r.onend=()=>mic.classList.remove('rec');
+  try{ r.start(); }catch(e){}
+};
 
 // ── हिंट chips ──
 const HINTS=['चावल','तेल','आलू','सुशीला','उज्जवल','Cash'];

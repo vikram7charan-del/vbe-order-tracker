@@ -1005,6 +1005,7 @@ body.hdr-folded .hdr-row2{display:none}
         <button class="btn-icon" onclick="openAnimStudio()" title="🎬 Animation Studio — जीवंत background और जोश का स्तर चुनें" style="cursor:pointer;font-family:inherit">🎬</button>
         <button class="btn-icon" onclick="unhideAll()" title="Swipe किए हुए सब वापस लाओ" style="cursor:pointer;font-family:inherit">👁️</button>
         <button class="btn-icon" onclick="setAiKey()" title="🤖 Anthropic AI key डालें/बदलें" style="cursor:pointer;font-family:inherit">⚙️</button>
+        <button class="btn-icon" onclick="tgConnect()" title="📩 Telegram जोड़ें — reminder/plan सीधे Telegram पर" style="cursor:pointer;font-family:inherit">📩</button>
         <a href="./quick-add.html" class="btn-icon" title="Quick Order Add">📦</a>
         <button class="btn-icon" id="day-btn" onclick="gotoDay()" title="📅 मेरा दिन — इसी पेज पर timeline" style="cursor:pointer;font-family:inherit">📅 दिन</button>
         <span id="hdr-search" style="flex:1;min-width:110px;max-width:230px;position:relative;display:flex">
@@ -4644,6 +4645,57 @@ window.setAiKey=async function(){
     try{ await setDoc(doc(db,'vbe_call_tracker','_settings'),{id:'_settings',aiKey:k},{merge:true}); }catch(e){}
     toast('✅ Claude key save — 🎙️/✨/🤖 सब चालू!');
   } else toast('⚠️ key AIza (Gemini) या sk-ant (Claude) से शुरू होती है','err');
+};
+
+/* ══════════ 📩 Telegram — reminder/plan सीधे Telegram पर (मुफ़्त) ══════════
+   token + chat_id दोनों _settings में save (locked DB) — GitHub छूने की ज़रूरत नहीं।
+   cron (scripts/call-reminders.js) इन्हें पढ़कर हर reminder Telegram पर भी भेजता है। */
+function tgTok(){ return (window._settings&&window._settings.tgBotToken)||''; }
+window.tgConnect=async function(){
+  const cur=tgTok();
+  const msg=cur
+    ? '📩 Telegram पहले से जुड़ा है ✓\n\nToken बदलना हो तो नया डालें, वरना Cancel दबाएँ।\n(अगर message नहीं आ रहे — "hi" भेजकर 🔄 Test करें)'
+    : '📩 Telegram जोड़ें — 2 आसान कदम:\n\n1️⃣ Telegram में @BotFather खोलें → /newbot → नाम रखें → वो एक TOKEN देगा (7891234:AAH... जैसा)\n\n2️⃣ वो पूरा token यहाँ paste करें 👇';
+  const v=prompt(msg, cur?cur.slice(0,10)+'…':'');
+  if(v===null) return;
+  const k=v.trim();
+  if(!k){ // हटाओ
+    window._settings=window._settings||{}; window._settings.tgBotToken=''; window._settings.tgChatId='';
+    try{ await setDoc(doc(db,'vbe_call_tracker','_settings'),{id:'_settings',tgBotToken:'',tgChatId:''},{merge:true}); }catch(e){}
+    toast('📩 Telegram हटा दिया'); return;
+  }
+  if(k.includes('…')) { tgTest(); return; } // बिना बदले OK → सीधे Test
+  if(!/^\d{6,}:[A-Za-z0-9_-]{30,}$/.test(k)){ toast('⚠️ यह token सही नहीं लग रहा — @BotFather वाला पूरा token डालें','err'); return; }
+  window._settings=window._settings||{}; window._settings.tgBotToken=k; window._settings.tgChatId='';
+  try{ await setDoc(doc(db,'vbe_call_tracker','_settings'),{id:'_settings',tgBotToken:k,tgChatId:''},{merge:true}); }catch(e){}
+  toast('✅ Token save! अब bot को Telegram पर "hi" भेजें…');
+  setTimeout(()=>{ alert('📩 आख़िरी कदम:\n\n1. अपने नए bot को Telegram पर खोलें\n2. उसे "hi" (या कुछ भी) भेजें\n3. फिर OK दबाएँ — मैं जोड़ जाँच लूँगा'); tgTest(); }, 400);
+};
+/* getUpdates से chat_id ढूँढो + test message भेजो — पूरा browser से, मुफ़्त */
+window.tgTest=async function(){
+  const tok=tgTok();
+  if(!tok){ toast('पहले 📩 से token डालें','err'); return; }
+  toast('🔄 Telegram जाँच रहे…');
+  try{
+    let chatId=(window._settings&&window._settings.tgChatId)||'';
+    if(!chatId){
+      const r=await fetch('https://api.telegram.org/bot'+tok+'/getUpdates');
+      const j=await r.json();
+      if(!j.ok){ toast('⚠️ token ग़लत लग रहा — दोबारा 📩 से डालें','err'); return; }
+      const upd=(j.result||[]).filter(u=>u.message&&u.message.chat);
+      if(!upd.length){ alert('❗ अभी तक आपका message नहीं मिला।\n\nपहले अपने bot को Telegram पर "hi" भेजें, फिर दोबारा 📩 → OK दबाएँ।'); return; }
+      chatId=String(upd[upd.length-1].message.chat.id);
+      window._settings=window._settings||{}; window._settings.tgChatId=chatId;
+      try{ await setDoc(doc(db,'vbe_call_tracker','_settings'),{id:'_settings',tgChatId:chatId},{merge:true}); }catch(e){}
+    }
+    const rs=await fetch('https://api.telegram.org/bot'+tok+'/sendMessage',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({chat_id:chatId,text:'✅ विक्रम भाई का काम-tracker जुड़ गया! 🎉\nअब सारे reminder और दिन का प्लान यहीं Telegram पर आएँगे।'})
+    });
+    const js=await rs.json();
+    if(js.ok) toast('🎉 जुड़ गया! Telegram देखें — test message आ गया');
+    else toast('⚠️ भेज नहीं पाए — "hi" भेजकर दोबारा Test करें','err');
+  }catch(e){ toast('⚠️ Telegram से बात नहीं हो पाई — internet देखें','err'); }
 };
 window.spSchedMain=function(){ openSchedPick('c',_spId); };
 

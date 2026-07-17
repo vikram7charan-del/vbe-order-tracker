@@ -135,20 +135,6 @@ async function main() {
     return;
   }
 
-  const tokSnap = await db.collection('vbe_fcm_tokens').get();
-  const tokenDocs = [];
-  tokSnap.forEach((d) => {
-    const t = (d.data() || {}).token;
-    if (t) tokenDocs.push({ id: d.id, token: t });
-  });
-  const tokens = [...new Set(tokenDocs.map((x) => x.token))];
-
-  if (!tokens.length) {
-    console.log('कोई FCM token नहीं — app खोलकर notification allow करो');
-    await batch.commit();
-    return;
-  }
-
   const msgs = [];
   if (sendPing) {
     msgs.push({
@@ -180,6 +166,57 @@ async function main() {
           .join('\n') + (due.length > 6 ? `\n…और ${due.length - 6}` : ''),
       tag: 'vbe-call-due',
     });
+  }
+
+  // ══════ 📩 Telegram — reminder/plan सीधे Telegram पर (मुफ़्त, भरोसेमंद) ══════
+  const tgTok = settingsData && settingsData.tgBotToken;
+  let tgChat = settingsData && settingsData.tgChatId;
+  let tgSent = 0;
+  if (tgTok) {
+    try {
+      // chat_id अभी save नहीं हुआ तो getUpdates से खुद ढूँढ लो (app में Test दबाना ज़रूरी नहीं)
+      if (!tgChat) {
+        const gu = await fetch('https://api.telegram.org/bot' + tgTok + '/getUpdates').then((r) => r.json());
+        const ups = (gu.ok && gu.result || []).filter((u) => u.message && u.message.chat);
+        if (ups.length) {
+          tgChat = String(ups[ups.length - 1].message.chat.id);
+          batch.set(db.collection('vbe_call_tracker').doc('_settings'), { tgChatId: tgChat }, { merge: true });
+          console.log('📩 Telegram chat_id मिला:', tgChat);
+        } else {
+          console.log('📩 Telegram token है पर chat अभी नहीं — bot को "hi" भेजें');
+        }
+      }
+      if (tgChat) {
+        for (const m of msgs) {
+          const link = m.link || APP_LINK;
+          const text = '*' + m.title.replace(/[*_`\[]/g, '') + '*\n' + m.body + '\n\n👉 ' + link;
+          const rs = await fetch('https://api.telegram.org/bot' + tgTok + '/sendMessage', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: tgChat, text, parse_mode: 'Markdown', disable_web_page_preview: true }),
+          }).then((r) => r.json());
+          if (rs.ok) tgSent++;
+          else console.log('📩 Telegram send fail:', rs.description || '');
+        }
+      }
+    } catch (e) {
+      console.log('📩 Telegram error:', e.message);
+    }
+  }
+
+  // ══════ 🔔 FCM push (app वाला) — token हों तभी ══════
+  const tokSnap = await db.collection('vbe_fcm_tokens').get();
+  const tokenDocs = [];
+  tokSnap.forEach((d) => {
+    const t = (d.data() || {}).token;
+    if (t) tokenDocs.push({ id: d.id, token: t });
+  });
+  const tokens = [...new Set(tokenDocs.map((x) => x.token))];
+
+  if (!tokens.length) {
+    await batch.commit();
+    console.log(`भेजा: ${due.length} due · FCM device 0 · Telegram ${tgSent} msg`);
+    return;
   }
 
   let resp = null;
@@ -225,7 +262,7 @@ async function main() {
 
   await batch.commit();
   console.log(
-    `भेजा: ${due.length} due, ${resp.successCount}/${tokens.length} devices ok, ${dead.length} dead tokens हटाए`
+    `भेजा: ${due.length} due · FCM ${resp.successCount}/${tokens.length} · Telegram ${tgSent} msg · ${dead.length} dead हटाए`
   );
 }
 

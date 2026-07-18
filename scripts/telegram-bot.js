@@ -29,26 +29,23 @@ async function main() {
   let ownerChat = data.settings.tgChatId ? String(data.settings.tgChatId) : '';
   let offset = Number(data.settings.tgOffset || 0);
 
-  // ⚡ नए काम + 🎯 focus-start auto-push (शुरू में + हर ~3 min loop के अंदर)
+  // 🎯 focus चालू होने का confirm (शुरू में) — बाक़ी auto-spam बंद, सिर्फ़ periodic menu
   try {
-    const pc = await tg.autoPushNew(col, data, ownerChat); for (const c of pc) await tgApi(tok, c.method, c.body);
     const fc = await tg.autoPushFocus(col, data, ownerChat); for (const c of fc) await tgApi(tok, c.method, c.body);
   } catch (e) {}
 
   const t0 = Date.now(); let handled = 0, dirty = false, lastPush = Date.now();
   console.log('📩 poller — loop', Math.round(LOOP_MS / 1000) + 's');
   while (Date.now() - t0 < LOOP_MS) {
-    // हर ~3 min: नए काम की जाँच (लंबे run में भी auto-push ताज़ा रहे)
+    // हर ~3 min: focus-start confirm + periodic छोटा Review menu (कम-spam design)
     if (Date.now() - lastPush > 180000) {
       lastPush = Date.now();
       try {
         const s = tg.collectAll(await col.get());
-        const pc = await tg.autoPushNew(col, s, ownerChat);
-        for (const c of pc) await tgApi(tok, c.method, c.body);
         const fc = await tg.autoPushFocus(col, s, ownerChat);
         for (const c of fc) await tgApi(tok, c.method, c.body);
-        const ng = await tg.autoPushNudge(col, s, ownerChat);
-        for (const c of ng) await tgApi(tok, c.method, c.body);
+        const mn = await tg.autoPushMenu(col, s, ownerChat);
+        for (const c of mn) await tgApi(tok, c.method, c.body);
       } catch (e) {}
     }
     let j;

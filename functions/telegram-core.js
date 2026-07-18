@@ -57,7 +57,7 @@ function focusItemsOf(data, own){
   return items.map(f=>{
     const c=byId[f.id]; let done=false, cat='', pri='';
     if(c){ const tp=topics(c); const tt=tp[f.i]; if(tt){ if(tt.done) done=true; cat=tt.cat||''; pri=tt.pri||''; } }
-    return {...f, cname:c?c.name:'', done, cat, pri};
+    return {...f, cname:c?c.name:'', cphone:c?(c.phone||c.waPhone||''):'', done, cat, pri};
   }).filter(f=>!f.done).sort((a,b)=>{
     const cr=catRank(a.cat)-catRank(b.cat); if(cr) return cr;              // श्रेणी-क्रम
     const pr=(a.pri==='high'?0:1)-(b.pri==='high'?0:1); if(pr) return pr;  // ज़रूरी पहले
@@ -86,8 +86,60 @@ function focusDash(data, own, now){
   out+=`\n\n⏱ हर काम की घड़ी focus में डालते ही चालू है। नई गिनती के लिए 🔄 ताज़ा दबाएँ।\n✅ नीचे नंबर दबाकर कोई भी काम पूरा करें।`;
   const btns=show.map((f,i)=>({text:'✅'+(i+1),callback_data:('x|'+f.key).slice(0,64)}));
   const rows=[]; for(let i=0;i<btns.length;i+=5) rows.push(btns.slice(i,i+5));
-  rows.push([{text:'🔄 ताज़ा',callback_data:'fd|'+own},{text:'📍 App',url:APP_LINK}]);
+  rows.push([{text:'🔍 विस्तृत (card)',callback_data:'fdt|'+own+'|0'},{text:'🔄 ताज़ा',callback_data:'fd|'+own}]);
   return {text:out.slice(0,4050), reply_markup:{inline_keyboard:rows}};
+}
+
+/* 🎯 छोटा Review menu — किसका focus देखना है (सिर्फ़ बटन, कम-spam) */
+function focusMenuMsg(data){
+  const rows=[];
+  ['v','d','k'].forEach(o=>{ const n=focusItemsOf(data,o).length; if(n) rows.push([{text:OWNERS[o]+' — '+n,callback_data:'fm|'+o}]); });
+  if(!rows.length) return {text:'🎯 अभी किसी के focus में काम नहीं है।\n"विक्रम focus शुरू" से जोड़ें।'};
+  return {text:'🎯 *Focus Mode Review*\n\nकिसका काम देखना चाहोगे?', reply_markup:{inline_keyboard:rows}};
+}
+/* staff दबाने पर — Short / विस्तृत विकल्प */
+function focusChoiceMsg(data, own){
+  const n=focusItemsOf(data,own).length;
+  return {text:`${OWNERS[own]} — ${n} काम focus में\n\nकैसे देखना चाहोगे?`,
+    reply_markup:{inline_keyboard:[[{text:'📋 Short',callback_data:'fd|'+own},{text:'🔍 विस्तृत',callback_data:'fdt|'+own+'|0'}]]}};
+}
+function _phoneDigits(p){ let d=String(p||'').replace(/[^0-9]/g,''); if(d.length===10) d='91'+d; else if(d.length>12) d=d.slice(-12); return d.length>=11?d:''; }
+/* 🔍 विस्तृत — हर काम का अलग card (10-10 करके), call/WA/snooze/done/remove */
+function focusDetailCards(data, own, start, chat){
+  const list=focusItemsOf(data,own), now=Date.now(), nm=OWNERS[own];
+  if(!list.length) return [{method:'sendMessage',body:{chat_id:chat,text:`🎯 ${nm} — focus में कोई काम नहीं।`}}];
+  const out=[{method:'sendMessage',body:{chat_id:chat,parse_mode:'Markdown',text:`🔍 *${nm} — विस्तृत* (${start+1}–${Math.min(start+10,list.length)} / ${list.length})`}}];
+  list.slice(start,start+10).forEach((f,idx)=>{
+    const n=start+idx+1, late=(f.until||0)<now;
+    const dig=_phoneDigits(f.cphone);
+    let txt=`📌 *${n}. ${f.t}*\n`;
+    if(f.cname) txt+=`👤 ${f.cname}\n`;
+    if(f.cphone) txt+=`📱 ${f.cphone}\n`;
+    txt+=`⏱ ${fmtDur(now-(f.start||now))} से चालू · ${late?'🔴 '+fmtDur(now-f.until)+' लेट':'⏳ '+fmtDur(f.until-now)+' बाकी'}\n🎯 ${OWN_SHORT[own]}${CATS[f.cat]?' · '+CATS[f.cat].logo+CATS[f.cat].label:''}`;
+    if(f.cphone) txt+='\n📞 नंबर पर tap करके कॉल करें ☝️';
+    const rows=[];
+    if(dig) rows.push([{text:'💬 WhatsApp पर भेजो',url:'https://wa.me/'+dig+'?text='+encodeURIComponent(f.t)}]);
+    rows.push([{text:'⏰+10',callback_data:('xt|'+f.key+'|10').slice(0,64)},{text:'⏰+30',callback_data:('xt|'+f.key+'|30').slice(0,64)},{text:'⏰+1घं',callback_data:('xt|'+f.key+'|60').slice(0,64)}]);
+    rows.push([{text:'✅ पूरा',callback_data:('x|'+f.key).slice(0,64)},{text:'❌ focus से हटाओ',callback_data:('rf|'+f.key).slice(0,64)}]);
+    out.push({method:'sendMessage',body:{chat_id:chat,parse_mode:'Markdown',disable_web_page_preview:true,text:txt,reply_markup:{inline_keyboard:rows}}});
+  });
+  if(start+10<list.length) out.push({method:'sendMessage',body:{chat_id:chat,text:`⬇️ और ${list.length-(start+10)} काम बाकी`,reply_markup:{inline_keyboard:[[{text:'➡️ अगले 10',callback_data:'fdt|'+own+'|'+(start+10)}]]}}});
+  return out;
+}
+/* ⏰ periodic छोटा menu (हर ~2 घंटे, रात नहीं) */
+async function autoPushMenu(col, data, ownerChat){
+  const calls=[]; if(!ownerChat) return calls;
+  const istH=Number(new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Kolkata',hour:'numeric',hour12:false}).format(new Date()));
+  if(istH<8||istH>=22) return calls;
+  const now=Date.now();
+  const interval=(Number(data.settings.tgMenuHours)||2)*3600e3;
+  if(now-Number(data.settings.tgLastMenu||0) < interval) return calls;
+  await col.doc('_settings').set({tgLastMenu:now},{merge:true}); data.settings.tgLastMenu=now;
+  const anyFocus=['v','d','k'].some(o=>focusItemsOf(data,o).length);
+  if(!anyFocus) return calls;
+  const m=focusMenuMsg(data);
+  calls.push({method:'sendMessage',body:Object.assign({chat_id:ownerChat,parse_mode:'Markdown',text:m.text},m.reply_markup?{reply_markup:m.reply_markup}:{})});
+  return calls;
 }
 
 function collectAll(snap){
@@ -181,9 +233,10 @@ const HELP=`🙏 नमस्ते विक्रम भाई! मैं आ�
 ✅ किसी list के नीचे ✅1 ✅2 बटन दबाओ = काम पूरा
 
 🎯 *Focus Mode:*
- • "focus" — विक्रम/दिनेश/कैलाश तीनों का हाल
+ • "review" या "menu" — छोटा menu (किसका focus?)
  • "विक्रम का focus" — पूरा dashboard + timer + ✅
- • "विक्रम focus शुरू" — काम चुनकर focus में डालो (5 तक)
+ • विस्तृत card (📞💬⏰✅) — dashboard में "🔍 विस्तृत"
+ • "विक्रम focus शुरू" — काम चुनकर focus में डालो
 
 ⌨️ Commands: /today /kal /late /pending /zaroori
    /report /call /focus /market /computer /search DVR /help`;
@@ -191,7 +244,7 @@ const HELP=`🙏 नमस्ते विक्रम भाई! मैं आ�
 const SLASH={'/today':'आज के काम','/aaj':'आज के काम','/kal':'कल के काम','/tomorrow':'कल के काम',
   '/late':'लेट काम','/pending':'बाकी काम','/report':'रिपोर्ट','/hisab':'रिपोर्ट','/call':'call किसको',
   '/priority':'ज़रूरी काम','/zaroori':'ज़रूरी काम','/market':'market के काम','/computer':'computer के काम',
-  '/golden':'golden के काम','/jalipa':'jalipa के काम','/focus':'focus','/help':'मदद','/start':'मदद'};
+  '/golden':'golden के काम','/jalipa':'jalipa के काम','/focus':'focus','/review':'review','/menu':'review','/help':'मदद','/start':'मदद'};
 
 /* 🕘 हिंदी समय-समझ (token-आधारित) */
 function parseWhen(textRaw, now){
@@ -283,6 +336,9 @@ function answer(data,textRaw,now){
     if(!hits.length&&!cHits.length) out+='— कुछ नहीं मिला';
     return {text:out};
   }
+
+  // 🎯 Review menu — छोटा (सिर्फ़ बटन)
+  if(has('review','रिव्यू','रिव्यु','menu','मेनू','मेन्यू')) return focusMenuMsg(data);
 
   if(has('focus','फोकस','फ़ोकस','फॉक्स')){
     const own=focusOwnerIn(t);
@@ -527,6 +583,17 @@ async function handleUpdate(col, data, update, ownerChat){
       if(r.ok){ dirty=true; calls.push({method:'answerCallbackQuery',body:{callback_query_id:cq.id,text:'✅ काम पूरा!'}});
         calls.push({method:'sendMessage',body:{chat_id:chat,text:`✅ पूरा हुआ: ${(r.task||'').slice(0,60)}\n👤 ${r.name||''}`}}); }
       else calls.push({method:'answerCallbackQuery',body:{callback_query_id:cq.id,text:r.already?'यह पहले ही पूरा है':'नहीं मिला'}});
+    } else if((m=cd.match(/^fm\|([vdk])$/))){
+      // 🎯 staff चुना → Short / विस्तृत विकल्प
+      const snap=await col.get(); const d2=collectAll(snap);
+      calls.push({method:'answerCallbackQuery',body:{callback_query_id:cq.id,text:'🎯'}});
+      const ch=focusChoiceMsg(d2,m[1]);
+      calls.push({method:'sendMessage',body:Object.assign({chat_id:chat,text:ch.text},ch.reply_markup?{reply_markup:ch.reply_markup}:{})});
+    } else if((m=cd.match(/^fdt\|([vdk])\|(\d+)$/))){
+      // 🔍 विस्तृत — हर काम का card (10-10)
+      const snap=await col.get(); const d2=collectAll(snap);
+      calls.push({method:'answerCallbackQuery',body:{callback_query_id:cq.id,text:'🔍'}});
+      focusDetailCards(d2,m[1],Number(m[2]),chat).forEach(c=>calls.push(c));
     } else if((m=cd.match(/^fd\|([vdk])$/))){
       // 🎯 focus dashboard (ताज़ा data चाहिए)
       const snap=await col.get(); const d2=collectAll(snap);
@@ -615,7 +682,7 @@ module.exports={
   APP_LINK, CATS, HELP, SLASH, OWNERS,
   phonKey, findByName, personIn, catIn, istParts, istHM, topics,
   collectAll, activeC, allTasks, answer, parseWhen, listMsg,
-  focusOwnerIn, focusItemsOf, focusDash,
+  focusOwnerIn, focusItemsOf, focusDash, focusMenuMsg, focusChoiceMsg, focusDetailCards,
   applyDone, applyAdd, applyFocusAdd, applyFocusComplete, applyFocusExtend, applyFocusRemove,
-  handleUpdate, autoPushNew, autoPushFocus, autoPushNudge
+  handleUpdate, autoPushNew, autoPushFocus, autoPushNudge, autoPushMenu
 };

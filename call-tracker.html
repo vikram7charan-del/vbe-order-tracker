@@ -2384,6 +2384,20 @@ window.doneTopic=function(id,idx){
   render(); fbSave(c);
   toast('✅ काम पूरा — '+tps[idx].t.slice(0,24));
 };
+window.spEditTask=function(id,idx){
+  const c=contacts.find(x=>x.id===id); if(!c) return;
+  const tps=normTopics(c); if(!tps[idx]) return;
+  const cur=tps[idx].t||'';
+  const v=prompt('✏️ काम सुधारो:', cur);
+  if(v===null) return;
+  const nv=v.trim();
+  if(!nv || nv===cur) return;
+  tps[idx].t=nv;
+  c.topics=tps; c.note=tps.filter(x=>!x.done).map(x=>x.t).join(' · ');
+  _logHist(c,'edit',nv);
+  fbSave(c); render(); if(_spId===id) renderSmartPop();
+  toast('✏️ काम सुधर गया');
+};
 window.spTogglePri=function(id,idx){
   const c=contacts.find(x=>x.id===id); if(!c) return;
   const tps=normTopics(c); if(!tps[idx]) return;
@@ -4754,6 +4768,7 @@ function renderSmartPop(){
           </span>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 0 36px">
+          <span onclick="spEditTask('${c.id}',${x.i})" style="cursor:pointer;font-size:12px;min-width:34px;text-align:center;padding:3px 6px;border:1px dashed rgba(251,191,36,.55);border-radius:8px;color:#fcd34d" title="काम का text सुधारो">✏️</span>
           <span onclick="spTogglePri('${c.id}',${x.i})" style="cursor:pointer;font-size:12px;min-width:34px;text-align:center;padding:3px 6px;border:1px dashed ${x.pri==='high'?'rgba(239,68,68,.7)':'rgba(100,116,139,.4)'};border-radius:8px;${x.pri==='high'?'background:rgba(239,68,68,.15)':''}" title="ज़रूरी काम — 🔴 चिह्न लगाओ/हटाओ">${x.pri==='high'?'🔴':'⚪'}</span>
           <span onclick="openFocusPick('${c.id}',${x.i})" style="cursor:pointer;font-size:12px;min-width:34px;text-align:center;padding:3px 6px;border:1px dashed rgba(168,85,247,.5);border-radius:8px" title="🎯 Focus mode — घड़ी चालू करो">🎯</span>
           <span onclick="spSchedTask('${c.id}',${x.i})" style="cursor:pointer;font-size:12px;min-width:34px;text-align:center;padding:3px 6px;border:1px dashed ${x.at?'rgba(59,130,246,.65)':'rgba(100,116,139,.4)'};border-radius:8px" title="इस काम को Calendar में डालो — अपना समय/अलार्म">${x.at?'📅':'⏰'}</span>

@@ -111,6 +111,13 @@ td{padding:7px 4px;border-bottom:1px solid #f1f5f9}
     <button class="btn btn-ghost" id="more-btn" onclick="showMore()" style="display:none;margin-top:8px">और दिखाएं</button>
   </div>
 
+  <!-- 📸 Bill photo बाकी — staff को एक-tap WhatsApp reminder -->
+  <div class="card" id="billrem-card" style="display:none">
+    <h2 class="sec-title">📸 Bill Photo बाकी — याद दिलाओ</h2>
+    <div class="mini" style="margin-bottom:10px">जिस staff के bill बाकी हैं, उसके सामने 💬 दबाओ — WhatsApp खुलेगा, message <b>पहले से लिखा</b> मिलेगा (कौन-से bill, कितने के)। बस Send दबाना है।</div>
+    <div id="billrem-list"></div>
+  </div>
+
   <!-- Staff accounts -->
   <div class="card">
     <h2 class="sec-title">👥 Staff Accounts</h2>
@@ -584,10 +591,13 @@ window.runLegacyImport=async function(btnId){
 };
 
 // ── Staff accounts ──
+let STAFF_USERS=[];   // reminders के लिए (whatsapp/phone सहित)
 async function loadStaffAccounts(){
   const snap=await getDocs(collection(db,'vbe_users'));
   const box=document.getElementById('staff-list');
   const arr=[]; snap.forEach(d=>{const x=d.data(); if(x.role==='staff') arr.push(x);});
+  STAFF_USERS=arr;
+  try{ renderBillReminders(); }catch(e){}
   box.innerHTML='';
   if(!arr.length){ box.innerHTML='<div class="mini">अभी कोई staff account नहीं</div>'; return; }
   arr.forEach(s=>{
@@ -603,6 +613,36 @@ async function loadStaffAccounts(){
     };
     box.appendChild(row);
   });
+}
+
+// ── 📸 staff-wise pending bills → एक-tap WhatsApp reminder (message पहले से लिखा) ──
+function fmtD(d){ const p=String(d||'').split('-'); return p.length===3?(p[2]+'/'+p[1]):String(d||''); }
+function renderBillReminders(){
+  const card=document.getElementById('billrem-card'), box=document.getElementById('billrem-list');
+  if(!card||!box) return;
+  const pending=EXP.filter(e=>e.billStatus==='pending');
+  if(!pending.length){ card.style.display='none'; return; }
+  // staff-wise group (बिना staff वाली मालिक की अपनी entries अलग दिखें, बिना button)
+  const by={};
+  pending.forEach(e=>{ const k=e.staffUid||'__self';
+    (by[k]=by[k]||{name:e.staffName||'खुद (आप)', uid:e.staffUid||'', rows:[]}).rows.push(e); });
+  card.style.display='block';
+  box.innerHTML=Object.values(by).map(g=>{
+    const tot=g.rows.reduce((s,e)=>s+(+e.total||0),0);
+    const user=STAFF_USERS.find(u=>u.uid===g.uid);
+    const wa=(user&&(user.whatsapp||user.phone)||'').replace(/[^0-9]/g,'');
+    let btn='';
+    if(g.uid && wa.length>=10){
+      const lines=g.rows.slice(0,6).map(e=>`• ${fmtD(e.date)} — ${e.vendor||e.firm||'खर्चा'} — ₹${Math.round(+e.total||0).toLocaleString('hi-IN')}`);
+      if(g.rows.length>6) lines.push(`…और ${g.rows.length-6} bill`);
+      const msg=`राम राम ${g.name} जी 🙏\nइन खर्चों के bill photo app में डालने बाकी हैं:\n${lines.join('\n')}\n\n📲 यहाँ डालें: https://vbe-order-tracker-60324.web.app/kharcha-entry.html`;
+      btn=`<a href="https://wa.me/91${wa.slice(-10)}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener"
+        style="background:#dcfce7;color:#166534;border-radius:9px;padding:7px 13px;font-weight:900;font-size:13px;text-decoration:none;white-space:nowrap">💬 भेजो</a>`;
+    } else if(g.uid){
+      btn='<span class="mini">📵 नंबर नहीं</span>';
+    }
+    return `<div class="acc-row"><span>📸 ${esc(g.name)} <span class="mini">${g.rows.length} bill · ₹${Math.round(tot).toLocaleString('hi-IN')}</span></span>${btn}</div>`;
+  }).join('');
 }
 window.createStaff=async function(){
   const name=(document.getElementById('ns-name').value||'').trim();

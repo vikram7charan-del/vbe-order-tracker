@@ -791,27 +791,30 @@ function istMinOfDay(now){
   const p=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kolkata',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(now)).split(':');
   return Number(p[0])*60+Number(p[1]);
 }
-/* Focus digest — staff के own-letter (v/d/k) के focus काम, contact-grouped, 4-बटन */
-function staffFocusDigest(data, st, now, mode){
+/* Focus digest — staff के own-letter (v/d/k) के focus काम, contact-grouped, 4-बटन।
+   10-10 के भाग (start से) — ▶️ अगले 10 बटन से staff खुद अगला पन्ना खोले। */
+function staffFocusDigest(data, st, now, mode, start){
   const fs=st.own?focusItemsOf(data, st.own):[];
   const nm=(staffNameOf(data,st.cid)||st.name||'').split(/\s+/)[0]||'जी';
   if(!fs.length) return staffDigest(data, st, now);
   const lateN=fs.filter(f=>(f.until||0)<now).length;
-  const shown=fs.slice(0,12);
+  let s0=Number(start)||0; if(s0>=fs.length) s0=0; if(s0<0) s0=0;
+  const shown=fs.slice(s0, s0+10);
+  const endN=s0+shown.length;
+  const page=fs.length>10?` (काम ${s0+1}–${endN} / कुल ${fs.length})`:'';
   let text, rows;
   if(mode==='short'){
-    text=`🙏 *${nm} जी — ${fs.length} काम बाकी*${lateN?' 🔴'+lateN+' लेट':''}\n`;
+    text=`🙏 *${nm} जी — ${fs.length} काम बाकी*${lateN?' 🔴'+lateN+' लेट':''}${page}\n`;
     shown.forEach((f,i)=>{
       const lateMs=now-(f.until||now);
-      text+=`${i+1}. ${f.cname?mdSafe(f.cname.split(/\s+/)[0])+' — ':''}${mdSafe((f.t||'').slice(0,45))}${lateMs>0?' 🔴'+fmtDur(lateMs):''}\n`;
+      text+=`${s0+i+1}. ${f.cname?mdSafe(f.cname.split(/\s+/)[0])+' — ':''}${mdSafe((f.t||'').slice(0,45))}${lateMs>0?' 🔴'+fmtDur(lateMs):''}\n`;
     });
-    if(fs.length>12) text+=`…और ${fs.length-12} काम\n`;
     text+='👇 बटन दबाइए';
   } else {
-    text=`🙏 *${nm} जी — ${greetIST(now)}*\n🔴 *Focus Mode — सबसे पहले यही काम*\n`;
+    text=`🙏 *${nm} जी — ${greetIST(now)}*\n🔴 *Focus Mode — सबसे पहले यही काम*${page}\n`;
     // contact के हिसाब से group — first-appearance क्रम में
     const groups=[]; const gi={};
-    shown.forEach((f,i)=>{ const k=f.id||'?'; if(gi[k]===undefined){ gi[k]=groups.length; groups.push({cname:f.cname||'?',cphone:f.cphone||'',list:[]}); } groups[gi[k]].list.push({...f,n:i+1}); });
+    shown.forEach((f,i)=>{ const k=f.id||'?'; if(gi[k]===undefined){ gi[k]=groups.length; groups.push({cname:f.cname||'?',cphone:f.cphone||'',list:[]}); } groups[gi[k]].list.push({...f,n:s0+i+1}); });
     groups.forEach(g=>{
       text+='\n━━━━━━━━━━━━━━━━━━\n👤 *'+mdSafe(g.cname)+'*\n';
       const dig=_phoneDigits(g.cphone);
@@ -821,16 +824,19 @@ function staffFocusDigest(data, st, now, mode){
         text+=`${lateBadge(lateMs)} *${f.n}.* ${mdSafe(f.t)}${lateMs>0?' — '+fmtDur(lateMs)+' लेट':''}\n`;
       });
     });
-    if(fs.length>12) text+=`\n…और ${fs.length-12} काम — पहले ये पूरे करें`;
     text+=`\n━━━━━━━━━━━━━━━━━━\nआज: ✅ ${doneTodayCount(data,now)} पूरे · ⏳ ${fs.length} बाकी${lateN?' · 🔴 '+lateN+' लेट':''}\nनीचे नंबर के बटन दबाइए 👇`;
   }
   rows=shown.map((f,i)=>[
-    {text:'✅ '+(i+1),callback_data:('wd|'+f.key).slice(0,64)},
-    {text:'⏳ '+(i+1),callback_data:('wp|'+f.key).slice(0,64)},
-    {text:'❌ '+(i+1),callback_data:('wb|'+f.key).slice(0,64)},
-    {text:'🕐 '+(i+1),callback_data:('wz|'+f.key).slice(0,64)},
+    {text:'✅ '+(s0+i+1),callback_data:('wd|'+f.key).slice(0,64)},
+    {text:'⏳ '+(s0+i+1),callback_data:('wp|'+f.key).slice(0,64)},
+    {text:'❌ '+(s0+i+1),callback_data:('wb|'+f.key).slice(0,64)},
+    {text:'🕐 '+(s0+i+1),callback_data:('wz|'+f.key).slice(0,64)},
   ]);
-  rows.push([{text:'🔄 ताज़ा करो',callback_data:'wf|0'}]);
+  const nav=[];
+  if(s0>0) nav.push({text:'◀️ पिछले 10',callback_data:'wn|'+Math.max(0,s0-10)});
+  nav.push({text:'🔄 ताज़ा करो',callback_data:'wf|'+s0});
+  if(endN<fs.length) nav.push({text:`▶️ अगले (${endN+1}–${Math.min(endN+10,fs.length)})`,callback_data:'wn|'+endN});
+  rows.push(nav);
   return {text:text.slice(0,4050), reply_markup:{inline_keyboard:rows}};
 }
 /* 🔒 focus-item guard — ताज़ा _focus पढ़ो, item उसी staff के own का हो */
@@ -885,7 +891,7 @@ async function autoPushQueued(col, data){
     const s=list.find(x=>x.cid===req.cid);
     if(!s||!s.chatId) continue;
     const dg=(s.own&&focusItemsOf(data,s.own).length)
-      ?staffFocusDigest(data,s,now,req.mode||s.pref||'detailed')
+      ?staffFocusDigest(data,s,now,req.mode||s.pref||'detailed',Number(req.start)||0)
       :staffDigest(data,s,now);
     calls.push({method:'sendMessage',body:Object.assign({chat_id:s.chatId,parse_mode:'Markdown',disable_web_page_preview:true,text:dg.text},dg.reply_markup?{reply_markup:dg.reply_markup}:{})});
     s.lastPushAt=now; s.lastFocusAt=now; changed=true;
@@ -905,12 +911,12 @@ async function handleStaffCallback(col, data, cq, st, ownerChat){
   // 🔔 owner mirror — हर staff-हलचल की तुरंत खबर
   const mir=(emoji,task,extra)=>{ if(ownerChat) calls.push({method:'sendMessage',body:{chat_id:ownerChat,disable_web_page_preview:true,
     text:`🔔 ${sName} → ${emoji} "${(task||'').slice(0,60)}"${extra?' — '+extra:''} (${istHM(Date.now())})`}}); };
-  // ✏️ action के बाद वही digest message ताज़ा करो (नया spam नहीं)
-  const refresh=async(kind)=>{ try{
+  // ✏️ action के बाद वही digest message ताज़ा करो (नया spam नहीं); pageStart = 10-10 भाग
+  const refresh=async(kind, pageStart)=>{ try{
     if(!cq.message||!cq.message.message_id) return;
     const d3=collectAll(await col.get()); d3.settings=data.settings;
     const st3=tgStaff(d3).find(x=>x.cid===st.cid)||st;
-    const dg=(kind==='focus')?staffFocusDigest(d3,st3,Date.now(),st3.pref||'detailed'):staffDigest(d3,st3,Date.now());
+    const dg=(kind==='focus')?staffFocusDigest(d3,st3,Date.now(),st3.pref||'detailed',pageStart||0):staffDigest(d3,st3,Date.now());
     const body={chat_id:chat,message_id:cq.message.message_id,text:dg.text,parse_mode:'Markdown',disable_web_page_preview:true};
     if(dg.reply_markup) body.reply_markup=dg.reply_markup;
     calls.push({method:'editMessageText',body});
@@ -989,9 +995,15 @@ async function handleStaffCallback(col, data, cq, st, ownerChat){
       {text:'कल सुबह',callback_data:('wy|'+m[1]+'|t').slice(0,64)}]]});
     return {calls,dirty};
   }
-  if(cd==='wf|0'){
+  if((m=cd.match(/^wf\|(\d+)$/))){
     ack('🔄');
-    await refresh('focus');
+    await refresh('focus', Number(m[1]));
+    return {calls,dirty};
+  }
+  if((m=cd.match(/^wn\|(\d+)$/))){
+    // ▶️/◀️ — अगला/पिछला 10 का भाग (वही message बदलता है)
+    ack('📄');
+    await refresh('focus', Number(m[1]));
     return {calls,dirty};
   }
   if((m=cd.match(/^ud\|(.+)\|(\d+)$/))){

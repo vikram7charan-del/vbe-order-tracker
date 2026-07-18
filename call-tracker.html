@@ -2917,25 +2917,27 @@ function _tgFocusList(own){
   }).filter(Boolean).sort((a,b)=>(a.until||0)-(b.until||0));
 }
 /* bot के staffFocusDigest जैसा message — numbering + wd/wp/wb/wz बटन (bot ही जवाब देगा) */
-function tgFocusMsg(own, mode){
+function tgFocusMsg(own, mode, start){
   const now=Date.now();
   const fs=_tgFocusList(own);
   const st=tgStaffForOwn(own);
   const nm=((st&&st.name)||({v:'विक्रम',d:'दिनेश',k:'कैलाश'})[own]||'').split(/\s+/)[0]||'जी';
   const lateN=fs.filter(f=>(f.until||0)<now).length;
-  const shown=fs.slice(0,12);
+  let s0=Number(start)||0; if(s0>=fs.length) s0=0;
+  const shown=fs.slice(s0,s0+10);
+  const endN=s0+shown.length;
+  const page=fs.length>10?` (काम ${s0+1}–${endN} / कुल ${fs.length})`:'';
   const hr=new Date(now).toLocaleTimeString('hi-IN',{hour:'numeric',minute:'2-digit',timeZone:'Asia/Kolkata'});
   let text;
   if(mode==='short'){
-    text=`🙏 *${nm} जी — ${fs.length} काम बाकी*${lateN?' 🔴'+lateN+' लेट':''}\n`;
+    text=`🙏 *${nm} जी — ${fs.length} काम बाकी*${lateN?' 🔴'+lateN+' लेट':''}${page}\n`;
     shown.forEach((f,i)=>{ const lm=now-(f.until||now);
-      text+=`${i+1}. ${f.cname?_tgMdSafe(f.cname.split(/\s+/)[0])+' — ':''}${_tgMdSafe((f.t||'').slice(0,45))}${lm>0?' 🔴'+_tgFmtDur(lm):''}\n`; });
-    if(fs.length>12) text+=`…और ${fs.length-12} काम\n`;
+      text+=`${s0+i+1}. ${f.cname?_tgMdSafe(f.cname.split(/\s+/)[0])+' — ':''}${_tgMdSafe((f.t||'').slice(0,45))}${lm>0?' 🔴'+_tgFmtDur(lm):''}\n`; });
     text+='👇 बटन दबाइए';
   } else {
-    text=`🙏 *${nm} जी — ${hr}*\n🔴 *Focus Mode — सबसे पहले यही काम*\n`;
+    text=`🙏 *${nm} जी — ${hr}*\n🔴 *Focus Mode — सबसे पहले यही काम*${page}\n`;
     const groups=[]; const gi={};
-    shown.forEach((f,i)=>{ const k=f.id||'?'; if(gi[k]===undefined){ gi[k]=groups.length; groups.push({cname:f.cname||'?',cphone:f.cphone||'',list:[]}); } groups[gi[k]].list.push({...f,n:i+1}); });
+    shown.forEach((f,i)=>{ const k=f.id||'?'; if(gi[k]===undefined){ gi[k]=groups.length; groups.push({cname:f.cname||'?',cphone:f.cphone||'',list:[]}); } groups[gi[k]].list.push({...f,n:s0+i+1}); });
     groups.forEach(g=>{
       text+='\n━━━━━━━━━━━━━━━━━━\n👤 *'+_tgMdSafe(g.cname)+'*\n';
       const dig=_tgPhDig(g.cphone);
@@ -2943,22 +2945,33 @@ function tgFocusMsg(own, mode){
       g.list.forEach(f=>{ const lm=now-(f.until||now);
         text+=`${_tgLateBadge(lm)} *${f.n}.* ${_tgMdSafe(f.t)}${lm>0?' — '+_tgFmtDur(lm)+' लेट':''}\n`; });
     });
-    if(fs.length>12) text+=`\n…और ${fs.length-12} काम — पहले ये पूरे करें`;
     text+=`\n━━━━━━━━━━━━━━━━━━\n⏳ ${fs.length} बाकी${lateN?' · 🔴 '+lateN+' लेट':''}\nनीचे नंबर के बटन दबाइए 👇`;
   }
   const rows=shown.map((f,i)=>[
-    {text:'✅ '+(i+1),callback_data:('wd|'+f.key).slice(0,64)},
-    {text:'⏳ '+(i+1),callback_data:('wp|'+f.key).slice(0,64)},
-    {text:'❌ '+(i+1),callback_data:('wb|'+f.key).slice(0,64)},
-    {text:'🕐 '+(i+1),callback_data:('wz|'+f.key).slice(0,64)},
+    {text:'✅ '+(s0+i+1),callback_data:('wd|'+f.key).slice(0,64)},
+    {text:'⏳ '+(s0+i+1),callback_data:('wp|'+f.key).slice(0,64)},
+    {text:'❌ '+(s0+i+1),callback_data:('wb|'+f.key).slice(0,64)},
+    {text:'🕐 '+(s0+i+1),callback_data:('wz|'+f.key).slice(0,64)},
   ]);
-  rows.push([{text:'🔄 ताज़ा करो',callback_data:'wf|0'}]);
-  return {text:text.slice(0,4050), reply_markup:{inline_keyboard:rows}, count:fs.length,
+  const nav=[];
+  if(s0>0) nav.push({text:'◀️ पिछले 10',callback_data:'wn|'+Math.max(0,s0-10)});
+  nav.push({text:'🔄 ताज़ा करो',callback_data:'wf|'+s0});
+  if(endN<fs.length) nav.push({text:`▶️ अगले (${endN+1}–${Math.min(endN+10,fs.length)})`,callback_data:'wn|'+endN});
+  rows.push(nav);
+  return {text:text.slice(0,4050), reply_markup:{inline_keyboard:rows}, count:fs.length, batchN:shown.length, s0, endN,
     hash:fs.map(f=>f.key+':'+_tgLateBadge(now-(f.until||now))).join('|')};
 }
-let _tgOwn='v';
+let _tgOwn='v', _tgMode='detailed', _tgSentBatches={};
 window.fdashTG=function(own){
-  _tgOwn=own;
+  _tgOwn=own; _tgSentBatches={};
+  const st=tgStaffForOwn(own);
+  _tgMode=(st&&st.pref)||'detailed';
+  renderTgSend();
+  openModal('m-tgsend');
+};
+window.tgSetMode=function(m){ _tgMode=m; renderTgSend(); };
+function renderTgSend(){
+  const own=_tgOwn;
   const st=tgStaffForOwn(own);
   const fs=_tgFocusList(own);
   const nm=({v:'🟣 विक्रम भाई',d:'🔷 दिनेश जी रतकोड़िया',k:'🟢 कैलाश भाई'})[own];
@@ -2966,29 +2979,44 @@ window.fdashTG=function(own){
   const linked=!!(st&&st.chatId);
   let h='';
   if(linked){
-    h+=`<div style="font-size:11px;font-weight:800;color:#4ade80;margin-bottom:10px">🔗 Telegram से जुड़े हैं${st.lastPushAt?' · आख़िरी push: '+new Date(st.lastPushAt).toLocaleTimeString('hi-IN',{hour:'numeric',minute:'2-digit'}):''}</div>
-      <div style="font-size:11px;color:#94a3b8;margin-bottom:8px">कैसे भेजें?</div>
-      <button class="btn-save" onclick="tgSendNow('detailed')">📋 विस्तृत (पूरी डिटेल + कॉल बटन)</button>
-      <button class="btn-save" style="background:linear-gradient(120deg,#0e7490,#22d3ee)" onclick="tgSendNow('short')">⚡ छोटा (सिर्फ़ लिस्ट)</button>`;
+    h+=`<div style="font-size:11px;font-weight:800;color:#4ade80;margin-bottom:10px">🔗 Telegram से जुड़े हैं${st.lastPushAt?' · आख़िरी push: '+new Date(st.lastPushAt).toLocaleTimeString('hi-IN',{hour:'numeric',minute:'2-digit'}):''}</div>`;
+    // कैसे — विस्तृत/छोटा chips
+    h+=`<div style="display:flex;gap:7px;margin-bottom:12px">
+      <span onclick="tgSetMode('detailed')" style="cursor:pointer;flex:1;text-align:center;font-size:11.5px;font-weight:900;padding:9px;border-radius:11px;border:1.5px solid ${_tgMode==='detailed'?'#3b82f6':'rgba(30,58,95,.8)'};background:${_tgMode==='detailed'?'rgba(30,58,138,.45)':'transparent'};color:${_tgMode==='detailed'?'#93c5fd':'#64748b'}">📋 विस्तृत</span>
+      <span onclick="tgSetMode('short')" style="cursor:pointer;flex:1;text-align:center;font-size:11.5px;font-weight:900;padding:9px;border-radius:11px;border:1.5px solid ${_tgMode==='short'?'#22d3ee':'rgba(30,58,95,.8)'};background:${_tgMode==='short'?'rgba(14,116,144,.35)':'transparent'};color:${_tgMode==='short'?'#67e8f9':'#64748b'}">⚡ छोटा</span>
+    </div>`;
+    if(fs.length<=10){
+      h+=`<button class="btn-save" onclick="tgSendNow(_tgMode,0)">📤 सारे ${fs.length} काम भेजो</button>`;
+    } else {
+      // 10-10 के भाग — एक-एक करके भेजो, भेजा हुआ ✅ दिखे
+      h+=`<div style="font-size:11px;color:#94a3b8;margin-bottom:7px">कौन से काम? (10-10 करके — बाद वाले न छूटें)</div>`;
+      for(let i=0;i<fs.length;i+=10){
+        const a=i+1,b=Math.min(i+10,fs.length);
+        const sent=_tgSentBatches[i];
+        h+=`<button class="btn-save" style="margin-top:${i?'7px':'0'};${sent?'background:rgba(4,40,20,.9);border:1px solid rgba(34,197,94,.5);color:#4ade80;box-shadow:none;':''}" onclick="tgSendNow(_tgMode,${i})">${sent?'✅ '+a+'–'+b+' भेज दिए — फिर भेजो?':'📤 काम '+a+'–'+b+' भेजो'}</button>`;
+      }
+      h+=`<div style="font-size:10px;color:#64748b;margin-top:8px;line-height:1.6">💡 Telegram message में भी ▶️ अगले 10 का बटन रहेगा — staff खुद भी अगला पन्ना खोल सकते हैं।</div>`;
+    }
   } else {
     h+=`<div style="font-size:11.5px;font-weight:800;color:#fbbf24;margin-bottom:10px">⚠️ अभी Telegram से नहीं जुड़े — पहले link भेजें</div>
       <button class="btn-save" onclick="tgLinkSend()">🔗 WhatsApp पर link भेजो</button>
       <div style="font-size:10px;color:#64748b;margin-top:8px;line-height:1.6">या Telegram bot में "link" लिखकर QR बनवाएँ। Link 15 min चलता है।</div>`;
   }
   document.getElementById('tgsend-body').innerHTML=h;
-  openModal('m-tgsend');
-};
-window.tgSendNow=async function(mode){
+}
+window.tgSendNow=async function(mode, start){
   const st=tgStaffForOwn(_tgOwn);
   if(!st||!st.chatId){ toast('⚠️ पहले link भेजें','warn'); return; }
-  const m=tgFocusMsg(_tgOwn, mode);
+  const m=tgFocusMsg(_tgOwn, mode, start||0);
   if(!m.count){ toast('कोई focus काम नहीं','warn'); return; }
+  const multi=m.count>10;
   const markSent=async()=>{
     const list=tgStaffList();
     const e=list.find(x=>x.cid===st.cid);
     if(e){ e.lastPushAt=Date.now(); e.lastFocusAt=Date.now(); e.lastFocusHash=m.hash; e.pref=mode; await tgSaveStaffList(list); }
-    closeModal('m-tgsend');
-    toast(`✅ ${(st.name||'').split(/\s+/)[0]} जी को ${m.count} काम भेज दिए (${mode==='short'?'छोटा':'विस्तृत'})`);
+    if(multi){ _tgSentBatches[start||0]=true; renderTgSend(); }
+    else closeModal('m-tgsend');
+    toast(`✅ ${(st.name||'').split(/\s+/)[0]} जी को काम ${m.s0+1}–${m.endN} भेज दिए (${mode==='short'?'छोटा':'विस्तृत'})`);
   };
   try{
     let j=await tgApiApp('sendMessage',{chat_id:st.chatId,parse_mode:'Markdown',disable_web_page_preview:true,text:m.text,reply_markup:m.reply_markup});
@@ -3004,7 +3032,7 @@ window.tgSendNow=async function(mode){
       // net/CORS — bot की queue में डालो, वह 2-3 min में भेज देगा
       try{
         const q=Array.isArray((window._settings||{}).tgPushQueue)?window._settings.tgPushQueue:[];
-        q.push({cid:st.cid, mode, at:Date.now()});
+        q.push({cid:st.cid, mode, start:start||0, at:Date.now()});
         window._settings.tgPushQueue=q;
         await setDoc(doc(db,'vbe_call_tracker','_settings'),{id:'_settings',tgPushQueue:q},{merge:true});
         closeModal('m-tgsend');

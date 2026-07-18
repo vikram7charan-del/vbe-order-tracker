@@ -2906,6 +2906,7 @@ async function tgApiApp(method,body){
   return r.json();
 }
 function _tgLateBadge(ms){ return ms<=0?'🟢':ms<6*3600e3?'🟡':'🔴'; }
+function _tgMdSafe(s){ return String(s||'').replace(/([_*`\[])/g,'\\$1'); } /* "2.5फीट*6फीट" जैसे text से Markdown न टूटे */
 function _tgFmtDur(ms){ ms=Math.abs(ms); const h=Math.floor(ms/3600000),m=Math.floor((ms%3600000)/60000); return h?(h+'h'+(m?m+'m':'')):(m+'m'); }
 function _tgPhDig(p){ let d=_digOf(p); if(d.length===10) d='91'+d; else if(d.length>12) d=d.slice(-12); return d.length>=11?d:''; }
 function _tgFocusList(own){
@@ -2928,7 +2929,7 @@ function tgFocusMsg(own, mode){
   if(mode==='short'){
     text=`🙏 *${nm} जी — ${fs.length} काम बाकी*${lateN?' 🔴'+lateN+' लेट':''}\n`;
     shown.forEach((f,i)=>{ const lm=now-(f.until||now);
-      text+=`${i+1}. ${f.cname?f.cname.split(/\s+/)[0]+' — ':''}${(f.t||'').slice(0,45)}${lm>0?' 🔴'+_tgFmtDur(lm):''}\n`; });
+      text+=`${i+1}. ${f.cname?_tgMdSafe(f.cname.split(/\s+/)[0])+' — ':''}${_tgMdSafe((f.t||'').slice(0,45))}${lm>0?' 🔴'+_tgFmtDur(lm):''}\n`; });
     if(fs.length>12) text+=`…और ${fs.length-12} काम\n`;
     text+='👇 बटन दबाइए';
   } else {
@@ -2936,11 +2937,11 @@ function tgFocusMsg(own, mode){
     const groups=[]; const gi={};
     shown.forEach((f,i)=>{ const k=f.id||'?'; if(gi[k]===undefined){ gi[k]=groups.length; groups.push({cname:f.cname||'?',cphone:f.cphone||'',list:[]}); } groups[gi[k]].list.push({...f,n:i+1}); });
     groups.forEach(g=>{
-      text+='\n━━━━━━━━━━━━━━━━━━\n👤 *'+g.cname+'*\n';
+      text+='\n━━━━━━━━━━━━━━━━━━\n👤 *'+_tgMdSafe(g.cname)+'*\n';
       const dig=_tgPhDig(g.cphone);
       if(dig) text+=`📞 [${g.cphone} — दबाकर कॉल करें](tel:+${dig})\n`;
       g.list.forEach(f=>{ const lm=now-(f.until||now);
-        text+=`${_tgLateBadge(lm)} *${f.n}.* ${f.t}${lm>0?' — '+_tgFmtDur(lm)+' लेट':''}\n`; });
+        text+=`${_tgLateBadge(lm)} *${f.n}.* ${_tgMdSafe(f.t)}${lm>0?' — '+_tgFmtDur(lm)+' लेट':''}\n`; });
     });
     if(fs.length>12) text+=`\n…और ${fs.length-12} काम — पहले ये पूरे करें`;
     text+=`\n━━━━━━━━━━━━━━━━━━\n⏳ ${fs.length} बाकी${lateN?' · 🔴 '+lateN+' लेट':''}\nनीचे नंबर के बटन दबाइए 👇`;
@@ -2982,15 +2983,37 @@ window.tgSendNow=async function(mode){
   if(!st||!st.chatId){ toast('⚠️ पहले link भेजें','warn'); return; }
   const m=tgFocusMsg(_tgOwn, mode);
   if(!m.count){ toast('कोई focus काम नहीं','warn'); return; }
-  try{
-    const j=await tgApiApp('sendMessage',{chat_id:st.chatId,parse_mode:'Markdown',disable_web_page_preview:true,text:m.text,reply_markup:m.reply_markup});
-    if(!j.ok) throw new Error(j.description||'send fail');
+  const markSent=async()=>{
     const list=tgStaffList();
     const e=list.find(x=>x.cid===st.cid);
     if(e){ e.lastPushAt=Date.now(); e.lastFocusAt=Date.now(); e.lastFocusHash=m.hash; e.pref=mode; await tgSaveStaffList(list); }
     closeModal('m-tgsend');
     toast(`✅ ${(st.name||'').split(/\s+/)[0]} जी को ${m.count} काम भेज दिए (${mode==='short'?'छोटा':'विस्तृत'})`);
-  }catch(e){ toast('⚠️ भेज नहीं पाया — '+(e.message==='no-token'?'📩 bot token सेट करें':'net/Telegram error'),'err'); }
+  };
+  try{
+    let j=await tgApiApp('sendMessage',{chat_id:st.chatId,parse_mode:'Markdown',disable_web_page_preview:true,text:m.text,reply_markup:m.reply_markup});
+    if(!j.ok&&/parse|entit/i.test(j.description||'')){
+      // Markdown फिर भी टूटा → वही message सादे text में (बटन वही)
+      j=await tgApiApp('sendMessage',{chat_id:st.chatId,disable_web_page_preview:true,text:m.text.replace(/\\([_*`\[])/g,'$1').replace(/\*/g,''),reply_markup:m.reply_markup});
+    }
+    if(!j.ok) throw new Error(j.description||'send fail');
+    await markSent();
+  }catch(e){
+    if(e&&e.message==='no-token'){ toast('⚠️ 📩 bot token सेट करें','err'); return; }
+    if(e instanceof TypeError||/fetch|network|failed/i.test(String(e&&e.message))){
+      // net/CORS — bot की queue में डालो, वह 2-3 min में भेज देगा
+      try{
+        const q=Array.isArray((window._settings||{}).tgPushQueue)?window._settings.tgPushQueue:[];
+        q.push({cid:st.cid, mode, at:Date.now()});
+        window._settings.tgPushQueue=q;
+        await setDoc(doc(db,'vbe_call_tracker','_settings'),{id:'_settings',tgPushQueue:q},{merge:true});
+        closeModal('m-tgsend');
+        toast('⏳ सीधा नहीं गया — bot 2-3 मिनट में अपने-आप भेज देगा');
+      }catch(e2){ toast('⚠️ भेज नहीं पाया — net देखें','err'); }
+      return;
+    }
+    toast('⚠️ Telegram: '+String(e&&e.message||'error').slice(0,60),'err');
+  }
 };
 window.tgLinkSend=async function(){
   // इस owner का staff-contact ढूँढो → code बनाओ → WhatsApp पर deep link

@@ -61,6 +61,9 @@ async function main() {
         // 🎯 Focus hourly push — बदलाव हो तभी (dedupe hash), 22:30–6:30 शांति, 24h+ लेट → owner alert
         const fp = await tg.autoPushFocusHourly(col, s);
         for (const c of fp) await tgApi(tok, c.method, c.body);
+        // 📬 app के 📤 बटन की queue (net/CORS fail fallback)
+        const pq = await tg.autoPushQueued(col, s);
+        for (const c of pq) await tgApi(tok, c.method, c.body);
       } catch (e) {}
     }
     let j;

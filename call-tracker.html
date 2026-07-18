@@ -1215,6 +1215,31 @@ body.hdr-folded .hdr-row2{display:none}
 <div class="qdial-bg" id="sp-bg" onclick="closeSmartPop()"></div>
 <div class="qdial-popup" id="sp-popup" style="width:90vw;max-width:352px;padding:16px 15px 13px;max-height:82dvh;overflow-y:auto"></div>
 
+<!-- ══ 🔗 काम ↔ Contact जोड़ो — search bottom-sheet ══ -->
+<div class="modal-bg" id="m-link" style="z-index:290" onclick="if(event.target===this)closeModal('m-link')">
+  <div class="modal-box" style="max-height:88dvh;display:flex;flex-direction:column">
+    <div class="modal-title"><span>🔗 काम से Contact जोड़ो</span><span class="modal-x" onclick="closeModal('m-link')">✕</span></div>
+    <div id="lk-task" style="font-size:12px;font-weight:800;color:#fcd34d;margin-bottom:10px;line-height:1.4;word-break:break-word"></div>
+    <div id="lk-current"></div>
+    <input class="inp" id="lk-search" placeholder="🔍 नाम / नंबर / firm खोजो..." oninput="linkSearchDebounced()" autocomplete="off" style="flex-shrink:0">
+    <div id="lk-results" style="overflow-y:auto;margin-top:8px;flex:1;min-height:80px"></div>
+  </div>
+</div>
+
+<!-- 🔗 जुड़े contact पर tap → छोटा menu (Call/WA/देखो/हटाओ) -->
+<div class="qdial-bg" id="lca-bg" style="z-index:292" onclick="closeLcAct()"></div>
+<div class="qdial-popup" id="lca-pop" style="z-index:293;width:84vw;max-width:310px;padding:15px 14px"></div>
+
+<!-- 🔗 WhatsApp भेजो — पहले देखो/सुधारो -->
+<div class="modal-bg" id="m-lcwa" style="z-index:294" onclick="if(event.target===this)closeModal('m-lcwa')">
+  <div class="modal-box">
+    <div class="modal-title"><span>💬 WhatsApp भेजो</span><span class="modal-x" onclick="closeModal('m-lcwa')">✕</span></div>
+    <div id="lcwa-to" style="font-size:12.5px;color:#FF6FA5;font-weight:800;margin-bottom:8px"></div>
+    <textarea class="inp" id="lcwa-msg" style="min-height:140px;resize:vertical;line-height:1.55;font-size:13px"></textarea>
+    <button class="btn-save" onclick="lcWaSend()">📤 WhatsApp खोलो</button>
+  </div>
+</div>
+
 <!-- ══ भेजो MODE — एक-एक करके सबको WhatsApp message ══ -->
 <div class="bc-bg" id="bc-bg">
   <div class="bc-wrap">
@@ -2168,6 +2193,41 @@ function normTopics(c){
   return c.note?[{t:c.note,done:false,doneAt:null}]:[];
 }
 function topicsOf(c){ return normTopics(c).filter(x=>!x.done).map(x=>x.t); }
+/* ══ 🔗 Task ↔ Contact Link — काम के साथ किसका contact जुड़ा है ══ */
+function lcOf(x){ return Array.isArray(x&&x.lc)?x.lc:[]; }          /* safe fallback [] */
+function _norm10(p){ let d=_digOf(p); if(d.length>10&&d.slice(0,2)==='91') d=d.slice(2); d=d.replace(/^0+/,''); return d; }
+/* जुड़ा contact resolve — id से live contact मिले तो ताज़ा नाम/नंबर, वरना snapshot */
+function lcContactRes(lc){
+  const live=contacts.find(z=>z.id===lc.id);
+  return { id:lc.id, name:(live&&live.name)||lc.name||'—', phone:(live&&(live.phone||live.waPhone))||lc.phone||'', firm:(live&&live.firm)||lc.firm||'' };
+}
+/* किसी काम के जुड़े contacts की गुलाबी chips (tap → mini menu) */
+function linkChipsHTML(cid,idx,x){
+  const arr=lcOf(x); if(!arr.length) return '';
+  return `<span style="display:inline-flex;gap:5px;flex-wrap:wrap;margin-top:5px">`+arr.map(lc=>{
+    const r=lcContactRes(lc);
+    const ph=r.phone?' · '+escH(r.phone):'';
+    return `<span onclick="event.stopPropagation();lcChipTap('${cid}',${idx},'${lc.id}')" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;min-height:28px;font-size:10.5px;font-weight:800;padding:3px 11px;border-radius:14px;background:rgba(255,45,120,.15);border:1px solid #FF2D78;color:#FF6FA5;touch-action:manipulation;word-break:break-word">🔗 ${escH(r.name)}${ph}</span>`;
+  }).join('')+`</span>`;
+}
+/* इस contact से जुड़े दूसरे कामों की सूची (reverse view) + pending count */
+function tasksLinkedTo(contactId){
+  const out=[];
+  contacts.forEach(c=>{
+    if(c.active===false) return;
+    normTopics(c).forEach((x,i)=>{
+      if(x.done) return;
+      if(lcOf(x).some(l=>l.id===contactId)) out.push({t:x.t,cat:x.cat,i,srcId:c.id,srcName:c.name||'?'});
+    });
+  });
+  return out;
+}
+function linkedCount(contactId){ return tasksLinkedTo(contactId).length; }
+/* copy/message text में जुड़े contact दिखाने के लिए */
+function lcCopyStr(x){
+  const a=lcOf(x); if(!a.length) return '';
+  return ' 🔗 '+a.map(l=>{ const r=lcContactRes(l); return r.name+(r.phone?' ('+r.phone+')':''); }).join(', ');
+}
 /* ── Staff assignment — जो filter "टीम" है उसके लोग ── */
 function teamKey(){
   const marked=TAG_LIST.find(t=>t.team);
@@ -2198,7 +2258,7 @@ function tasksByCat(ck){
     normTopics(c).forEach((x,i)=>{
       if(x.done) return;
       if(ck==='_none'? (x.cat&&x.cat!=='') : (x.cat!==ck)) return;
-      out.push({t:x.t,cat:x.cat,i,srcId:c.id,srcName:c.name||'?',srcPhone:c.phone||'',assignTo:x.assignTo||''});
+      out.push({t:x.t,cat:x.cat,i,srcId:c.id,srcName:c.name||'?',srcPhone:c.phone||'',assignTo:x.assignTo||'',lc:lcOf(x)});
     });
   });
   return out;
@@ -2325,7 +2385,7 @@ window.hubCopy=function(){
   const ci=catInfo(_hubCat);
   let txt=(ci?ci.logo+' '+ci.label:'श्रेणी')+' के काम:\n\n';
   list.forEach((x,n)=>{
-    txt+=`${n+1}. ${x.t}\n   📌 ${x.srcName}${x.assignTo?' → 👤 '+staffName(x.assignTo):''}\n`;
+    txt+=`${n+1}. ${x.t}${lcCopyStr(x)}\n   📌 ${x.srcName}${x.assignTo?' → 👤 '+staffName(x.assignTo):''}\n`;
   });
   txt+='\n– Vande Bharat Enterprises';
   const done=()=>toast('📋 '+list.length+' काम copy हुए — कहीं भी paste करें');
@@ -2361,7 +2421,7 @@ function topicListHTML(c){
   const multi=act.length>1;
   return `<div class="c-topics">${act.map((x,n)=>{
     const ci=catInfo(x.cat);
-    return `<div class="c-topic"><span class="tp-chk" onclick="event.stopPropagation();doneTopic('${c.id}',${x.i})"></span>${x.pri==='high'?'🔴 ':''}${ci?ci.logo+' ':''}${multi?`<span class="tnum">${n+1}.</span>`:''}${escH(x.t)}${x.assignTo?` <span style="font-size:10px;color:#4ade80;font-weight:800">→👤${escH(staffName(x.assignTo))}</span>`:''}</div>`;
+    return `<div class="c-topic"><span class="tp-chk" onclick="event.stopPropagation();doneTopic('${c.id}',${x.i})"></span>${x.pri==='high'?'🔴 ':''}${ci?ci.logo+' ':''}${multi?`<span class="tnum">${n+1}.</span>`:''}${escH(x.t)}${x.assignTo?` <span style="font-size:10px;color:#4ade80;font-weight:800">→👤${escH(staffName(x.assignTo))}</span>`:''}${linkChipsHTML(c.id,x.i,x)}</div>`;
   }).join('')}${asg.map(x=>{
     const ci=catInfo(x.cat);
     return `<div class="c-topic" style="color:#86efac"><span class="tp-chk" style="border-color:#22c55e" onclick="event.stopPropagation();doneTopic('${x.srcId}',${x.i})"></span>${ci?ci.logo+' ':''}${escH(x.t)} <span style="font-size:10px;opacity:.7">(📌 ${escH(x.srcName)})</span></div>`;
@@ -2397,6 +2457,145 @@ window.spEditTask=function(id,idx){
   _logHist(c,'edit',nv);
   fbSave(c); render(); if(_spId===id) renderSmartPop();
   toast('✏️ काम सुधर गया');
+};
+/* ══ 🔗 Task ↔ Contact Link — जोड़ो/खोजो/हटाओ/नया ══ */
+let _lkId=null,_lkIdx=null,_lkTmr=null;
+function _lkTopic(){ const c=contacts.find(x=>x.id===_lkId); if(!c) return null; const t=normTopics(c); return t[_lkIdx]||null; }
+window.spLinkTask=function(id,idx){
+  const c=contacts.find(x=>x.id===id); if(!c) return;
+  const tps=normTopics(c); if(!tps[idx]) return;
+  _lkId=id; _lkIdx=idx;
+  document.getElementById('lk-task').textContent='📌 '+(tps[idx].t||'');
+  const s=document.getElementById('lk-search'); s.value='';
+  renderLinkCurrent(); renderLinkResults('');
+  openModal('m-link');
+  setTimeout(()=>{ try{ s.focus(); }catch(e){} },140);
+};
+function renderLinkCurrent(){
+  const el=document.getElementById('lk-current'); const x=_lkTopic();
+  const arr=x?lcOf(x):[];
+  if(!arr.length){ el.innerHTML=''; return; }
+  el.innerHTML=`<div style="font-size:9px;font-weight:800;color:#FF6FA5;margin-bottom:5px">जुड़े contacts (${arr.length})</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:11px">`+arr.map(lc=>{
+    const r=lcContactRes(lc);
+    return `<span style="display:inline-flex;align-items:center;gap:6px;min-height:32px;font-size:11px;font-weight:800;padding:4px 6px 4px 11px;border-radius:15px;background:rgba(255,45,120,.15);border:1px solid #FF2D78;color:#FF6FA5">🔗 ${escH(r.name)}<span onclick="linkUnlink('${lc.id}')" style="cursor:pointer;width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;background:rgba(255,45,120,.25);border-radius:50%;font-size:11px">✕</span></span>`;
+  }).join('')+`</div>`;
+}
+window.linkSearchDebounced=function(){ clearTimeout(_lkTmr); _lkTmr=setTimeout(()=>renderLinkResults(document.getElementById('lk-search').value),200); };
+function linkMatch(c,q){
+  if(!q) return true;
+  const ql=q.toLowerCase().trim(), qn=ql.replace(/\s+/g,'');
+  const name=(c.name||'').toLowerCase();
+  if(name.includes(ql)||name.replace(/\s+/g,'').includes(qn)) return true;
+  if((c.aliases||'').toLowerCase().includes(ql)) return true;
+  if((c.tag||'').toLowerCase().includes(ql)) return true;
+  if((c.firm||'').toLowerCase().includes(ql)) return true;
+  const qk=_phonKey(q);
+  if(qk.length>=2){
+    if(qk.length>=3 && _phonKey(c.name).includes(qk)) return true;
+    const wrds=((c.name||'')+' '+(c.aliases||'')).split(/[\s,;]+/);
+    if(wrds.some(w=>{ const wk=_phonKey(w); return wk.length>=2&&wk.startsWith(qk); })) return true;
+  }
+  const dig=_digOf(q);
+  if(dig.length>=3){ if(_digOf(c.phone).includes(dig)||_digOf(c.waPhone).includes(dig)) return true; }
+  return false;
+}
+function renderLinkResults(q){
+  const el=document.getElementById('lk-results'); const x=_lkTopic();
+  const linked=new Set((x?lcOf(x):[]).map(l=>l.id));
+  const qt=(q||'').trim();
+  let list=contacts.filter(c=>c.id!==_lkId && c.active!==false && !linked.has(c.id) && linkMatch(c,qt));
+  list.sort((a,b)=>new Date(b.lastCallAt||0).getTime()-new Date(a.lastCallAt||0).getTime()); // हाल के contacts ऊपर
+  list=list.slice(0,40);
+  let h='';
+  if(qt) h+=`<div onclick="linkNewContact()" style="cursor:pointer;display:flex;align-items:center;gap:9px;min-height:44px;padding:11px 10px;margin-bottom:6px;border:1px dashed rgba(34,197,94,.55);border-radius:11px;background:rgba(4,25,15,.5);color:#4ade80;font-weight:800;font-size:12.5px">➕ "${escH(qt)}" — नया contact बनाओ</div>`;
+  if(!list.length&&!qt){ el.innerHTML='<div style="text-align:center;padding:26px;color:#475569;font-size:12px">🔍 नाम/नंबर/firm लिखकर contact खोजो</div>'; return; }
+  h+=list.map(c=>{
+    const ph=c.phone||c.waPhone||'';
+    return `<div onclick="linkAdd('${c.id}')" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:9px 8px;border-bottom:1px solid rgba(30,58,95,.4);min-height:44px">
+      <div class="qd-av" style="width:34px;height:34px;flex-shrink:0;background:${avBg(c)};font-size:${c.emoji?'16px':'10px'}">${escH(avatarContent(c))}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:800;color:#e2e8f0;word-break:break-word">${escH(c.name)}${c.tag&&TAGS[c.tag]?` <span style="font-size:9px;font-weight:800;color:${TAGS[c.tag].color}">· ${escH(TAGS[c.tag].label)}</span>`:''}</div>
+        ${ph?`<div style="font-size:10.5px;color:#60a5fa;font-weight:700">📱 ${escH(ph)}</div>`:''}
+      </div>
+      <span style="font-size:20px;color:#FF6FA5;flex-shrink:0;width:30px;text-align:center">＋</span>
+    </div>`;
+  }).join('');
+  el.innerHTML=h||'<div style="text-align:center;padding:22px;color:#475569;font-size:12px">कोई contact नहीं मिला — ऊपर से नया बनाओ</div>';
+}
+window.linkAdd=function(cid){
+  const c=contacts.find(x=>x.id===cid); if(!c) return;
+  const owner=contacts.find(x=>x.id===_lkId); if(!owner) return;
+  const tps=normTopics(owner); const x=tps[_lkIdx]; if(!x) return;
+  if(!Array.isArray(x.lc)) x.lc=[];
+  if(x.lc.some(l=>l.id===cid)){ toast('पहले से जुड़ा है','warn'); return; }
+  x.lc.push({ id:cid, name:c.name||'', phone:(c.phone||c.waPhone||''), firm:c.firm||'' });
+  owner.topics=tps; _logHist(owner,'link',(c.name||'')+' ↔ '+(x.t||''));
+  fbSave(owner);
+  const s=document.getElementById('lk-search'); if(s) s.value='';
+  renderLinkCurrent(); renderLinkResults(''); render(); if(_spId===_lkId) renderSmartPop();
+  toast('🔗 '+(c.name||'')+' जुड़ गया');
+};
+window.linkUnlink=function(lcId){
+  const owner=contacts.find(x=>x.id===_lkId); if(!owner) return;
+  const tps=normTopics(owner); const x=tps[_lkIdx]; if(!x||!Array.isArray(x.lc)) return;
+  x.lc=x.lc.filter(l=>l.id!==lcId);
+  owner.topics=tps; fbSave(owner);
+  renderLinkCurrent(); renderLinkResults(document.getElementById('lk-search').value); render(); if(_spId===_lkId) renderSmartPop();
+  toast('✕ link हटाया');
+};
+window.linkNewContact=function(){
+  const q=(document.getElementById('lk-search').value||'').trim();
+  const nm=prompt('👤 नए contact का नाम:', q); if(nm===null) return;
+  const name=nm.trim(); if(!name){ toast('नाम ज़रूरी','warn'); return; }
+  const phv=prompt('📱 मोबाइल नंबर (optional — छोड़ भी सकते हैं):',''); if(phv===null) return;
+  const ph=_digOf(phv);
+  const entry={ id:genId(), name, phone:ph.length>=10?ph:'', waPhone:'', note:'', topics:[], tag:'',
+    color:COLORS[Math.floor(Math.random()*COLORS.length)], emoji:'', intervalMins:30, alarmTime:'',
+    lastCallAt:null, nextCallAt:null, callLog:[], pinned:false, createdAt:new Date().toISOString() };
+  contacts.push(entry); fbSave(entry);
+  linkAdd(entry.id);
+};
+/* 🔗 जुड़े contact chip पर tap → छोटा action menu */
+let _lcaCtx=null;
+window.lcChipTap=function(id,idx,lcId){
+  const c=contacts.find(x=>x.id===id); if(!c) return;
+  const t=normTopics(c); const x=t[idx]; if(!x) return;
+  const lc=lcOf(x).find(l=>l.id===lcId); if(!lc) return;
+  const r=lcContactRes(lc); const num=_norm10(r.phone);
+  _lcaCtx={ id, idx, lcId, r, num, task:(x.t||'') };
+  const pop=document.getElementById('lca-pop');
+  pop.innerHTML=`
+    <div style="text-align:center;margin-bottom:13px">
+      <div style="font-size:15.5px;font-weight:900;color:#FF6FA5;word-break:break-word">🔗 ${escH(r.name)}</div>
+      ${num?`<div style="font-size:12px;color:#60a5fa;font-weight:700;margin-top:2px">📱 +91 ${escH(num)}</div>`:'<div style="font-size:10px;color:#64748b;margin-top:3px">कोई नंबर नहीं</div>'}
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <button class="btn-save" style="margin:0;${num?'':'opacity:.35;pointer-events:none'}" onclick="lcCall()">📞 Call</button>
+      <button class="btn-save" style="margin:0;background:rgba(4,40,20,.9);border-color:rgba(34,197,94,.6);color:#4ade80;${num?'':'opacity:.35;pointer-events:none'}" onclick="lcWA()">💬 WhatsApp</button>
+      <button class="btn-save" style="margin:0;background:rgba(10,22,44,.9);border-color:rgba(59,130,246,.6);color:#93c5fd" onclick="lcView()">👁 देखो</button>
+      <button class="btn-save" style="margin:0;background:rgba(28,6,6,.9);border-color:rgba(239,68,68,.6);color:#fca5a5" onclick="lcUnlinkFromAct()">✕ हटाओ</button>
+    </div>`;
+  document.getElementById('lca-bg').style.display='block'; pop.style.display='block';
+};
+window.closeLcAct=function(){ document.getElementById('lca-bg').style.display='none'; document.getElementById('lca-pop').style.display='none'; };
+window.lcCall=function(){ if(!_lcaCtx||!_lcaCtx.num){ toast('नंबर नहीं','warn'); return; } const n=_lcaCtx.num; closeLcAct(); location.href='tel:+91'+n; };
+window.lcView=function(){ if(!_lcaCtx) return; const id=_lcaCtx.r.id; closeLcAct(); if(contacts.find(x=>x.id===id)) openSmartPop(id); else toast('यह contact अब नहीं है','warn'); };
+window.lcUnlinkFromAct=function(){
+  if(!_lcaCtx) return; const {id,idx,lcId}=_lcaCtx;
+  const c=contacts.find(x=>x.id===id); if(c){ const t=normTopics(c); const x=t[idx]; if(x&&Array.isArray(x.lc)){ x.lc=x.lc.filter(l=>l.id!==lcId); c.topics=t; fbSave(c); render(); if(_spId===id) renderSmartPop(); } }
+  closeLcAct(); toast('✕ link हटाया');
+};
+window.lcWA=function(){
+  if(!_lcaCtx||!_lcaCtx.num){ toast('नंबर नहीं','warn'); return; }
+  const msg='नमस्ते '+(_lcaCtx.r.name||'जी')+' 🙏\n\n'+(_lcaCtx.task||'')+'\n\n– विक्रम, Vande Bharat Enterprises';
+  document.getElementById('lcwa-to').textContent='📱 '+(_lcaCtx.r.name||'')+' — +91 '+_lcaCtx.num;
+  document.getElementById('lcwa-msg').value=msg;
+  closeLcAct(); openModal('m-lcwa');
+};
+window.lcWaSend=function(){
+  if(!_lcaCtx||!_lcaCtx.num) return;
+  const msg=document.getElementById('lcwa-msg').value||'';
+  closeModal('m-lcwa'); openWhatsApp('91'+_lcaCtx.num, msg);
 };
 window.spTogglePri=function(id,idx){
   const c=contacts.find(x=>x.id===id); if(!c) return;
@@ -4173,7 +4372,7 @@ function copyBatchText(list,from,to){
     out+=`\n${from+n+1}. ${r.c.name||'—'}\n`;
     r.own.forEach(x=>{
       const ci=catInfo(x.cat);
-      out+=`   • ${ci?ci.logo+' ':''}${x.t}${x.at?' 🔔('+schedLabel(x.at)+')':''}\n`;
+      out+=`   • ${ci?ci.logo+' ':''}${x.t}${x.at?' 🔔('+schedLabel(x.at)+')':''}${lcCopyStr(x)}\n`;
     });
     r.asg.forEach(x=>{ out+=`   • 👤 इनको सौंपा (${x.from} का काम): ${x.t}\n`; });
   });
@@ -4747,7 +4946,7 @@ function renderSmartPop(){
     <div style="display:flex;align-items:center;gap:11px;margin-bottom:10px">
       <div class="qd-av" style="width:48px;height:48px;background:${avBg(c)};font-size:${c.emoji?'21px':'12px'}">${escH(avatarContent(c))}</div>
       <div style="flex:1;min-width:0">
-        <div style="font-size:16.5px;font-weight:900;color:#e2e8f0;line-height:1.25;word-break:break-word">${escH(c.name)}${c.pinned?' 📌':''}${c.active===false?' <span style="font-size:10px;font-weight:900;color:#fca5a5;background:rgba(127,29,29,.5);border:1px solid rgba(239,68,68,.4);border-radius:6px;padding:2px 7px;vertical-align:middle">📦 बंद है</span>':''}</div>
+        <div style="font-size:16.5px;font-weight:900;color:#e2e8f0;line-height:1.25;word-break:break-word">${escH(c.name)}${c.pinned?' 📌':''}${(()=>{const n=linkedCount(c.id);return n?` <span style="font-size:11px;font-weight:900;color:#FF6FA5;background:rgba(255,45,120,.15);border:1px solid #FF2D78;border-radius:11px;padding:1px 9px;vertical-align:middle">🔗 ${n}</span>`:'';})()}${c.active===false?' <span style="font-size:10px;font-weight:900;color:#fca5a5;background:rgba(127,29,29,.5);border:1px solid rgba(239,68,68,.4);border-radius:6px;padding:2px 7px;vertical-align:middle">📦 बंद है</span>':''}</div>
         ${c.phone?`<div style="font-size:12.5px;color:#60a5fa;font-weight:700;margin-top:2px;cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" onclick="spDial()">📱 ${escH(c.phone)}</div>`:''}
       </div>
       <span class="qd-close" onclick="closeSmartPop()">✕</span>
@@ -4765,10 +4964,12 @@ function renderSmartPop(){
             <span style="font-size:14.5px;font-weight:800;color:#fcd34d;line-height:1.45;word-break:break-word">${x.pri==='high'?'🔴 ':''}${ci?ci.logo+' ':''}${tps.length>1?(n+1)+'. ':''}${escH(x.t)}</span>
             ${x.assignTo?`<span style="font-size:10px;color:#4ade80;font-weight:800;margin-left:6px;white-space:nowrap">👤 ${escH(staffName(x.assignTo))}</span>`:''}
             ${x.at?`<span onclick="event.stopPropagation();spSchedTask('${c.id}',${x.i})" style="display:inline-block;cursor:pointer;font-size:9.5px;font-weight:800;color:#93c5fd;background:rgba(30,58,138,.35);border:1px solid rgba(59,130,246,.4);border-radius:7px;padding:1px 7px;margin-left:6px;vertical-align:1px">📅 ${schedLabel(x.at)}</span>`:''}
+            ${linkChipsHTML(c.id,x.i,x)}
           </span>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 0 36px">
           <span onclick="spEditTask('${c.id}',${x.i})" style="cursor:pointer;font-size:12px;min-width:34px;text-align:center;padding:3px 6px;border:1px dashed rgba(251,191,36,.55);border-radius:8px;color:#fcd34d" title="काम का text सुधारो">✏️</span>
+          <span onclick="spLinkTask('${c.id}',${x.i})" style="cursor:pointer;font-size:12px;min-width:34px;text-align:center;padding:3px 6px;border:1px dashed rgba(255,45,120,.6);border-radius:8px;color:#FF6FA5" title="इस काम से contact जोड़ो">🔗</span>
           <span onclick="spTogglePri('${c.id}',${x.i})" style="cursor:pointer;font-size:12px;min-width:34px;text-align:center;padding:3px 6px;border:1px dashed ${x.pri==='high'?'rgba(239,68,68,.7)':'rgba(100,116,139,.4)'};border-radius:8px;${x.pri==='high'?'background:rgba(239,68,68,.15)':''}" title="ज़रूरी काम — 🔴 चिह्न लगाओ/हटाओ">${x.pri==='high'?'🔴':'⚪'}</span>
           <span onclick="openFocusPick('${c.id}',${x.i})" style="cursor:pointer;font-size:12px;min-width:34px;text-align:center;padding:3px 6px;border:1px dashed rgba(168,85,247,.5);border-radius:8px" title="🎯 Focus mode — घड़ी चालू करो">🎯</span>
           <span onclick="spSchedTask('${c.id}',${x.i})" style="cursor:pointer;font-size:12px;min-width:34px;text-align:center;padding:3px 6px;border:1px dashed ${x.at?'rgba(59,130,246,.65)':'rgba(100,116,139,.4)'};border-radius:8px" title="इस काम को Calendar में डालो — अपना समय/अलार्म">${x.at?'📅':'⏰'}</span>
@@ -4804,6 +5005,17 @@ function renderSmartPop(){
       </div>`;
       }).join('')}
     </div>`:''}
+    ${(()=>{
+      // 🔗 इस contact से जुड़े काम (reverse view) — दूसरे कहीं का काम, इनसे link है
+      const lk=tasksLinkedTo(c.id);
+      if(!lk.length) return '';
+      return `<div style="background:rgba(255,45,120,.06);border:1px solid rgba(255,45,120,.4);border-radius:11px;padding:9px 11px;margin-bottom:8px">
+        <div style="font-size:9px;font-weight:800;color:#FF6FA5;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">🔗 इनसे जुड़े काम (${lk.length})</div>
+        ${lk.map(x=>{ const ci=catInfo(x.cat); return `<div onclick="openSmartPop('${x.srcId}')" style="cursor:pointer;display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-top:1px solid rgba(255,45,120,.15)">
+          <span style="flex:1;min-width:0;font-size:12.5px;font-weight:700;color:#fbcfe8;line-height:1.4;word-break:break-word">${ci?ci.logo+' ':''}${escH(x.t)}<span style="display:block;font-size:9.5px;color:#94a3b8;margin-top:1px">📌 ${escH(x.srcName)}</span></span>
+        </div>`; }).join('')}
+      </div>`;
+    })()}
     <div style="margin-bottom:10px">
       <input class="inp" id="sp-new1" placeholder="➕ नया काम सीधे यहाँ लिखें..." style="padding:9px 11px;font-size:12.5px;margin-bottom:6px" onkeydown="if(event.key==='Enter')spSaveNewTasks()">
       <div style="display:flex;gap:6px">

@@ -47,6 +47,8 @@ async function main() {
         for (const c of pc) await tgApi(tok, c.method, c.body);
         const fc = await tg.autoPushFocus(col, s, ownerChat);
         for (const c of fc) await tgApi(tok, c.method, c.body);
+        const ng = await tg.autoPushNudge(col, s, ownerChat);
+        for (const c of ng) await tgApi(tok, c.method, c.body);
       } catch (e) {}
     }
     let j;

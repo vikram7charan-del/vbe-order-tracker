@@ -436,6 +436,64 @@ async function applyFocusComplete(col, key){
   await col.doc('_focus').set({id:'_focus', items:items.filter(f=>f.key!==key)},{merge:true});
   return {ok:true, task:it?it.t:'', name:dn.name||'', done:dn.ok};
 }
+/* 🎯 focus का समय आगे बढ़ाओ (+N min) — app के topic.at भी align */
+async function applyFocusExtend(col, key, addMin){
+  const fdoc=await col.doc('_focus').get();
+  const items=(fdoc.exists&&Array.isArray((fdoc.data()||{}).items))?fdoc.data().items:[];
+  const it=items.find(f=>f.key===key); if(!it) return {ok:false};
+  const now=Date.now();
+  it.start=it.start||now; it.until=now+addMin*60000; it.mins=addMin; it.nudgedAt=now;
+  await col.doc('_focus').set({id:'_focus', items},{merge:true});
+  try{
+    const c=await col.doc(it.id).get();
+    if(c.exists){ const cd=c.data(); const tp=topics(cd);
+      if(tp[it.i]&&!tp[it.i].done){ tp[it.i]={...tp[it.i], at:new Date(it.until).toISOString()}; await col.doc(it.id).set({topics:tp},{merge:true}); }
+    }
+  }catch(e){}
+  return {ok:true, task:it.t, until:it.until, own:it.own||'v'};
+}
+/* 🔕 focus से हटाओ (पूरा किए बिना) */
+async function applyFocusRemove(col, key){
+  const fdoc=await col.doc('_focus').get();
+  const items=(fdoc.exists&&Array.isArray((fdoc.data()||{}).items))?fdoc.data().items:[];
+  const it=items.find(f=>f.key===key);
+  await col.doc('_focus').set({id:'_focus', items:items.filter(f=>f.key!==key)},{merge:true});
+  return {ok:true, task:it?it.t:''};
+}
+/* 🔔 चल रहे focus काम पर बार-बार नज़र — एक-एक करके, ~20 min अंतराल, रात नहीं।
+   overdue focus काम चुनकर "क्या स्थिति? कितनी देर और?" पूछे — जवाब से timer बढ़े। */
+async function autoPushNudge(col, data, ownerChat){
+  const calls=[]; if(!ownerChat) return calls;
+  const istH=Number(new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Kolkata',hour:'numeric',hour12:false}).format(new Date()));
+  if(istH<8||istH>=22) return calls;                       // रात disturb नहीं
+  const now=Date.now();
+  if(now-Number(data.settings.tgLastNudge||0) < 20*60000) return calls;  // ~20 min gap
+  const items=(data.focus&&Array.isArray(data.focus.items)?data.focus.items:[]);
+  const byId={}; activeC(data.contacts).forEach(c=>{ byId[c.id]=c; });
+  const cand=[];
+  items.forEach(f=>{
+    const c=byId[f.id]; if(!c) return; const tt=topics(c)[f.i]; if(!tt||tt.done) return;
+    if(!f.until || f.until>now) return;                    // सिर्फ़ जिनका समय बीत चुका
+    if(f.nudgedAt && now-f.nudgedAt < 40*60000) return;    // इसी काम को 40 min में दोबारा नहीं
+    cand.push({...f, cname:c.name||''});
+  });
+  if(!cand.length) return calls;
+  cand.sort((a,b)=>(a.until||0)-(b.until||0));              // सबसे पुराना/लेट पहले
+  const f=cand[0];
+  await col.doc('_focus').set({id:'_focus', items:items.map(x=>x.key===f.key?{...x,nudgedAt:now}:x)},{merge:true});
+  await col.doc('_settings').set({tgLastNudge:now, tgLastNudgeKey:f.key},{merge:true});
+  data.settings.tgLastNudge=now; data.settings.tgLastNudgeKey=f.key;
+  const nm=OWNERS[f.own||'v'], run=fmtDur(now-(f.start||now)), late=fmtDur(now-f.until);
+  calls.push({method:'sendMessage',body:{chat_id:ownerChat, parse_mode:'Markdown', disable_web_page_preview:true,
+    text:`🎯 *${nm} का यह काम focus में चल रहा है:*\n📝 ${f.t}${f.cname?' ('+f.cname+')':''}\n⏱ ${run} से चालू · 🔴 ${late} लेट\n\nविक्रम जी, इसकी क्या स्थिति है? कितनी देर और लगेगी? नीचे दबाएँ (या "15 मिनट" लिखें) — उतने मिनट का focus आगे बढ़ जाएगा (app में भी):`,
+    reply_markup:{inline_keyboard:[
+      [{text:'⏱ +10',callback_data:('xt|'+f.key+'|10').slice(0,64)},{text:'⏱ +15',callback_data:('xt|'+f.key+'|15').slice(0,64)},{text:'⏱ +30',callback_data:('xt|'+f.key+'|30').slice(0,64)},{text:'⏱ +60',callback_data:('xt|'+f.key+'|60').slice(0,64)}],
+      [{text:'✅ हो गया',callback_data:('x|'+f.key).slice(0,64)},{text:'🔕 focus से हटाओ',callback_data:('rf|'+f.key).slice(0,64)}]
+    ]}
+  }});
+  return calls;
+}
+
 /* 🎯 app में focus चालू हुआ → Telegram पर बताओ (timer के साथ) */
 async function autoPushFocus(col, data, ownerChat){
   const calls=[]; if(!ownerChat) return calls;
@@ -481,6 +539,18 @@ async function handleUpdate(col, data, update, ownerChat){
       dirty=true;
       calls.push({method:'answerCallbackQuery',body:{callback_query_id:cq.id,text:r.ok?(r.already?'पहले से focus में':'🎯 focus में डाला'):'नहीं जुड़ा'}});
       if(r.ok&&!r.already) calls.push({method:'sendMessage',body:{chat_id:chat,text:`🎯 Focus में जोड़ा (${OWN_SHORT[m[1]]}): ${(r.task||'').slice(0,60)}\n⏱ 15 min timer चालू।`}});
+    } else if((m=cd.match(/^xt\|(.+)\|(\d+)$/))){
+      // ⏱ focus timer +N min
+      const r=await applyFocusExtend(col,m[1],Number(m[2]));
+      dirty=true;
+      calls.push({method:'answerCallbackQuery',body:{callback_query_id:cq.id,text:'⏱ +'+m[2]+' min'}});
+      if(r.ok) calls.push({method:'sendMessage',body:{chat_id:chat,text:`⏱ +${m[2]} min — अब ${istHM(r.until)} बजे तक focus (${OWN_SHORT[r.own]})।\n📝 ${(r.task||'').slice(0,60)}\n(app में भी आगे बढ़ा दिया)`}});
+    } else if((m=cd.match(/^rf\|(.+)$/))){
+      // 🔕 focus से हटाओ (पूरा किए बिना)
+      const r=await applyFocusRemove(col,m[1]);
+      dirty=true;
+      calls.push({method:'answerCallbackQuery',body:{callback_query_id:cq.id,text:'🔕 हटाया'}});
+      calls.push({method:'sendMessage',body:{chat_id:chat,text:`🔕 focus से हटा दिया: ${(r.task||'').slice(0,60)}`}});
     } else if((m=cd.match(/^x\|(.+)$/))){
       // 🎯 focus का काम पूरा
       const r=await applyFocusComplete(col,m[1]);
@@ -499,6 +569,13 @@ async function handleUpdate(col, data, update, ownerChat){
   if(msg.voice||msg.audio){ calls.push({method:'sendMessage',body:{chat_id:chat,text:'🎙️ आवाज़ अभी नहीं समझता — keyboard के 🎤 (बोलकर text) से भेजें।'}}); return {calls,dirty,ownerChat:newOwner}; }
   const textIn=msg.text||msg.caption||'';
   if(!textIn) return {calls,dirty,ownerChat:newOwner};
+
+  // ⏱ nudge का जवाब — "15 मिनट / 10 min" → आख़िरी पूछे काम का focus उतना बढ़ाओ
+  const durM=textIn.trim().match(/^(?:अभी\s*)?(\d{1,3})\s*(?:min|mins|minute|minutes|मिनट|मिन|मि|m)\s*(?:और|and|बाद|more)?\s*$/i);
+  if(durM && data.settings.tgLastNudgeKey && (Date.now()-Number(data.settings.tgLastNudge||0) < 3*3600e3)){
+    const r=await applyFocusExtend(col, data.settings.tgLastNudgeKey, Number(durM[1]));
+    if(r.ok){ dirty=true; calls.push({method:'sendMessage',body:{chat_id:chat,text:`⏱ +${durM[1]} min — अब ${istHM(r.until)} बजे तक focus (${OWN_SHORT[r.own]})।\n📝 ${(r.task||'').slice(0,60)}\n(app में भी आगे बढ़ा दिया)`}}); return {calls,dirty,ownerChat:newOwner}; }
+  }
 
   let ans=answer(data,textIn,now);
   if(ans&&ans.addTask){ const r=await applyAdd(col,ans.addTask.cid,ans.addTask.text,ans.addTask.at); if(r.ok) dirty=true; else ans={text:'⚠️ जोड़ नहीं पाया — app से जोड़ लें'}; }
@@ -539,6 +616,6 @@ module.exports={
   phonKey, findByName, personIn, catIn, istParts, istHM, topics,
   collectAll, activeC, allTasks, answer, parseWhen, listMsg,
   focusOwnerIn, focusItemsOf, focusDash,
-  applyDone, applyAdd, applyFocusAdd, applyFocusComplete,
-  handleUpdate, autoPushNew, autoPushFocus
+  applyDone, applyAdd, applyFocusAdd, applyFocusComplete, applyFocusExtend, applyFocusRemove,
+  handleUpdate, autoPushNew, autoPushFocus, autoPushNudge
 };

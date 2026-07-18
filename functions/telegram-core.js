@@ -741,7 +741,7 @@ async function staffPatch(col, staffCid, cid, ti, patch){
   await g.ref.set({topics:g.tps, note:g.tps.filter(x=>!x.done).map(x=>x.t).join(' · ')},{merge:true});
   return {task:g.t.t||'', cname:g.c.name||''};
 }
-const BLOCK_REASONS={1:'पैसा नहीं',2:'पार्टी नहीं मिली',3:'माल नहीं',4:'officer नहीं मिले',5:'कुछ और दिक्कत'};
+const BLOCK_REASONS={1:'सामान नहीं मिला',2:'पैसा चाहिए',3:'बंदा नहीं मिला',4:'गाड़ी नहीं',5:'कल करूँगा'};
 function linkCodeFor(name){
   const ini=phonKey(String(name||'').split(/\s+/)[0]).toUpperCase().slice(0,3)||'VBE';
   return ini+'-'+String(Math.floor(1000+Math.random()*9000));
@@ -783,21 +783,200 @@ async function autoPushStaffDigest(col, data){
   if(changed) await saveTgStaff(col,data,list);
   return calls;
 }
-/* staff के callback (ud/up/upq/ub/ubr/uz) — isolation हर कदम पर */
+/* ══ 🎯 FOCUS → TELEGRAM DELIVERY (approved format — deviate नहीं) ══ */
+function lateBadge(lateMs){ return lateMs<=0?'🟢':lateMs<6*3600e3?'🟡':'🔴'; }
+function istMinOfDay(now){
+  const p=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kolkata',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(now)).split(':');
+  return Number(p[0])*60+Number(p[1]);
+}
+/* Focus digest — staff के own-letter (v/d/k) के focus काम, contact-grouped, 4-बटन */
+function staffFocusDigest(data, st, now, mode){
+  const fs=st.own?focusItemsOf(data, st.own):[];
+  const nm=(staffNameOf(data,st.cid)||st.name||'').split(/\s+/)[0]||'जी';
+  if(!fs.length) return staffDigest(data, st, now);
+  const lateN=fs.filter(f=>(f.until||0)<now).length;
+  const shown=fs.slice(0,12);
+  let text, rows;
+  if(mode==='short'){
+    text=`🙏 *${nm} जी — ${fs.length} काम बाकी*${lateN?' 🔴'+lateN+' लेट':''}\n`;
+    shown.forEach((f,i)=>{
+      const lateMs=now-(f.until||now);
+      text+=`${i+1}. ${f.cname?f.cname.split(/\s+/)[0]+' — ':''}${(f.t||'').slice(0,45)}${lateMs>0?' 🔴'+fmtDur(lateMs):''}\n`;
+    });
+    if(fs.length>12) text+=`…और ${fs.length-12} काम\n`;
+    text+='👇 बटन दबाइए';
+  } else {
+    text=`🙏 *${nm} जी — ${greetIST(now)}*\n🔴 *Focus Mode — सबसे पहले यही काम*\n`;
+    // contact के हिसाब से group — first-appearance क्रम में
+    const groups=[]; const gi={};
+    shown.forEach((f,i)=>{ const k=f.id||'?'; if(gi[k]===undefined){ gi[k]=groups.length; groups.push({cname:f.cname||'?',cphone:f.cphone||'',list:[]}); } groups[gi[k]].list.push({...f,n:i+1}); });
+    groups.forEach(g=>{
+      text+='\n━━━━━━━━━━━━━━━━━━\n👤 *'+g.cname+'*\n';
+      const dig=_phoneDigits(g.cphone);
+      if(dig) text+=telLink(g.cphone,dig)+'\n';
+      g.list.forEach(f=>{
+        const lateMs=now-(f.until||now);
+        text+=`${lateBadge(lateMs)} *${f.n}.* ${f.t}${lateMs>0?' — '+fmtDur(lateMs)+' लेट':''}\n`;
+      });
+    });
+    if(fs.length>12) text+=`\n…और ${fs.length-12} काम — पहले ये पूरे करें`;
+    text+=`\n━━━━━━━━━━━━━━━━━━\nआज: ✅ ${doneTodayCount(data,now)} पूरे · ⏳ ${fs.length} बाकी${lateN?' · 🔴 '+lateN+' लेट':''}\nनीचे नंबर के बटन दबाइए 👇`;
+  }
+  rows=shown.map((f,i)=>[
+    {text:'✅ '+(i+1),callback_data:('wd|'+f.key).slice(0,64)},
+    {text:'⏳ '+(i+1),callback_data:('wp|'+f.key).slice(0,64)},
+    {text:'❌ '+(i+1),callback_data:('wb|'+f.key).slice(0,64)},
+    {text:'🕐 '+(i+1),callback_data:('wz|'+f.key).slice(0,64)},
+  ]);
+  rows.push([{text:'🔄 ताज़ा करो',callback_data:'wf|0'}]);
+  return {text:text.slice(0,4050), reply_markup:{inline_keyboard:rows}};
+}
+/* 🔒 focus-item guard — ताज़ा _focus पढ़ो, item उसी staff के own का हो */
+async function focusItemGuard(col, st, key){
+  const fdoc=await col.doc('_focus').get();
+  const items=(fdoc.exists&&Array.isArray((fdoc.data()||{}).items))?fdoc.data().items:[];
+  const it=items.find(f=>f.key===key);
+  if(!it||(it.own||'v')!==st.own) return null;
+  return it;
+}
+/* ⏰ hourly Focus push — dedupe hash, quiet 22:30–6:30, escalation 24h+ */
+async function autoPushFocusHourly(col, data){
+  const calls=[]; const now=Date.now();
+  const mins=istMinOfDay(now);
+  if(mins>=1350||mins<390) return calls;                 // रात 10:30 – सुबह 6:30 शांति
+  const ownerChat=data.settings.tgChatId?String(data.settings.tgChatId):'';
+  const list=tgStaff(data); let changed=false;
+  for(const s of list){
+    if(!s.chatId||s.active===false) continue;
+    if(!s.own){ const o=focusOwnerIn(staffNameOf(data,s.cid)||s.name||''); if(o){ s.own=o; changed=true; } }
+    if(!s.own) continue;
+    const fs=focusItemsOf(data, s.own);
+    if(!fs.length) continue;
+    if(now-Number(s.lastFocusAt||0)<55*60000) continue;   // ~हर घंटे
+    const hash=fs.map(f=>f.key+':'+lateBadge(now-(f.until||now))).join('|');
+    if(hash===s.lastFocusHash && now-Number(s.lastFocusAt||0)<6*3600e3) continue; // कुछ नया नहीं → चुप
+    const dg=staffFocusDigest(data, s, now, s.pref||'detailed');
+    calls.push({method:'sendMessage',body:Object.assign({chat_id:s.chatId,parse_mode:'Markdown',disable_web_page_preview:true,text:dg.text},dg.reply_markup?{reply_markup:dg.reply_markup}:{})});
+    s.lastFocusAt=now; s.lastFocusHash=hash; changed=true;
+    await logEv(col,{action:'focus_push',staff:s.cid,staffName:staffNameOf(data,s.cid)||s.name,n:fs.length,trigger:'hourly'});
+    // ⚠️ 24h+ लेट → owner escalation (हर 4 घंटे में एक बार)
+    const esc=fs.filter(f=>f.until&&now-f.until>24*3600e3);
+    if(esc.length&&ownerChat&&now-Number(s.lastEscAt||0)>4*3600e3){
+      calls.push({method:'sendMessage',body:{chat_id:ownerChat,parse_mode:'Markdown',disable_web_page_preview:true,
+        text:`⚠️ *${staffNameOf(data,s.cid)||s.name} के ${esc.length} काम 24 घंटे+ से अटके:*\n`+esc.slice(0,5).map((f,i)=>`${i+1}. ${(f.t||'').slice(0,60)} — 🔴 ${fmtDur(now-f.until)}`).join('\n')+(esc.length>5?`\n…और ${esc.length-5}`:'')}});
+      s.lastEscAt=now; changed=true;
+    }
+  }
+  if(changed) await saveTgStaff(col, data, list);
+  return calls;
+}
+/* staff के callback (ud/up/uq/ub/ur/uz + focus wd/wp/wq/wb/wr/wz/wy/wf) — isolation हर कदम पर */
 async function handleStaffCallback(col, data, cq, st, ownerChat){
   const calls=[]; let dirty=false;
   const chat=String(cq.message.chat.id); const cd=cq.data||'';
   const sName=staffNameOf(data,st.cid)||st.name||'';
   const ack=(t)=>calls.push({method:'answerCallbackQuery',body:{callback_query_id:cq.id,text:t}});
   const say=(t,kb)=>calls.push({method:'sendMessage',body:Object.assign({chat_id:chat,text:t,parse_mode:'Markdown',disable_web_page_preview:true},kb?{reply_markup:kb}:{})});
+  // 🔔 owner mirror — हर staff-हलचल की तुरंत खबर
+  const mir=(emoji,task,extra)=>{ if(ownerChat) calls.push({method:'sendMessage',body:{chat_id:ownerChat,disable_web_page_preview:true,
+    text:`🔔 ${sName} → ${emoji} "${(task||'').slice(0,60)}"${extra?' — '+extra:''} (${istHM(Date.now())})`}}); };
+  // ✏️ action के बाद वही digest message ताज़ा करो (नया spam नहीं)
+  const refresh=async(kind)=>{ try{
+    if(!cq.message||!cq.message.message_id) return;
+    const d3=collectAll(await col.get()); d3.settings=data.settings;
+    const st3=tgStaff(d3).find(x=>x.cid===st.cid)||st;
+    const dg=(kind==='focus')?staffFocusDigest(d3,st3,Date.now(),st3.pref||'detailed'):staffDigest(d3,st3,Date.now());
+    const body={chat_id:chat,message_id:cq.message.message_id,text:dg.text,parse_mode:'Markdown',disable_web_page_preview:true};
+    if(dg.reply_markup) body.reply_markup=dg.reply_markup;
+    calls.push({method:'editMessageText',body});
+  }catch(e){} };
   let m;
+  /* ── 🎯 Focus काम के बटन (wd/wp/wq/wb/wr/wz/wy/wf) — own-guard से ── */
+  if((m=cd.match(/^wd\|(.+)$/))){
+    const it=await focusItemGuard(col,st,m[1]);
+    if(!it){ ack('यह काम आपका नहीं / मिला नहीं'); return {calls,dirty}; }
+    const r=await applyFocusComplete(col,m[1]); dirty=true;
+    await logEv(col,{action:'done',staff:st.cid,staffName:sName,task:(r.task||'').slice(0,80),focus:true});
+    ack('✅ शाबाश!'); mir('✅',r.task);
+    say(`✅ *हो गया:* ${(r.task||'').slice(0,60)}\n\nबहुत बढ़िया ${sName.split(/\s+/)[0]} जी! 🙌`);
+    await refresh('focus');
+    return {calls,dirty};
+  }
+  if((m=cd.match(/^wp\|(.+)$/))){
+    const it=await focusItemGuard(col,st,m[1]);
+    if(!it){ ack('यह काम आपका नहीं / मिला नहीं'); return {calls,dirty}; }
+    ack('⏳');
+    say(`⏳ *${(it.t||'').slice(0,60)}*\nकितनी देर में हो जाएगा?`,{inline_keyboard:[[
+      {text:'1 घंटा',callback_data:('wq|'+m[1]+'|60').slice(0,64)},
+      {text:'3 घंटे',callback_data:('wq|'+m[1]+'|180').slice(0,64)},
+      {text:'कल सुबह',callback_data:('wq|'+m[1]+'|t').slice(0,64)}]]});
+    return {calls,dirty};
+  }
+  if((m=cd.match(/^w([qy])\|(.+)\|(\d+|t)$/))){
+    const isSnooze=m[1]==='y';
+    const it=await focusItemGuard(col,st,m[2]);
+    if(!it){ ack('नहीं मिला'); return {calls,dirty}; }
+    let addMin;
+    if(m[3]==='t'){ const nowMin=istMinOfDay(Date.now()); addMin=(24*60-nowMin)+10*60; } // कल सुबह 10 बजे
+    else addMin=Number(m[3]);
+    const r=await applyFocusExtend(col,m[2],addMin); dirty=true;
+    await logEv(col,{action:isSnooze?'snooze':'in_progress',staff:st.cid,staffName:sName,task:(it.t||'').slice(0,80),mins:addMin,focus:true});
+    ack(isSnooze?'🕐 ठीक':'⏳ ठीक');
+    mir(isSnooze?'🕐 बाद में':'⏳ कर रहा हूँ',it.t,istHM(r.until)+' तक');
+    say(`${isSnooze?'🕐':'⏳'} ठीक है — *${istHM(r.until)}* तक।\n📝 ${(it.t||'').slice(0,60)}\nसमय पर फिर याद दिला दूँगा।`);
+    await refresh('focus');
+    return {calls,dirty};
+  }
+  if((m=cd.match(/^wb\|(.+)$/))){
+    const it=await focusItemGuard(col,st,m[1]);
+    if(!it){ ack('यह काम आपका नहीं / मिला नहीं'); return {calls,dirty}; }
+    ack('❌');
+    const kb=[[1,2],[3,4],[5]].map(row=>row.map(k=>({text:BLOCK_REASONS[k],callback_data:('wr|'+m[1]+'|'+k).slice(0,64)})));
+    say(`❌ *${(it.t||'').slice(0,60)}*\nक्या दिक्कत है?`,{inline_keyboard:kb});
+    return {calls,dirty};
+  }
+  if((m=cd.match(/^wr\|(.+)\|([1-5])$/))){
+    const it=await focusItemGuard(col,st,m[1]);
+    if(!it){ ack('नहीं मिला'); return {calls,dirty}; }
+    const reason=BLOCK_REASONS[m[2]];
+    try{ // उस topic पर st:'blocked' भी लगाओ (app में दिखे)
+      const dc=await col.doc(it.id).get();
+      if(dc.exists){ const c=dc.data(); const tps=topics(c);
+        if(tps[it.i]&&!tps[it.i].done){ tps[it.i]={...tps[it.i],st:'blocked',blockedReason:reason,blockedAt:new Date().toISOString()};
+          await col.doc(it.id).set({topics:tps},{merge:true}); } }
+    }catch(e){}
+    dirty=true;
+    await logEv(col,{action:'blocked',staff:st.cid,staffName:sName,task:(it.t||'').slice(0,80),reason,focus:true});
+    ack('👍 विक्रम जी को बता दिया');
+    say(`🚧 ठीक है — विक्रम जी को तुरंत बता दिया।\n📝 ${(it.t||'').slice(0,60)}\nकारण: ${reason}`);
+    if(ownerChat) calls.push({method:'sendMessage',body:{chat_id:ownerChat,parse_mode:'Markdown',disable_web_page_preview:true,
+      text:`🚧 *Focus काम अटका!*\n👤 ${sName}: ${(it.t||'').slice(0,70)}\n❌ कारण: *${reason}*\n\n2 घंटे में हल करें — वरना staff बताना बंद कर देंगे।`}});
+    await refresh('focus');
+    return {calls,dirty};
+  }
+  if((m=cd.match(/^wz\|(.+)$/))){
+    const it=await focusItemGuard(col,st,m[1]);
+    if(!it){ ack('यह काम आपका नहीं / मिला नहीं'); return {calls,dirty}; }
+    ack('🕐');
+    say(`🕐 *${(it.t||'').slice(0,60)}*\nकब याद दिलाऊँ?`,{inline_keyboard:[[
+      {text:'1 घंटा',callback_data:('wy|'+m[1]+'|60').slice(0,64)},
+      {text:'3 घंटे',callback_data:('wy|'+m[1]+'|180').slice(0,64)},
+      {text:'कल सुबह',callback_data:('wy|'+m[1]+'|t').slice(0,64)}]]});
+    return {calls,dirty};
+  }
+  if(cd==='wf|0'){
+    ack('🔄');
+    await refresh('focus');
+    return {calls,dirty};
+  }
   if((m=cd.match(/^ud\|(.+)\|(\d+)$/))){
     const g=await staffTopic(col,st.cid,m[1],m[2]);
     if(!g){ ack('यह काम आपका नहीं / मिला नहीं'); return {calls,dirty}; }
     const r=await applyDone(col,m[1],m[2]); dirty=true;
     await logEv(col,{action:'done',staff:st.cid,staffName:sName,cid:m[1],ti:Number(m[2]),task:(r.task||'').slice(0,80)});
-    ack('✅ शाबाश!');
+    ack('✅ शाबाश!'); mir('✅',r.task);
     say(`✅ *हो गया:* ${(r.task||'').slice(0,60)}\n👤 ${r.name||''}\n\nबहुत बढ़िया ${sName.split(/\s+/)[0]} जी! 🙌`);
+    await refresh('general');
   } else if((m=cd.match(/^up\|(.+)\|(\d+)$/))){
     const g=await staffTopic(col,st.cid,m[1],m[2]);
     if(!g){ ack('यह काम आपका नहीं / मिला नहीं'); return {calls,dirty}; }
@@ -817,8 +996,9 @@ async function handleStaffCallback(col, data, cq, st, ownerChat){
     if(!r){ ack('नहीं मिला'); return {calls,dirty}; }
     dirty=true;
     await logEv(col,{action:'in_progress',staff:st.cid,staffName:sName,cid:m[1],ti:Number(m[2]),task:r.task.slice(0,80),dueAt:at.toISOString()});
-    ack('⏳ ठीक');
+    ack('⏳ ठीक'); mir('⏳ कर रहा हूँ',r.task,istHM(at.toISOString())+' तक');
     say(`⏳ ठीक है — *${istParts(at.toISOString())} ${istHM(at.toISOString())}* तक।\n📝 ${r.task.slice(0,60)}\nसमय पर याद दिला दूँगा।`);
+    await refresh('general');
   } else if((m=cd.match(/^ub\|(.+)\|(\d+)$/))){
     const g=await staffTopic(col,st.cid,m[1],m[2]);
     if(!g){ ack('यह काम आपका नहीं / मिला नहीं'); return {calls,dirty}; }
@@ -848,8 +1028,9 @@ async function handleStaffCallback(col, data, cq, st, ownerChat){
       const r=await staffPatch(col,st.cid,m[1],m[2],{snoozeUntil:Date.now()+2*3600e3,snoozeN:zn+1});
       dirty=true;
       await logEv(col,{action:'snooze',staff:st.cid,staffName:sName,cid:m[1],ti:Number(m[2]),task:r?r.task.slice(0,80):'',n:zn+1});
-      ack('🕐 2 घंटे बाद');
+      ack('🕐 2 घंटे बाद'); mir('🕐 बाद में',r?r.task:'',(zn+1)+'/3 बार');
       say(`🕐 ठीक — 2 घंटे बाद फिर याद दिलाऊँगा। (${zn+1}/3 बार टला)`);
+      await refresh('general');
     }
   } else ack('ok');
   return {calls,dirty};
@@ -869,12 +1050,13 @@ async function staffLinkAttempt(col, data, chat, code, from){
   }
   s.chatId=String(chat); s.code=''; s.codeExp=0; s.linkedAt=Date.now();
   s.tgUser=(from&&from.username)||''; s.lastNudgeAt=0;
+  s.own=s.own||focusOwnerIn(staffNameOf(data,s.cid)||s.name||'')||'';
   await saveTgStaff(col,data,list);
   await logEv(col,{action:'linked',staff:s.cid,staffName:staffNameOf(data,s.cid)||s.name,chatId:String(chat)});
   const nm=(staffNameOf(data,s.cid)||s.name||'').split(/\s+/)[0];
   calls.push({method:'sendMessage',body:{chat_id:chat,parse_mode:'Markdown',
     text:`✅ *${nm} जी, आप जुड़ गए हैं!*\n\nअब आपके काम यहीं आते रहेंगे।\nApp खोलने की ज़रूरत नहीं।\nसिर्फ़ बटन दबाना है — कुछ टाइप नहीं करना।\n\n✅ हो गया · ⏳ कर रहा हूँ · ❌ अटका · 🕐 बाद में`}});
-  const d=staffDigest(data,s,Date.now());
+  const d=(s.own&&focusItemsOf(data,s.own).length)?staffFocusDigest(data,s,Date.now(),s.pref||'detailed'):staffDigest(data,s,Date.now());
   calls.push({method:'sendMessage',body:Object.assign({chat_id:chat,parse_mode:'Markdown',disable_web_page_preview:true,text:d.text},d.reply_markup?{reply_markup:d.reply_markup}:{})});
   return {calls,ok:true,name:staffNameOf(data,s.cid)||s.name};
 }
@@ -1025,7 +1207,8 @@ async function handleUpdate(col, data, update, ownerChat){
     const st=staffByChat(data, chat);
     if(st){
       if(msg.voice||msg.audio){ calls.push({method:'sendMessage',body:{chat_id:chat,text:'🎙️ अभी बटन ही चलते हैं — नीचे ✅/⏳/❌/🕐 दबाइए।'}}); return {calls,dirty,ownerChat:newOwner}; }
-      const d=staffDigest(data, st, now);
+      if(!st.own){ const o=focusOwnerIn(staffNameOf(data,st.cid)||st.name||''); if(o){ const l2=tgStaff(data); const e2=l2.find(x=>x.cid===st.cid); if(e2){ e2.own=o; await saveTgStaff(col,data,l2); st.own=o; } } }
+      const d=(st.own&&focusItemsOf(data,st.own).length)?staffFocusDigest(data,st,now,st.pref||'detailed'):staffDigest(data,st,now);
       calls.push({method:'sendMessage',body:Object.assign({chat_id:chat,parse_mode:'Markdown',disable_web_page_preview:true,text:d.text},d.reply_markup?{reply_markup:d.reply_markup}:{})});
       return {calls,dirty,ownerChat:newOwner};
     }
@@ -1119,5 +1302,6 @@ module.exports={
   applyDone, applyAdd, applyFocusAdd, applyFocusComplete, applyFocusExtend, applyFocusRemove,
   handleUpdate, autoPushNew, autoPushFocus, autoPushNudge, autoPushMenu,
   tgStaff, staffByChat, staffTasks, staffDigest, teamContacts, teamScore,
-  staffLinkAttempt, makeLinkCode, linkPickMsg, autoPushStaffDigest, logEv
+  staffLinkAttempt, makeLinkCode, linkPickMsg, autoPushStaffDigest, logEv,
+  staffFocusDigest, autoPushFocusHourly, lateBadge, focusItemGuard
 };

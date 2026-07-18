@@ -58,6 +58,9 @@ async function main() {
         // 👥 staff digest — हर staff को उसके gap (default साढ़े 3 घंटे) पर, 9-20 IST
         const sd = await tg.autoPushStaffDigest(col, s);
         for (const c of sd) await tgApi(tok, c.method, c.body);
+        // 🎯 Focus hourly push — बदलाव हो तभी (dedupe hash), 22:30–6:30 शांति, 24h+ लेट → owner alert
+        const fp = await tg.autoPushFocusHourly(col, s);
+        for (const c of fp) await tgApi(tok, c.method, c.body);
       } catch (e) {}
     }
     let j;

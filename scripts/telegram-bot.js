@@ -29,8 +29,11 @@ async function main() {
   let ownerChat = data.settings.tgChatId ? String(data.settings.tgChatId) : '';
   let offset = Number(data.settings.tgOffset || 0);
 
-  // ⚡ नए काम auto-push (शुरू में + हर ~3 min loop के अंदर)
-  try { const pc = await tg.autoPushNew(col, data, ownerChat); for (const c of pc) await tgApi(tok, c.method, c.body); } catch (e) {}
+  // ⚡ नए काम + 🎯 focus-start auto-push (शुरू में + हर ~3 min loop के अंदर)
+  try {
+    const pc = await tg.autoPushNew(col, data, ownerChat); for (const c of pc) await tgApi(tok, c.method, c.body);
+    const fc = await tg.autoPushFocus(col, data, ownerChat); for (const c of fc) await tgApi(tok, c.method, c.body);
+  } catch (e) {}
 
   const t0 = Date.now(); let handled = 0, dirty = false, lastPush = Date.now();
   console.log('📩 poller — loop', Math.round(LOOP_MS / 1000) + 's');
@@ -42,6 +45,8 @@ async function main() {
         const s = tg.collectAll(await col.get());
         const pc = await tg.autoPushNew(col, s, ownerChat);
         for (const c of pc) await tgApi(tok, c.method, c.body);
+        const fc = await tg.autoPushFocus(col, s, ownerChat);
+        for (const c of fc) await tgApi(tok, c.method, c.body);
       } catch (e) {}
     }
     let j;

@@ -191,4 +191,10 @@ Learned from the owner's legacy "My Business Cloud Systems" report (Jan–Feb 20
 `safeUpload()` — 20s timeout; if Firebase Storage not set up / slow, entry still saves (`billStatus:'pending'`), never hangs. **Storage must be enabled once** in Firebase Console for bill photos to persist.
 
 ### Connectors roadmap (owner picked all 4; do ONE at a time to avoid overwhelm)
-1. ✅ Simple home. 2. 📊 Google Sheet mirror (= trust + backup; needs owner to share a Sheet with the FIREBASE_SA email). 3. 🔒 nightly backup (Sheet doubles as this). 4. 📱 WhatsApp via owner's n8n subscription (staff bill-reminders from `notification_queue`; staff `whatsapp` field). Owner also has Anthropic API credits + n8n; open to free connectors (Gemini etc.) if cost stays low.
+1. ✅ Simple home. 2. ✅ 📊 Google Sheet mirror built (nightly `sheet-backup.yml` + `scripts/sheet-backup.js`; owner still to paste Sheet link in dashboard card — script writes SA email to `vbe_settings/backup`). 3. ✅ nightly backup (Sheet doubles as this). 4. 🟡 📱 WhatsApp: one-tap wa.me staff bill-reminders LIVE in dashboard (`renderBillReminders`, prefilled Hindi msg, staff `whatsapp` field); full n8n auto-send still open. Owner also has Anthropic API credits + n8n.
+
+### Intelligence layer (all client-side, no AI cost)
+- Home **Business Brain** (`_BRAIN` in loadDash → loadInsights): ❤️ health score 0-100 (कमाई-खर्च/रफ़्तार/उधार/bill-अनुशासन with reasons), 🟠 उधार+top बकायेदार, 📈 this-vs-prev-month same-day spend compare, 🏢 top firm, 🔮 7-day forecast (last-30-days रफ़्तार), 🔺 price alerts (pricebook latest vs prior-avg).
+- Entry **Rule #1 चूना-protection** (`PARTY_MEM`/`checkPayAnomaly`): party payment habit (n/avg/max from 500 entries); soft warn >2.5×avg or new-party ≥10k; hard warn (double-Save guard `ANOM_OK`) >max×1.5 or ≥₹50,000. Price memory per item (`PRICE_MEM`, 'पिछली बार ₹X' + ±% hint).
+- **🎙️ Voice** (hi-IN Web Speech): home mic → `voiceRoute()` intents (हिसाब/बही/एंट्री/रेट→search); search mic + `?q=` deep-link. Search self-learning: `vbe_recent_q` chips on result-tap.
+- **AI key sync**: `vbe_settings/kharcha_ai.apiKey` (admin saves once → all devices); red/green state on photo card (`showAiState`), tap-to-open settings, Hindi error mapping (`aiErrHindi`).

@@ -54,27 +54,29 @@ function nameScore(c, words){
   let score=0;
   for(const w of words){
     if(!w||w.length<2) continue;
-    if(nmL.includes(w)){ score+=2; continue; }
+    if(nmL.includes(w)){ score+=2; continue; }              // नाम में शब्द ज्यों-का-त्यों = पक्का
     const qk=phonKey(w); if(qk.length<2) continue;
-    if(nkeys.some(nk=> nk===qk || (qk.length>=3&&nk.length>=3&&(nk.startsWith(qk)||qk.startsWith(nk))))) score+=1;
+    if(nkeys.some(nk=>nk===qk)){ score+=2; continue; }       // पूरी आवाज़-कुंजी बराबर = पक्का (नवीन==naveen)
+    if(qk.length>=3 && nkeys.some(nk=>nk.length>=3&&(nk.startsWith(qk)||qk.startsWith(nk)))) score+=1; // सिर्फ़ शुरुआत मिली = कमज़ोर
   }
   return score;
 }
+// कम-से-कम 2 अंक चाहिए (एक पक्का मिलान) — "ऐड किए थे" जैसे शब्द गलती से नाम न बनें
 function findByName(contacts,q){
   const words=String(q||'').toLowerCase().replace(/[?.,!।]/g,' ').split(/\s+/).filter(w=>w&&NAME_STOP.indexOf(w)<0);
   if(!words.length) return null;
   let best=null,bs=0;
   for(const c of contacts){ const s=nameScore(c,words); if(s>bs){ bs=s; best=c; } }
-  return bs>0?best:null;
+  return bs>=2?best:null;
 }
-const PERSON_SKIP=['के','का','की','काम','कौन','से','क्या','है','हैं','में','को','सब','वाले','list','tasks','work','आज','कल','सारे','बताओ','दिखाओ','बता','दिखा','क्या-क्या','मेरे','मेरा']
+const PERSON_SKIP=['के','का','की','काम','कौन','से','क्या','है','हैं','में','को','सब','वाले','list','tasks','work','आज','कल','परसों','सारे','बताओ','दिखाओ','बता','दिखा','क्या-क्या','कौन-कौन','मेरे','मेरा','मैंने','मैने','ऐड','add','जोड़े','जोड़ा','डाले','डाला','किए','किया','कर','थे','थी','था','रहे','हुए','कब','कहाँ','कहां','यह','वह','ये','वे']
   .concat(NAME_STOP).concat(Object.values(CATS).flatMap(c=>c.words));
 function personIn(contacts,text){
   const words=String(text).toLowerCase().replace(/[?.,!।]/g,' ').split(/\s+/).filter(w=>w.length>=2&&PERSON_SKIP.indexOf(w)<0);
   if(!words.length) return null;
   let best=null,bs=0;
   for(const c of contacts){ const s=nameScore(c,words); if(s>bs){ bs=s; best=c; } }
-  return bs>0?{c:best,word:words.join(' ')}:null;
+  return bs>=2?{c:best,word:words.join(' ')}:null;
 }
 function catIn(text){
   const t=String(text).toLowerCase();
@@ -174,6 +176,20 @@ function answer(data,textRaw,now){
     return {text:HELP};
   }
   if(!text||has('help','मदद','हेल्प','namaste','नमस्ते','hi','hello','हैलो','हेलो')&&t.length<12) return {text:HELP};
+
+  /* 📅 "कल/आज/परसों/N दिन पहले कौन से काम जोड़े/ऐड किए" — जोड़े गए काम की तारीख़-खोज
+     (व्यक्ति-खोज से पहले, ताकि 'ऐड किए थे' गलती से नाम न बने; 'कल' = बीता हुआ कल) */
+  if(/(जोड़े|जोड़ा|ऐड|\badd\b|डाले|डाला|बनाए|बनाया)/.test(t) && has('काम','कम','task')){
+    let dayOff=0, lbl='आज';
+    if(/परसों/.test(t)){ dayOff=-2; lbl='परसों'; }
+    else if(/कल|yesterday|बीते/.test(t)){ dayOff=-1; lbl='कल'; }
+    else if(/आज|today/.test(t)){ dayOff=0; lbl='आज'; }
+    else { const m=t.match(/(\d+)\s*दिन/); if(m){ dayOff=-Number(m[1]); lbl=m[1]+' दिन पहले'; } }
+    const day=istParts(now+dayOff*864e5);
+    const added=allTasks(data.contacts).filter(x=>x.addedAt&&istParts(x.addedAt)===day);
+    if(!added.length) return {text:`📅 ${lbl} (${day}) कोई नया काम जोड़ा हुआ रिकॉर्ड में नहीं मिला।\n(बहुत पुराने कामों पर तारीख़ दर्ज नहीं थी — उन पर यह खाली रहेगा।)`};
+    return {text:`📅 ${lbl} जोड़े गए काम (${added.length}):\n\n`+added.slice(0,20).map((x,i)=>`${i+1}. ${CATS[x.cat]?CATS[x.cat].logo+' ':''}${x.t}\n   👤 ${x.name}`).join('\n')+(added.length>20?`\n…और ${added.length-20}`:'')};
+  }
 
   const when=parseWhen(text,now);
   const forMatch=when?when.text:text;

@@ -55,7 +55,7 @@ async function main() {
         for (const c of fc) await tgApi(tok, c.method, c.body);
         const mn = await tg.autoPushMenu(col, s, ownerChat);
         for (const c of mn) await tgApi(tok, c.method, c.body);
-        // 👥 staff digest — हर staff को उसके gap (default 2 घंटे) पर, 9-20 IST
+        // 👥 staff digest — हर staff को उसके gap (default साढ़े 3 घंटे) पर, 9-20 IST
         const sd = await tg.autoPushStaffDigest(col, s);
         for (const c of sd) await tgApi(tok, c.method, c.body);
       } catch (e) {}

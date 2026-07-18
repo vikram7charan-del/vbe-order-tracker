@@ -772,7 +772,7 @@ async function autoPushStaffDigest(col, data){
   const now=Date.now(); const list=tgStaff(data); let changed=false;
   for(const s of list){
     if(!s.chatId||s.active===false) continue;
-    const gap=(Number(s.nudgeMins)||120)*60000;
+    const gap=(Number(s.nudgeMins)||210)*60000;
     if(now-Number(s.lastNudgeAt||0)<gap) continue;
     const tasks=staffTasks(data,s.cid,now);
     if(!tasks.length) continue;
@@ -890,7 +890,7 @@ async function makeLinkCode(col, data, cid){
   const calls=[]; const name=staffNameOf(data,cid);
   const list=tgStaff(data);
   let s=list.find(x=>x.cid===cid);
-  if(!s){ s={cid,name,chatId:'',nudgeMins:120,active:true}; list.push(s); }
+  if(!s){ s={cid,name,chatId:'',nudgeMins:210,active:true}; list.push(s); }
   s.code=linkCodeFor(name); s.codeExp=Date.now()+15*60000;
   await saveTgStaff(col,data,list);
   const bot=data.settings.tgBotUser||'';

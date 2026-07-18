@@ -320,7 +320,7 @@ async function loadInsights(){
   alerts.sort((a,b)=>Math.abs(b.pct)-Math.abs(a.pct));
   const box=document.getElementById('insights'); const wrap=document.getElementById('insights-wrap');
   // 🧠 पहले Business Brain (उधार/खर्च-तुलना/top-firm), फिर रेट-alerts
-  const brain=(window._BRAIN||[]).slice(0,3);
+  const brain=(window._BRAIN||[]).slice(0,4);
   const brainHtml=brain.map(b=>`<div class="ins" onclick="location.href='${b.href}'" style="cursor:pointer">
       <div class="ib ${b.cls}">${b.icon}</div>
       <div class="it"><div class="t1">${esc(b.t1)}</div><div class="t2">${esc(b.t2)}</div></div>
@@ -355,10 +355,12 @@ async function loadDash(){
     getDocs(query(RC, orderBy('createdAt','desc'), limit(6))).catch(()=>({forEach:()=>{}}))
   ]);
   const dayOfMonth=+t.slice(8,10);
-  let tout=0,tin=0,mout=0,pmout=0,todayN=0; const firmOut={};
+  const d30=new Date(Date.now()-30*864e5).toISOString().slice(0,10);
+  let tout=0,tin=0,mout=0,pmout=0,out30=0,todayN=0; const firmOut={};
   exSnap.forEach(x=>{const e=x.data(); const d=e.date||'';
     if(d.slice(0,7)===m){ mout+=+e.total||0; const f=e.firm||'—'; firmOut[f]=(firmOut[f]||0)+(+e.total||0); }
     else if(d.slice(0,7)===pm && +d.slice(8,10)<=dayOfMonth) pmout+=+e.total||0;
+    if(d>=d30) out30+=+e.total||0;
     if(d===t){ tout+=+e.total||0; todayN++; }
   });
   rcSnap.forEach(x=>{const r=x.data(); if(r.direction!=='in')return;
@@ -408,6 +410,12 @@ async function loadDash(){
   if(topF && Object.keys(firmOut).length>1){
     brain.push({icon:'🏢', cls:'ib-ok', t1:`सबसे ज़्यादा खर्च: ${topF[0]}`,
       t2:`इस महीने ${fmt(topF[1])} — tap करके पूरा हिसाब देखें`, href:'./hisab.html'});
+  }
+  // 🔮 अगले 7 दिन का अनुमान — पिछले 30 दिन की असली रफ़्तार से (कोई AI नहीं)
+  if(out30>2000){
+    const perDay=out30/30, wk=Math.round(perDay*7);
+    brain.push({icon:'🔮', cls:'ib-ok', t1:`अगले 7 दिन में ~${fmt(wk)} खर्च का अनुमान`,
+      t2:`पिछले 30 दिन की रफ़्तार ${fmt(Math.round(perDay))}/दिन — इतना cash तैयार रखो`, href:'./hisab.html'});
   }
   window._BRAIN=brain;
   const net=tin-tout;

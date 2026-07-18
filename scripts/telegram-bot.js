@@ -29,6 +29,15 @@ async function main() {
   let ownerChat = data.settings.tgChatId ? String(data.settings.tgChatId) : '';
   let offset = Number(data.settings.tgOffset || 0);
 
+  // 🤖 bot का username save — staff link (t.me deep link + QR) के लिए
+  try {
+    const me = await tgApi(tok, 'getMe', {});
+    if (me.ok && me.result && me.result.username && data.settings.tgBotUser !== me.result.username) {
+      await col.doc('_settings').set({ tgBotUser: me.result.username }, { merge: true });
+      data.settings.tgBotUser = me.result.username;
+    }
+  } catch (e) {}
+
   // 🎯 focus चालू होने का confirm (शुरू में) — बाक़ी auto-spam बंद, सिर्फ़ periodic menu
   try {
     const fc = await tg.autoPushFocus(col, data, ownerChat); for (const c of fc) await tgApi(tok, c.method, c.body);
@@ -46,6 +55,9 @@ async function main() {
         for (const c of fc) await tgApi(tok, c.method, c.body);
         const mn = await tg.autoPushMenu(col, s, ownerChat);
         for (const c of mn) await tgApi(tok, c.method, c.body);
+        // 👥 staff digest — हर staff को उसके gap (default 2 घंटे) पर, 9-20 IST
+        const sd = await tg.autoPushStaffDigest(col, s);
+        for (const c of sd) await tgApi(tok, c.method, c.body);
       } catch (e) {}
     }
     let j;

@@ -207,7 +207,7 @@ function collectAll(snap){
   snap.forEach(d=>{
     if(d.id==='_settings'){ settings=d.data()||{}; return; }
     if(d.id==='_focus'){ focus=d.data()||{}; return; }
-    if(d.id.indexOf('mem_')===0) return;
+    if(d.id.indexOf('mem_')===0 || d.id[0]==='_' || d.id.indexOf('ev_')===0) return;
     const c=d.data(); c.id=d.id; contacts.push(c);
   });
   return {contacts, settings, focus};
@@ -299,8 +299,13 @@ const HELP=`🙏 नमस्ते विक्रम भाई! मैं आ�
  • "विक्रम focus शुरू" — काम चुनकर focus में डालो
  • "contacts" — सारे contacts 10-10 (काम + 🎯 + ➕)
 
+👥 *टीम (staff Telegram पर):*
+ • "link" — staff को QR से जोड़ो (उनके काम उन तक अपने-आप)
+ • "टीम" — किसने कितने किए, कौन अटका (scoreboard)
+ • "unlink मनोज" — staff को हटाओ
+
 ⌨️ Commands: /today /kal /late /pending /zaroori
-   /report /call /focus /market /computer /search DVR /help`;
+   /report /call /focus /link /team /market /search DVR /help`;
 
 const SLASH={'/today':'आज के काम','/aaj':'आज के काम','/kal':'कल के काम','/tomorrow':'कल के काम',
   '/late':'लेट काम','/pending':'बाकी काम','/report':'रिपोर्ट','/hisab':'रिपोर्ट','/call':'call किसको',
@@ -631,6 +636,271 @@ async function autoPushFocus(col, data, ownerChat){
   return calls;
 }
 
+/* ══════════════════════════════════════════════════════════
+   👥 STAFF LAYER (Accountability Engine — Phase 1)
+   staff registry _settings.tgStaff में (app पर शून्य असर),
+   events append-only vbe_ct_events collection में।
+   Hard isolation: staff सिर्फ़ अपने assignTo काम देखता है —
+   पहचान हमेशा chatId से, कभी callback data से नहीं।
+   ══════════════════════════════════════════════════════════ */
+function tgStaff(data){ return Array.isArray(data.settings.tgStaff)?data.settings.tgStaff:[]; }
+async function saveTgStaff(col, data, list){
+  await col.doc('_settings').set({tgStaff:list},{merge:true}); data.settings.tgStaff=list;
+}
+function staffByChat(data, chat){ return tgStaff(data).find(s=>s.chatId===String(chat)&&s.active!==false)||null; }
+function staffNameOf(data, cid){ const c=data.contacts.find(x=>x.id===cid); return c?(c.name||''):''; }
+/* टीम के लोग — settings.tagList में team-flag वाला filter (app का teamKey) */
+function teamContacts(data){
+  const tl=Array.isArray(data.settings.tagList)?data.settings.tagList:[];
+  const marked=tl.find(t=>t.team)||tl.find(t=>/टीम|team/i.test(t.label||''));
+  const tk=marked?marked.k:'jalipa';
+  let out=activeC(data.contacts).filter(c=>c.tag===tk);
+  if(!out.length){ // fallback: जिनको काम सौंपे गए हैं
+    const ids=new Set(); activeC(data.contacts).forEach(c=>topics(c).forEach(x=>{ if(!x.done&&x.assignTo) ids.add(x.assignTo); }));
+    out=activeC(data.contacts).filter(c=>ids.has(c.id));
+  }
+  return out;
+}
+/* 🔒 staff के काम — सिर्फ़ assignTo===staffCid, done नहीं, snooze नहीं */
+function staffTasks(data, staffCid, now){
+  const out=[];
+  activeC(data.contacts).forEach(c=>{
+    if(c.id===staffCid) return;
+    topics(c).forEach((x,i)=>{
+      if(x.done||x.assignTo!==staffCid) return;
+      if(x.snoozeUntil&&Number(x.snoozeUntil)>now) return;
+      out.push({...x,cid:c.id,ti:i,cname:c.name||'?',cphone:c.phone||''});
+    });
+  });
+  // contact के हिसाब से एक साथ, फिर category-order
+  out.sort((a,b)=>a.cid===b.cid?catRank(a.cat)-catRank(b.cat):(a.cid<b.cid?-1:1));
+  return out;
+}
+function istDay(t){ return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata'}).format(new Date(t)); }
+function staffDoneToday(data, staffCid, now){
+  let n=0; const day=istDay(now);
+  activeC(data.contacts).forEach(c=>topics(c).forEach(x=>{
+    if(x.done&&x.assignTo===staffCid&&x.doneAt&&istDay(new Date(x.doneAt).getTime())===day) n++;
+  }));
+  return n;
+}
+function greetIST(now){
+  const h=Number(new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Kolkata',hour:'numeric',hour12:false}).format(new Date(now)));
+  const part=h<12?'सुबह':h<16?'दोपहर':h<20?'शाम':'रात';
+  return part+' '+(h%12||12)+' बजे';
+}
+/* 📩 staff digest — contact-grouped, ≤5 block, नंबर वाले 4-बटन */
+function staffDigest(data, st, now){
+  const tasks=staffTasks(data, st.cid, now);
+  const nm=(staffNameOf(data,st.cid)||st.name||'').split(/\s+/)[0]||'जी';
+  if(!tasks.length) return {text:`🙏 ${nm} जी — ${greetIST(now)}\n\n✨ अभी कोई काम बाकी नहीं। शाबाश!`};
+  const byC=[]; const idx={};
+  tasks.forEach(t=>{ if(idx[t.cid]===undefined){ idx[t.cid]=byC.length; byC.push({cid:t.cid,cname:t.cname,cphone:t.cphone,list:[]}); } byC[idx[t.cid]].list.push(t); });
+  const blocks=byC.slice(0,5); const hidden=byC.length-blocks.length;
+  let n=0; const numbered=[];
+  let text=`🙏 *${nm} जी — ${greetIST(now)}*\n`;
+  blocks.forEach(b=>{
+    text+='\n━━━━━━━━━━━━━━━\n👤 *'+b.cname+'*\n';
+    const dig=_phoneDigits(b.cphone);
+    if(dig) text+=telLink(b.cphone,dig)+'\n';
+    b.list.forEach(t=>{
+      n++; numbered.push(t);
+      const lateMs=t.at?now-new Date(t.at).getTime():0;
+      const mark=(lateMs>0||t.pri==='high')?'🔴':t.st==='blocked'?'🚧':'🟡';
+      text+=`${mark} *${n}.* ${t.t}${lateMs>0?' — '+fmtDur(lateMs)+' लेट':''}\n`;
+    });
+  });
+  if(hidden>0) text+=`\n…और ${hidden} जगह के काम — पहले ये पूरे करें`;
+  text+=`\n━━━━━━━━━━━━━━━\nआज: ✅${staffDoneToday(data,st.cid,now)} पूरे · ⏳${tasks.length} बाकी\nनीचे नंबर के बटन दबाइए 👇`;
+  const rows=numbered.slice(0,8).map((t,i)=>[
+    {text:'✅ '+(i+1),callback_data:('ud|'+t.cid+'|'+t.ti).slice(0,64)},
+    {text:'⏳ '+(i+1),callback_data:('up|'+t.cid+'|'+t.ti).slice(0,64)},
+    {text:'❌ '+(i+1),callback_data:('ub|'+t.cid+'|'+t.ti).slice(0,64)},
+    {text:'🕐 '+(i+1),callback_data:('uz|'+t.cid+'|'+t.ti).slice(0,64)},
+  ]);
+  return {text, reply_markup:{inline_keyboard:rows}};
+}
+/* 🔒 audit event — append-only, अलग collection (app नहीं पढ़ता) */
+async function logEv(col, o){
+  try{
+    await col.firestore.collection('vbe_ct_events')
+      .doc('ev_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6))
+      .set(Object.assign({at:new Date().toISOString(),ch:'telegram'},o));
+  }catch(e){}
+}
+/* 🔒 isolation guard — doc ताज़ा पढ़ो, topic उसी staff का हो तभी दो */
+async function staffTopic(col, staffCid, cid, ti){
+  const dc=await col.doc(cid).get(); if(!dc.exists) return null;
+  const c=dc.data(); const tps=topics(c); const t=tps[Number(ti)];
+  if(!t||t.done||t.assignTo!==staffCid) return null;
+  return {c, tps, t, i:Number(ti), ref:col.doc(cid)};
+}
+async function staffPatch(col, staffCid, cid, ti, patch){
+  const g=await staffTopic(col, staffCid, cid, ti); if(!g) return null;
+  g.tps[g.i]=Object.assign({},g.t,patch);
+  await g.ref.set({topics:g.tps, note:g.tps.filter(x=>!x.done).map(x=>x.t).join(' · ')},{merge:true});
+  return {task:g.t.t||'', cname:g.c.name||''};
+}
+const BLOCK_REASONS={1:'पैसा नहीं',2:'पार्टी नहीं मिली',3:'माल नहीं',4:'officer नहीं मिले',5:'कुछ और दिक्कत'};
+function linkCodeFor(name){
+  const ini=phonKey(String(name||'').split(/\s+/)[0]).toUpperCase().slice(0,3)||'VBE';
+  return ini+'-'+String(Math.floor(1000+Math.random()*9000));
+}
+/* 👥 owner scoreboard — /team */
+function teamScore(data, now){
+  const linked=tgStaff(data);
+  const seen=new Set(); const rows=[];
+  const addRow=(cid,name,isLinked)=>{
+    if(seen.has(cid)) return; seen.add(cid);
+    const pend=staffTasks(data,cid,now); const dn=staffDoneToday(data,cid,now);
+    const blocked=pend.filter(t=>t.st==='blocked').length;
+    if(!pend.length&&!dn) return;
+    rows.push(`${isLinked?'🔗':'⚪'} *${name||'?'}*  ✅${dn} आज · ⏳${pend.length} बाकी${blocked?' · 🚧'+blocked+' अटके':''}`);
+  };
+  linked.forEach(s=>addRow(s.cid, staffNameOf(data,s.cid)||s.name, !!s.chatId));
+  teamContacts(data).forEach(c=>addRow(c.id, c.name, false));
+  let own=0; activeC(data.contacts).forEach(c=>topics(c).forEach(x=>{ if(!x.done&&!x.assignTo) own++; }));
+  return `📊 *टीम स्कोर — ${greetIST(now)}*\n\n`+(rows.length?rows.join('\n'):'— किसी staff पर काम नहीं')+
+    `\n\n📥 बिना staff के (आपके अपने): ${own} काम`+
+    `\n\n🔗 = Telegram से जुड़ा · ⚪ = अभी नहीं जुड़ा\n"link" लिखकर staff को जोड़ें।`;
+}
+/* 📩 सब linked staff को digest (poller की periodic scan से) — 9-20 IST, per-staff gap */
+async function autoPushStaffDigest(col, data){
+  const calls=[];
+  const istH=Number(new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Kolkata',hour:'numeric',hour12:false}).format(new Date()));
+  if(istH<9||istH>=20) return calls;
+  const now=Date.now(); const list=tgStaff(data); let changed=false;
+  for(const s of list){
+    if(!s.chatId||s.active===false) continue;
+    const gap=(Number(s.nudgeMins)||120)*60000;
+    if(now-Number(s.lastNudgeAt||0)<gap) continue;
+    const tasks=staffTasks(data,s.cid,now);
+    if(!tasks.length) continue;
+    const d=staffDigest(data,s,now);
+    calls.push({method:'sendMessage',body:Object.assign({chat_id:s.chatId,parse_mode:'Markdown',disable_web_page_preview:true,text:d.text},d.reply_markup?{reply_markup:d.reply_markup}:{})});
+    s.lastNudgeAt=now; changed=true;
+  }
+  if(changed) await saveTgStaff(col,data,list);
+  return calls;
+}
+/* staff के callback (ud/up/upq/ub/ubr/uz) — isolation हर कदम पर */
+async function handleStaffCallback(col, data, cq, st, ownerChat){
+  const calls=[]; let dirty=false;
+  const chat=String(cq.message.chat.id); const cd=cq.data||'';
+  const sName=staffNameOf(data,st.cid)||st.name||'';
+  const ack=(t)=>calls.push({method:'answerCallbackQuery',body:{callback_query_id:cq.id,text:t}});
+  const say=(t,kb)=>calls.push({method:'sendMessage',body:Object.assign({chat_id:chat,text:t,parse_mode:'Markdown',disable_web_page_preview:true},kb?{reply_markup:kb}:{})});
+  let m;
+  if((m=cd.match(/^ud\|(.+)\|(\d+)$/))){
+    const g=await staffTopic(col,st.cid,m[1],m[2]);
+    if(!g){ ack('यह काम आपका नहीं / मिला नहीं'); return {calls,dirty}; }
+    const r=await applyDone(col,m[1],m[2]); dirty=true;
+    await logEv(col,{action:'done',staff:st.cid,staffName:sName,cid:m[1],ti:Number(m[2]),task:(r.task||'').slice(0,80)});
+    ack('✅ शाबाश!');
+    say(`✅ *हो गया:* ${(r.task||'').slice(0,60)}\n👤 ${r.name||''}\n\nबहुत बढ़िया ${sName.split(/\s+/)[0]} जी! 🙌`);
+  } else if((m=cd.match(/^up\|(.+)\|(\d+)$/))){
+    const g=await staffTopic(col,st.cid,m[1],m[2]);
+    if(!g){ ack('यह काम आपका नहीं / मिला नहीं'); return {calls,dirty}; }
+    ack('⏳');
+    say(`⏳ *${(g.t.t||'').slice(0,60)}*\nकितनी देर में हो जाएगा?`,{inline_keyboard:[[
+      {text:'1 घंटा',callback_data:('uq|'+m[1]+'|'+m[2]+'|1').slice(0,64)},
+      {text:'आज शाम',callback_data:('uq|'+m[1]+'|'+m[2]+'|e').slice(0,64)},
+      {text:'कल सुबह',callback_data:('uq|'+m[1]+'|'+m[2]+'|t').slice(0,64)}]]});
+  } else if((m=cd.match(/^uq\|(.+)\|(\d+)\|(1|e|t)$/))){
+    const now=Date.now(); let at;
+    if(m[3]==='1') at=new Date(now+3600e3);
+    else { const p=new Date(now); // IST शाम 18:00 / कल सुबह 10:00
+      const istNow=new Date(p.toLocaleString('en-US',{timeZone:'Asia/Kolkata'}));
+      const target=new Date(istNow); if(m[3]==='e'){ target.setHours(18,0,0,0); if(target<=istNow) target.setDate(target.getDate()+1); } else { target.setDate(target.getDate()+1); target.setHours(10,0,0,0); }
+      at=new Date(now+(target-istNow)); }
+    const r=await staffPatch(col,st.cid,m[1],m[2],{st:'prog',at:at.toISOString()});
+    if(!r){ ack('नहीं मिला'); return {calls,dirty}; }
+    dirty=true;
+    await logEv(col,{action:'in_progress',staff:st.cid,staffName:sName,cid:m[1],ti:Number(m[2]),task:r.task.slice(0,80),dueAt:at.toISOString()});
+    ack('⏳ ठीक');
+    say(`⏳ ठीक है — *${istParts(at.toISOString())} ${istHM(at.toISOString())}* तक।\n📝 ${r.task.slice(0,60)}\nसमय पर याद दिला दूँगा।`);
+  } else if((m=cd.match(/^ub\|(.+)\|(\d+)$/))){
+    const g=await staffTopic(col,st.cid,m[1],m[2]);
+    if(!g){ ack('यह काम आपका नहीं / मिला नहीं'); return {calls,dirty}; }
+    ack('❌');
+    const kb=[[1,2],[3,4],[5]].map(row=>row.map(k=>({text:BLOCK_REASONS[k],callback_data:('ur|'+m[1]+'|'+m[2]+'|'+k).slice(0,64)})));
+    say(`❌ *${(g.t.t||'').slice(0,60)}*\nक्या दिक्कत है?`,{inline_keyboard:kb});
+  } else if((m=cd.match(/^ur\|(.+)\|(\d+)\|([1-5])$/))){
+    const reason=BLOCK_REASONS[m[3]];
+    const r=await staffPatch(col,st.cid,m[1],m[2],{st:'blocked',blockedReason:reason,blockedAt:new Date().toISOString()});
+    if(!r){ ack('नहीं मिला'); return {calls,dirty}; }
+    dirty=true;
+    await logEv(col,{action:'blocked',staff:st.cid,staffName:sName,cid:m[1],ti:Number(m[2]),task:r.task.slice(0,80),reason});
+    ack('👍 विक्रम जी को बता दिया');
+    say(`🚧 ठीक है — विक्रम जी को तुरंत बता दिया।\n📝 ${r.task.slice(0,60)}\nकारण: ${reason}`);
+    if(ownerChat) calls.push({method:'sendMessage',body:{chat_id:ownerChat,parse_mode:'Markdown',disable_web_page_preview:true,
+      text:`🚧 *काम अटका!*\n👤 ${sName} का काम: ${r.task.slice(0,70)}\n(${r.cname})\n❌ कारण: *${reason}*\n\n2 घंटे में हल करें — वरना staff बताना बंद कर देंगे।`}});
+  } else if((m=cd.match(/^uz\|(.+)\|(\d+)$/))){
+    const g=await staffTopic(col,st.cid,m[1],m[2]);
+    if(!g){ ack('यह काम आपका नहीं / मिला नहीं'); return {calls,dirty}; }
+    const zn=Number(g.t.snoozeN||0);
+    if(zn>=3){
+      ack('🚫 3 बार टल चुका');
+      say(`🚫 यह काम 3 बार टल चुका — अब करना ही है:\n📝 ${(g.t.t||'').slice(0,60)}\n\nनहीं हो पा रहा तो ❌ दबाकर दिक्कत बताइए।`);
+      await logEv(col,{action:'snooze_limit',staff:st.cid,staffName:sName,cid:m[1],ti:Number(m[2]),task:(g.t.t||'').slice(0,80)});
+      if(ownerChat) calls.push({method:'sendMessage',body:{chat_id:ownerChat,text:`🕐 ${sName} ने "${(g.t.t||'').slice(0,50)}" को 3 बार टाला — एक बार पूछ लीजिए।`}});
+    } else {
+      const r=await staffPatch(col,st.cid,m[1],m[2],{snoozeUntil:Date.now()+2*3600e3,snoozeN:zn+1});
+      dirty=true;
+      await logEv(col,{action:'snooze',staff:st.cid,staffName:sName,cid:m[1],ti:Number(m[2]),task:r?r.task.slice(0,80):'',n:zn+1});
+      ack('🕐 2 घंटे बाद');
+      say(`🕐 ठीक — 2 घंटे बाद फिर याद दिलाऊँगा। (${zn+1}/3 बार टला)`);
+    }
+  } else ack('ok');
+  return {calls,dirty};
+}
+/* /start CODE — staff जुड़ने की कोशिश */
+async function staffLinkAttempt(col, data, chat, code, from){
+  const calls=[]; const list=tgStaff(data);
+  const s=list.find(x=>x.code&&x.code.toUpperCase()===String(code).toUpperCase());
+  if(!s||!s.codeExp||s.codeExp<Date.now()){
+    calls.push({method:'sendMessage',body:{chat_id:chat,text:'⚠️ यह code गलत है या समय निकल गया (15 min)।\nविक्रम जी से नया link/QR लीजिए।'}});
+    return {calls,ok:false};
+  }
+  const other=list.find(x=>x!==s&&x.chatId===String(chat));
+  if(other){
+    calls.push({method:'sendMessage',body:{chat_id:chat,text:'⚠️ यह Telegram पहले से '+(staffNameOf(data,other.cid)||other.name||'किसी और')+' से जुड़ा है। विक्रम जी से बात करें।'}});
+    return {calls,ok:false,alertOwner:'⚠️ Link गड़बड़: एक ही Telegram ('+chat+') दो staff से जुड़ने की कोशिश।'};
+  }
+  s.chatId=String(chat); s.code=''; s.codeExp=0; s.linkedAt=Date.now();
+  s.tgUser=(from&&from.username)||''; s.lastNudgeAt=0;
+  await saveTgStaff(col,data,list);
+  await logEv(col,{action:'linked',staff:s.cid,staffName:staffNameOf(data,s.cid)||s.name,chatId:String(chat)});
+  const nm=(staffNameOf(data,s.cid)||s.name||'').split(/\s+/)[0];
+  calls.push({method:'sendMessage',body:{chat_id:chat,parse_mode:'Markdown',
+    text:`✅ *${nm} जी, आप जुड़ गए हैं!*\n\nअब आपके काम यहीं आते रहेंगे।\nApp खोलने की ज़रूरत नहीं।\nसिर्फ़ बटन दबाना है — कुछ टाइप नहीं करना।\n\n✅ हो गया · ⏳ कर रहा हूँ · ❌ अटका · 🕐 बाद में`}});
+  const d=staffDigest(data,s,Date.now());
+  calls.push({method:'sendMessage',body:Object.assign({chat_id:chat,parse_mode:'Markdown',disable_web_page_preview:true,text:d.text},d.reply_markup?{reply_markup:d.reply_markup}:{})});
+  return {calls,ok:true,name:staffNameOf(data,s.cid)||s.name};
+}
+/* owner: "link" → staff चुनो के बटन */
+function linkPickMsg(data){
+  const team=teamContacts(data);
+  if(!team.length) return {text:'⚠️ कोई टीम-staff contact नहीं मिला। पहले app में staff को टीम filter दें।'};
+  const rows=[]; team.slice(0,12).forEach(c=>rows.push([{text:'🔗 '+(c.name||'?'),callback_data:('lk|'+c.id).slice(0,64)}]));
+  return {text:'👥 *किस staff को Telegram से जोड़ना है?*\n(staff का फ़ोन हाथ में रखें — QR मिलेगा)',reply_markup:{inline_keyboard:rows}};
+}
+/* owner: staff चुना → code + deep link + QR */
+async function makeLinkCode(col, data, cid){
+  const calls=[]; const name=staffNameOf(data,cid);
+  const list=tgStaff(data);
+  let s=list.find(x=>x.cid===cid);
+  if(!s){ s={cid,name,chatId:'',nudgeMins:120,active:true}; list.push(s); }
+  s.code=linkCodeFor(name); s.codeExp=Date.now()+15*60000;
+  await saveTgStaff(col,data,list);
+  const bot=data.settings.tgBotUser||'';
+  const deep=bot?`https://t.me/${bot}?start=${s.code}`:'';
+  let text=`🔗 *${name}* के लिए link तैयार (15 min):\n\ncode: \`${s.code}\``;
+  if(deep) text+=`\n\n1️⃣ Staff के फ़ोन पर यह link खोलें:\n${deep}\n2️⃣ Telegram खुलेगा → *START* दबाएँ\n3️⃣ बस — जुड़ गए!`;
+  else text+=`\n\nStaff अपने Telegram में इस bot को खोलकर यह code भेजे।`;
+  return {calls, text, qr: deep?('https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='+encodeURIComponent(deep)):''};
+}
+
 /* एक update → Telegram API calls की सूची। data ताज़ा दो; dirty true हो तो caller reload करे। */
 async function handleUpdate(col, data, update, ownerChat){
   const calls=[]; let dirty=false, newOwner=ownerChat;
@@ -639,10 +909,23 @@ async function handleUpdate(col, data, update, ownerChat){
   if(update.callback_query){
     const cq=update.callback_query;
     const chat=cq.message&&cq.message.chat&&String(cq.message.chat.id);
-    if(ownerChat&&chat!==ownerChat){ calls.push({method:'answerCallbackQuery',body:{callback_query_id:cq.id,text:'अनुमति नहीं'}}); return {calls,dirty,ownerChat:newOwner}; }
+    if(ownerChat&&chat!==ownerChat){
+      // 👥 staff chat? — पहचान chatId से ही (isolation)
+      const st=staffByChat(data, chat);
+      if(st){ const r=await handleStaffCallback(col, data, cq, st, ownerChat); return {calls:r.calls, dirty:r.dirty, ownerChat:newOwner}; }
+      calls.push({method:'answerCallbackQuery',body:{callback_query_id:cq.id,text:'अनुमति नहीं'}}); return {calls,dirty,ownerChat:newOwner};
+    }
     const cd=cq.data||'';
     let m;
-    if((m=cd.match(/^d\|(.+)\|(\d+)$/))){
+    if((m=cd.match(/^lk\|(.+)$/))){
+      // 👥 owner ने staff चुना → code + deep link + QR
+      const snap=await col.get(); const d2=collectAll(snap); d2.settings=data.settings;
+      const r=await makeLinkCode(col, d2, m[1]);
+      data.settings=d2.settings;
+      calls.push({method:'answerCallbackQuery',body:{callback_query_id:cq.id,text:'🔗'}});
+      calls.push({method:'sendMessage',body:{chat_id:chat,parse_mode:'Markdown',disable_web_page_preview:true,text:r.text}});
+      if(r.qr) calls.push({method:'sendPhoto',body:{chat_id:chat,photo:r.qr,caption:'📱 Staff के फ़ोन के camera/Telegram से यह QR scan करवाएँ'}});
+    } else if((m=cd.match(/^d\|(.+)\|(\d+)$/))){
       const r=await applyDone(col,m[1],m[2]);
       if(r.ok){ dirty=true; calls.push({method:'answerCallbackQuery',body:{callback_query_id:cq.id,text:'✅ काम पूरा!'}});
         calls.push({method:'sendMessage',body:{chat_id:chat,text:`✅ पूरा हुआ: ${(r.task||'').slice(0,60)}\n👤 ${r.name||''}`}}); }
@@ -728,10 +1011,52 @@ async function handleUpdate(col, data, update, ownerChat){
   if(!msg||!msg.chat) return {calls,dirty,ownerChat:newOwner};
   const chat=String(msg.chat.id);
   if(!newOwner){ newOwner=chat; try{ await col.doc('_settings').set({tgChatId:chat},{merge:true}); }catch(e){} data.settings.tgChatId=chat; }
-  if(chat!==newOwner){ calls.push({method:'sendMessage',body:{chat_id:chat,text:'🙏 यह विक्रम जी का निजी bot है।'}}); return {calls,dirty,ownerChat:newOwner}; }
+  if(chat!==newOwner){
+    // 👥 non-owner chat: पहले link-code, फिर linked staff, वरना विनम्र मना
+    const rawT=(msg.text||'').trim();
+    const cm=rawT.match(/^\/start[ _]+([A-Za-z]{2,5}-?\d{3,5})$/i)||rawT.match(/^([A-Za-z]{2,5}-\d{3,5})$/);
+    if(cm){
+      const r=await staffLinkAttempt(col, data, chat, cm[1], msg.from);
+      r.calls.forEach(c=>calls.push(c));
+      if(r.ok&&newOwner) calls.push({method:'sendMessage',body:{chat_id:newOwner,text:'✅ '+r.name+' Telegram से जुड़ गए! अब उनके काम अपने-आप उन तक पहुँचेंगे।'}});
+      if(r.alertOwner&&newOwner) calls.push({method:'sendMessage',body:{chat_id:newOwner,text:r.alertOwner}});
+      return {calls,dirty:true,ownerChat:newOwner};
+    }
+    const st=staffByChat(data, chat);
+    if(st){
+      if(msg.voice||msg.audio){ calls.push({method:'sendMessage',body:{chat_id:chat,text:'🎙️ अभी बटन ही चलते हैं — नीचे ✅/⏳/❌/🕐 दबाइए।'}}); return {calls,dirty,ownerChat:newOwner}; }
+      const d=staffDigest(data, st, now);
+      calls.push({method:'sendMessage',body:Object.assign({chat_id:chat,parse_mode:'Markdown',disable_web_page_preview:true,text:d.text},d.reply_markup?{reply_markup:d.reply_markup}:{})});
+      return {calls,dirty,ownerChat:newOwner};
+    }
+    calls.push({method:'sendMessage',body:{chat_id:chat,text:'🙏 यह विक्रम जी का निजी bot है।\nअगर आप VBE staff हैं तो विक्रम जी से link/QR लेकर जुड़ें।'}});
+    return {calls,dirty,ownerChat:newOwner};
+  }
   if(msg.voice||msg.audio){ calls.push({method:'sendMessage',body:{chat_id:chat,text:'🎙️ आवाज़ अभी नहीं समझता — keyboard के 🎤 (बोलकर text) से भेजें।'}}); return {calls,dirty,ownerChat:newOwner}; }
   const textIn=msg.text||msg.caption||'';
   if(!textIn) return {calls,dirty,ownerChat:newOwner};
+
+  // 👥 owner के टीम-commands (Accountability Phase 1)
+  const tlow=textIn.trim().toLowerCase();
+  if(tlow==='/link'||tlow==='link'||tlow==='लिंक'||/^staff\s*(link|jodo|जोड़ो)$/.test(tlow)||/^telegram\s*link/.test(tlow)){
+    const pm=linkPickMsg(data);
+    calls.push({method:'sendMessage',body:Object.assign({chat_id:chat,parse_mode:'Markdown',text:pm.text},pm.reply_markup?{reply_markup:pm.reply_markup}:{})});
+    return {calls,dirty,ownerChat:newOwner};
+  }
+  let um;
+  if((um=textIn.trim().match(/^(?:\/unlink|unlink|अनलिंक)\s+(.+)$/i))){
+    const list=tgStaff(data);
+    const tgt=list.find(s=>{ const nm=(staffNameOf(data,s.cid)||s.name||''); return nameScore({name:nm},um[1].toLowerCase().split(/\s+/))>=2; });
+    if(tgt&&tgt.chatId){ tgt.chatId=''; tgt.code=''; await saveTgStaff(col,data,list);
+      await logEv(col,{action:'unlinked',staff:tgt.cid,staffName:staffNameOf(data,tgt.cid)||tgt.name});
+      calls.push({method:'sendMessage',body:{chat_id:chat,text:'🔌 '+(staffNameOf(data,tgt.cid)||tgt.name)+' का Telegram हटा दिया — अब उन्हें कुछ नहीं जाएगा। History सुरक्षित है।'}});
+    } else calls.push({method:'sendMessage',body:{chat_id:chat,text:'⚠️ यह staff जुड़ा हुआ नहीं मिला। "टीम" लिखकर देखें कौन-कौन जुड़ा है।'}});
+    return {calls,dirty,ownerChat:newOwner};
+  }
+  if(tlow==='/team'||tlow==='टीम'||tlow==='team'||tlow==='स्कोर'||tlow==='score'||tlow==='scoreboard'||tlow==='टीम स्कोर'){
+    calls.push({method:'sendMessage',body:{chat_id:chat,parse_mode:'Markdown',text:teamScore(data,now)}});
+    return {calls,dirty,ownerChat:newOwner};
+  }
 
   // ✍️ Contact Review का "➕ नया काम" — अगला text उसी contact के लिए काम बन जाए
   if(data.settings.tgAddFor && (Date.now()-Number(data.settings.tgAddForAt||0) < 10*60000) && textIn[0]!=='/'){
@@ -792,5 +1117,7 @@ module.exports={
   focusOwnerIn, focusItemsOf, focusDash, focusMenuMsg, focusChoiceMsg, focusDetailCards,
   contactReviewList, contactReviewCards, contactFocusStart,
   applyDone, applyAdd, applyFocusAdd, applyFocusComplete, applyFocusExtend, applyFocusRemove,
-  handleUpdate, autoPushNew, autoPushFocus, autoPushNudge, autoPushMenu
+  handleUpdate, autoPushNew, autoPushFocus, autoPushNudge, autoPushMenu,
+  tgStaff, staffByChat, staffTasks, staffDigest, teamContacts, teamScore,
+  staffLinkAttempt, makeLinkCode, linkPickMsg, autoPushStaffDigest, logEv
 };

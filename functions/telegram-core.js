@@ -72,21 +72,22 @@ function doneTodayCount(data, now){
 function focusDash(data, own, now){
   const list=focusItemsOf(data,own), nm=OWNERS[own];
   if(!list.length) return {text:`🎯 ${nm} — Focus\n\nअभी कोई काम focus में नहीं है।\n"${OWN_SHORT[own]} focus शुरू" लिखकर काम चुनें।`};
-  const active=list.slice(0,FOCUS_ACTIVE), queue=list.slice(FOCUS_ACTIVE);
-  let out=`🎯 *${nm} — Focus Dashboard*\nआज ✅ ${doneTodayCount(data,now)} पूरे · कुल focus: ${list.length}\n\n🔥 अभी के काम (${active.length}):\n`;
-  active.forEach((f,i)=>{
-    const late=(f.until||0)<now, run=fmtDur(now-(f.start||now));
-    out+=`\n${i+1}. ${f.pri==='high'?'🔴 ':''}${CATS[f.cat]?CATS[f.cat].logo+' ':''}${f.t}${f.cname?' ('+f.cname+')':''}\n   ⏱ ${run} से चालू${late?' · 🔴 '+fmtDur(now-f.until)+' लेट':' · ⏳ '+fmtDur(f.until-now)+' बाकी'}\n`;
+  const show=list.slice(0,50);          // पूरे focus काम (50 तक), श्रेणी-क्रम में
+  const late=list.filter(f=>(f.until||0)<now).length;
+  let out=`🎯 *${nm} — Focus Dashboard*\nआज ✅ ${doneTodayCount(data,now)} पूरे · focus में ${list.length} काम${late?` · 🔴 ${late} लेट`:''}\n`;
+  let lastCat=null;
+  show.forEach((f,i)=>{
+    const ck=f.cat||'';
+    if(ck!==lastCat){ lastCat=ck; const ci=CATS[ck]; out+=`\n*${ci?ci.logo+' '+ci.label:'⬜ बिना श्रेणी'}*\n`; }
+    const isLate=(f.until||0)<now, run=fmtDur(now-(f.start||now));
+    out+=`${i+1}. ${f.pri==='high'?'🔴 ':''}${f.t}${f.cname?' ('+f.cname+')':''} — ⏱${run}${isLate?' 🔴'+fmtDur(now-f.until)+' लेट':' ⏳'+fmtDur(f.until-now)}\n`;
   });
-  if(queue.length){
-    const qc={}; queue.forEach(f=>{ const k=f.cat||''; qc[k]=(qc[k]||0)+1; });
-    const parts=Object.keys(qc).sort((a,b)=>catRank(a)-catRank(b)).map(k=>`${CATS[k]?CATS[k].logo:'⬜'}${qc[k]}`);
-    out+=`\n📋 Queue में और ${queue.length} (${parts.join(' ')}) — ऊपर वाले निपटते ही अगले।`;
-  }
-  const btns=active.map((f,i)=>({text:'✅ '+(i+1),callback_data:('x|'+f.key).slice(0,64)}));
+  if(list.length>50) out+=`\n…और ${list.length-50} focus काम — App में।`;
+  out+=`\n\n⏱ हर काम की घड़ी focus में डालते ही चालू है। नई गिनती के लिए 🔄 ताज़ा दबाएँ।\n✅ नीचे नंबर दबाकर कोई भी काम पूरा करें।`;
+  const btns=show.map((f,i)=>({text:'✅'+(i+1),callback_data:('x|'+f.key).slice(0,64)}));
   const rows=[]; for(let i=0;i<btns.length;i+=5) rows.push(btns.slice(i,i+5));
   rows.push([{text:'🔄 ताज़ा',callback_data:'fd|'+own},{text:'📍 App',url:APP_LINK}]);
-  return {text:out, reply_markup:{inline_keyboard:rows}};
+  return {text:out.slice(0,4050), reply_markup:{inline_keyboard:rows}};
 }
 
 function collectAll(snap){
@@ -289,7 +290,7 @@ function answer(data,textRaw,now){
     if(/शुरू|start|चुन|जोड़|\badd\b|डाल/.test(t)){
       const pend=sortByCat(allTasks(data.contacts).filter(x=>!x.done)).slice(0,50);
       if(!pend.length) return {text:'✓ कोई बाकी काम नहीं — focus में डालने को कुछ नहीं।'};
-      let out=`🎯 *Focus शुरू करें* — ${OWNERS[own||'v']}\nअपनी पसंद के काम चुनें — नीचे 🎯 नंबर दबाएँ (एक बार में ${FOCUS_ACTIVE} तक):\n`;
+      let out=`🎯 *Focus में नए काम जोड़ें* — ${OWNERS[own||'v']}\n(ये अभी focus में नहीं हैं — जोड़ने के लिए 🎯 नंबर दबाएँ)\nपहले से focus में जो है वो देखने: "${OWN_SHORT[own||'v']} का focus"\n`;
       let lastCat=null;
       pend.forEach((x,i)=>{
         const ck=x.cat||'';

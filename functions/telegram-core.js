@@ -104,6 +104,15 @@ function focusChoiceMsg(data, own){
     reply_markup:{inline_keyboard:[[{text:'📋 Short',callback_data:'fd|'+own},{text:'🔍 विस्तृत',callback_data:'fdt|'+own+'|0'}]]}};
 }
 function _phoneDigits(p){ let d=String(p||'').replace(/[^0-9]/g,''); if(d.length===10) d='91'+d; else if(d.length>12) d=d.slice(-12); return d.length>=11?d:''; }
+/* 💬 सुंदर WhatsApp message — नमस्ते + सारे काम + धन्यवाद */
+function waMessage(name, taskTexts){
+  let m='नमस्ते '+(name||'')+'! 🙏\n\nआपके यहाँ ये काम बाक़ी हैं — कृपया करवा दीजिए:\n\n';
+  m+=(taskTexts||[]).slice(0,10).map((t,i)=>(i+1)+'. '+String(t).slice(0,90)).join('\n');
+  m+='\n\nआपके सहयोग और तत्परता के लिए हमेशा आभारी हैं। 🙏\nजय श्री कृष्ण 🙏\n— विक्रम, Vande Bharat Enterprises';
+  return m;
+}
+function waUrl(dig, name, taskTexts){ return 'https://wa.me/'+dig+((taskTexts&&taskTexts.length)?'?text='+encodeURIComponent(waMessage(name,taskTexts)):''); }
+function telLink(phone, dig){ return dig?`📞 [${phone} — दबाकर कॉल करें](tel:+${dig})`:('📱 '+phone); }
 /* 🔍 विस्तृत — हर काम का अलग card (10-10 करके), call/WA/snooze/done/remove */
 function focusDetailCards(data, own, start, chat){
   const list=focusItemsOf(data,own), now=Date.now(), nm=OWNERS[own];
@@ -114,11 +123,10 @@ function focusDetailCards(data, own, start, chat){
     const dig=_phoneDigits(f.cphone);
     let txt=`📌 *${n}. ${f.t}*\n`;
     if(f.cname) txt+=`👤 ${f.cname}\n`;
-    if(f.cphone) txt+=`📱 ${f.cphone}\n`;
+    if(f.cphone) txt+=telLink(f.cphone,dig)+`\n`;
     txt+=`⏱ ${fmtDur(now-(f.start||now))} से चालू · ${late?'🔴 '+fmtDur(now-f.until)+' लेट':'⏳ '+fmtDur(f.until-now)+' बाकी'}\n🎯 ${OWN_SHORT[own]}${CATS[f.cat]?' · '+CATS[f.cat].logo+CATS[f.cat].label:''}`;
-    if(f.cphone) txt+='\n📞 नंबर पर tap करके कॉल करें ☝️';
     const rows=[];
-    if(dig) rows.push([{text:'💬 WhatsApp पर भेजो',url:'https://wa.me/'+dig+'?text='+encodeURIComponent(f.t)}]);
+    if(dig) rows.push([{text:'💬 WhatsApp पर भेजो',url:waUrl(dig,f.cname,[f.t])}]);
     rows.push([{text:'⏰+10',callback_data:('xt|'+f.key+'|10').slice(0,64)},{text:'⏰+30',callback_data:('xt|'+f.key+'|30').slice(0,64)},{text:'⏰+1घं',callback_data:('xt|'+f.key+'|60').slice(0,64)}]);
     rows.push([{text:'✅ पूरा',callback_data:('x|'+f.key).slice(0,64)},{text:'❌ focus से हटाओ',callback_data:('rf|'+f.key).slice(0,64)}]);
     out.push({method:'sendMessage',body:{chat_id:chat,parse_mode:'Markdown',disable_web_page_preview:true,text:txt,reply_markup:{inline_keyboard:rows}}});
@@ -148,9 +156,9 @@ function contactReviewCards(data, start, chat){
   if(start>=total) start=0;
   const out=[{method:'sendMessage',body:{chat_id:chat,parse_mode:'Markdown',text:`📇 *Contact Review* (${start+1}–${Math.min(start+10,total)} / ${total})`}}];
   all.slice(start,start+10).forEach(o=>{
-    const c=o.c, dig=_phoneDigits(c.phone||c.waPhone);
+    const c=o.c, dig=_phoneDigits(c.phone||c.waPhone), ph=c.phone||c.waPhone||'';
     let txt=`👤 *${c.name||'?'}*\n`;
-    if(c.phone) txt+=`📱 ${c.phone}\n`;
+    if(ph) txt+=telLink(ph,dig)+`\n`;
     if(o.pend.length){
       txt+=`\nपेंडिंग काम (${o.pend.length}):\n`+o.pend.slice(0,5).map(x=>{
         const late=x.at&&new Date(x.at).getTime()<now;
@@ -158,7 +166,7 @@ function contactReviewCards(data, start, chat){
       }).join('\n')+(o.pend.length>5?`\n…और ${o.pend.length-5}`:'');
     } else txt+='\n(कोई pending काम नहीं)';
     const rows=[];
-    if(dig) rows.push([{text:'💬 WhatsApp',url:'https://wa.me/'+dig}]);
+    if(dig) rows.push([{text:'💬 सारे काम WhatsApp पर भेजो',url:waUrl(dig,c.name,o.pend.map(x=>x.t))}]);
     const r2=[]; if(o.pend.length) r2.push({text:'🎯 Focus में डालें',callback_data:('cf|'+c.id).slice(0,64)});
     r2.push({text:'➕ नया काम',callback_data:('ca|'+c.id).slice(0,64)}); rows.push(r2);
     out.push({method:'sendMessage',body:{chat_id:chat,parse_mode:'Markdown',disable_web_page_preview:true,text:txt,reply_markup:{inline_keyboard:rows}}});

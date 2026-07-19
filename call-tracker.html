@@ -3298,8 +3298,9 @@ async function _gemAsk(prompt,maxTok,key){
   const ctl=new AbortController();
   const to=setTimeout(()=>ctl.abort(),25000);
   try{
-    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key='+encodeURIComponent(key),
-      {method:'POST',signal:ctl.signal,headers:{'content-type':'application/json'},
+    // key header से भेजो (x-goog-api-key) — पुरानी AIza + नई AQ. दोनों format चलती हैं
+    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+      {method:'POST',signal:ctl.signal,headers:{'content-type':'application/json','x-goog-api-key':key},
        body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:Math.max(400,(maxTok||1200)+300)}})});
     const j=await r.json();
     const t=j&&j.candidates&&j.candidates[0]&&j.candidates[0].content&&j.candidates[0].content.parts&&j.candidates[0].content.parts.map(p=>p.text||'').join('');
@@ -5079,16 +5080,18 @@ window.setAiKey=async function(){
   if(!k){ localStorage.setItem('vbe_ai_key',''); localStorage.setItem('vbe_gem_key',''); window._settings.aiKey=''; window._settings.gemKey='';
     try{ await setDoc(doc(db,'vbe_call_tracker','_settings'),{id:'_settings',aiKey:'',gemKey:''},{merge:true}); }catch(e){}
     toast('AI keys हटाईं'); return; }
-  // key की क़िस्म अपने-आप पहचानो — AIza = Google Gemini, sk-ant = Anthropic
-  if(k.startsWith('AIza')){
-    localStorage.setItem('vbe_gem_key',k); window._settings.gemKey=k;
-    try{ await setDoc(doc(db,'vbe_call_tracker','_settings'),{id:'_settings',gemKey:k},{merge:true}); }catch(e){}
-    toast('✅ Gemini key save — अब सारा AI मुफ़्त Gemini से चलेगा! 🎉');
-  } else if(k.startsWith('sk-ant')){
+  // key की क़िस्म अपने-आप पहचानो — sk-ant = Claude; बाक़ी सब (AIza पुरानी +
+  // AQ. नई format + कोई भी Google key) = Gemini (मुफ़्त वाला असली रास्ता)
+  if(k.startsWith('sk-ant')){
     localStorage.setItem('vbe_ai_key',k); window._settings.aiKey=k;
     try{ await setDoc(doc(db,'vbe_call_tracker','_settings'),{id:'_settings',aiKey:k},{merge:true}); }catch(e){}
     toast('✅ Claude key save — 🎙️/✨/🤖 सब चालू!');
-  } else toast('⚠️ key AIza (Gemini) या sk-ant (Claude) से शुरू होती है','err');
+  } else {
+    // AIza (पुरानी) + AQ. (नई) + कोई भी Google key = Gemini मुफ़्त
+    localStorage.setItem('vbe_gem_key',k); window._settings.gemKey=k;
+    try{ await setDoc(doc(db,'vbe_call_tracker','_settings'),{id:'_settings',gemKey:k},{merge:true}); }catch(e){}
+    toast('✅ Gemini key save — अब सारा AI मुफ़्त Gemini से चलेगा! 🎉');
+  }
 };
 
 /* ══════════ 📩 Telegram — reminder/plan सीधे Telegram पर (मुफ़्त) ══════════

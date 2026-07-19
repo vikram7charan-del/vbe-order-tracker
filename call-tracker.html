@@ -4079,7 +4079,7 @@ function aicAssistant(){
     <div style="font-size:13px;font-weight:800;color:#c4b5fd;margin-top:7px">बोलिए…</div>
     <div id="asst-live" style="min-height:20px;font-size:12.5px;font-weight:800;color:#fcd34d;margin-top:6px"></div>
     <div style="font-size:10.5px;color:#8b9bbb;margin-top:3px">जैसे: "नवीन भाई को बोल दो दो प्रिंटर मंगवा दे, फोकस में डाल दो"</div>
-    <button class="aic-act" style="margin-top:11px" onclick="try{_asstRec&&_asstRec.stop()}catch(e){}">⏹ बस, इतना ही</button>
+    <button class="aic-act" style="margin-top:11px" onclick="try{window._asstStop&&window._asstStop()}catch(e){}">⏹ बस, इतना ही</button>
     <div style="display:flex;gap:7px;margin-top:13px;align-items:center">
       <input class="inp" id="asst-inp" placeholder="⌨️ या यहाँ दबाकर keyboard के 🎤 से बोलो" style="flex:1;font-size:13px"
              onkeydown="if(event.key==='Enter')asstManual()">
@@ -4089,33 +4089,43 @@ function aicAssistant(){
   </div>`;
   const orb=document.getElementById('ai-orb'); orb&&orb.classList.add('thinking');
   try{ _asstRec&&_asstRec.stop(); }catch(e){}
-  // ⏱️ लंबा सुनो: continuous — पूरा वाक्य (व्यक्ति + काम + focus) रुक-रुककर बोल सकें;
-  // 5s चुप → अपने-आप बंद; hard-cap 40s। बीच के pause पर बंद नहीं होगा।
-  const r=new SR(); _asstRec=r; r.lang='hi-IN'; r.interimResults=true; r.maxAlternatives=1; r.continuous=true;
-  let txt='', intrLast='', silence=null;
-  const resetSilence=()=>{ clearTimeout(silence); silence=setTimeout(()=>{ try{ r.stop(); }catch(e){} },5000); };
-  let guard2=setTimeout(()=>{ if(_asstRec===r){ try{r.stop();}catch(e){} } },40000); // hard-cap 40s
-  r.onresult=e=>{ // live दिखाओ — जो सुना जा रहा है वही अक्षर screen पर (सारे final जोड़ो)
-    let fin='',intr='';
-    for(let i=0;i<e.results.length;i++){ if(e.results[i].isFinal) fin+=e.results[i][0].transcript+' '; else intr+=e.results[i][0].transcript; }
-    if(fin.trim()) txt=fin.trim();
-    if(intr) intrLast=intr;
-    const lv=document.getElementById('asst-live'); if(lv) lv.textContent='"'+((txt||'')+' '+(intr||'')).trim().slice(0,120)+'"';
-    resetSilence();
-  };
-  r.onerror=ev=>{ clearTimeout(silence); clearTimeout(guard2); orb&&orb.classList.remove('thinking');
-    const code=(ev&&ev.error)||'';
-    if(code==='no-speech'||code==='aborted') return; // चुप/खुद रुका — onend संभालेगा
-    rp.innerHTML=(code==='not-allowed'||code==='service-not-allowed')
-      ? '⚠️ Mic की permission बंद है — browser की settings में जाकर Microphone को Allow करें, फिर दोबारा।'+RB
-      : (code==='network' ? '⚠️ बोली-पहचान के लिए net चाहिए — net देखकर दोबारा।'+RB
-      : '⚠️ सुन नहीं पाया ('+escH(code||'error')+') — दोबारा कोशिश करें।'+RB); };
-  r.onend=()=>{ if(_asstRec!==r) return; _asstRec=null; clearTimeout(silence); clearTimeout(guard2);
-    orb&&orb.classList.remove('thinking');
-    const t=(txt||intrLast||'').trim(); // final न मिले तो live-सुना हुआ ही ले लो
+  // ⏱️ लंबा सुनो पर बिना दोहराव: हर वाक्य/pause के बाद recognition फिर चालू (auto-restart)।
+  // हर session अलग/ताज़ा (continuous=false) — इसलिए Android वाला "कल कल कल…" bug नहीं।
+  // finals जुड़ते जाते हैं; चुप रहने पर (empty session) या 40s पर बंद।
+  let txt='', intrLast='', guard2=null, restarts=0, manualStop=false, r=null;
+  const t0=Date.now();
+  const finish=()=>{ clearTimeout(guard2); if(_asstRec&&_asstRec._done) return; if(_asstRec) _asstRec._done=true;
+    _asstRec=null; orb&&orb.classList.remove('thinking');
+    const t=(txt||intrLast||'').trim();
     if(t) _asstProcess(t);
     else if(rp.innerHTML.indexOf('⚠️')<0) rp.innerHTML='⚠️ कुछ सुनाई नहीं दिया — mic के पास साफ़ बोलें।'+RB; };
-  try{ r.start(); }catch(e){ rp.innerHTML='⚠️ mic शुरू नहीं हुआ ('+escH(e.message||'')+') — permission देखें।'+RB; }
+  const startSess=()=>{
+    r=new SR(); _asstRec=r; r._done=false; r.lang='hi-IN'; r.interimResults=true; r.maxAlternatives=1; r.continuous=false;
+    let sess='';
+    r.onresult=e=>{
+      let f='',intr='';
+      for(let i=0;i<e.results.length;i++){ if(e.results[i].isFinal) f+=e.results[i][0].transcript+' '; else intr+=e.results[i][0].transcript; }
+      if(f.trim()) sess=f.trim();
+      intrLast=intr;
+      const lv=document.getElementById('asst-live'); if(lv) lv.textContent='"'+((txt+' '+(sess||intr)).trim().slice(0,180))+'"';
+    };
+    r.onerror=ev=>{ const code=(ev&&ev.error)||'';
+      if(code==='not-allowed'||code==='service-not-allowed'){ manualStop=true; orb&&orb.classList.remove('thinking'); rp.innerHTML='⚠️ Mic की permission बंद है — browser settings में Microphone Allow करें।'+RB; }
+      else if(code==='network'){ manualStop=true; orb&&orb.classList.remove('thinking'); rp.innerHTML='⚠️ बोली-पहचान के लिए net चाहिए — net देखकर दोबारा।'+RB; }
+      // no-speech/aborted → onend restart/finish संभालेगा
+    };
+    r.onend=()=>{
+      if(_asstRec!==r) return;
+      if(sess){ txt=(txt+' '+sess).trim(); } // इस session का final जोड़ो (दोहराव नहीं)
+      // और सुनो: manual-stop नहीं, 40s के अंदर, और अभी कुछ बोला जा रहा था (sess भरा) या पहली बार
+      if(!manualStop && Date.now()-t0<40000 && (sess||restarts===0) && restarts<25){ restarts++; try{ startSess(); return; }catch(e){} }
+      finish();
+    };
+    try{ r.start(); }catch(e){ if(restarts===0) finish(); }
+  };
+  window._asstStop=()=>{ manualStop=true; try{ r&&r.stop(); }catch(e){} };
+  guard2=setTimeout(()=>{ manualStop=true; try{ r&&r.stop(); }catch(e){} },40000); // hard-cap 40s
+  startSess();
  }catch(err){ toast('🧞 दिक्कत: '+(err&&err.message||err),'err');
    try{ const rp=document.getElementById('aic-resp'); rp.style.display='block'; rp.innerHTML='⚠️ 🧞 चलाने में दिक्कत: '+escH(err&&err.message||String(err)); }catch(e2){} }
 }
@@ -6018,31 +6028,36 @@ window.aiMic=function(target){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   const btn=document.getElementById(tid==='ai-whentxt'?'ai-mic-w':'ai-mic');
   if(!SR){ toast('⚠️ इस browser में voice नहीं — Chrome use करें','err'); return; }
-  if(_aiRec){ try{_aiRec.stop();}catch(e){} _aiRec=null; return; } // दोबारा दबाया → रोको
-  // ⏱️ लंबा सुनो: continuous — रुक-रुककर पूरा वाक्य बोल सकें; 5 सेकंड चुप रहने पर
-  // अपने-आप बंद; ज़्यादा-से-ज़्यादा 40 सेकंड। बीच के pause पर बंद नहीं होगा।
-  const r=new SR(); r.lang='hi-IN'; r.interimResults=true; r.continuous=true; r.maxAlternatives=1;
-  btn.textContent='🔴'; btn.classList.add('rec');
+  if(_aiRec){ _aiRec._manual=true; try{_aiRec.stop();}catch(e){} return; } // दोबारा दबाया → रोको
+  // ⏱️ लंबा सुनो पर बिना दोहराव: हर वाक्य/pause के बाद फिर चालू (auto-restart)।
+  // हर session ताज़ा (continuous=false) — Android वाला "कल कल कल…" bug नहीं।
   const el=document.getElementById(tid);
-  const base=(el.value||'').trim(); let fin=base, silence=null;
+  const base=(el.value||'').trim(); let acc=base, restarts=0, hard=null;
+  const t0=Date.now();
+  btn.textContent='🔴'; btn.classList.add('rec');
   toast('🎙️ बोलिए… (रुक-रुककर भी चलेगा, चुप होने पर अपने-आप बंद)');
-  const HARD=setTimeout(()=>{ try{r.stop();}catch(e){} }, 40000);
-  const resetSilence=()=>{ clearTimeout(silence); silence=setTimeout(()=>{ try{r.stop();}catch(e){} }, 5000); };
-  r.onresult=e=>{
-    let f='',intr='';
-    for(let i=0;i<e.results.length;i++){ if(e.results[i].isFinal) f+=e.results[i][0].transcript+' '; else intr+=e.results[i][0].transcript; }
-    fin=(base?base+' ':'')+f.trim();
-    el.value=(fin+' '+intr).replace(/\s+/g,' ').trim();
-    resetSilence();
-  };
-  r.onend=()=>{ clearTimeout(HARD); clearTimeout(silence); btn.textContent='🎤'; btn.classList.remove('rec'); _aiRec=null;
-    el.value=(fin||el.value||'').trim();
+  const done=()=>{ clearTimeout(hard); btn.textContent='🎤'; btn.classList.remove('rec'); _aiRec=null;
+    el.value=(acc||el.value||'').trim();
     if(tid==='ai-inp' && el.value.trim()) setTimeout(aiPreview,250); };
-  r.onerror=ev=>{ clearTimeout(HARD); clearTimeout(silence); btn.textContent='🎤'; btn.classList.remove('rec'); _aiRec=null;
-    if(ev.error==='not-allowed') toast('⚠️ Mic permission दें','err');
-    else if(ev.error!=='aborted'&&ev.error!=='no-speech') toast('⚠️ आवाज़ समझ नहीं आई — फिर बोलें','warn'); };
-  _aiRec=r; resetSilence();
-  try{ r.start(); }catch(e){ clearTimeout(HARD); clearTimeout(silence); btn.textContent='🎤'; btn.classList.remove('rec'); _aiRec=null; }
+  const startSess=()=>{
+    const r=new SR(); _aiRec=r; r._manual=false; r.lang='hi-IN'; r.interimResults=true; r.continuous=false; r.maxAlternatives=1;
+    let sess='';
+    r.onresult=e=>{
+      let f='',intr='';
+      for(let i=0;i<e.results.length;i++){ if(e.results[i].isFinal) f+=e.results[i][0].transcript+' '; else intr+=e.results[i][0].transcript; }
+      if(f.trim()) sess=f.trim();
+      el.value=((acc?acc+' ':'')+(sess||intr)).replace(/\s+/g,' ').trim();
+    };
+    r.onerror=ev=>{ if(ev.error==='not-allowed'){ r._manual=true; toast('⚠️ Mic permission दें','err'); }
+      else if(ev.error==='network'){ r._manual=true; toast('⚠️ net चाहिए — दोबारा','warn'); } };
+    r.onend=()=>{ if(_aiRec!==r) return;
+      if(sess){ acc=(acc?acc+' ':'')+sess; }
+      if(!r._manual && Date.now()-t0<40000 && (sess||restarts===0) && restarts<25){ restarts++; try{ startSess(); return; }catch(e){} }
+      done(); };
+    try{ r.start(); }catch(e){ if(restarts===0) done(); }
+  };
+  hard=setTimeout(()=>{ if(_aiRec){ _aiRec._manual=true; try{_aiRec.stop();}catch(e){} } }, 40000);
+  startSess();
 };
 
 /* text से समय निकालो (हिंदी + Hinglish + English) → Date या null */

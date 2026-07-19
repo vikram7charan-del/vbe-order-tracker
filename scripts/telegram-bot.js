@@ -14,6 +14,16 @@ function tgApi(tok, method, body) {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}),
   }).then((r) => r.json());
 }
+/* 🎤 Telegram से file (voice OGG) उतारकर base64 — Gemini audio के लिए */
+async function tgDownloadFileB64(tok, fileId) {
+  const gf = await tgApi(tok, 'getFile', { file_id: fileId });
+  if (!gf.ok || !gf.result || !gf.result.file_path) return null;
+  const r = await fetch(`https://api.telegram.org/file/bot${tok}/${gf.result.file_path}`);
+  if (!r.ok) return null;
+  const buf = Buffer.from(await r.arrayBuffer());
+  if (buf.length > 8 * 1024 * 1024) return null; // 8MB से बड़ा नहीं (लंबा voice)
+  return buf.toString('base64');
+}
 
 async function main() {
   if (!process.env.FIREBASE_SA) { console.error('FIREBASE_SA missing'); process.exit(1); }
@@ -96,6 +106,19 @@ async function main() {
         const r = await tg.handleUpdate(col, data, u, ownerChat);
         ownerChat = r.ownerChat; if (r.dirty) dirty = true;
         for (const c of r.calls) await tgApi(tok, c.method, c.body);
+        // 🎤 owner voice note → OGG download करके Gemini से समझो (native audio)
+        if (r.voice && r.voice.file_id) {
+          try {
+            const b64 = await tgDownloadFileB64(tok, r.voice.file_id);
+            if (b64) {
+              const vr = await tg.handleVoiceNote(col, data, b64, r.voice.mime, r.voice.chat);
+              if (vr.dirty) dirty = true;
+              for (const c of vr.calls) await tgApi(tok, c.method, c.body);
+            } else {
+              await tgApi(tok, 'sendMessage', { chat_id: r.voice.chat, text: '🎤 आवाज़ download नहीं हुई — net देखकर फिर बोलिए।' });
+            }
+          } catch (ve) { await tgApi(tok, 'sendMessage', { chat_id: r.voice.chat, text: '🎤 आवाज़ में दिक्कत — फिर कोशिश करें।' }); }
+        }
         handled++;
       } catch (e) { console.log('handle err:', e.message); }
     }

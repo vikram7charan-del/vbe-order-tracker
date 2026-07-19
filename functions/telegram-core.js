@@ -516,6 +516,111 @@ async function aiFallback(settings, contacts, q, now){
   }catch(e){ return null; }
 }
 
+/* ══════════════════════════════════════════════════════════
+   🧠 GEMINI BRAIN — bot का दिमाग़ (key Firestore _settings.gemKey से,
+   repo में नहीं)। नई AQ. + पुरानी AIza दोनों format (header auth)।
+   Spark plan: कोई Cloud Function नहीं — bot सीधे Gemini से बात करता है।
+   ══════════════════════════════════════════════════════════ */
+const GEM_URL='https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+async function _gemFetch(key, body, ms){
+  const ctl=new AbortController(); const to=setTimeout(()=>ctl.abort(), ms||30000);
+  try{
+    const r=await fetch(GEM_URL,{method:'POST',signal:ctl.signal,
+      headers:{'content-type':'application/json','x-goog-api-key':key}, body:JSON.stringify(body)});
+    const j=await r.json();
+    if(j&&j.error) return {err:(j.error.message||'gemini error')};
+    const t=j&&j.candidates&&j.candidates[0]&&j.candidates[0].content&&j.candidates[0].content.parts&&j.candidates[0].content.parts.map(p=>p.text||'').join('');
+    return {text:(t&&t.trim())||''};
+  }catch(e){ return {err:e.name==='AbortError'?'timeout':(e.message||'net')}; }
+  finally{ clearTimeout(to); }
+}
+async function geminiAsk(settings, prompt, wantJson){
+  const key=settings&&settings.gemKey; if(!key) return null;
+  const r=await _gemFetch(key, {contents:[{parts:[{text:prompt}]}],
+    generationConfig:Object.assign({maxOutputTokens:1300,temperature:0.45}, wantJson?{responseMimeType:'application/json'}:{})});
+  return r.text||null;
+}
+/* 🎤 voice note — OGG bytes (base64) सीधे Gemini को (audio native, कोई STT नहीं) */
+async function geminiAudio(settings, b64, mime, prompt){
+  const key=settings&&settings.gemKey; if(!key) return null;
+  const r=await _gemFetch(key, {contents:[{parts:[{text:prompt},{inlineData:{mimeType:mime||'audio/ogg',data:b64}}]}],
+    generationConfig:{maxOutputTokens:900,temperature:0.3,responseMimeType:'application/json'}}, 45000);
+  return r.text||null;
+}
+/* 🧠 business context — compact (सिर्फ़ ज़रूरी, ताकि token कम लगें) */
+function brainContext(data, now){
+  const tasks=allTasks(data.contacts).filter(x=>!x.done);
+  const late=tasks.filter(t=>t.at&&new Date(t.at).getTime()<now);
+  const lines=tasks.slice(0,90).map(t=>{
+    const isL=t.at&&new Date(t.at).getTime()<now;
+    const tm=isL?(' [🔴लेट '+fmtDur(now-new Date(t.at).getTime())+']'):(t.at?(' [समय '+istParts(t.at)+' '+istHM(t.at)+']'):'');
+    return '- '+(t.name||'?')+': '+(t.t||'')+(t.assignTo?(' →'+t.assignTo):'')+(t.cat&&CATS[t.cat]?(' #'+CATS[t.cat].label):'')+(t.pri==='high'?' ⚠️ज़रूरी':'')+tm;
+  }).join('\n');
+  return 'आज: '+istParts(now)+' '+istHM(now)+' (IST)\nकुल बाकी काम: '+tasks.length+' · 🔴 लेट: '+late.length+'\n\nसारे बाकी काम:\n'+(lines||'—');
+}
+const BRAIN_TONE='तुम विक्रम भाई (Vande Bharat Enterprises, army-supply व्यापारी, बाड़मेर) के भरोसेमंद manager हो। सिर्फ़ नीचे दिए असली data से, गर्मजोशी वाली सीधी हिंदी में (छोटे वाक्य, "भाई" वाला अपनापन) जवाब दो। अनुमान मत लगाओ — data में न हो तो साफ़ कहो। कोई English corporate भाषा नहीं।';
+const BRAIN_FEATURES=[
+  {k:'pehle', icon:'🎯', label:'अभी सबसे पहले क्या करूँ', ask:'सबसे ज़रूरी 5 काम क्रम से बताओ (लेट + ज़रूरी + बड़ा party पहले)। हर एक: क्यों पहले, और 1 सीधा अगला कदम। आख़िर में 1 line चेतावनी अगर कुछ बहुत बिगड़ रहा हो।'},
+  {k:'khatra',icon:'🔮', label:'आगे का ख़तरा — भविष्यवाणी', ask:'कौन-से काम आगे लेट/भूले जाने वाले हैं (पैटर्न से)? 4-6 सबसे जोखिम वाले बताओ, हर एक पर 1 बचाव-कदम।'},
+  {k:'staff', icon:'👥', label:'Staff का प्रदर्शन', ask:'किस staff (जिनको काम सौंपे गए →नाम) के पास कितने काम, कौन ज़्यादा लेट, किस पर भरोसा — छोटा हिसाब दो।'},
+  {k:'hafta', icon:'📈', label:'इस हफ़्ते का हाल', ask:'इस हफ़्ते का छोटा हाल: कितने काम, कितने लेट, किस श्रेणी में सबसे ज़्यादा, और 2 सुधार-सुझाव।'},
+  {k:'aaj',   icon:'📊', label:'आज का पूरा हिसाब', ask:'आज का छोटा सार दो: कितने काम, कितने लेट, सबसे ज़रूरी 3, और अभी 2 घंटे में क्या पहले करें।'},
+  {k:'plan',  icon:'📅', label:'दिन का प्लान बनवाओ', ask:'दिन का प्लान बनाओ हिस्सों में — 🔴 बीते छूटे काम पहले, फिर आज के, फिर आगे के। हर पंक्ति में नाम+काम+समय। छोटा रखो।'},
+];
+function brainMenu(data, now){
+  const tasks=allTasks(data.contacts).filter(x=>!x.done);
+  const late=tasks.filter(t=>t.at&&new Date(t.at).getTime()<now).length;
+  const hasGem=!!(data.settings&&data.settings.gemKey);
+  const rows=BRAIN_FEATURES.map(f=>[{text:f.icon+' '+f.label, callback_data:('ai|'+f.k).slice(0,64)}]);
+  rows.push([{text:'🔴 लेट काम',callback_data:'ai|late'},{text:'📞 call list',callback_data:'ai|call'}]);
+  rows.push([{text:'🎯 Focus',callback_data:'bm|focus'},{text:'📇 Contacts',callback_data:'crs'},{text:'👥 टीम',callback_data:'bm|team'}]);
+  const head='🧠 *विक्रम भाई का दिमाग़* — '+istParts(now)+'\n📋 '+tasks.length+' काम बाकी'+(late?(' · 🔴 '+late+' लेट'):'')+'\n\n'+
+    (hasGem
+      ? 'नीचे कोई भी बटन दबाइए — या सीधे लिखिए/🎤 बोलिए:\n_"आज किसको पहले call करूँ?" · "दिनेश के कितने काम लेट हैं?"_'
+      : '⚠️ पहले app के ⚙️ में *Gemini key* डालें (AQ… या AIza…) — तभी AI जवाब देगा।');
+  return {text:head, reply_markup:{inline_keyboard:rows}};
+}
+/* किसी feature/सवाल का Gemini जवाब (context के साथ) */
+async function brainAnswer(data, now, ask){
+  const prompt=BRAIN_TONE+'\n\n'+brainContext(data,now)+'\n\n👉 काम: '+ask;
+  const t=await geminiAsk(data.settings, prompt);
+  return t;
+}
+/* free-text सवाल → Gemini (context सहित); key न हो या fail → Claude fallback */
+async function brainReply(data, q, now){
+  if(data.settings&&data.settings.gemKey){
+    const t=await brainAnswer(data, now, 'विक्रम भाई का सवाल: "'+q+'"\nछोटा, सीधा जवाब सिर्फ़ ऊपर के data से।');
+    if(t) return '🧠 '+t;
+  }
+  return await aiFallback(data.settings, data.contacts, q, now); // Claude (अगर key हो)
+}
+/* 🎤 voice note handle — poller से OGG-b64 आता है; transcribe+समझो+काम करो */
+async function handleVoiceNote(col, data, b64, mime, chat){
+  const calls=[]; let dirty=false;
+  const now=Date.now(), pd=n=>String(n).padStart(2,'0'), d=new Date();
+  const nowS=d.getFullYear()+'-'+pd(d.getMonth()+1)+'-'+pd(d.getDate())+' '+pd(d.getHours())+':'+pd(d.getMinutes());
+  const roster=activeC(data.contacts).map(c=>c.name).filter(Boolean).slice(0,150).join(', ');
+  const prompt='तुम विक्रम भाई के काम-सहायक हो। यह आवाज़-संदेश (हिंदी) सुनो। पहले हूबहू लिखो, फिर समझो कि यह "सवाल" है या "नया काम"।\n'+
+    (roster?('मेरे contacts (नाम इसी सूची से हूबहू): '+roster+'\n'):'')+
+    'अभी समय IST: '+nowS+'\nजवाब सिर्फ़ JSON:\n{"heard":"जो सुना हूबहू","type":"task या question","task":"काम (type=task हो तो, समय-शब्द हटाकर)","name":"किसका काम — सूची से या null","when":"YYYY-MM-DD HH:MM या null","cat":"golden|computer|market|jalipa या null","answer":"type=question हो तो छोटा हिंदी जवाब वरना null"}';
+  let j=null;
+  try{ const raw=await geminiAudio(data.settings, b64, mime, prompt); if(raw) j=JSON.parse((raw.match(/\{[\s\S]*\}/)||[raw])[0]); }catch(e){}
+  if(!j){ calls.push({method:'sendMessage',body:{chat_id:chat,text:'🎤 आवाज़ समझ नहीं पाया — फिर से या थोड़ा साफ़ बोलिए (net/Gemini key भी देखें)।'}}); return {calls,dirty}; }
+  const heard=j.heard?('🎤 _"'+String(j.heard).slice(0,140)+'"_\n\n'):'';
+  if(j.type==='task' && j.task){
+    const c=findByName(activeC(data.contacts), j.name||'') || findByName(activeC(data.contacts), j.task);
+    let at=null; if(j.when){ const w=new Date(String(j.when).replace(' ','T')); if(!isNaN(w.getTime())&&w.getTime()>now) at=w.toISOString(); }
+    if(c){ const r=await applyAdd(col, c.id, String(j.task).slice(0,200), at); if(r.ok){ dirty=true;
+        calls.push({method:'sendMessage',body:{chat_id:chat,parse_mode:'Markdown',text:heard+'✅ काम जुड़ गया — *'+mdSafe(c.name||'')+'*\n📝 '+mdSafe(String(j.task).slice(0,80))+(at?('\n🕘 '+istParts(at)+' '+istHM(at)):'')}}); }
+      else calls.push({method:'sendMessage',body:{chat_id:chat,text:heard+'⚠️ जोड़ नहीं पाया।'}}); }
+    else calls.push({method:'sendMessage',body:{chat_id:chat,parse_mode:'Markdown',text:heard+'🤔 यह काम किसके लिए है, समझ नहीं आया। नाम साफ़ लेकर फिर बोलिए — या app से जोड़ें।'}});
+  } else {
+    const a=(j.answer&&String(j.answer).trim())|| (await brainAnswer(data, now, 'सवाल: "'+(j.heard||'')+'"')) || 'समझ नहीं आया — फिर पूछिए।';
+    calls.push({method:'sendMessage',body:{chat_id:chat,parse_mode:'Markdown',text:heard+'🧠 '+mdSafe(a)}});
+  }
+  return {calls,dirty};
+}
+
 /* ── DB helpers (admin firestore col) ── */
 async function applyDone(col, cid, ti){
   const ref=col.doc(cid); const dc=await ref.get();
@@ -1146,7 +1251,31 @@ async function handleUpdate(col, data, update, ownerChat){
     }
     const cd=cq.data||'';
     let m;
-    if((m=cd.match(/^lk\|(.+)$/))){
+    if((m=cd.match(/^ai\|(\w+)$/))){
+      // 🧠 दिमाग़ menu का बटन — Gemini feature या local list
+      const feat=m[1];
+      calls.push({method:'answerCallbackQuery',body:{callback_query_id:cq.id,text:'🧠 सोच रहा हूँ…'}});
+      if(feat==='late'||feat==='call'){
+        const ans=answer(data, feat==='late'?'लेट काम':'call किसको', now);
+        calls.push({method:'sendMessage',body:Object.assign({chat_id:chat,text:(ans&&ans.text)||'—'},ans&&ans.reply_markup?{reply_markup:ans.reply_markup}:{})});
+      } else {
+        const f=BRAIN_FEATURES.find(x=>x.k===feat);
+        if(!f){ calls.push({method:'sendMessage',body:{chat_id:chat,text:'—'}}); }
+        else if(!(data.settings&&data.settings.gemKey)){
+          calls.push({method:'sendMessage',body:{chat_id:chat,text:'⚠️ पहले app के ⚙️ में Gemini key डालें — तभी AI यह बना पाएगा।'}});
+        } else {
+          const t=await brainAnswer(data, now, f.ask);
+          calls.push({method:'sendMessage',body:{chat_id:chat,parse_mode:'Markdown',disable_web_page_preview:true,text:t?('*'+f.icon+' '+f.label+'*\n\n'+mdSafe(t)):'⚠️ अभी जवाब नहीं ला पाया — Gemini key/net देखकर दोबारा दबाएँ।'}});
+        }
+      }
+    } else if(cd==='bm|focus'){
+      const mn=focusMenuMsg(data);
+      calls.push({method:'answerCallbackQuery',body:{callback_query_id:cq.id,text:'🎯'}});
+      calls.push({method:'sendMessage',body:Object.assign({chat_id:chat,parse_mode:'Markdown',text:mn.text},mn.reply_markup?{reply_markup:mn.reply_markup}:{})});
+    } else if(cd==='bm|team'){
+      calls.push({method:'answerCallbackQuery',body:{callback_query_id:cq.id,text:'👥'}});
+      calls.push({method:'sendMessage',body:{chat_id:chat,parse_mode:'Markdown',text:teamScore(data,now)}});
+    } else if((m=cd.match(/^lk\|(.+)$/))){
       // 👥 owner ने staff चुना → code + deep link + QR (memory data)
       const r=await makeLinkCode(col, data, m[1]);
       calls.push({method:'answerCallbackQuery',body:{callback_query_id:cq.id,text:'🔗'}});
@@ -1262,7 +1391,12 @@ async function handleUpdate(col, data, update, ownerChat){
     calls.push({method:'sendMessage',body:{chat_id:chat,text:'🙏 यह विक्रम जी का निजी bot है।\nअगर आप VBE staff हैं तो विक्रम जी से link/QR लेकर जुड़ें।'}});
     return {calls,dirty,ownerChat:newOwner};
   }
-  if(msg.voice||msg.audio){ calls.push({method:'sendMessage',body:{chat_id:chat,text:'🎙️ आवाज़ अभी नहीं समझता — keyboard के 🎤 (बोलकर text) से भेजें।'}}); return {calls,dirty,ownerChat:newOwner}; }
+  // 🎤 owner voice note → poller download करके geminiAudio से समझेगा (VOICE signal)
+  if(msg.voice||msg.audio){
+    if(!(data.settings&&data.settings.gemKey)) return {calls:[{method:'sendMessage',body:{chat_id:chat,text:'🎤 आवाज़ समझने के लिए पहले app के ⚙️ में Gemini key डालें (मुफ़्त)। तब बोलकर काम/सवाल दोनों कर सकेंगे।'}}],dirty,ownerChat:newOwner};
+    const v=msg.voice||msg.audio;
+    return {calls:[], dirty, ownerChat:newOwner, voice:{file_id:v.file_id, mime:v.mime_type||'audio/ogg', chat}};
+  }
   const textIn=msg.text||msg.caption||'';
   if(!textIn) return {calls,dirty,ownerChat:newOwner};
 
@@ -1306,10 +1440,23 @@ async function handleUpdate(col, data, update, ownerChat){
     if(r.ok){ dirty=true; calls.push({method:'sendMessage',body:{chat_id:chat,text:`⏱ +${durM[1]} min — अब ${istHM(r.until)} बजे तक focus (${OWN_SHORT[r.own]})।\n📝 ${(r.task||'').slice(0,60)}\n(app में भी आगे बढ़ा दिया)`}}); return {calls,dirty,ownerChat:newOwner}; }
   }
 
+  // 🧠 "है/menu/दिमाग/मदद/start" → सारे feature बटन बनकर आएँ (owner को कुछ याद रखना न पड़े)
+  const tl2=textIn.trim().toLowerCase().replace(/[!।.?]/g,'');
+  if(['है','हैं','hai','menu','मेनू','मेन्यू','दिमाग','दिमाग़','brain','ai','एआई','start','/start','मदद','help','/menu','/help','/ai','/brain','सब','सब कुछ','क्या करूँ','क्या करुं'].includes(tl2)){
+    const bm=brainMenu(data, now);
+    calls.push({method:'sendMessage',body:Object.assign({chat_id:chat,parse_mode:'Markdown',disable_web_page_preview:true,text:bm.text},bm.reply_markup?{reply_markup:bm.reply_markup}:{})});
+    return {calls,dirty,ownerChat:newOwner};
+  }
+
   let ans=answer(data,textIn,now);
   if(ans&&ans.addTask){ const r=await applyAdd(col,ans.addTask.cid,ans.addTask.text,ans.addTask.at); if(r.ok) dirty=true; else ans={text:'⚠️ जोड़ नहीं पाया — app से जोड़ लें'}; }
-  if(!ans){ const a=await aiFallback(data.settings,data.contacts,textIn,now); if(a) ans={text:a}; }
-  if(!ans) ans={text:'🤔 समझ नहीं आया। "मदद" लिखें — सब तरीक़े दिखा दूँगा।'};
+  // 🧠 पहचान में न आए → Gemini दिमाग़ से जवाब (context सहित); वो भी न दे → menu (dead-end नहीं)
+  if(!ans){ const a=await brainReply(data,textIn,now); if(a) ans={text:a}; }
+  if(!ans){
+    const bm=brainMenu(data, now);
+    calls.push({method:'sendMessage',body:Object.assign({chat_id:chat,parse_mode:'Markdown',disable_web_page_preview:true,text:'🤔 पक्का समझ नहीं आया — ये देखिए, बटन दबाइए या साफ़ लिखिए:\n\n'+bm.text},bm.reply_markup?{reply_markup:bm.reply_markup}:{})});
+    return {calls,dirty,ownerChat:newOwner};
+  }
   const body={chat_id:chat,text:(ans.text||'').slice(0,3900)};
   if(ans.reply_markup) body.reply_markup=ans.reply_markup;
   calls.push({method:'sendMessage',body});
@@ -1350,5 +1497,6 @@ module.exports={
   handleUpdate, autoPushNew, autoPushFocus, autoPushNudge, autoPushMenu,
   tgStaff, staffByChat, staffTasks, staffDigest, teamContacts, teamScore,
   staffLinkAttempt, makeLinkCode, linkPickMsg, autoPushStaffDigest, logEv,
-  staffFocusDigest, autoPushFocusHourly, lateBadge, focusItemGuard, autoPushQueued, mdSafe
+  staffFocusDigest, autoPushFocusHourly, lateBadge, focusItemGuard, autoPushQueued, mdSafe,
+  geminiAsk, geminiAudio, brainContext, brainMenu, brainAnswer, brainReply, handleVoiceNote
 };

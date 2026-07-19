@@ -1004,7 +1004,7 @@ body.hdr-folded .hdr-row2{display:none}
         <button class="btn-icon" onclick="shuffleLooks()" title="सबके रंग और emoji बदलो — नयापन" style="cursor:pointer;font-family:inherit">🎲</button>
         <button class="btn-icon" onclick="openAnimStudio()" title="🎬 Animation Studio — जीवंत background और जोश का स्तर चुनें" style="cursor:pointer;font-family:inherit">🎬</button>
         <button class="btn-icon" onclick="unhideAll()" title="Swipe किए हुए सब वापस लाओ" style="cursor:pointer;font-family:inherit">👁️</button>
-        <button class="btn-icon" onclick="setAiKey()" title="🤖 Anthropic AI key डालें/बदलें" style="cursor:pointer;font-family:inherit">⚙️</button>
+        <button class="btn-icon" onclick="setAiKey()" title="🤖 AI key डालें — Google Gemini (AIza… मुफ़्त) या Claude" style="cursor:pointer;font-family:inherit">⚙️</button>
         <button class="btn-icon" onclick="tgConnect()" title="📩 Telegram जोड़ें — reminder/plan सीधे Telegram पर" style="cursor:pointer;font-family:inherit">📩</button>
         <a href="./quick-add.html" class="btn-icon" title="Quick Order Add">📦</a>
         <button class="btn-icon" id="day-btn" onclick="gotoDay()" title="📅 मेरा दिन — इसी पेज पर timeline" style="cursor:pointer;font-family:inherit">📅 दिन</button>
@@ -3265,6 +3265,26 @@ function askPinAI(){
 }
 function gemKey(){ return (window._settings&&window._settings.gemKey)||localStorage.getItem('vbe_gem_key')||''; }
 /* 🤖 दो-इंजन AI: Gemini (मुफ़्त) पहले → fail हो तो Claude — सारा app अपने-आप इसी से चलता है */
+/* 🎙️ voice→task को सटीक बनाने के लिए — Gemini को असली contact-नाम दिखाओ,
+   ताकि आवाज़ में नाम थोड़ा टूटे-फूटे (नवीन/naveen/नविन) तो भी सही बंदा पकड़े */
+function _aiRoster(){
+  const names=[];
+  contacts.filter(c=>c.active!==false).forEach(c=>{
+    let n=(c.name||'').trim(); if(!n) return;
+    if(c.aliases){ const a=String(c.aliases).split(/[,;]/)[0].trim(); if(a&&a.toLowerCase()!==n.toLowerCase()) n+=' ('+a+')'; }
+    names.push(n);
+  });
+  return names.slice(0,150).join(', ');
+}
+function _voicePrompt(nowS, raw, whenRaw){
+  const roster=_aiRoster();
+  return 'अभी समय (IST): '+nowS+'\n'+
+   'तुम विक्रम भाई (Vande Bharat Enterprises, army-supply, बाड़मेर) के काम-सहायक हो। बोले हुए वाक्य से जानकारी निकालो।\n'+
+   (roster?('मेरे contacts (नाम इसी सूची से हूबहू लौटाओ अगर मिलता-जुलता लगे — आवाज़ में फ़र्क़ हो तो भी सही चुनो):\n'+roster+'\n\n'):'')+
+   'जवाब सिर्फ़ JSON:\n{"tasks":[{"task":"काम हूबहू (समय-शब्द और focus-निर्देश हटाओ, बाक़ी एक शब्द मत बदलो)","when":"YYYY-MM-DD HH:MM या null","cat":"golden|computer|market|jalipa या null","pri":"high (तुरंत/आज ही/ज़रूरी जैसा दबाव हो) या null"}],"name":"जिस व्यक्ति को काम बोलना/करवाना है उसका नाम — ऊपर सूची से हूबहू, या null","focus":true/false}\n'+
+   'नियम: एक वाक्य में कई अलग काम हों तो हर एक अलग task (max 3)।\n'+
+   (whenRaw!==undefined?('समय-वाक्य: '+(whenRaw||'—')+'\nकाम-वाक्य: '+(raw||'—')):('वाक्य: '+(raw||'—')));
+}
 async function aiAsk(prompt,maxTok){
   const gk=gemKey(), ck=aiKey();
   if(!gk&&!ck) throw new Error('no-key');
@@ -4111,7 +4131,7 @@ async function _asstProcess(raw){
       try{
         const now=new Date(), pd=n=>String(n).padStart(2,'0');
         const nowS=now.getFullYear()+'-'+pd(now.getMonth()+1)+'-'+pd(now.getDate())+' '+pd(now.getHours())+':'+pd(now.getMinutes());
-        const txt=await aiAsk('अभी समय (IST): '+nowS+'\nबोले हुए वाक्य से जानकारी निकालो, जवाब सिर्फ़ JSON:\n{"tasks":[{"task":"काम हूबहू (समय-शब्द और focus-निर्देश हटाओ)","when":"YYYY-MM-DD HH:MM या null","cat":"golden|computer|market|jalipa या null","pri":"high या null"}],"name":"जिस व्यक्ति का काम है उसका नाम या null","focus":true/false}\nकई अलग काम हों तो अलग-अलग task (max 3)।\nवाक्य: '+raw,380);
+        const txt=await aiAsk(_voicePrompt(nowS, raw),420);
         const j=JSON.parse((txt.match(/\{[\s\S]*\}/)||[txt])[0]);
         name=j.name||null;
         if(j.focus) window._asstF=true;
@@ -6153,7 +6173,7 @@ window.aiPreview=async function(){
   try{
     const now=new Date(), pd=n=>String(n).padStart(2,'0');
     const nowS=now.getFullYear()+'-'+pd(now.getMonth()+1)+'-'+pd(now.getDate())+' '+pd(now.getHours())+':'+pd(now.getMinutes());
-    const txt=await aiAsk('अभी समय (IST): '+nowS+'\nबोले हुए वाक्य से जानकारी निकालो, जवाब सिर्फ़ JSON:\n{"tasks":[{"task":"काम हूबहू (समय-शब्द और focus-निर्देश हटाओ, बाकी एक शब्द मत बदलो)","when":"YYYY-MM-DD HH:MM या null","cat":"golden|computer|market|jalipa या null","pri":"high (अगर तुरंत/आज ही/ज़रूरी जैसा दबाव हो) या null"}],"name":"जिस व्यक्ति को काम बोलना/करवाना है उसका नाम या null (जैसे \'नवीन भाई को बोल दो\' → नवीन)","focus":true/false (focus/फोकस में डालने को कहा हो तो true)}\nनियम: एक वाक्य में कई अलग काम हों (जैसे \'... और शाम को भुगतान भी कर देना\') तो हर एक अलग task बनाओ, max 3।\nसमय-वाक्य: '+(whenRaw||'—')+'\nकाम-वाक्य: '+(raw||'—'),380);
+    const txt=await aiAsk(_voicePrompt(nowS, raw, whenRaw),420);
     const m=txt.match(/\{[\s\S]*\}/);
     const j=JSON.parse(m?m[0]:txt);
     const wantFocus=!!j.focus||_wantsFocus(raw+' '+whenRaw);

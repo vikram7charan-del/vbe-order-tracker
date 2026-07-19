@@ -534,18 +534,28 @@ async function _gemFetch(key, body, ms){
   }catch(e){ return {err:e.name==='AbortError'?'timeout':(e.message||'net')}; }
   finally{ clearTimeout(to); }
 }
+/* {text} या {err} लौटाते हैं — असली Gemini कारण दिखाने के लिए (डीबग आसान) */
 async function geminiAsk(settings, prompt, wantJson){
-  const key=settings&&settings.gemKey; if(!key) return null;
-  const r=await _gemFetch(key, {contents:[{parts:[{text:prompt}]}],
+  const key=settings&&settings.gemKey; if(!key) return {err:'no-key'};
+  return await _gemFetch(key, {contents:[{parts:[{text:prompt}]}],
     generationConfig:Object.assign({maxOutputTokens:1300,temperature:0.45}, wantJson?{responseMimeType:'application/json'}:{})});
-  return r.text||null;
 }
 /* 🎤 voice note — OGG bytes (base64) सीधे Gemini को (audio native, कोई STT नहीं) */
 async function geminiAudio(settings, b64, mime, prompt){
-  const key=settings&&settings.gemKey; if(!key) return null;
-  const r=await _gemFetch(key, {contents:[{parts:[{text:prompt},{inlineData:{mimeType:mime||'audio/ogg',data:b64}}]}],
+  const key=settings&&settings.gemKey; if(!key) return {err:'no-key'};
+  return await _gemFetch(key, {contents:[{parts:[{text:prompt},{inlineData:{mimeType:mime||'audio/ogg',data:b64}}]}],
     generationConfig:{maxOutputTokens:900,temperature:0.3,responseMimeType:'application/json'}}, 45000);
-  return r.text||null;
+}
+/* Gemini error → छोटा हिंदी संकेत (owner को समझने लायक) */
+function gemErrHindi(err){
+  const e=String(err||'').toLowerCase();
+  if(e.includes('no-key')) return 'app के ⚙️ में Gemini key डालें';
+  if(e.includes('api key not valid')||e.includes('api_key_invalid')||e.includes('invalid')) return 'key गलत है — app में सही Gemini key डालें';
+  if(e.includes('has not been used')||e.includes('disabled')||e.includes('permission')||e.includes('403')) return 'Google में "Generative Language API" चालू करें (AI Studio से key बनाएँ)';
+  if(e.includes('quota')||e.includes('429')||e.includes('resource_exhausted')) return 'Gemini की आज की मुफ़्त सीमा पूरी — थोड़ी देर बाद';
+  if(e.includes('timeout')||e.includes('net')||e.includes('fetch')) return 'net धीमा/बंद — दोबारा';
+  if(e.includes('not found')||e.includes('404')) return 'model नहीं मिला — मुझे बताएँ';
+  return err?String(err).slice(0,80):'अभी जवाब नहीं आया';
 }
 /* 🧠 business context — compact (सिर्फ़ ज़रूरी, ताकि token कम लगें) */
 function brainContext(data, now){
@@ -580,17 +590,16 @@ function brainMenu(data, now){
       : '⚠️ पहले app के ⚙️ में *Gemini key* डालें (AQ… या AIza…) — तभी AI जवाब देगा।');
   return {text:head, reply_markup:{inline_keyboard:rows}};
 }
-/* किसी feature/सवाल का Gemini जवाब (context के साथ) */
+/* किसी feature/सवाल का Gemini जवाब (context के साथ) — {text}|{err} */
 async function brainAnswer(data, now, ask){
   const prompt=BRAIN_TONE+'\n\n'+brainContext(data,now)+'\n\n👉 काम: '+ask;
-  const t=await geminiAsk(data.settings, prompt);
-  return t;
+  return await geminiAsk(data.settings, prompt);
 }
 /* free-text सवाल → Gemini (context सहित); key न हो या fail → Claude fallback */
 async function brainReply(data, q, now){
   if(data.settings&&data.settings.gemKey){
-    const t=await brainAnswer(data, now, 'विक्रम भाई का सवाल: "'+q+'"\nछोटा, सीधा जवाब सिर्फ़ ऊपर के data से।');
-    if(t) return '🧠 '+t;
+    const r=await brainAnswer(data, now, 'विक्रम भाई का सवाल: "'+q+'"\nछोटा, सीधा जवाब सिर्फ़ ऊपर के data से।');
+    if(r&&r.text) return '🧠 '+r.text;
   }
   return await aiFallback(data.settings, data.contacts, q, now); // Claude (अगर key हो)
 }
@@ -599,13 +608,18 @@ async function handleVoiceNote(col, data, b64, mime, chat){
   const calls=[]; let dirty=false;
   const now=Date.now(), pd=n=>String(n).padStart(2,'0'), d=new Date();
   const nowS=d.getFullYear()+'-'+pd(d.getMonth()+1)+'-'+pd(d.getDate())+' '+pd(d.getHours())+':'+pd(d.getMinutes());
+  // 🔑 ताज़ा key पढ़ो (owner ने अभी-अभी डाली हो तो memory में न हो) — 1 doc
+  let settings=data.settings;
+  try{ const sd=await col.doc('_settings').get(); if(sd.exists){ settings=Object.assign({}, data.settings, sd.data()); data.settings=settings; } }catch(e){}
   const roster=activeC(data.contacts).map(c=>c.name).filter(Boolean).slice(0,150).join(', ');
   const prompt='तुम विक्रम भाई के काम-सहायक हो। यह आवाज़-संदेश (हिंदी) सुनो। पहले हूबहू लिखो, फिर समझो कि यह "सवाल" है या "नया काम"।\n'+
     (roster?('मेरे contacts (नाम इसी सूची से हूबहू): '+roster+'\n'):'')+
     'अभी समय IST: '+nowS+'\nजवाब सिर्फ़ JSON:\n{"heard":"जो सुना हूबहू","type":"task या question","task":"काम (type=task हो तो, समय-शब्द हटाकर)","name":"किसका काम — सूची से या null","when":"YYYY-MM-DD HH:MM या null","cat":"golden|computer|market|jalipa या null","answer":"type=question हो तो छोटा हिंदी जवाब वरना null"}';
+  const res=await geminiAudio(settings, b64, mime, prompt);
+  if(res&&res.err){ calls.push({method:'sendMessage',body:{chat_id:chat,text:'🎤 आवाज़ में दिक्कत: '+gemErrHindi(res.err)}}); return {calls,dirty}; }
   let j=null;
-  try{ const raw=await geminiAudio(data.settings, b64, mime, prompt); if(raw) j=JSON.parse((raw.match(/\{[\s\S]*\}/)||[raw])[0]); }catch(e){}
-  if(!j){ calls.push({method:'sendMessage',body:{chat_id:chat,text:'🎤 आवाज़ समझ नहीं पाया — फिर से या थोड़ा साफ़ बोलिए (net/Gemini key भी देखें)।'}}); return {calls,dirty}; }
+  try{ const raw=res&&res.text; if(raw) j=JSON.parse((raw.match(/\{[\s\S]*\}/)||[raw])[0]); }catch(e){}
+  if(!j){ calls.push({method:'sendMessage',body:{chat_id:chat,text:'🎤 आवाज़ समझ नहीं पाया — थोड़ा साफ़/धीरे फिर बोलिए।'}}); return {calls,dirty}; }
   const heard=j.heard?('🎤 _"'+String(j.heard).slice(0,140)+'"_\n\n'):'';
   if(j.type==='task' && j.task){
     const c=findByName(activeC(data.contacts), j.name||'') || findByName(activeC(data.contacts), j.task);
@@ -615,7 +629,8 @@ async function handleVoiceNote(col, data, b64, mime, chat){
       else calls.push({method:'sendMessage',body:{chat_id:chat,text:heard+'⚠️ जोड़ नहीं पाया।'}}); }
     else calls.push({method:'sendMessage',body:{chat_id:chat,parse_mode:'Markdown',text:heard+'🤔 यह काम किसके लिए है, समझ नहीं आया। नाम साफ़ लेकर फिर बोलिए — या app से जोड़ें।'}});
   } else {
-    const a=(j.answer&&String(j.answer).trim())|| (await brainAnswer(data, now, 'सवाल: "'+(j.heard||'')+'"')) || 'समझ नहीं आया — फिर पूछिए।';
+    let a=(j.answer&&String(j.answer).trim())||'';
+    if(!a){ const br=await brainAnswer(data, now, 'सवाल: "'+(j.heard||'')+'"'); a=(br&&br.text)||'समझ नहीं आया — फिर पूछिए।'; }
     calls.push({method:'sendMessage',body:{chat_id:chat,parse_mode:'Markdown',text:heard+'🧠 '+mdSafe(a)}});
   }
   return {calls,dirty};
@@ -1264,8 +1279,8 @@ async function handleUpdate(col, data, update, ownerChat){
         else if(!(data.settings&&data.settings.gemKey)){
           calls.push({method:'sendMessage',body:{chat_id:chat,text:'⚠️ पहले app के ⚙️ में Gemini key डालें — तभी AI यह बना पाएगा।'}});
         } else {
-          const t=await brainAnswer(data, now, f.ask);
-          calls.push({method:'sendMessage',body:{chat_id:chat,parse_mode:'Markdown',disable_web_page_preview:true,text:t?('*'+f.icon+' '+f.label+'*\n\n'+mdSafe(t)):'⚠️ अभी जवाब नहीं ला पाया — Gemini key/net देखकर दोबारा दबाएँ।'}});
+          const r=await brainAnswer(data, now, f.ask);
+          calls.push({method:'sendMessage',body:{chat_id:chat,parse_mode:'Markdown',disable_web_page_preview:true,text:(r&&r.text)?('*'+f.icon+' '+f.label+'*\n\n'+mdSafe(r.text)):('⚠️ अभी नहीं बना — '+gemErrHindi(r&&r.err))}});
         }
       }
     } else if(cd==='bm|focus'){

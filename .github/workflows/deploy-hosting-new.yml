@@ -1,0 +1,43 @@
+# ══════════════════════════════════════════════════════════
+# नया project (manoj-business-os) — Hosting deploy
+# branch  claude/manoj-business-os  का content
+# manoj-business-os.web.app पर live करता है।
+#
+# ⚠️ secret ज़रूरी: FIREBASE_SA_MANOJ = नए project का
+#    service-account JSON (Firebase Console → Project settings →
+#    Service accounts → Generate new private key)।
+#    पुराने project का FIREBASE_SA इससे अलग है — छेड़ना नहीं।
+# ══════════════════════════════════════════════════════════
+name: 🆕 Deploy Hosting (manoj-business-os)
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'कौन-सी branch deploy करनी है'
+        required: true
+        default: 'claude/manoj-business-os'
+
+concurrency:
+  group: deploy-hosting-manoj
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Write service account
+        env:
+          FIREBASE_SA_MANOJ: ${{ secrets.FIREBASE_SA_MANOJ }}
+        run: printf '%s' "$FIREBASE_SA_MANOJ" > "$RUNNER_TEMP/sa.json"
+      - name: Deploy to Firebase Hosting (नया project)
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/sa.json
+        run: npx firebase-tools@latest deploy --only hosting --project manoj-business-os --non-interactive

@@ -521,7 +521,8 @@ async function aiFallback(settings, contacts, q, now){
    repo में नहीं)। नई AQ. + पुरानी AIza दोनों format (header auth)।
    Spark plan: कोई Cloud Function नहीं — bot सीधे Gemini से बात करता है।
    ══════════════════════════════════════════════════════════ */
-const GEM_URL='https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+// gemini-2.5-flash — app में यही proven चलता है (owner की free key पर 2.0 पर 404 आता था)
+const GEM_URL='https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 async function _gemFetch(key, body, ms){
   const ctl=new AbortController(); const to=setTimeout(()=>ctl.abort(), ms||30000);
   try{
@@ -552,7 +553,8 @@ function gemErrHindi(err){
   if(e.includes('no-key')) return 'app के ⚙️ में Gemini key डालें';
   if(e.includes('api key not valid')||e.includes('api_key_invalid')||e.includes('invalid')) return 'key गलत है — app में सही Gemini key डालें';
   if(e.includes('has not been used')||e.includes('disabled')||e.includes('permission')||e.includes('403')) return 'Google में "Generative Language API" चालू करें (AI Studio से key बनाएँ)';
-  if(e.includes('quota')||e.includes('429')||e.includes('resource_exhausted')) return 'Gemini की आज की मुफ़्त सीमा पूरी — थोड़ी देर बाद';
+  if(e.includes('quota')||e.includes('429')||e.includes('resource_exhausted')||e.includes('too many')) return 'एक बार में एक — 1 मिनट रुककर फिर बोलिए/दबाइए (मुफ़्त Gemini की per-minute सीमा)';
+  if(e.includes('not found')||e.includes('404')||e.includes('is not supported')) return 'model की दिक़्क़त — मुझे बता दें (मैं ठीक कर दूँगा)';
   if(e.includes('timeout')||e.includes('net')||e.includes('fetch')) return 'net धीमा/बंद — दोबारा';
   if(e.includes('not found')||e.includes('404')) return 'model नहीं मिला — मुझे बताएँ';
   return err?String(err).slice(0,80):'अभी जवाब नहीं आया';

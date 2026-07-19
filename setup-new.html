@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="robots" content="noindex,nofollow">
+<title>पहली बार Setup — मालिक अकाउंट</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#eef2f6;color:#0f172a;font-family:'Noto Sans Devanagari',sans-serif;min-height:100dvh;max-width:480px;margin:0 auto;padding:0 0 40px}
+.top{background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff;padding:22px 18px;border-radius:0 0 22px 22px;box-shadow:0 8px 22px rgba(37,99,235,.34)}
+.top h1{font-size:20px;font-weight:900}
+.top .s{font-size:12.5px;opacity:.92;margin-top:4px;line-height:1.5}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:18px;padding:16px;margin:16px 12px 0;box-shadow:0 10px 24px -12px rgba(15,23,42,.2)}
+.lbl{font-size:12.5px;color:#475569;font-weight:800;margin-bottom:6px;display:block}
+.inp{background:#fff;border:1.5px solid #cbd5e1;border-radius:11px;padding:12px 13px;font-size:15px;font-family:inherit;width:100%;outline:none;margin-bottom:12px}
+.inp:focus{border-color:#2563eb}
+.btn{width:100%;padding:14px;border:none;border-radius:12px;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff}
+.btn:disabled{opacity:.55}
+.msg{margin:14px 12px 0;padding:13px 15px;border-radius:12px;font-size:13.5px;font-weight:700;line-height:1.6;display:none}
+.msg.ok{display:block;background:#dcfce7;border:1.5px solid #86efac;color:#166534}
+.msg.err{display:block;background:#fef2f2;border:1.5px solid #fca5a5;color:#b91c1c}
+.msg.info{display:block;background:#eff6ff;border:1.5px solid #bfdbfe;color:#1e40af}
+.note{font-size:11.5px;color:#64748b;margin-top:4px;line-height:1.6}
+a.go{display:block;text-align:center;margin:14px 12px 0;background:#059669;color:#fff;border-radius:12px;padding:14px;font-weight:900;text-decoration:none;font-size:15px}
+</style>
+</head>
+<body>
+<div class="top">
+  <h1>🏢 पहली बार Setup</h1>
+  <div class="s">यह page सिर्फ़ <b>एक बार</b> चलाना है — इससे आपका <b>मालिक (Admin) अकाउंट</b> बन जाएगा। फिर रोज़ इसी mobile + PIN से app में login करोगे।</div>
+</div>
+
+<div id="checking" class="msg info">⏳ जाँच हो रही है…</div>
+
+<div id="form-card" class="card" style="display:none">
+  <label class="lbl">📱 आपका Mobile नंबर (यही login ID रहेगा)</label>
+  <input class="inp" id="mobile" type="tel" maxlength="10" inputmode="numeric" placeholder="10 अंक का नंबर">
+  <label class="lbl">🔒 PIN बनाओ (कम से कम 6 अक्षर — याद रखना)</label>
+  <input class="inp" id="pin" type="text" maxlength="20" placeholder="जैसे: 786786">
+  <label class="lbl">🔒 PIN दोबारा लिखो</label>
+  <input class="inp" id="pin2" type="text" maxlength="20" placeholder="वही PIN फिर से">
+  <button class="btn" id="go" onclick="doSetup()">✅ मेरा मालिक अकाउंट बनाओ</button>
+  <div class="note">यह PIN आपके पूरे हिसाब की चाबी है — किसी को मत बताना। भूलने पर मुश्किल होगी, इसलिए ऐसा रखो जो याद रहे।</div>
+</div>
+
+<div id="msg" class="msg"></div>
+<a id="gotoapp" class="go" href="./home.html" style="display:none">➡️ अब app खोलो और login करो</a>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, createUserWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, collection, doc, getDocs, setDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const FB_CFG = {
+  apiKey:'AIzaSyDdrWFkm7hizUpkNIozOANiG5SDFWNLo6s',
+  authDomain:'manoj-business-os.firebaseapp.com',
+  projectId:'manoj-business-os',
+  storageBucket:'manoj-business-os.firebasestorage.app',
+  messagingSenderId:'574587426179',
+  appId:'1:574587426179:web:9c88a4062f53e32aa4d2b6'
+};
+const app = initializeApp(FB_CFG, 'vbe-setup');
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+function show(id,cls,html){ const e=document.getElementById(id); e.className='msg '+cls; e.innerHTML=html; e.style.display='block'; }
+
+// पहले देखो: कोई admin पहले से तो नहीं — तो दोबारा setup न हो
+(async function(){
+  try{
+    const snap = await getDocs(collection(db,'vbe_admins'));
+    document.getElementById('checking').style.display='none';
+    if(!snap.empty){
+      show('msg','info','✅ मालिक अकाउंट पहले से बना हुआ है — नया बनाने की ज़रूरत नहीं। नीचे से app खोलकर अपने mobile + PIN से login करो।');
+      document.getElementById('gotoapp').style.display='block';
+      return;
+    }
+    document.getElementById('form-card').style.display='block';
+  }catch(e){
+    document.getElementById('checking').style.display='none';
+    show('msg','err','जाँच नहीं हो पाई: '+(e.message||e)+'<br>net check करके page दोबारा खोलो।');
+  }
+})();
+
+window.doSetup = async function(){
+  const mobile=(document.getElementById('mobile').value||'').trim();
+  const pin=(document.getElementById('pin').value||'').trim();
+  const pin2=(document.getElementById('pin2').value||'').trim();
+  if(mobile.length!==10 || !/^[0-9]{10}$/.test(mobile)){ show('msg','err','सही 10 अंक का mobile नंबर डालो।'); return; }
+  if(pin.length<6){ show('msg','err','PIN कम से कम 6 अक्षर का हो।'); return; }
+  if(pin!==pin2){ show('msg','err','दोनों बार PIN एक जैसा नहीं है — दोबारा देखो।'); return; }
+  const btn=document.getElementById('go'); btn.disabled=true; btn.textContent='⏳ बन रहा है…';
+  try{
+    // दोबारा जाँच — race से बचने के लिए
+    const snap = await getDocs(collection(db,'vbe_admins'));
+    if(!snap.empty){ show('msg','info','मालिक अकाउंट पहले से बन चुका है — app खोलकर login करो।'); document.getElementById('gotoapp').style.display='block'; return; }
+    const cred = await createUserWithEmailAndPassword(auth, mobile+'@vbe-tracker.local', pin);
+    const uid = cred.user.uid;
+    await setDoc(doc(db,'vbe_admins',uid), { uid, role:'admin', name:'मालिक (Vikram)', phone:mobile, createdAt:new Date().toISOString(), source:'first-setup' });
+    try{ await signOut(auth); }catch(_){}
+    document.getElementById('form-card').style.display='none';
+    show('msg','ok','🎉 हो गया! आपका मालिक अकाउंट बन गया।<br>Mobile: <b>'+mobile+'</b><br>अब नीचे से app खोलो और इसी mobile + PIN से login करो।');
+    document.getElementById('gotoapp').style.display='block';
+  }catch(e){
+    const c=e.code||'';
+    let m = c==='auth/email-already-in-use' ? 'यह mobile पहले से बना हुआ है — app खोलकर सीधे login करो।'
+      : c==='auth/weak-password' ? 'PIN कमज़ोर है — थोड़ा लंबा/मज़बूत रखो।'
+      : (e.message||e);
+    show('msg','err','❌ '+m);
+    btn.disabled=false; btn.textContent='✅ मेरा मालिक अकाउंट बनाओ';
+  }
+};
+</script>
+</body>
+</html>

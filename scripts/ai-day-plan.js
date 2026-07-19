@@ -48,7 +48,7 @@ async function main(){
   // 📩 Telegram — पूरा प्लान (token+chat _settings से)
   if(settings.tgBotToken && settings.tgChatId){
     try{
-      const text='🌅 *आज का प्लान — '+today+'*\n\n'+j.lines.slice(0,16).map((l,i)=>`${i+1}. ${String(l.txt).replace(/[*_`\[]/g,'')}`).join('\n')+'\n\n👉 https://vbe-order-tracker-60324.web.app/call-tracker.html';
+      const text='🌅 *आज का प्लान — '+today+'*\n\n'+j.lines.slice(0,16).map((l,i)=>`${i+1}. ${String(l.txt).replace(/[*_`\[]/g,'')}`).join('\n')+'\n\n👉 https://manoj-business-os.web.app/call-tracker.html';
       await fetch('https://api.telegram.org/bot'+settings.tgBotToken+'/sendMessage',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({chat_id:settings.tgChatId,text,parse_mode:'Markdown',disable_web_page_preview:true})});
       console.log('📩 day-plan Telegram भेजा');
@@ -59,8 +59,8 @@ async function main(){
   if(toks.length){
     await admin.messaging().sendEachForMulticast({tokens:[...new Set(toks)],
       notification:{title:'🌅 आज का AI प्लान तैयार!',body:j.lines.slice(0,4).map(l=>'• '+l.txt).join('\n')},
-      data:{link:'https://vbe-order-tracker-60324.web.app/call-tracker.html'},
-      webpush:{fcmOptions:{link:'https://vbe-order-tracker-60324.web.app/call-tracker.html'},notification:{icon:'/ct-icon.svg',tag:'vbe-aiplan'}}});
+      data:{link:'https://manoj-business-os.web.app/call-tracker.html'},
+      webpush:{fcmOptions:{link:'https://manoj-business-os.web.app/call-tracker.html'},notification:{icon:'/ct-icon.svg',tag:'vbe-aiplan'}}});
   }
   console.log('✅ AI plan:',j.lines.length,'lines');
 }

@@ -22,7 +22,7 @@
 const admin = require('firebase-admin');
 const { google } = require('googleapis');
 
-const PROJECT = 'vbe-order-tracker-60324';
+const PROJECT = 'manoj-business-os';
 
 function loadSA() {
   if (!process.env.FIREBASE_SA) {

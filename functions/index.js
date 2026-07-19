@@ -19,7 +19,7 @@ admin.initializeApp();
 
 // ══════════════════════════════════════════════════════════
 // 📩 Telegram Webhook — हमेशा जागता, message आते ही तुरंत जवाब।
-// URL: https://asia-south1-vbe-order-tracker-60324.cloudfunctions.net/telegramWebhook
+// URL: https://asia-south1-manoj-business-os.cloudfunctions.net/telegramWebhook
 // token/chat/secret Firestore _settings से। setWebhook deploy workflow करता है।
 // ══════════════════════════════════════════════════════════
 async function tgApi(token, method, body) {
@@ -61,7 +61,7 @@ exports.telegramWebhook = onRequest(
   }
 );
 
-const APP_LINK = 'https://vbe-order-tracker-60324.web.app/call-tracker.html';
+const APP_LINK = 'https://manoj-business-os.web.app/call-tracker.html';
 const REMIND_GAP_MS = 30 * 60 * 1000; // दोबारा याद दिलाने का gap — 30 min
 
 exports.callReminders = onSchedule(

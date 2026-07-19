@@ -5,7 +5,7 @@
    applyAdd/handleUpdate/autoPushNew)। कोई transport नहीं — caller
    Telegram को भेजता है। इससे webhook और GitHub-poller एक ही code वापरें।
    ══════════════════════════════════════════════════════════ */
-const APP_LINK = 'https://vbe-order-tracker-60324.web.app/call-tracker.html';
+const APP_LINK = 'https://manoj-business-os.web.app/call-tracker.html';
 
 const DEV2LAT={'क':'k','ख':'kh','ग':'g','घ':'gh','ङ':'n','च':'c','छ':'c','ज':'j','झ':'j','ञ':'n','ट':'t','ठ':'t','ड':'d','ढ':'d','ण':'n','त':'t','थ':'t','द':'d','ध':'d','न':'n','प':'p','फ':'f','ब':'b','भ':'b','म':'m','य':'y','र':'r','ल':'l','व':'v','श':'s','ष':'s','स':'s','ह':'h','क़':'k','ख़':'k','ग़':'g','ज़':'j','ड़':'r','ढ़':'r','फ़':'f','अ':'a','आ':'a','इ':'i','ई':'i','उ':'u','ऊ':'u','ए':'e','ऐ':'e','ओ':'o','औ':'o','ऋ':'r','ा':'a','ि':'i','ी':'i','ु':'u','ू':'u','े':'e','ै':'e','ो':'o','ौ':'o','ृ':'r','ं':'n','ँ':'n','ः':'','्':'','़':''};
 function translit(s){ let o=''; for(const ch of String(s||'')) o+=(DEV2LAT[ch]!==undefined?DEV2LAT[ch]:ch); return o; }

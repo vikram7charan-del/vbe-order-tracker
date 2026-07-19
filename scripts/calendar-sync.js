@@ -52,7 +52,7 @@ function eventId(id) {
   // Google event id: सिर्फ़ a-v, 0-9 — sha1 hex (0-9a-f) safe है
   return 'vbe' + crypto.createHash('sha1').update(String(id)).digest('hex');
 }
-const APP_URL = 'https://vbe-order-tracker-60324.web.app/call-tracker.html';
+const APP_URL = 'https://manoj-business-os.web.app/call-tracker.html';
 /* event description के नीचे Call/WhatsApp/App के सीधे link —
    Google Calendar में नंबर और URL अपने-आप tap करने लायक बन जाते हैं */
 function contactLinks(id, d) {

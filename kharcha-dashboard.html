@@ -260,12 +260,12 @@ import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signOut as
 import { getFirestore, initializeFirestore, persistentLocalCache, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, query, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 const FB_CFG = {
-  apiKey:'AIzaSyBCe5DKNKcthOl4umprfRm2QBfbVaFORg8',
-  authDomain:'vbe-order-tracker-60324.firebaseapp.com',
-  projectId:'vbe-order-tracker-60324',
-  storageBucket:'vbe-order-tracker-60324.firebasestorage.app',
-  messagingSenderId:'894023456122',
-  appId:'1:894023456122:web:6ee548f0913c887c67f2c3'
+  apiKey:'AIzaSyDdrWFkm7hizUpkNIozOANiG5SDFWNLo6s',
+  authDomain:'manoj-business-os.firebaseapp.com',
+  projectId:'manoj-business-os',
+  storageBucket:'manoj-business-os.firebasestorage.app',
+  messagingSenderId:'574587426179',
+  appId:'1:574587426179:web:9c88a4062f53e32aa4d2b6'
 };
 const CAT_LABELS={kaccha:'कच्चा माल',fuel:'पेट्रोल-डीज़ल',army:'Army Unit खरीद',repair:'Repair-Maintenance',salary:'सैलरी/Advance',other:'अन्य खर्च','':'—'};
 
@@ -635,7 +635,7 @@ function renderBillReminders(){
     if(g.uid && wa.length>=10){
       const lines=g.rows.slice(0,6).map(e=>`• ${fmtD(e.date)} — ${e.vendor||e.firm||'खर्चा'} — ₹${Math.round(+e.total||0).toLocaleString('hi-IN')}`);
       if(g.rows.length>6) lines.push(`…और ${g.rows.length-6} bill`);
-      const msg=`राम राम ${g.name} जी 🙏\nइन खर्चों के bill photo app में डालने बाकी हैं:\n${lines.join('\n')}\n\n📲 यहाँ डालें: https://vbe-order-tracker-60324.web.app/kharcha-entry.html`;
+      const msg=`राम राम ${g.name} जी 🙏\nइन खर्चों के bill photo app में डालने बाकी हैं:\n${lines.join('\n')}\n\n📲 यहाँ डालें: https://manoj-business-os.web.app/kharcha-entry.html`;
       btn=`<a href="https://wa.me/91${wa.slice(-10)}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener"
         style="background:#dcfce7;color:#166534;border-radius:9px;padding:7px 13px;font-weight:900;font-size:13px;text-decoration:none;white-space:nowrap">💬 भेजो</a>`;
     } else if(g.uid){

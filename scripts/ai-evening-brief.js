@@ -4,7 +4,7 @@
    Secret: FIREBASE_SA */
 const admin = require('firebase-admin');
 
-const APP_LINK = 'https://vbe-order-tracker-60324.web.app/call-tracker.html';
+const APP_LINK = 'https://manoj-business-os.web.app/call-tracker.html';
 function topics(c){ return Array.isArray(c.topics) ? c.topics.filter(x=>x&&typeof x==='object') : (c.note?[{t:c.note}]:[]); }
 
 async function main(){

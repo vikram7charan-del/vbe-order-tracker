@@ -12,7 +12,7 @@
 
 const admin = require('firebase-admin');
 
-const APP_LINK = 'https://vbe-order-tracker-60324.web.app/call-tracker.html';
+const APP_LINK = 'https://manoj-business-os.web.app/call-tracker.html';
 const REMIND_GAP_MS = 30 * 60 * 1000; // दोबारा remind का gap — 30 min
 
 function initAdmin() {

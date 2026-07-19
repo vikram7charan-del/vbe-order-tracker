@@ -14,12 +14,12 @@ importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
 
 firebase.initializeApp({
-  apiKey:            "AIzaSyBCe5DKNKcthOl4umprfRm2QBfbVaFORg8",
-  authDomain:        "vbe-order-tracker-60324.firebaseapp.com",
-  projectId:         "vbe-order-tracker-60324",
-  storageBucket:     "vbe-order-tracker-60324.firebasestorage.app",
-  messagingSenderId: "894023456122",
-  appId:             "1:894023456122:web:6ee548f0913c887c67f2c3"
+  apiKey:            "AIzaSyDdrWFkm7hizUpkNIozOANiG5SDFWNLo6s",
+  authDomain:        "manoj-business-os.firebaseapp.com",
+  projectId:         "manoj-business-os",
+  storageBucket:     "manoj-business-os.firebasestorage.app",
+  messagingSenderId: "574587426179",
+  appId:             "1:574587426179:web:9c88a4062f53e32aa4d2b6"
 });
 
 const messaging = firebase.messaging();

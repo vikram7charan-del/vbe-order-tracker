@@ -14,7 +14,7 @@ async function main(){
   if(!process.env.FIREBASE_SA){ console.error('FIREBASE_SA missing'); process.exit(1); }
   admin.initializeApp({
     credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SA)),
-    storageBucket: 'vbe-order-tracker-60324.firebasestorage.app'
+    storageBucket: 'manoj-business-os.firebasestorage.app'
   });
   const db = admin.firestore();
 

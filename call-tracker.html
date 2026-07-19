@@ -1553,6 +1553,11 @@ function startFirestoreSync(){
     });
     window._settings=settings||{};
     if(settings){
+      // 🤖 AI key cloud (Firestore) से आई — इस device के localStorage में भी रख लो
+      // (offline/तेज़ access), और एक बार बता दो कि लगी है — बार-बार डालनी नहीं पड़ती
+      if(settings.gemKey){ try{ localStorage.setItem('vbe_gem_key',settings.gemKey); }catch(e){}
+        if(!sessionStorage.getItem('vbe_ai_shown')){ sessionStorage.setItem('vbe_ai_shown','1'); toast('🤖 AI तैयार — Gemini key cloud में सुरक्षित (हर फ़ोन पर अपने-आप)'); } }
+      else if(settings.aiKey){ try{ localStorage.setItem('vbe_ai_key',settings.aiKey); }catch(e){} }
       if(Array.isArray(settings.tagList)&&settings.tagList.length){
         TAG_LIST=settings.tagList;
       } else if(settings.tagLabels){
@@ -3276,13 +3281,15 @@ function _aiRoster(){
   });
   return names.slice(0,150).join(', ');
 }
+/* बोले हुए से focus-owner (staff) → v/d/k */
+function _foOwn(s){ s=String(s||'').toLowerCase(); if(/dinesh|दिनेश/.test(s)) return 'd'; if(/kailash|कैलाश|कैलास/.test(s)) return 'k'; if(/vikram|विक्रम/.test(s)) return 'v'; return ''; }
 function _voicePrompt(nowS, raw, whenRaw){
   const roster=_aiRoster();
   return 'अभी समय (IST): '+nowS+'\n'+
    'तुम विक्रम भाई (Vande Bharat Enterprises, army-supply, बाड़मेर) के काम-सहायक हो। बोले हुए वाक्य से जानकारी निकालो।\n'+
    (roster?('मेरे contacts (नाम इसी सूची से हूबहू लौटाओ अगर मिलता-जुलता लगे — आवाज़ में फ़र्क़ हो तो भी सही चुनो):\n'+roster+'\n\n'):'')+
-   'जवाब सिर्फ़ JSON:\n{"tasks":[{"task":"काम हूबहू (समय-शब्द और focus-निर्देश हटाओ, बाक़ी एक शब्द मत बदलो)","when":"YYYY-MM-DD HH:MM या null","cat":"golden|computer|market|jalipa या null","pri":"high (तुरंत/आज ही/ज़रूरी जैसा दबाव हो) या null"}],"name":"जिस व्यक्ति को काम बोलना/करवाना है उसका नाम — ऊपर सूची से हूबहू, या null","focus":true/false}\n'+
-   'नियम: एक वाक्य में कई अलग काम हों तो हर एक अलग task (max 3)।\n'+
+   'जवाब सिर्फ़ JSON:\n{"tasks":[{"task":"काम हूबहू (समय-शब्द और focus-निर्देश हटाओ, बाक़ी एक शब्द मत बदलो)","when":"YYYY-MM-DD HH:MM या null","cat":"golden|computer|market|jalipa या null","pri":"high (तुरंत/आज ही/ज़रूरी जैसा दबाव हो) या null"}],"name":"जिस व्यक्ति को काम बोलना/करवाना है उसका नाम — ऊपर सूची से हूबहू, या null","focus":true/false,"focusOwner":"vikram|dinesh|kailash या null (अगर कहा हो किसके focus में — जैसे \'दिनेश के focus में डाल दो\' → dinesh; न कहा तो null)"}\n'+
+   'नियम: एक वाक्य में कई अलग काम हों तो हर एक अलग task (max 3)। "name" = जिस पार्टी/व्यक्ति का काम है (contact); "focusOwner" = किसकी घड़ी/focus में डालना है (staff: विक्रम/दिनेश/कैलाश) — दोनों अलग हैं।\n'+
    (whenRaw!==undefined?('समय-वाक्य: '+(whenRaw||'—')+'\nकाम-वाक्य: '+(raw||'—')):('वाक्य: '+(raw||'—')));
 }
 async function aiAsk(prompt,maxTok){
@@ -4082,28 +4089,28 @@ function aicAssistant(){
   </div>`;
   const orb=document.getElementById('ai-orb'); orb&&orb.classList.add('thinking');
   try{ _asstRec&&_asstRec.stop(); }catch(e){}
-  const r=new SR(); _asstRec=r; r.lang='hi-IN'; r.interimResults=true; r.maxAlternatives=1; r.continuous=false;
-  let txt='', intrLast='';
-  // ⏱️ पहरेदार — 9s में जवाब न आए तो खुद रोको (Android पर SR अटक जाता है), कभी 'खाली' न रहे
-  let guard=setTimeout(()=>{ try{ r.stop(); }catch(e){} },9000);
-  let guard2=setTimeout(()=>{ if(_asstRec===r){ _asstRec=null; orb&&orb.classList.remove('thinking');
-      const t=(txt||intrLast||'').trim();
-      if(t) _asstProcess(t);
-      else rp.innerHTML='⚠️ बोली पकड़ में नहीं आई — phone में Google app/net चालू रखें और mic के पास साफ़ बोलें।'+RB; } },12000);
-  r.onresult=e=>{ // live दिखाओ — जो सुना जा रहा है वही अक्षर screen पर
+  // ⏱️ लंबा सुनो: continuous — पूरा वाक्य (व्यक्ति + काम + focus) रुक-रुककर बोल सकें;
+  // 5s चुप → अपने-आप बंद; hard-cap 40s। बीच के pause पर बंद नहीं होगा।
+  const r=new SR(); _asstRec=r; r.lang='hi-IN'; r.interimResults=true; r.maxAlternatives=1; r.continuous=true;
+  let txt='', intrLast='', silence=null;
+  const resetSilence=()=>{ clearTimeout(silence); silence=setTimeout(()=>{ try{ r.stop(); }catch(e){} },5000); };
+  let guard2=setTimeout(()=>{ if(_asstRec===r){ try{r.stop();}catch(e){} } },40000); // hard-cap 40s
+  r.onresult=e=>{ // live दिखाओ — जो सुना जा रहा है वही अक्षर screen पर (सारे final जोड़ो)
     let fin='',intr='';
-    for(let i=0;i<e.results.length;i++){ if(e.results[i].isFinal) fin+=e.results[i][0].transcript; else intr+=e.results[i][0].transcript; }
-    if(fin) txt=fin;
+    for(let i=0;i<e.results.length;i++){ if(e.results[i].isFinal) fin+=e.results[i][0].transcript+' '; else intr+=e.results[i][0].transcript; }
+    if(fin.trim()) txt=fin.trim();
     if(intr) intrLast=intr;
-    const lv=document.getElementById('asst-live'); if(lv) lv.textContent='"'+((fin||'')+(intr||'')).slice(0,90)+'"';
+    const lv=document.getElementById('asst-live'); if(lv) lv.textContent='"'+((txt||'')+' '+(intr||'')).trim().slice(0,120)+'"';
+    resetSilence();
   };
-  r.onerror=ev=>{ orb&&orb.classList.remove('thinking');
+  r.onerror=ev=>{ clearTimeout(silence); clearTimeout(guard2); orb&&orb.classList.remove('thinking');
     const code=(ev&&ev.error)||'';
+    if(code==='no-speech'||code==='aborted') return; // चुप/खुद रुका — onend संभालेगा
     rp.innerHTML=(code==='not-allowed'||code==='service-not-allowed')
       ? '⚠️ Mic की permission बंद है — browser की settings में जाकर Microphone को Allow करें, फिर दोबारा।'+RB
       : (code==='network' ? '⚠️ बोली-पहचान के लिए net चाहिए — net देखकर दोबारा।'+RB
       : '⚠️ सुन नहीं पाया ('+escH(code||'error')+') — दोबारा कोशिश करें।'+RB); };
-  r.onend=()=>{ if(_asstRec!==r) return; _asstRec=null; clearTimeout(guard); clearTimeout(guard2);
+  r.onend=()=>{ if(_asstRec!==r) return; _asstRec=null; clearTimeout(silence); clearTimeout(guard2);
     orb&&orb.classList.remove('thinking');
     const t=(txt||intrLast||'').trim(); // final न मिले तो live-सुना हुआ ही ले लो
     if(t) _asstProcess(t);
@@ -4135,6 +4142,7 @@ async function _asstProcess(raw){
         const txt=await aiAsk(_voicePrompt(nowS, raw),420);
         const j=JSON.parse((txt.match(/\{[\s\S]*\}/)||[txt])[0]);
         name=j.name||null;
+        const fo=_foOwn(j.focusOwner); if(fo){ window._asstFO=fo; window._asstF=true; } // किसके focus में
         if(j.focus) window._asstF=true;
         const arr=Array.isArray(j.tasks)&&j.tasks.length?j.tasks:(j.task?[{task:j.task,when:j.when,cat:j.cat,pri:j.pri}]:null);
         if(arr) tasks=arr.slice(0,3).map(x=>{
@@ -4151,14 +4159,14 @@ async function _asstProcess(raw){
       tasks=[{t:t||'काम',when:when||new Date(Date.now()+3600000),cat:bld.cat,pri:bld.pri}];
     }
     const mc=_findByName(((name||'')+' '+raw).toLowerCase());
-    _asstShow(raw,tasks,mc,wantFocus||!!window._asstF,name);
-    window._asstF=false;
+    _asstShow(raw,tasks,mc,wantFocus||!!window._asstF,name,false,window._asstFO||'');
+    window._asstF=false; window._asstFO='';
   } finally{ _asstBusy=false; orb&&orb.classList.remove('thinking'); }
 }
-function _asstShow(raw,tasks,mc,wantFocus,name,repeated){
+function _asstShow(raw,tasks,mc,wantFocus,name,repeated,focusOwner){
   // 💬 "बोल दो/बता देना" = WhatsApp draft भी तैयार रखो
   const wantWA=/(बोल|बता|कह)\s*(दो|देना|दे)|whatsapp|व्हाट्सएप|व्हाट्सऐप|मैसेज|message/i.test(raw) && !!(mc&&(mc.waPhone||mc.phone));
-  window._asstData={raw,tasks,mcId:mc?mc.id:null,wantFocus,name:name||'',wantWA};
+  window._asstData={raw,tasks,mcId:mc?mc.id:null,wantFocus,name:name||'',wantWA,focusOwner:focusOwner||''};
   const rp=document.getElementById('aic-resp');
   const why=[]; // 🔍 explain — किस आधार पर क्या समझा
   if(repeated) why.push('🔁 पिछला काम दोहराया');
@@ -4175,7 +4183,7 @@ function _asstShow(raw,tasks,mc,wantFocus,name,repeated){
       <div style="font-size:10.5px;color:#93c5fd;font-weight:700;margin-top:2px">🔔 ${_aiFmt(x.when)}</div>
     </div>`;
   });
-  if(wantFocus) h+='<div style="font-size:11px;font-weight:800;color:#c4b5fd;margin-top:6px">🎯 Focus Mode में भी लगेगा (विक्रम, 15 min)</div>';
+  if(wantFocus){ const fw={v:'विक्रम',d:'दिनेश',k:'कैलाश'}[focusOwner||'v']; h+='<div style="font-size:11px;font-weight:800;color:#c4b5fd;margin-top:6px">🎯 Focus Mode में भी लगेगा ('+fw+' की घड़ी, 15 min)</div>'; }
   if(window._asstData.wantWA) h+='<div style="font-size:11px;font-weight:800;color:#4ade80;margin-top:4px">💬 WhatsApp draft भी तैयार रहेगा</div>';
   if(why.length) h+='<div style="font-size:9.5px;color:#7d8db0;margin-top:7px">🔍 कैसे समझा: '+why.map(escH).join(' · ')+'</div>';
   h+=`<div style="display:flex;gap:7px;margin-top:12px;flex-wrap:wrap">
@@ -4218,7 +4226,7 @@ window.asstConfirm=function(){
   let focusKey=null;
   if(d.wantFocus&&target){
     focusKey=target.id+'_'+firstTi+'_'+Date.now();
-    _focus.push({key:focusKey,id:target.id,i:firstTi,t:d.tasks[0].t,own:'v',start:Date.now(),until:Date.now()+15*60000,mins:15});
+    _focus.push({key:focusKey,id:target.id,i:firstTi,t:d.tasks[0].t,own:(d.focusOwner||'v'),start:Date.now(),until:Date.now()+15*60000,mins:15});
     saveFocus(); renderFocusBar();
   }
   _asstUndo={cid:target.id,isNew,marks,focusKey};
@@ -6010,21 +6018,31 @@ window.aiMic=function(target){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   const btn=document.getElementById(tid==='ai-whentxt'?'ai-mic-w':'ai-mic');
   if(!SR){ toast('⚠️ इस browser में voice नहीं — Chrome use करें','err'); return; }
-  if(_aiRec){ try{_aiRec.stop();}catch(e){} _aiRec=null; return; }
-  const r=new SR(); r.lang='hi-IN'; r.interimResults=false; r.maxAlternatives=1;
+  if(_aiRec){ try{_aiRec.stop();}catch(e){} _aiRec=null; return; } // दोबारा दबाया → रोको
+  // ⏱️ लंबा सुनो: continuous — रुक-रुककर पूरा वाक्य बोल सकें; 5 सेकंड चुप रहने पर
+  // अपने-आप बंद; ज़्यादा-से-ज़्यादा 40 सेकंड। बीच के pause पर बंद नहीं होगा।
+  const r=new SR(); r.lang='hi-IN'; r.interimResults=true; r.continuous=true; r.maxAlternatives=1;
   btn.textContent='🔴'; btn.classList.add('rec');
+  const el=document.getElementById(tid);
+  const base=(el.value||'').trim(); let fin=base, silence=null;
+  toast('🎙️ बोलिए… (रुक-रुककर भी चलेगा, चुप होने पर अपने-आप बंद)');
+  const HARD=setTimeout(()=>{ try{r.stop();}catch(e){} }, 40000);
+  const resetSilence=()=>{ clearTimeout(silence); silence=setTimeout(()=>{ try{r.stop();}catch(e){} }, 5000); };
   r.onresult=e=>{
-    const t=e.results[0][0].transcript;
-    document.getElementById(tid).value=t;
-    // काम बोलने पर ही auto-समझो; समय बोलने पर user आगे काम भी बोलेगा
-    if(tid==='ai-inp') setTimeout(aiPreview,250);
+    let f='',intr='';
+    for(let i=0;i<e.results.length;i++){ if(e.results[i].isFinal) f+=e.results[i][0].transcript+' '; else intr+=e.results[i][0].transcript; }
+    fin=(base?base+' ':'')+f.trim();
+    el.value=(fin+' '+intr).replace(/\s+/g,' ').trim();
+    resetSilence();
   };
-  r.onend=()=>{ btn.textContent='🎤'; btn.classList.remove('rec'); _aiRec=null; };
-  r.onerror=ev=>{ btn.textContent='🎤'; btn.classList.remove('rec'); _aiRec=null;
+  r.onend=()=>{ clearTimeout(HARD); clearTimeout(silence); btn.textContent='🎤'; btn.classList.remove('rec'); _aiRec=null;
+    el.value=(fin||el.value||'').trim();
+    if(tid==='ai-inp' && el.value.trim()) setTimeout(aiPreview,250); };
+  r.onerror=ev=>{ clearTimeout(HARD); clearTimeout(silence); btn.textContent='🎤'; btn.classList.remove('rec'); _aiRec=null;
     if(ev.error==='not-allowed') toast('⚠️ Mic permission दें','err');
-    else if(ev.error!=='aborted') toast('⚠️ आवाज़ समझ नहीं आई — फिर बोलें','warn'); };
-  _aiRec=r;
-  try{ r.start(); }catch(e){ btn.textContent='🎤'; btn.classList.remove('rec'); _aiRec=null; }
+    else if(ev.error!=='aborted'&&ev.error!=='no-speech') toast('⚠️ आवाज़ समझ नहीं आई — फिर बोलें','warn'); };
+  _aiRec=r; resetSilence();
+  try{ r.start(); }catch(e){ clearTimeout(HARD); clearTimeout(silence); btn.textContent='🎤'; btn.classList.remove('rec'); _aiRec=null; }
 };
 
 /* text से समय निकालो (हिंदी + Hinglish + English) → Date या null */
@@ -6179,7 +6197,8 @@ window.aiPreview=async function(){
     const txt=await aiAsk(_voicePrompt(nowS, raw, whenRaw),420);
     const m=txt.match(/\{[\s\S]*\}/);
     const j=JSON.parse(m?m[0]:txt);
-    const wantFocus=!!j.focus||_wantsFocus(raw+' '+whenRaw);
+    window._aiFocusOwner=_foOwn(j.focusOwner); // किसके focus में (v/d/k)
+    const wantFocus=!!j.focus||!!window._aiFocusOwner||_wantsFocus(raw+' '+whenRaw);
     const bld=_bldScan(raw+' '+whenRaw); // 🗣️ BLD merge — Claude चूके तो लोकल शब्दकोश पकड़े
     let arr=Array.isArray(j.tasks)&&j.tasks.length?j.tasks:[{task:j.task,when:j.when,cat:j.cat,pri:j.pri}];
     let anyWhen=false;
@@ -6248,11 +6267,12 @@ window.aiConfirm=function(){
     contacts.push(entry); target=entry; firstTi=0;
     render(); fbSave(entry);
   }
-  // 🎯 focus कहा/checkbox लगा → पहला काम विक्रम की घड़ी में
+  // 🎯 focus कहा/checkbox लगा → पहला काम उस owner की घड़ी में (जो बोला — v/d/k)
   if(wantFocus&&target){
-    _focus.push({key:target.id+'_'+firstTi+'_'+Date.now(), id:target.id, i:firstTi, t:rows[0].t, own:'v', start:Date.now(), until:Date.now()+15*60000, mins:15});
+    _focus.push({key:target.id+'_'+firstTi+'_'+Date.now(), id:target.id, i:firstTi, t:rows[0].t, own:(window._aiFocusOwner||'v'), start:Date.now(), until:Date.now()+15*60000, mins:15});
     saveFocus(); renderFocusBar();
   }
+  window._aiFocusOwner='';
   closeModal('m-ai');
   toast((mc?'✅ '+(mc.name||'').slice(0,18)+' के कार्ड में ':'✅ ')+rows.length+' काम जुड़'+(rows.length>1?'े':' गया')+(wantFocus?' + 🎯 Focus चालू':'')+' — 🔔 '+_aiFmt(rows[0].when));
 };

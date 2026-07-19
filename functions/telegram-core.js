@@ -911,10 +911,20 @@ async function handleStaffCallback(col, data, cq, st, ownerChat){
   // 🔔 owner mirror — हर staff-हलचल की तुरंत खबर
   const mir=(emoji,task,extra)=>{ if(ownerChat) calls.push({method:'sendMessage',body:{chat_id:ownerChat,disable_web_page_preview:true,
     text:`🔔 ${sName} → ${emoji} "${(task||'').slice(0,60)}"${extra?' — '+extra:''} (${istHM(Date.now())})`}}); };
-  // ✏️ action के बाद वही digest message ताज़ा करो (नया spam नहीं); pageStart = 10-10 भाग
-  const refresh=async(kind, pageStart)=>{ try{
+  // ✏️ action के बाद वही digest message ताज़ा करो (नया spam नहीं); pageStart = 10-10 भाग।
+  // 💰 quota बचाओ: पूरी collection नहीं — focus में सिर्फ़ _focus doc (1 read),
+  // general में सिर्फ़ बदला हुआ contact (1 read); बाक़ी data मेमोरी से।
+  const refresh=async(kind, pageStart, cid)=>{ try{
     if(!cq.message||!cq.message.message_id) return;
-    const d3=collectAll(await col.get()); d3.settings=data.settings;
+    let d3;
+    if(kind==='focus'){
+      const fdoc=await col.doc('_focus').get();
+      d3=Object.assign({}, data, {focus: fdoc.exists?fdoc.data():{items:[]}});
+    } else {
+      const contacts=data.contacts.slice();
+      if(cid){ const dc=await col.doc(cid).get(); if(dc.exists){ const c=dc.data(); c.id=cid; const ix=contacts.findIndex(x=>x.id===cid); if(ix>=0) contacts[ix]=c; else contacts.push(c); } }
+      d3=Object.assign({}, data, {contacts});
+    }
     const st3=tgStaff(d3).find(x=>x.cid===st.cid)||st;
     const dg=(kind==='focus')?staffFocusDigest(d3,st3,Date.now(),st3.pref||'detailed',pageStart||0):staffDigest(d3,st3,Date.now());
     const body={chat_id:chat,message_id:cq.message.message_id,text:dg.text,parse_mode:'Markdown',disable_web_page_preview:true};
@@ -1013,7 +1023,7 @@ async function handleStaffCallback(col, data, cq, st, ownerChat){
     await logEv(col,{action:'done',staff:st.cid,staffName:sName,cid:m[1],ti:Number(m[2]),task:(r.task||'').slice(0,80)});
     ack('✅ शाबाश!'); mir('✅',r.task);
     say(`✅ *हो गया:* ${mdSafe((r.task||'').slice(0,60))}\n👤 ${mdSafe(r.name||'')}\n\nबहुत बढ़िया ${sName.split(/\s+/)[0]} जी! 🙌`);
-    await refresh('general');
+    await refresh('general',0,m[1]);
   } else if((m=cd.match(/^up\|(.+)\|(\d+)$/))){
     const g=await staffTopic(col,st.cid,m[1],m[2]);
     if(!g){ ack('यह काम आपका नहीं / मिला नहीं'); return {calls,dirty}; }
@@ -1035,7 +1045,7 @@ async function handleStaffCallback(col, data, cq, st, ownerChat){
     await logEv(col,{action:'in_progress',staff:st.cid,staffName:sName,cid:m[1],ti:Number(m[2]),task:r.task.slice(0,80),dueAt:at.toISOString()});
     ack('⏳ ठीक'); mir('⏳ कर रहा हूँ',r.task,istHM(at.toISOString())+' तक');
     say(`⏳ ठीक है — *${istParts(at.toISOString())} ${istHM(at.toISOString())}* तक।\n📝 ${mdSafe(r.task.slice(0,60))}\nसमय पर याद दिला दूँगा।`);
-    await refresh('general');
+    await refresh('general',0,m[1]);
   } else if((m=cd.match(/^ub\|(.+)\|(\d+)$/))){
     const g=await staffTopic(col,st.cid,m[1],m[2]);
     if(!g){ ack('यह काम आपका नहीं / मिला नहीं'); return {calls,dirty}; }
@@ -1067,7 +1077,7 @@ async function handleStaffCallback(col, data, cq, st, ownerChat){
       await logEv(col,{action:'snooze',staff:st.cid,staffName:sName,cid:m[1],ti:Number(m[2]),task:r?r.task.slice(0,80):'',n:zn+1});
       ack('🕐 2 घंटे बाद'); mir('🕐 बाद में',r?r.task:'',(zn+1)+'/3 बार');
       say(`🕐 ठीक — 2 घंटे बाद फिर याद दिलाऊँगा। (${zn+1}/3 बार टला)`);
-      await refresh('general');
+      await refresh('general',0,m[1]);
     }
   } else ack('ok');
   return {calls,dirty};
@@ -1137,10 +1147,8 @@ async function handleUpdate(col, data, update, ownerChat){
     const cd=cq.data||'';
     let m;
     if((m=cd.match(/^lk\|(.+)$/))){
-      // 👥 owner ने staff चुना → code + deep link + QR
-      const snap=await col.get(); const d2=collectAll(snap); d2.settings=data.settings;
-      const r=await makeLinkCode(col, d2, m[1]);
-      data.settings=d2.settings;
+      // 👥 owner ने staff चुना → code + deep link + QR (memory data)
+      const r=await makeLinkCode(col, data, m[1]);
       calls.push({method:'answerCallbackQuery',body:{callback_query_id:cq.id,text:'🔗'}});
       calls.push({method:'sendMessage',body:{chat_id:chat,parse_mode:'Markdown',disable_web_page_preview:true,text:r.text}});
       if(r.qr) calls.push({method:'sendPhoto',body:{chat_id:chat,photo:r.qr,caption:'📱 Staff के फ़ोन के camera/Telegram से यह QR scan करवाएँ'}});
@@ -1150,30 +1158,31 @@ async function handleUpdate(col, data, update, ownerChat){
         calls.push({method:'sendMessage',body:{chat_id:chat,text:`✅ पूरा हुआ: ${(r.task||'').slice(0,60)}\n👤 ${r.name||''}`}}); }
       else calls.push({method:'answerCallbackQuery',body:{callback_query_id:cq.id,text:r.already?'यह पहले ही पूरा है':'नहीं मिला'}});
     } else if((m=cd.match(/^fm\|([vdk])$/))){
-      // 🎯 staff चुना → Short / विस्तृत विकल्प
-      const snap=await col.get(); const d2=collectAll(snap);
+      // 🎯 staff चुना → Short / विस्तृत विकल्प (memory data — read बचाओ)
+      const d2=data;
       calls.push({method:'answerCallbackQuery',body:{callback_query_id:cq.id,text:'🎯'}});
       const ch=focusChoiceMsg(d2,m[1]);
       calls.push({method:'sendMessage',body:Object.assign({chat_id:chat,text:ch.text},ch.reply_markup?{reply_markup:ch.reply_markup}:{})});
     } else if((m=cd.match(/^fdt\|([vdk])\|(\d+)$/))){
-      // 🔍 विस्तृत — हर काम का card (10-10)
-      const snap=await col.get(); const d2=collectAll(snap);
+      // 🔍 विस्तृत — हर काम का card (10-10) (memory data)
+      const d2=data;
       calls.push({method:'answerCallbackQuery',body:{callback_query_id:cq.id,text:'🔍'}});
       focusDetailCards(d2,m[1],Number(m[2]),chat).forEach(c=>calls.push(c));
     } else if(cd==='crs' || (m=cd.match(/^cr\|(\d+)$/))){
-      // 📞 Contact Review — resume (crs) या batch (cr|N)
-      const snap=await col.get(); const d2=collectAll(snap);
+      // 📞 Contact Review — resume (crs) या batch (cr|N) (memory data)
+      const d2=data;
       let start = cd==='crs' ? Number((d2.settings||{}).tgReviewIdx||0) : Number(m[1]);
       const total=contactReviewList(d2).length; if(start>=total) start=0;
       calls.push({method:'answerCallbackQuery',body:{callback_query_id:cq.id,text:'📇'}});
       contactReviewCards(d2,start,chat).forEach(c=>calls.push(c));
       await col.doc('_settings').set({tgReviewIdx:start+10},{merge:true});
+      data.settings.tgReviewIdx=start+10; // memory भी (अब dirty-reload नहीं)
     } else if(cd==='crx'){
       calls.push({method:'answerCallbackQuery',body:{callback_query_id:cq.id,text:'🏁'}});
       calls.push({method:'sendMessage',body:{chat_id:chat,text:'🏁 Contact Review बंद — अगली बार यहीं से।'}});
     } else if((m=cd.match(/^cf\|(.+)$/))){
-      // 🎯 contact से focus में डालो — काम/owner पूछो
-      const snap=await col.get(); const d2=collectAll(snap);
+      // 🎯 contact से focus में डालो — काम/owner पूछो (memory data)
+      const d2=data;
       calls.push({method:'answerCallbackQuery',body:{callback_query_id:cq.id,text:'🎯'}});
       const ask=contactFocusStart(d2,m[1]);
       calls.push({method:'sendMessage',body:Object.assign({chat_id:chat,text:ask.text},ask.reply_markup?{reply_markup:ask.reply_markup}:{})});
@@ -1188,8 +1197,9 @@ async function handleUpdate(col, data, update, ownerChat){
       if(r.ok) calls.push({method:'sendMessage',body:{chat_id:chat,text:`🎯 ${OWN_SHORT[m[3]]} के focus में डाला${r.already?' (पहले से था)':''}: ${(r.task||'').slice(0,50)}\n⏱ 15 min timer चालू।`}});
     } else if((m=cd.match(/^ca\|(.+)$/))){
       // ➕ नया काम — अगला text इसी contact के लिए
-      const c=activeC(collectAll(await col.get()).contacts).find(x=>x.id===m[1]);
+      const c=activeC(data.contacts).find(x=>x.id===m[1]);
       await col.doc('_settings').set({tgAddFor:m[1], tgAddForAt:Date.now()},{merge:true});
+      data.settings.tgAddFor=m[1]; data.settings.tgAddForAt=Date.now(); // memory भी (अब dirty-reload नहीं)
       calls.push({method:'answerCallbackQuery',body:{callback_query_id:cq.id,text:'✍️'}});
       calls.push({method:'sendMessage',body:{chat_id:chat,text:`✍️ *${c?c.name:'इस व्यक्ति'}* के लिए नया काम लिखकर भेजो:`,parse_mode:'Markdown'}});
     } else if((m=cd.match(/^fd\|([vdk])$/))){

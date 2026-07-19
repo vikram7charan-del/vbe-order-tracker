@@ -3036,7 +3036,7 @@ window.tgSendNow=async function(mode, start){
         window._settings.tgPushQueue=q;
         await setDoc(doc(db,'vbe_call_tracker','_settings'),{id:'_settings',tgPushQueue:q},{merge:true});
         closeModal('m-tgsend');
-        toast('⏳ सीधा नहीं गया — bot 2-3 मिनट में अपने-आप भेज देगा');
+        toast('⏳ सीधा नहीं गया — bot थोड़ी देर में अपने-आप भेज देगा');
       }catch(e2){ toast('⚠️ भेज नहीं पाया — net देखें','err'); }
       return;
     }

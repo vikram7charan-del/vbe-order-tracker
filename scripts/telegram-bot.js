@@ -43,12 +43,18 @@ async function main() {
     const fc = await tg.autoPushFocus(col, data, ownerChat); for (const c of fc) await tgApi(tok, c.method, c.body);
   } catch (e) {}
 
+  // 💰 Firestore reads बचाओ (Spark 50K/day limit): scan हर 15 min (था 3 min),
+  // और गहरी रात (11pm–6am IST) बिल्कुल नहीं पढ़ो — तब कोई push होता ही नहीं।
+  const SCAN_MS = Number(process.env.TG_SCAN_MS || 900000); // 15 min
   const t0 = Date.now(); let handled = 0, dirty = false, lastPush = Date.now();
-  console.log('📩 poller — loop', Math.round(LOOP_MS / 1000) + 's');
+  console.log('📩 poller — loop', Math.round(LOOP_MS / 1000) + 's · scan', Math.round(SCAN_MS / 60000) + 'm');
   while (Date.now() - t0 < LOOP_MS) {
-    // हर ~3 min: focus-start confirm + periodic छोटा Review menu (कम-spam design)
-    if (Date.now() - lastPush > 180000) {
+    // periodic scan: focus-confirm + menu + staff digest + hourly focus + queue
+    if (Date.now() - lastPush > SCAN_MS) {
       lastPush = Date.now();
+      const istH = Number(new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Kolkata', hour: 'numeric', hour12: false }).format(new Date()));
+      if (istH < 6 || istH >= 23) { /* गहरी रात — कोई read नहीं (quota बचाओ) */ }
+      else
       try {
         const s = tg.collectAll(await col.get());
         const fc = await tg.autoPushFocus(col, s, ownerChat);
@@ -64,6 +70,11 @@ async function main() {
         // 📬 app के 📤 बटन की queue (net/CORS fail fallback)
         const pq = await tg.autoPushQueued(col, s);
         for (const c of pq) await tgApi(tok, c.method, c.body);
+        // 💰 यही एक read सबकुछ करे: data भी ताज़ा (settings/ownerChat बचाकर) —
+        // ताकि हर write पर अलग से पूरी collection दोबारा न पढ़नी पड़े।
+        s.settings = Object.assign({}, s.settings, { tgChatId: data.settings.tgChatId });
+        data = s; dirty = false;
+        if (data.settings.tgChatId) ownerChat = String(data.settings.tgChatId);
       } catch (e) {}
     }
     let j;
@@ -77,7 +88,9 @@ async function main() {
     if (!ups.length) continue;
     offset = ups[ups.length - 1].update_id + 1;
     await col.doc('_settings').set({ tgOffset: offset }, { merge: true });
-    if (dirty) { snap = await col.get(); const s2 = tg.collectAll(snap); s2.settings = data.settings; data = s2; dirty = false; }
+    // 💰 dirty पर पूरी collection दोबारा नहीं पढ़ते (quota) — callbacks खुद targeted
+    // read करते हैं; owner-query वाला data अगले 15-min scan पर ताज़ा हो जाता है।
+    dirty = false;
     for (const u of ups) {
       try {
         const r = await tg.handleUpdate(col, data, u, ownerChat);

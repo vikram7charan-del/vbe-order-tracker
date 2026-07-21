@@ -43,6 +43,32 @@ html{height:100%;overflow-x:clip;overscroll-behavior-x:none}
 .sp-tools::-webkit-scrollbar{display:none}
 .sp-tools .tb{flex:0 0 auto;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;font-size:13px;border:1px dashed rgba(100,116,139,.4);border-radius:9px;cursor:pointer;touch-action:manipulation;transition:transform .12s}
 .sp-tools .tb:active{transform:scale(var(--press-scale))}
+/* 📤 delegated task = pink theme (हर view में same — Global Rule 3) */
+.tk-delegated{border-left-color:var(--delegated-color)!important;box-shadow:0 0 13px rgba(236,72,153,.35),0 7px 18px rgba(0,0,0,.4)!important}
+/* 🔐 PIN keypad modal */
+.pin-box{max-width:290px!important;text-align:center}
+.pin-dots{display:flex;gap:12px;justify-content:center;margin:14px 0}
+.pin-dots i{width:14px;height:14px;border-radius:50%;border:2px solid rgba(125,152,214,.5);transition:all .15s}
+.pin-dots i.f{background:var(--focus-color);border-color:var(--focus-color);box-shadow:0 0 8px var(--focus-glow)}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:6px}
+.pin-pad button{height:52px;font-size:20px;font-weight:900;font-family:inherit;color:#e2e8f0;background:linear-gradient(158deg,rgba(23,33,60,.94),rgba(9,14,28,.97));border:1px solid rgba(125,152,214,.25);border-radius:14px;cursor:pointer;touch-action:manipulation;transition:transform .1s}
+.pin-pad button:active{transform:scale(.93);background:rgba(245,158,11,.15)}
+@keyframes pinShake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-9px)}40%,80%{transform:translateX(9px)}}
+.pin-shake{animation:pinShake .4s}
+/* 📤 delegation दो-message popup के बटन */
+.dg-btn{display:block;width:100%;margin-top:9px;padding:13px;border:none;border-radius:14px;font-family:inherit;font-size:13.5px;font-weight:900;color:#fff;cursor:pointer;touch-action:manipulation;transition:transform .15s,opacity .2s}
+.dg-btn:active{transform:scale(var(--press-scale))}
+.dg-btn.pink{background:linear-gradient(120deg,#831843,#ec4899);box-shadow:0 6px 16px -6px rgba(236,72,153,.55)}
+.dg-btn.green{background:linear-gradient(120deg,#14532d,#22c55e);box-shadow:0 6px 16px -6px rgba(34,197,94,.5)}
+.dg-btn.sent{background:rgba(4,40,20,.92);border:1.5px solid rgba(34,197,94,.6);color:#4ade80;box-shadow:none}
+/* 🎠 focus-bar marquee — items ज़्यादा हों तो अपने-आप बहें (transform, 60fps) */
+@keyframes fcScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.fc-track{display:flex;gap:6px;width:max-content;will-change:transform}
+.fc-track.run{animation:fcScroll var(--fcDur,30s) linear infinite}
+.fc-track.hold{animation-play-state:paused}
+/* ⭐ frequent-assignee row glow (काम से Contact जोड़ो) */
+.lk-star{background:linear-gradient(90deg,rgba(245,158,11,.10),transparent);border-left:3px solid var(--focus-color)}
+.lk-sec{font-size:9px;font-weight:900;color:#64748b;text-transform:uppercase;letter-spacing:.6px;padding:7px 4px 3px;border-bottom:1px dashed rgba(64,88,140,.3)}
 /* 🏷️ popup के task-filter chips */
 .sp-fchips{display:flex;gap:5px;overflow-x:auto;white-space:nowrap;margin:0 0 8px;padding-bottom:2px;scrollbar-width:none}
 .sp-fchips::-webkit-scrollbar{display:none}
@@ -909,11 +935,10 @@ body.th-geo{--acc:#a5b4fc;--acc2:#6366f1}
   border-bottom:1px solid rgba(139,92,246,.3);scrollbar-width:none}
 #focus-bar.on,#focus-bar-d.on,#focus-bar-k.on{display:flex}
 #focus-bar-d{border-bottom-color:rgba(34,211,238,.35)}
-#focus-bar-k{border-bottom-color:rgba(34,197,94,.35);padding:2px 11px}
-#focus-bar-k .fc-item{padding:3px 7px 3px 3px;border-radius:11px;max-width:185px;background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.55);box-shadow:0 5px 12px -7px rgba(34,197,94,.4)}
-#focus-bar-k .fc-ring{width:26px;height:26px}
-#focus-bar-k .fc-ring::before{inset:2.5px;background:rgba(4,16,9,.88)}
-#focus-bar-k .fc-ring .tm{font-size:6.5px;color:#bbf7d0}
+/* कैलाश strip अब बाक़ी दोनों जैसी ही बड़ी/साफ़ — सिर्फ़ हरा रंग अलग */
+#focus-bar-k{border-bottom-color:rgba(34,197,94,.35)}
+#focus-bar-k .fc-item{background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.55);box-shadow:0 5px 12px -7px rgba(34,197,94,.4)}
+#focus-bar-k .fc-ring .tm{color:#bbf7d0}
 #focus-bar-k .fc-task{font-size:8px;max-width:110px;-webkit-line-clamp:1}
 #focus-bar-k .fc-owner{color:#4ade80}
 .fc-owner{flex-shrink:0;writing-mode:vertical-rl;text-orientation:mixed;font-size:8.5px;font-weight:900;letter-spacing:.5px;color:#a78bfa;display:flex;align-items:center}
@@ -1255,6 +1280,29 @@ body.hdr-folded .hdr-row2{display:none}
 <!-- 🔗 जुड़े contact पर tap → छोटा menu (Call/WA/देखो/हटाओ) -->
 <div class="qdial-bg" id="lca-bg" style="z-index:292" onclick="closeLcAct()"></div>
 <div class="qdial-popup" id="lca-pop" style="z-index:293;width:84vw;max-width:310px;padding:15px 14px"></div>
+
+<!-- 🔐 PIN keypad — complete/delete सुरक्षा (हर जगह यही gate) -->
+<div class="modal-bg" id="m-pin" style="z-index:299">
+  <div class="modal-box pin-box" id="pin-card">
+    <div style="font-size:15px;font-weight:900;color:#e2e8f0" id="pin-title">🔐 PIN डालें</div>
+    <div class="pin-dots" id="pin-dots"><i></i><i></i><i></i><i></i></div>
+    <div class="pin-pad">
+      <button onclick="pinKey(1)">1</button><button onclick="pinKey(2)">2</button><button onclick="pinKey(3)">3</button>
+      <button onclick="pinKey(4)">4</button><button onclick="pinKey(5)">5</button><button onclick="pinKey(6)">6</button>
+      <button onclick="pinKey(7)">7</button><button onclick="pinKey(8)">8</button><button onclick="pinKey(9)">9</button>
+      <button onclick="pinCancel()" style="font-size:14px;color:#fca5a5">✕</button><button onclick="pinKey(0)">0</button><button onclick="pinBack()" style="font-size:16px">⌫</button>
+    </div>
+    <div id="pin-alt" style="margin-top:10px"></div>
+  </div>
+</div>
+
+<!-- 📤 ज़िम्मेदारी सौंपो — दो-message popup (staff + party) -->
+<div class="modal-bg" id="m-dg" style="z-index:293">
+  <div class="modal-box" id="dg-card" style="max-width:340px">
+    <div class="modal-title"><span id="dg-title">📤 ज़िम्मेदारी सौंपें</span><span class="modal-x" onclick="dgClose()">✕</span></div>
+    <div id="dg-body"></div>
+  </div>
+</div>
 
 <!-- 🔗 WhatsApp भेजो — पहले देखो/सुधारो -->
 <div class="modal-bg" id="m-lcwa" style="z-index:294" onclick="if(event.target===this)closeModal('m-lcwa')">
@@ -2299,21 +2347,12 @@ function delegateMsg(delegateName, task, srcC, tags){
   if(srcC&&srcC.name) m+='👤 *सम्बंधित व्यक्ति:* '+srcC.name+'\n';
   if(srcC&&(srcC.phone||srcC.waPhone)) m+='📱 *Number:* '+(srcC.phone||srcC.waPhone)+'\n';
   if(tags) m+='🏷️ *Tag:* '+tags+'\n';
-  m+='━━━━━━━━━━━\nकृपया update देकर अवगत कराएँ। — Vikram Singh, VBE';
+  m+='━━━━━━━━━━━\nकृपया update देकर अवगत कराएँ। — विक्रम चारण, VBE, बाड़मेर';
   return m;
 }
 window.delegateSend=function(cid,i,lcId){
-  const c=contacts.find(x=>x.id===cid); if(!c) return;
-  const tps=normTopics(c); const x=tps[i]; if(!x) return;
-  const lc=lcOf(x).find(l=>l.id===lcId); if(!lc){ toast('⚠️ जुड़ा contact नहीं मिला','err'); return; }
-  const r=lcContactRes(lc); const dig=_tgPhDig(r.phone);
-  if(!dig){ toast('⚠️ '+(r.name||'')+' का नंबर नहीं','err'); return; }
-  const ci=catInfo(x.cat);
-  const msg=delegateMsg(r.name, x.t||'', c, ci?ci.label:'');
-  patchTopic(cid,i,{dg:{to:r.name,id:lcId,at:new Date().toISOString()}});
   try{ if(typeof closeLcAct==='function') closeLcAct(); }catch(e){}
-  toast('✅ '+r.name+' को भेज दिया — 📤 badge लग गया');
-  location.href='whatsapp://send?phone='+dig+'&text='+encodeURIComponent(msg);
+  openDelegate(cid,i,lcId); // दो-message popup (staff + party)
 };
 /* 🔍 REVIEW PENDING — बिना PIN focus-काम पूरा करने की कोशिश → यहाँ आए */
 function reviewPending(){
@@ -2337,6 +2376,140 @@ window.rvApprove=function(cid,i){
 window.rvReject=function(cid,i){
   patchTopic(cid,i,{rvw:null});
   toast('↩️ वापस list में भेजा');
+};
+/* ══ 🔐 requirePin — हर complete/delete इसी एक gate से (Global Rule); 5 min याद ══ */
+let _pinCb=null,_pinBuf='';
+function pinUnlocked(){ return Date.now()-Number(sessionStorage.getItem('vbe_pin_at')||0) < 5*60000; }
+window.requirePin=function(cb,opts){
+  opts=opts||{};
+  if(pinUnlocked()){ cb(); return; }
+  _pinCb=cb; _pinBuf='';
+  document.getElementById('pin-title').textContent=opts.title||'🔐 PIN डालें';
+  document.getElementById('pin-alt').innerHTML=opts.altHtml||'';
+  pinDraw();
+  document.getElementById('m-pin').classList.add('open');
+};
+function pinDraw(){ const d=document.getElementById('pin-dots').children; for(let i=0;i<4;i++) d[i].className=i<_pinBuf.length?'f':''; }
+window.pinKey=function(n){
+  if(_pinBuf.length>=4) return;
+  _pinBuf+=String(n); pinDraw();
+  if(_pinBuf.length===4){
+    if(_pinBuf===appPin()){
+      sessionStorage.setItem('vbe_pin_at',String(Date.now()));
+      document.getElementById('m-pin').classList.remove('open');
+      const cb=_pinCb; _pinCb=null; _pinBuf='';
+      if(cb) setTimeout(cb,50);
+    } else {
+      const card=document.getElementById('pin-card');
+      card.classList.add('pin-shake'); toast('⛔ गलत PIN','err');
+      try{ navigator.vibrate&&navigator.vibrate([40,30,40]); }catch(e){}
+      setTimeout(()=>{ card.classList.remove('pin-shake'); _pinBuf=''; pinDraw(); },430);
+    }
+  }
+};
+window.pinBack=function(){ _pinBuf=_pinBuf.slice(0,-1); pinDraw(); };
+window.pinCancel=function(){ _pinBuf=''; _pinCb=null; document.getElementById('m-pin').classList.remove('open'); };
+/* staff के पास PIN नहीं → focus-काम Review में भेजने का रास्ता */
+window.pinReview=function(cid,i){
+  pinCancel();
+  patchTopic(cid,i,{rvw:{by:'staff',at:new Date().toISOString()}});
+  toast('🔍 Review में गया — विक्रम जी PIN से approve करेंगे','warn');
+};
+/* ══ 📤 DELEGATION — दो-message popup (staff + party), universal ══ */
+let _dgCtx=null; // {cid,i,tid, staffSent, partySent}
+window.openDelegate=function(cid,i,tid){
+  const c=contacts.find(x=>x.id===cid); if(!c) return;
+  const tps=normTopics(c); const x=tps[i]; if(!x) return;
+  if(!tid){
+    const lcs=lcOf(x);
+    if(lcs.length===1) tid=lcs[0].id;
+    else return dgPickStaff(cid,i);
+  }
+  _dgCtx={cid,i,tid,staffSent:!!(x.dg&&x.dg.staffMsgSent&&x.dg.id===tid),partySent:!!(x.dg&&x.dg.partyMsgSent&&x.dg.id===tid)};
+  dgRender();
+  document.getElementById('m-dg').classList.add('open');
+};
+/* staff/जुड़े-contact चुनो — 🔗 linked पहले, फिर 👥 टीम */
+function dgPickStaff(cid,i){
+  const c=contacts.find(x=>x.id===cid); if(!c) return;
+  const tps=normTopics(c); const x=tps[i]; if(!x) return;
+  _dgCtx={cid,i,tid:null,staffSent:false,partySent:false};
+  document.getElementById('dg-title').textContent='📤 किसे ज़िम्मेदारी सौंपें?';
+  const lcs=lcOf(x).map(l=>lcContactRes(l));
+  const team=contacts.filter(z=>z.active!==false&&z.tag===teamKey()&&z.id!==cid&&!lcs.some(l=>l.id===z.id));
+  const row=(id,nm,ph,ic)=>`<div class="press" onclick="openDelegate('${cid}',${i},'${id}')" style="cursor:pointer;display:flex;align-items:center;gap:9px;min-height:46px;padding:8px;border-bottom:1px solid rgba(30,58,95,.4)">
+    <span style="font-size:15px">${ic}</span><span style="flex:1;min-width:0"><b style="font-size:13px;color:#e2e8f0">${escH(nm)}</b>${ph?`<span style="display:block;font-size:10px;color:#60a5fa">📱 ${escH(ph)}</span>`:''}</span><span style="color:#f9a8d4;font-size:17px">›</span></div>`;
+  document.getElementById('dg-body').innerHTML=
+    `<div style="font-size:11.5px;color:#fcd34d;font-weight:800;margin-bottom:8px;word-break:break-word">📌 ${escH(x.t)}</div>`+
+    (lcs.length?`<div class="lk-sec">🔗 इस काम से जुड़े</div>`+lcs.map(l=>row(l.id,l.name,l.phone,'🔗')).join(''):'')+
+    (team.length?`<div class="lk-sec">👥 मेरी टीम</div>`+team.map(z=>row(z.id,z.name,z.phone||z.waPhone,'👥')).join(''):'')+
+    (!lcs.length&&!team.length?'<div style="text-align:center;color:#64748b;padding:18px;font-size:12px">पहले 🔗 से contact जोड़ें या टीम tag लगाएँ</div>':'');
+  document.getElementById('m-dg').classList.add('open');
+}
+function dgRender(){
+  const d=_dgCtx; if(!d||!d.tid) return;
+  const c=contacts.find(x=>x.id===d.cid); const x=normTopics(c)[d.i];
+  const st=contacts.find(z=>z.id===d.tid) || lcOf(x).map(l=>lcContactRes(l)).find(l=>l.id===d.tid);
+  const sName=(st&&st.name)||'', sPh=(st&&(st.phone||st.waPhone))||'';
+  document.getElementById('dg-title').textContent='📤 '+sName+' को ज़िम्मेदारी सौंपें';
+  const sDig=_tgPhDig(sPh), pDig=_tgPhDig(c.phone||c.waPhone);
+  document.getElementById('dg-body').innerHTML=`
+    ${sPh?`<div style="font-size:12px;color:#60a5fa;font-weight:700;margin-bottom:6px">📱 ${escH(sPh)}</div>`:''}
+    <div style="display:flex;gap:6px;margin-bottom:9px">
+      ${sDig?`<a class="press" href="tel:+${sDig}" style="flex:1;text-align:center;text-decoration:none;font-size:11px;font-weight:900;color:#93c5fd;border:1px solid rgba(59,130,246,.5);border-radius:10px;padding:8px">📞 Call</a>`:''}
+      ${sDig?`<span class="press" onclick="location.href='whatsapp://send?phone=${sDig}'" style="flex:1;text-align:center;cursor:pointer;font-size:11px;font-weight:900;color:#4ade80;border:1px solid rgba(37,211,102,.5);border-radius:10px;padding:8px">💬 WhatsApp</span>`:''}
+      <span class="press" onclick="dgClose();openSmartPop('${d.tid}')" style="flex:1;text-align:center;cursor:pointer;font-size:11px;font-weight:900;color:#c4b5fd;border:1px solid rgba(168,85,247,.5);border-radius:10px;padding:8px">👁 देखो</span>
+    </div>
+    <div style="font-size:11.5px;color:#fcd34d;font-weight:800;margin-bottom:4px;word-break:break-word">📌 ${escH(x.t)}</div>
+    <button class="dg-btn ${d.staffSent?'sent':'pink'}" onclick="dgSendStaff()">${d.staffSent?'✓ भेजा गया — staff को':'📤 '+escH(sName)+' को ज़िम्मेदारी सौंपें (WhatsApp)'}</button>
+    <button class="dg-btn ${d.partySent?'sent':'green'}" ${pDig?'':'style="opacity:.4;pointer-events:none"'} onclick="dgSendParty()">${d.partySent?'✓ भेजा गया — party को':'✅ '+escH(c.name||'party')+' को जानकारी दें'}</button>
+    <div style="font-size:9.5px;color:#7d8db0;margin-top:8px;text-align:center">${d.staffSent&&d.partySent?'🎉 दोनों message गए — काम गुलाबी हो गया':'दोनों बटन दबाने पर काम 📤 delegated (गुलाबी) हो जाएगा'}</div>`;
+}
+function _dgSave(){
+  const d=_dgCtx; const c=contacts.find(x=>x.id===d.cid); const x=normTopics(c)[d.i];
+  const st=contacts.find(z=>z.id===d.tid) || lcOf(x).map(l=>lcContactRes(l)).find(l=>l.id===d.tid);
+  patchTopic(d.cid,d.i,{dg:{to:(st&&st.name)||'',id:d.tid,phone:(st&&(st.phone||st.waPhone))||'',at:(x.dg&&x.dg.at)||new Date().toISOString(),staffMsgSent:d.staffSent,partyMsgSent:d.partySent}});
+  if(d.staffSent&&d.partySent){
+    const sc=contacts.find(z=>z.id===d.tid);
+    if(sc&&!d._counted){ d._counted=true; sc.dgCount=(Number(sc.dgCount)||0)+1; fbSave(sc); } // ⭐ frequent-assignee गिनती
+    setTimeout(()=>{ if(_dgCtx===d) dgClose(); },2500);
+  }
+}
+window.dgSendStaff=function(){
+  const d=_dgCtx; if(!d) return;
+  const c=contacts.find(x=>x.id===d.cid); const x=normTopics(c)[d.i];
+  const st=contacts.find(z=>z.id===d.tid) || lcOf(x).map(l=>lcContactRes(l)).find(l=>l.id===d.tid);
+  const dig=_tgPhDig((st&&(st.phone||st.waPhone))||''); if(!dig){ toast('⚠️ staff का नंबर नहीं','err'); return; }
+  const ci=catInfo(x.cat);
+  const msg=delegateMsg((st&&st.name)||'', x.t||'', c, ci?ci.label:'');
+  d.staffSent=true; _dgSave(); dgRender();
+  toast('📤 '+((st&&st.name)||'')+' को भेजा');
+  location.href='whatsapp://send?phone='+dig+'&text='+encodeURIComponent(msg);
+};
+window.dgSendParty=function(){
+  const d=_dgCtx; if(!d) return;
+  const c=contacts.find(x=>x.id===d.cid); const x=normTopics(c)[d.i];
+  const st=contacts.find(z=>z.id===d.tid) || lcOf(x).map(l=>lcContactRes(l)).find(l=>l.id===d.tid);
+  const dig=_tgPhDig(c.phone||c.waPhone); if(!dig){ toast('⚠️ party का नंबर नहीं','err'); return; }
+  const msg='🙏 '+(c.name||'')+' जी, आपके कार्य \''+(x.t||'')+'\' की ज़िम्मेदारी हमारे staff '+((st&&st.name)||'')+' ('+((st&&(st.phone||st.waPhone))||'')+') को सौंपी गई है। आगे की जानकारी व प्रगति के लिए इनसे संपर्क करें। — विक्रम चारण, VBE, बाड़मेर';
+  d.partySent=true; _dgSave(); dgRender();
+  toast('✅ '+(c.name||'')+' को जानकारी भेजी');
+  location.href='whatsapp://send?phone='+dig+'&text='+encodeURIComponent(msg);
+};
+window.dgClose=function(){ _dgCtx=null; document.getElementById('m-dg').classList.remove('open'); };
+/* 💬 party से status पूछो — साझा template (हर contact-row/task पर यही) */
+function statusMsg(name,task){ return '🙏 '+(name||'')+' जी, \''+(task||'')+'\' — इस काम की क्या स्थिति है? कृपया update दें। — विक्रम चारण, VBE'; }
+window.spTaskWA=function(cid,i){
+  const c=contacts.find(x=>x.id===cid); if(!c) return;
+  const x=normTopics(c)[i]; if(!x) return;
+  const dig=_tgPhDig(c.waPhone||c.phone); if(!dig){ toast('⚠️ नंबर नहीं','err'); return; }
+  location.href='whatsapp://send?phone='+dig+'&text='+encodeURIComponent(statusMsg(c.name,x.t));
+};
+window.lkWA=function(cid){
+  const c=contacts.find(x=>x.id===cid); if(!c) return;
+  const x=_lkTopic&&_lkTopic();
+  const dig=_tgPhDig(c.waPhone||c.phone); if(!dig){ toast('⚠️ नंबर नहीं','err'); return; }
+  location.href='whatsapp://send?phone='+dig+'&text='+encodeURIComponent(statusMsg(c.name,(x&&x.t)||''));
 };
 /* ── Staff assignment — जो filter "टीम" है उसके लोग ── */
 function teamKey(){
@@ -2547,20 +2720,14 @@ window.doneTopic=function(id,idx){
   if(!c) return;
   const tps=normTopics(c);
   if(!tps[idx]||tps[idx].done) return;
-  // 🎯 focus-mode काम = owner-protected: सही PIN → पूरा; वरना 🔍 Review Pending में
-  if(taskInFocus(id,idx)){
-    if(sessionStorage.getItem('vbe_owner_ok')!=='1'){
-      const v=prompt('🎯 Focus काम पूरा करने के लिए मालिक PIN:\n(नहीं पता तो खाली OK दबाएँ — काम Review में जाएगा, विक्रम जी approve करेंगे)');
-      if(v===null) return; // cancel = कुछ नहीं
-      if(v.trim()!==appPin()){
-        patchTopic(id,idx,{rvw:{by:'staff',at:new Date().toISOString()}});
-        toast('🔍 Review में गया — विक्रम जी PIN से approve करेंगे','warn');
-        return;
-      }
-      sessionStorage.setItem('vbe_owner_ok','1');
-    }
-    _focus=_focus.filter(f=>!(f.id===id&&Number(f.i)===Number(idx))); saveFocus(); renderFocusBar();
+  // 🔐 हर complete PIN-gate से (5 min याद) — staff बिना PIN clear नहीं कर सकता।
+  // focus-काम पर "PIN नहीं?" → Review Pending का रास्ता (मालिक approve करेगा)।
+  if(!pinUnlocked()){
+    const alt=taskInFocus(id,idx)?`<span class="press" onclick="pinReview('${id}',${idx})" style="cursor:pointer;font-size:11px;font-weight:800;color:#fcd34d;border:1px dashed rgba(245,158,11,.55);border-radius:9px;padding:6px 12px;display:inline-block">🔍 PIN नहीं? Review में भेजो</span>`:'';
+    requirePin(()=>window.doneTopic(id,idx),{title:'🔐 काम पूरा करने का PIN',altHtml:alt});
+    return;
   }
+  if(taskInFocus(id,idx)){ _focus=_focus.filter(f=>!(f.id===id&&Number(f.i)===Number(idx))); saveFocus(); renderFocusBar(); }
   tps[idx].done=true; tps[idx].doneAt=new Date().toISOString(); if(tps[idx].rvw) tps[idx].rvw=null;
   c.topics=tps; _logHist(c,'done',tps[idx].t);
   c.note=tps.filter(x=>!x.done).map(x=>x.t).join(' · ');
@@ -2629,19 +2796,32 @@ function renderLinkResults(q){
   const linked=new Set((x?lcOf(x):[]).map(l=>l.id));
   const qt=(q||'').trim();
   let list=contacts.filter(c=>c.id!==_lkId && c.active!==false && !linked.has(c.id) && linkMatch(c,qt));
-  list.sort((a,b)=>new Date(b.lastCallAt||0).getTime()-new Date(a.lastCallAt||0).getTime()); // हाल के contacts ऊपर
+  // 🥇 3-tier priority: ⭐ जिनको सबसे ज़्यादा सौंपा (dgCount) → 👥 मेरी टीम → बाक़ी (हाल के पहले)
+  const tk=teamKey();
+  const tierOf=c=>(Number(c.dgCount)||0)>0?0:(c.tag===tk?1:2);
+  list.sort((a,b)=>{
+    const ta=tierOf(a),tb=tierOf(b); if(ta!==tb) return ta-tb;
+    if(ta===0) return (Number(b.dgCount)||0)-(Number(a.dgCount)||0);
+    return new Date(b.lastCallAt||0).getTime()-new Date(a.lastCallAt||0).getTime();
+  });
   list=list.slice(0,40);
   let h='';
   if(qt) h+=`<div onclick="linkNewContact()" style="cursor:pointer;display:flex;align-items:center;gap:9px;min-height:44px;padding:11px 10px;margin-bottom:6px;border:1px dashed rgba(34,197,94,.55);border-radius:11px;background:rgba(4,25,15,.5);color:#4ade80;font-weight:800;font-size:12.5px">➕ "${escH(qt)}" — नया contact बनाओ</div>`;
   if(!list.length&&!qt){ el.innerHTML='<div style="text-align:center;padding:26px;color:#475569;font-size:12px">🔍 नाम/नंबर/firm लिखकर contact खोजो</div>'; return; }
+  const secName=['⭐ जिन्हें अक्सर सौंपते हैं','👥 मेरी टीम','📇 बाक़ी सब'];
+  let lastTier=-1;
   h+=list.map(c=>{
     const ph=c.phone||c.waPhone||'';
-    return `<div onclick="linkAdd('${c.id}')" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:9px 8px;border-bottom:1px solid rgba(30,58,95,.4);min-height:44px">
+    const tr=tierOf(c);
+    const sec=(tr!==lastTier&&list.some(z=>tierOf(z)!==tr))?`<div class="lk-sec">${secName[tr]}</div>`:'';
+    lastTier=tr;
+    return sec+`<div onclick="linkAdd('${c.id}')" class="${tr===0?'lk-star':''}" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:9px 8px;border-bottom:1px solid rgba(30,58,95,.4);min-height:44px">
       <div class="qd-av" style="width:34px;height:34px;flex-shrink:0;background:${avBg(c)};font-size:${c.emoji?'16px':'10px'}">${escH(avatarContent(c))}</div>
       <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:800;color:#e2e8f0;word-break:break-word">${escH(c.name)}${c.tag&&TAGS[c.tag]?` <span style="font-size:9px;font-weight:800;color:${TAGS[c.tag].color}">· ${escH(TAGS[c.tag].label)}</span>`:''}</div>
+        <div style="font-size:13px;font-weight:800;color:#e2e8f0;word-break:break-word">${tr===0?'⭐ ':''}${tr===1?'👥 ':''}${escH(c.name)}${tr===0?` <span style="font-size:9px;color:#fcd34d">×${Number(c.dgCount)||0}</span>`:''}${c.tag&&TAGS[c.tag]?` <span style="font-size:9px;font-weight:800;color:${TAGS[c.tag].color}">· ${escH(TAGS[c.tag].label)}</span>`:''}</div>
         ${ph?`<div style="font-size:10.5px;color:#60a5fa;font-weight:700">📱 ${escH(ph)}</div>`:''}
       </div>
+      <span class="press" onclick="event.stopPropagation();lkWA('${c.id}')" style="cursor:pointer;font-size:15px;flex-shrink:0;width:34px;height:34px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(37,211,102,.45);border-radius:10px;color:var(--whatsapp-green)" title="status पूछो (WhatsApp)">💬</span>
       <span style="font-size:20px;color:#FF6FA5;flex-shrink:0;width:30px;text-align:center">＋</span>
     </div>`;
   }).join('');
@@ -2758,6 +2938,7 @@ function doneListHTML(c){
 }
 /* परमानेंट डिलीट — सिर्फ़ पूरे हुए काम, confirm के साथ */
 window.delTopicPermanent=function(id,idx){
+  if(!pinUnlocked()){ requirePin(()=>window.delTopicPermanent(id,idx),{title:'🗑 मिटाने का PIN'}); return; }
   const c=contacts.find(x=>x.id===id);
   if(!c) return;
   const tps=normTopics(c);
@@ -2936,9 +3117,37 @@ function renderFocusBar(){
   bv.classList.toggle('on',!!vs.length);
   bd.classList.toggle('on',!!ds.length);
   if(bk) bk.classList.toggle('on',!!ks.length);
-  bv.innerHTML=vs.length?`<span class="fc-owner">विक्रम भाई · ${vs.length}</span>`+vs.map(fcItemHTML).join(''):'';
-  bd.innerHTML=ds.length?`<span class="fc-owner">दिनेश जी · ${ds.length}</span>`+ds.map(fcItemHTML).join(''):'';
-  if(bk) bk.innerHTML=ks.length?`<span class="fc-owner">कैलाश · ${ks.length}</span>`+ks.map(fcItemHTML).join(''):'';
+  _fcBar(bv,'विक्रम भाई · '+vs.length,vs);
+  _fcBar(bd,'दिनेश जी · '+ds.length,ds);
+  if(bk) _fcBar(bk,'कैलाश · '+ks.length,ks);
+}
+/* 🎠 strip renderer — items ≥3 तो seamless marquee (track दो बार = बिना jump loop);
+   हर second पूरा rebuild नहीं — सिर्फ़ timer/ring update, वरना animation टूटती। */
+function _fcBar(el,label,items){
+  if(!el) return;
+  if(!items.length){ el.innerHTML=''; el._fcSig=''; return; }
+  const sig=items.map(f=>f.key).join('|');
+  const marq=items.length>=3;
+  if(el._fcSig!==sig||el._fcMarq!==marq){
+    el._fcSig=sig; el._fcMarq=marq;
+    const inner=items.map(fcItemHTML).join('');
+    el.innerHTML=`<span class="fc-owner">${label}</span>`+(marq
+      ?`<div class="fc-track run" style="--fcDur:${Math.max(20,items.length*8)}s" ontouchstart="this.classList.add('hold')" ontouchend="var t=this;setTimeout(function(){t.classList.remove('hold')},3000)" ontouchcancel="var t=this;setTimeout(function(){t.classList.remove('hold')},3000)">${inner}${inner}</div>`
+      :inner);
+  } else {
+    const own=el.querySelector('.fc-owner'); if(own&&own.textContent!==label) own.textContent=label;
+    items.forEach(f=>{
+      const left=f.until-Date.now(), over=left<=0;
+      const mm=Math.floor(Math.abs(left)/60000), ss=Math.floor((Math.abs(left)%60000)/1000);
+      const p=Math.min(100,Math.max(0,((Date.now()-f.start)/(f.until-f.start))*100));
+      el.querySelectorAll('.fc-item[data-key="'+f.key+'"]').forEach(node=>{
+        node.classList.toggle('over',over);
+        const tm=node.querySelector('.tm'); if(tm) tm.textContent=mm+':'+String(ss).padStart(2,'0');
+        const ring=node.querySelector('.fc-ring'); if(ring){ ring.style.setProperty('--p',p.toFixed(1)); if(over) ring.style.setProperty('--fc','#ef4444'); }
+        const st=node.querySelector('.fc-st'); if(st){ st.textContent=over?'LATE':'चालू'; st.className='fc-st '+(over?'late':'run'); }
+      });
+    });
+  }
 }
 setInterval(()=>{
   if(!_focus.length) return;
@@ -3364,7 +3573,7 @@ window.spCopyPart=async function(k){
 /* ══════════ 🤖 AI core — Anthropic key (_settings.aiKey या localStorage vbe_ai_key) ══════════ */
 function aiKey(){ return (window._settings&&window._settings.aiKey)||localStorage.getItem('vbe_ai_key')||''; }
 /* 🔒 एक universal PIN — _settings.appPin (default 2580); Claude Code से बदलते ही हर जगह बदलेगा */
-function appPin(){ return String((window._settings&&window._settings.appPin)||'2580'); }
+function appPin(){ return String((window._settings&&window._settings.appPin)||'3600'); } /* 🔐 central PIN — _settings.appPin से बदल सकते हैं */
 function askPin(msg){
   const v=prompt(msg||'🔒 PIN:');
   if(v===null) return false;
@@ -3726,7 +3935,7 @@ function _dmy(iso,withTime){ if(!iso)return ''; const d=new Date(iso); if(isNaN(
 function _allTasks(){
   const out=[];
   contacts.forEach(c=>{ if(c.active===false) return;
-    normTopics(c).forEach((x,i)=>out.push({cid:c.id,ti:i,name:c.name||'?',phone:c.phone||'',t:x.t,done:!!x.done,doneAt:x.doneAt||null,at:x.at||null,addedAt:x.addedAt||null,cat:x.cat||'',assignTo:x.assignTo||'',pri:x.pri||'',nextCallAt:c.nextCallAt||null}));
+    normTopics(c).forEach((x,i)=>out.push({cid:c.id,ti:i,name:c.name||'?',phone:c.phone||'',t:x.t,done:!!x.done,doneAt:x.doneAt||null,at:x.at||null,addedAt:x.addedAt||null,cat:x.cat||'',assignTo:x.assignTo||'',pri:x.pri||'',nextCallAt:c.nextCallAt||null,dg:x.dg||null,rvw:x.rvw||null}));
   });
   return out;
 }
@@ -4424,6 +4633,7 @@ function bwTasks(){
   else if(_bwF==='today') L=L.filter(t=>!t.done&&t.at&&new Date(t.at).getTime()>=t0&&new Date(t.at).getTime()<t1);
   else if(_bwF==='tom') L=L.filter(t=>!t.done&&t.at&&new Date(t.at).getTime()>=t1&&new Date(t.at).getTime()<t2);
   else if(_bwF==='high') L=L.filter(t=>!t.done&&t.pri==='high');
+  else if(_bwF==='dg') L=L.filter(t=>!t.done&&t.dg&&t.dg.to);
   if(_bwCat!=='*') L=L.filter(t=>(_bwCat==='none'?!t.cat:t.cat===_bwCat));
   if(_bwQ2){
     const q=_bwQ2, dg=q.replace(/[^0-9]/g,''), qk=_phonKey(q);
@@ -4457,7 +4667,7 @@ function renderBulk(keepQ){
     ['golden','pending',catN.golden,'🏆 गोल्डन',BW_CATC.golden],['computer','pending',catN.computer,'💻',BW_CATC.computer],['market','pending',catN.market,'🛒',BW_CATC.market],['jalipa','pending',catN.jalipa,'🏪',BW_CATC.jalipa],['none','pending',catN.none,'⬜',BW_CATC['']]
   ].map(x=>`<div class="bw-sum" onclick="_bwCat='${x[0]}';_bwF='${x[1]}';renderBulk()"><b style="color:${x[4]}">${x[2]}</b><span>${x[3]}</span></div>`).join('');
   // filters
-  const FL=[['pending','⏳ बाकी'],['late','🔴 लेट'],['today','📅 आज'],['tom','🌅 कल'],['high','❗ ज़रूरी'],['done','✅ पूरे'],['all','सब']];
+  const FL=[['pending','⏳ बाकी'],['late','🔴 लेट'],['today','📅 आज'],['tom','🌅 कल'],['high','❗ ज़रूरी'],['dg','📤 सौंपे गए'],['done','✅ पूरे'],['all','सब']];
   const CL=[['*','सब श्रेणी'],['golden','🏆'],['computer','💻'],['market','🛒'],['jalipa','🏪'],['none','⬜ बिना']];
   document.getElementById('bw-chips').innerHTML=
     FL.map(f=>`<div class="bw-chip ${_bwF===f[0]?'on':''}" onclick="bwSetF('${f[0]}')">${f[1]}</div>`).join('')+
@@ -4470,7 +4680,8 @@ function renderBulk(keepQ){
     const ci=catInfo(t.cat), cc=BW_CATC[t.cat||''];
     const late=!t.done&&t.at&&new Date(t.at).getTime()<now;
     const pri=BW_PRI.find(p=>p[0]===(t.pri||''))||BW_PRI[0];
-    return `<div class="bw-row ${sel?'sel':''}" data-bwkey="${key}" style="border-left-color:${cc}">
+    const inF=taskInFocus(t.cid,t.ti);
+    return `<div class="bw-row ${sel?'sel':''} ${t.dg?'tk-delegated':inF?'tk-focus':''}" data-bwkey="${key}" style="border-left-color:${t.dg?'var(--delegated-color)':cc}">
       <input type="checkbox" class="bw-ck" ${sel?'checked':''} onchange="bwTgl('${key}')">
       <div style="flex:1;min-width:0">
         <div style="font-size:13.5px;font-weight:800;color:${t.done?'#64748b':'#fcd34d'};line-height:1.4;word-break:break-word;${t.done?'text-decoration:line-through':''}">${escH(t.t)}</div>
@@ -4480,6 +4691,7 @@ function renderBulk(keepQ){
         <div style="margin-top:4px">
           <span class="bw-badge" style="background:${cc}" onclick="bwCycleCat('${key}')" title="श्रेणी बदलो — tap">${ci?ci.logo+' '+ci.label:'⬜ बिना श्रेणी'}</span>
           <span class="bw-badge" style="background:#1e293b;border:1px solid rgba(125,152,214,.3)" onclick="bwCyclePri('${key}')" title="Priority — tap">${pri[1]}</span>
+          ${taskBadges(t)}
         </div>
       </div>
       <div style="display:grid;grid-template-columns:30px 30px;gap:4px;flex-shrink:0">
@@ -4487,6 +4699,8 @@ function renderBulk(keepQ){
         <span class="bw-act" onclick="bwEditTxt('${key}')" title="काम का text सुधारो">✏️</span>
         <span class="bw-act" onclick="closeBulk();openSchedPick('t','${t.cid}',${t.ti})" title="समय/अलार्म">⏰</span>
         <span class="bw-act" onclick="closeBulk();openSmartPop('${t.cid}')" title="पूरा खोलो">👁️</span>
+        ${t.done?'':`<span class="bw-act" style="color:#f9a8d4" onclick="closeBulk();openDelegate('${t.cid}',${t.ti})" title="📤 ज़िम्मेदारी सौंपो">📤</span>`}
+        ${t.done?'':`<span class="bw-act" style="color:#4ade80" onclick="spTaskWA('${t.cid}',${t.ti})" title="💬 status पूछो">💬</span>`}
       </div>
     </div>`;
   }).join('');
@@ -4528,7 +4742,9 @@ function _bwApplyKeys(keys,mut){
 function bwPatch(mut){ _bwApplyKeys([..._bwSel],mut); }
 window.bwBulkCat=function(k){ bwPatch(t=>{t.cat=k;}); toast('श्रेणी बदली — '+_bwSel.size+' काम'); };
 window.bwBulkPri=function(k){ bwPatch(t=>{t.pri=k;}); toast('Priority बदली'); };
-window.bwBulkDone=function(){ if(!confirm(_bwSel.size+' काम पूरे करें?'))return; bwPatch((t,c)=>{ if(!t.done){t.done=true;t.doneAt=new Date().toISOString(); _logHist(c,'done',t.t);} }); _bwSel.clear(); renderBulk(true); toast('✅ पूरे हुए'); };
+window.bwBulkDone=function(){
+  if(!pinUnlocked()){ requirePin(()=>window.bwBulkDone(),{title:'🔐 '+_bwSel.size+' काम पूरे — PIN'}); return; }
+  if(!confirm(_bwSel.size+' काम पूरे करें?'))return; bwPatch((t,c)=>{ if(!t.done){t.done=true;t.doneAt=new Date().toISOString(); _logHist(c,'done',t.t);} }); _bwSel.clear(); renderBulk(true); toast('✅ पूरे हुए'); };
 /* 👥 Multi-Staff assign — checkbox की तरह कई staff चुनो, फिर बदलो या पुराने के साथ जोड़ो */
 window.bwAssignUI=function(){
   const names=new Set(['vikram','dinesh','kailash','manoj','koda','swaroop']);
@@ -5335,7 +5551,7 @@ function renderSmartPop(){
         const ci=catInfo(x.cat);
         const inF=taskInFocus(c.id,x.i);
         const tc=BW_CATC[x.cat||'']||(x.pri==='high'?'#ef4444':'#f59e0b');
-        return `<div class="sp-task ${inF?'tk-focus':''}" style="--tc:${tc};padding:9px 11px 9px">
+        return `<div class="sp-task ${x.dg?'tk-delegated':inF?'tk-focus':''}" style="--tc:${tc};padding:9px 11px 9px">
         <div style="display:flex;align-items:flex-start;gap:8px">
           <span class="sp-chk" style="margin-top:1px" onclick="event.stopPropagation();doneTopic('${c.id}',${x.i})"></span>
           <span style="flex:1;min-width:0">
@@ -5354,6 +5570,8 @@ function renderSmartPop(){
           <span class="tb" onclick="spSchedTask('${c.id}',${x.i})" style="border-color:${x.at?'rgba(59,130,246,.65)':'rgba(100,116,139,.4)'}" title="Calendar/अलार्म">${x.at?'📅':'⏰'}</span>
           <span class="tb" onclick="spPickAssign('${c.id}',${x.i})" style="border-color:${x.assignTo?'rgba(34,197,94,.65)':'rgba(100,116,139,.4)'}" title="Staff को सौंपें">👤</span>
           <span class="tb" onclick="spPickCat('${c.id}',${x.i})" title="श्रेणी चुनें">${ci?ci.logo:'⬜'}</span>
+          <span class="tb" onclick="openDelegate('${c.id}',${x.i})" style="border-color:rgba(236,72,153,.6);color:#f9a8d4" title="📤 ज़िम्मेदारी सौंपो (staff+party message)">📤</span>
+          <span class="tb" onclick="spTaskWA('${c.id}',${x.i})" style="border-color:rgba(37,211,102,.55);color:#4ade80" title="💬 party से status पूछो">💬</span>
         </div>
       </div>`;
       }).join('')}
@@ -6498,6 +6716,7 @@ window.editContact=function(id){
 };
 
 window.delContact=function(id){
+  if(!pinUnlocked()){ requirePin(()=>window.delContact(id),{title:'🗑 Contact मिटाने का PIN'}); return; }
   const c=contacts.find(x=>x.id===id);
   if(!c) return;
   if(!confirm(`"${c.name}" को हटाएं?`)) return;

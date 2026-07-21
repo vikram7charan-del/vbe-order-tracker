@@ -56,7 +56,7 @@ function focusItemsOf(data, own){
   const byId={}; activeC(data.contacts).forEach(c=>{ byId[c.id]=c; });
   return items.map(f=>{
     const c=byId[f.id]; let done=false, cat='', pri='';
-    if(c){ const tp=topics(c); const tt=tp[f.i]; if(tt){ if(tt.done) done=true; cat=tt.cat||''; pri=tt.pri||''; } }
+    if(c){ const tp=topics(c); const tt=tp[f.i]; if(tt){ if(tt.done||tt.rvw) done=true; cat=tt.cat||''; pri=tt.pri||''; } }
     return {...f, cname:c?c.name:'', cphone:c?(c.phone||c.waPhone||''):'', done, cat, pri};
   }).filter(f=>!f.done).sort((a,b)=>{
     const cr=catRank(a.cat)-catRank(b.cat); if(cr) return cr;              // श्रेणी-क्रम
@@ -790,6 +790,7 @@ function staffTasks(data, staffCid, now){
     if(c.id===staffCid) return;
     topics(c).forEach((x,i)=>{
       if(x.done||x.assignTo!==staffCid) return;
+      if(x.rvw) return; // 🔍 review-pending — मालिक approve करेंगे, staff को नहीं
       if(x.snoozeUntil&&Number(x.snoozeUntil)>now) return;
       out.push({...x,cid:c.id,ti:i,cname:c.name||'?',cphone:c.phone||''});
     });

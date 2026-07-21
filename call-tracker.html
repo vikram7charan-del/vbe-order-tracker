@@ -21,7 +21,33 @@ html{height:100%;overflow-x:clip;overscroll-behavior-x:none}
 :root{
   --fs-2xs:9px; --fs-xs:10.5px; --fs-sm:12px; --fs-md:13.5px; --fs-lg:17px; --fs-xl:20px;
   --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:22px;
+  /* 🎨 design tokens — हर जगह यही रंग/असर (consistent system) */
+  --focus-color:#f59e0b; --focus-glow:rgba(245,158,11,.45);
+  --delegated-color:#ec4899; --done-color:#22c55e;
+  --whatsapp-green:#25D366; --call-blue:#3b82f6;
+  --tk-radius:15px; --press-scale:.97;
 }
+/* ── साझा premium बर्ताव ── */
+.press:active{transform:scale(var(--press-scale))!important;transition:transform .12s}
+/* 🎯 focus-mode काम — amber glow + धड़कता badge (हर view में same) */
+.tk-focus{border-left-color:var(--focus-color)!important;box-shadow:0 0 14px var(--focus-glow),0 7px 18px rgba(0,0,0,.4)!important}
+.fk-badge{display:inline-block;font-size:10px;animation:fkPulse 1.6s ease-in-out infinite;vertical-align:1px}
+@keyframes fkPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.25);opacity:.7}}
+/* 📤 delegated badge — pink, timestamp के साथ */
+.dg-badge{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-weight:900;color:#f9a8d4;background:rgba(236,72,153,.14);border:1px solid rgba(236,72,153,.5);border-radius:9px;padding:2px 8px;margin-top:4px}
+/* 🔍 review-pending badge */
+.rv-badge{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-weight:900;color:#fcd34d;background:rgba(245,158,11,.12);border:1px dashed rgba(245,158,11,.55);border-radius:9px;padding:2px 8px}
+/* 🧰 single-line compact toolbar — 32px targets, scroll + edge-fade, कभी wrap नहीं */
+.sp-tools{display:flex;gap:6px;overflow-x:auto;white-space:nowrap;margin:7px 0 0 34px;padding-bottom:2px;scrollbar-width:none;
+  -webkit-mask-image:linear-gradient(90deg,#000 0,#000 92%,transparent);mask-image:linear-gradient(90deg,#000 0,#000 92%,transparent)}
+.sp-tools::-webkit-scrollbar{display:none}
+.sp-tools .tb{flex:0 0 auto;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;font-size:13px;border:1px dashed rgba(100,116,139,.4);border-radius:9px;cursor:pointer;touch-action:manipulation;transition:transform .12s}
+.sp-tools .tb:active{transform:scale(var(--press-scale))}
+/* 🏷️ popup के task-filter chips */
+.sp-fchips{display:flex;gap:5px;overflow-x:auto;white-space:nowrap;margin:0 0 8px;padding-bottom:2px;scrollbar-width:none}
+.sp-fchips::-webkit-scrollbar{display:none}
+.sp-fchips .fc{flex:0 0 auto;font-size:10px;font-weight:900;padding:5px 11px;border-radius:12px;border:1.5px solid rgba(30,58,95,.8);color:#64748b;cursor:pointer;touch-action:manipulation;transition:all .2s}
+.sp-fchips .fc.on{border-color:var(--focus-color);color:#fcd34d;background:rgba(245,158,11,.12);box-shadow:0 0 8px var(--focus-glow)}
 body{
   background:#030810;color:#e2e8f0;
   font-family:'Noto Sans Devanagari',sans-serif;
@@ -2244,6 +2270,74 @@ function lcCopyStr(x){
   const a=lcOf(x); if(!a.length) return '';
   return ' 🔗 '+a.map(l=>{ const r=lcContactRes(l); return r.name+(r.phone?' ('+r.phone+')':''); }).join(', ');
 }
+/* ══ 🧰 UNIFIED TASK SYSTEM — एक function, हर जगह वही (popup/board/hub) ══ */
+/* क्या यह काम focus में है? (किसी भी owner की घड़ी में) */
+function taskInFocus(cid,i){ return _focus.some(f=>f.id===cid&&Number(f.i)===Number(i)); }
+/* 🔁 central updater — हर state-बदलाव इसी से: mutate → note → Firebase → UI */
+function patchTopic(cid,i,patch){
+  const c=contacts.find(x=>x.id===cid); if(!c) return null;
+  const tps=normTopics(c); if(!tps[i]) return null;
+  tps[i]=Object.assign({},tps[i],patch);
+  c.topics=tps; c.note=tps.filter(x=>!x.done).map(x=>x.t).join(' · ');
+  fbSave(c); render(); if(typeof _spId!=='undefined'&&_spId===cid) renderSmartPop();
+  return tps[i];
+}
+/* 📛 साझा badges — 📤 delegated + 🔍 review — हर view में यही दिखें */
+function taskBadges(x){
+  let h='';
+  if(x.dg&&x.dg.to){
+    const t=x.dg.at?new Date(x.dg.at).toLocaleString('hi-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'}):'';
+    h+=`<span class="dg-badge">📤 → ${escH(x.dg.to)}${t?' · '+escH(t):''}</span>`;
+  }
+  if(x.rvw&&!x.done) h+=`<span class="rv-badge">🔍 Review में</span>`;
+  return h;
+}
+/* 📤 DELEGATION — जुड़े contact को WhatsApp handoff + badge + save */
+function delegateMsg(delegateName, task, srcC, tags){
+  let m='🙏 *'+delegateName+'*, आपको एक महत्वपूर्ण ज़िम्मेदारी सौंपी जा रही है।\n━━━━━━━━━━━\n';
+  m+='📌 *कार्य:* '+task+'\n';
+  if(srcC&&srcC.name) m+='👤 *सम्बंधित व्यक्ति:* '+srcC.name+'\n';
+  if(srcC&&(srcC.phone||srcC.waPhone)) m+='📱 *Number:* '+(srcC.phone||srcC.waPhone)+'\n';
+  if(tags) m+='🏷️ *Tag:* '+tags+'\n';
+  m+='━━━━━━━━━━━\nकृपया update देकर अवगत कराएँ। — Vikram Singh, VBE';
+  return m;
+}
+window.delegateSend=function(cid,i,lcId){
+  const c=contacts.find(x=>x.id===cid); if(!c) return;
+  const tps=normTopics(c); const x=tps[i]; if(!x) return;
+  const lc=lcOf(x).find(l=>l.id===lcId); if(!lc){ toast('⚠️ जुड़ा contact नहीं मिला','err'); return; }
+  const r=lcContactRes(lc); const dig=_tgPhDig(r.phone);
+  if(!dig){ toast('⚠️ '+(r.name||'')+' का नंबर नहीं','err'); return; }
+  const ci=catInfo(x.cat);
+  const msg=delegateMsg(r.name, x.t||'', c, ci?ci.label:'');
+  patchTopic(cid,i,{dg:{to:r.name,id:lcId,at:new Date().toISOString()}});
+  try{ if(typeof closeLcAct==='function') closeLcAct(); }catch(e){}
+  toast('✅ '+r.name+' को भेज दिया — 📤 badge लग गया');
+  location.href='whatsapp://send?phone='+dig+'&text='+encodeURIComponent(msg);
+};
+/* 🔍 REVIEW PENDING — बिना PIN focus-काम पूरा करने की कोशिश → यहाँ आए */
+function reviewPending(){
+  const out=[];
+  contacts.forEach(c=>{ if(c.active===false) return;
+    normTopics(c).forEach((x,i)=>{ if(!x.done&&x.rvw) out.push({...x,i,cid:c.id,cname:c.name||'?'}); });
+  });
+  return out;
+}
+window.rvApprove=function(cid,i){
+  if(!askPin('🔍 Approve के लिए मालिक PIN:')) return;
+  const c=contacts.find(x=>x.id===cid); if(!c) return;
+  const tps=normTopics(c); if(!tps[i]) return;
+  tps[i]={...tps[i],done:true,doneAt:new Date().toISOString(),rvw:null};
+  c.topics=tps; c.note=tps.filter(x=>!x.done).map(x=>x.t).join(' · ');
+  _logHist(c,'done',tps[i].t);
+  _focus=_focus.filter(f=>!(f.id===cid&&Number(f.i)===Number(i))); saveFocus(); renderFocusBar();
+  fbSave(c); render(); if(_spId===cid) renderSmartPop();
+  celebrate(); toast('✅ Approve — काम पूरा');
+};
+window.rvReject=function(cid,i){
+  patchTopic(cid,i,{rvw:null});
+  toast('↩️ वापस list में भेजा');
+};
 /* ── Staff assignment — जो filter "टीम" है उसके लोग ── */
 function teamKey(){
   const marked=TAG_LIST.find(t=>t.team);
@@ -2272,7 +2366,7 @@ function tasksByCat(ck){
   contacts.forEach(c=>{
     if(c.active===false) return;
     normTopics(c).forEach((x,i)=>{
-      if(x.done) return;
+      if(x.done||x.rvw) return;
       if(ck==='_none'? (x.cat&&x.cat!=='') : (x.cat!==ck)) return;
       out.push({t:x.t,cat:x.cat,i,srcId:c.id,srcName:c.name||'?',srcPhone:c.phone||'',assignTo:x.assignTo||'',lc:lcOf(x)});
     });
@@ -2427,7 +2521,7 @@ function catViewFilter(arr){
 }
 function groupedActive(c){
   const order={golden:0,computer:1,market:2,jalipa:3};
-  return normTopics(c).map((x,i)=>({...x,i})).filter(x=>!x.done)
+  return normTopics(c).map((x,i)=>({...x,i})).filter(x=>!x.done&&!x.rvw)
     .sort((a,b)=>((a.cat in order)?order[a.cat]:9)-((b.cat in order)?order[b.cat]:9));
 }
 function topicListHTML(c){
@@ -2437,7 +2531,8 @@ function topicListHTML(c){
   const multi=act.length>1;
   return `<div class="c-topics">${act.map((x,n)=>{
     const ci=catInfo(x.cat);
-    return `<div class="c-topic"><span class="tp-chk" onclick="event.stopPropagation();doneTopic('${c.id}',${x.i})"></span>${x.pri==='high'?'🔴 ':''}${ci?ci.logo+' ':''}${multi?`<span class="tnum">${n+1}.</span>`:''}${escH(x.t)}${x.assignTo?` <span style="font-size:10px;color:#4ade80;font-weight:800">→👤${escH(staffName(x.assignTo))}</span>`:''}${linkChipsHTML(c.id,x.i,x)}</div>`;
+    const inF=taskInFocus(c.id,x.i);
+    return `<div class="c-topic" ${inF?'style="text-shadow:0 0 10px var(--focus-glow)"':''}><span class="tp-chk" onclick="event.stopPropagation();doneTopic('${c.id}',${x.i})"></span>${inF?'<span class="fk-badge">🎯</span> ':''}${x.pri==='high'?'🔴 ':''}${ci?ci.logo+' ':''}${multi?`<span class="tnum">${n+1}.</span>`:''}${escH(x.t)}${x.assignTo?` <span style="font-size:10px;color:#4ade80;font-weight:800">→👤${escH(staffName(x.assignTo))}</span>`:''}${linkChipsHTML(c.id,x.i,x)}${taskBadges(x)}</div>`;
   }).join('')}${asg.map(x=>{
     const ci=catInfo(x.cat);
     return `<div class="c-topic" style="color:#86efac"><span class="tp-chk" style="border-color:#22c55e" onclick="event.stopPropagation();doneTopic('${x.srcId}',${x.i})"></span>${ci?ci.logo+' ':''}${escH(x.t)} <span style="font-size:10px;opacity:.7">(📌 ${escH(x.srcName)})</span></div>`;
@@ -2452,7 +2547,21 @@ window.doneTopic=function(id,idx){
   if(!c) return;
   const tps=normTopics(c);
   if(!tps[idx]||tps[idx].done) return;
-  tps[idx].done=true; tps[idx].doneAt=new Date().toISOString();
+  // 🎯 focus-mode काम = owner-protected: सही PIN → पूरा; वरना 🔍 Review Pending में
+  if(taskInFocus(id,idx)){
+    if(sessionStorage.getItem('vbe_owner_ok')!=='1'){
+      const v=prompt('🎯 Focus काम पूरा करने के लिए मालिक PIN:\n(नहीं पता तो खाली OK दबाएँ — काम Review में जाएगा, विक्रम जी approve करेंगे)');
+      if(v===null) return; // cancel = कुछ नहीं
+      if(v.trim()!==appPin()){
+        patchTopic(id,idx,{rvw:{by:'staff',at:new Date().toISOString()}});
+        toast('🔍 Review में गया — विक्रम जी PIN से approve करेंगे','warn');
+        return;
+      }
+      sessionStorage.setItem('vbe_owner_ok','1');
+    }
+    _focus=_focus.filter(f=>!(f.id===id&&Number(f.i)===Number(idx))); saveFocus(); renderFocusBar();
+  }
+  tps[idx].done=true; tps[idx].doneAt=new Date().toISOString(); if(tps[idx].rvw) tps[idx].rvw=null;
   c.topics=tps; _logHist(c,'done',tps[idx].t);
   c.note=tps.filter(x=>!x.done).map(x=>x.t).join(' · ');
   try{ const ev=window.event; celebrate(ev&&ev.clientX,ev&&ev.clientY); }catch(e){ celebrate(); }
@@ -2586,11 +2695,12 @@ window.lcChipTap=function(id,idx,lcId){
       ${num?`<div style="font-size:12px;color:#60a5fa;font-weight:700;margin-top:2px">📱 +91 ${escH(num)}</div>`:'<div style="font-size:10px;color:#64748b;margin-top:3px">कोई नंबर नहीं</div>'}
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-      <button class="btn-save" style="margin:0;${num?'':'opacity:.35;pointer-events:none'}" onclick="lcCall()">📞 Call</button>
-      <button class="btn-save" style="margin:0;background:rgba(4,40,20,.9);border-color:rgba(34,197,94,.6);color:#4ade80;${num?'':'opacity:.35;pointer-events:none'}" onclick="lcWA()">💬 WhatsApp</button>
-      <button class="btn-save" style="margin:0;background:rgba(10,22,44,.9);border-color:rgba(59,130,246,.6);color:#93c5fd" onclick="lcView()">👁 देखो</button>
-      <button class="btn-save" style="margin:0;background:rgba(28,6,6,.9);border-color:rgba(239,68,68,.6);color:#fca5a5" onclick="lcUnlinkFromAct()">✕ हटाओ</button>
-    </div>`;
+      <button class="btn-save press" style="margin:0;${num?'':'opacity:.35;pointer-events:none'}" onclick="lcCall()">📞 Call</button>
+      <button class="btn-save press" style="margin:0;background:rgba(4,40,20,.9);border-color:rgba(34,197,94,.6);color:#4ade80;${num?'':'opacity:.35;pointer-events:none'}" onclick="lcWA()">💬 WhatsApp</button>
+      <button class="btn-save press" style="margin:0;background:rgba(10,22,44,.9);border-color:rgba(59,130,246,.6);color:#93c5fd" onclick="lcView()">👁 देखो</button>
+      <button class="btn-save press" style="margin:0;background:rgba(28,6,6,.9);border-color:rgba(239,68,68,.6);color:#fca5a5" onclick="lcUnlinkFromAct()">✕ हटाओ</button>
+    </div>
+    <button class="btn-save press" style="margin-top:8px;background:linear-gradient(120deg,#831843,#ec4899);border:none;${num?'':'opacity:.35;pointer-events:none'}" onclick="delegateSend('${id}',${idx},'${lcId}')">📤 ज़िम्मेदारी सौंपो (WhatsApp)</button>`;
   document.getElementById('lca-bg').style.display='block'; pop.style.display='block';
 };
 window.closeLcAct=function(){ document.getElementById('lca-bg').style.display='none'; document.getElementById('lca-pop').style.display='none'; };
@@ -5167,6 +5277,7 @@ window.spSchedMain=function(){ openSchedPick('c',_spId); };
 let _spId=null;
 window.openSmartPop=function(id){
   if(_swBlock) return; // swipe के तुरंत बाद click ignore
+  if(_spId!==id) _spFilt=''; // नया contact = filter साफ़
   _spId=id;
   renderSmartPop();
   document.getElementById('sp-bg').style.display='block';
@@ -5181,14 +5292,27 @@ window.closeSmartPop=function(){
   document.getElementById('sp-popup').style.display='none';
   _spId=null;
 };
+let _spFilt=''; // popup का task-filter: '' सब | cat-key | '_focus'
+window.spSetFilt=function(k){ _spFilt=(_spFilt===k)?'':k; renderSmartPop(); };
 function renderSmartPop(){
   const c=contacts.find(x=>x.id===_spId);
   if(!c){ closeSmartPop(); return; }
-  const tps=catViewFilter(groupedActive(c)); // श्रेणी-filter लगा हो तो वही काम
+  const allT=catViewFilter(groupedActive(c)); // श्रेणी-filter लगा हो तो वही काम
+  const focusN=allT.filter(x=>taskInFocus(c.id,x.i)).length;
+  // 🏷️ universal filter engine — chips से छानो (cat या 🎯 focus)
+  const tps=_spFilt==='_focus' ? allT.filter(x=>taskInFocus(c.id,x.i))
+          : _spFilt ? allT.filter(x=>(x.cat||'')===_spFilt) : allT;
   const doneT=normTopics(c).map((x,i)=>({...x,i})).filter(x=>x.done);
   const asg=catViewFilter(assignedTo(c.id)); // इस व्यक्ति (staff) को सौंपे गए काम
   const prev=(c.callLog||[]).filter(l=>l.note).slice(-1)[0];
   const hasWA=!!(c.waPhone||c.phone);
+  const rvList=normTopics(c).map((x,i)=>({...x,i})).filter(x=>!x.done&&x.rvw);
+  // filter chips row — सब + हर cat (count>0) + 🎯 Focus; active = amber glow
+  const fRow=(allT.length>1||focusN)?`<div class="sp-fchips">
+    <span class="fc ${!_spFilt?'on':''}" onclick="spSetFilt('')">सब (${allT.length})</span>
+    ${TASK_CATS.map(tc=>{ const n=allT.filter(x=>(x.cat||'')===tc.k).length; return n?`<span class="fc ${_spFilt===tc.k?'on':''}" onclick="spSetFilt('${tc.k}')">${tc.logo} ${escH(tc.label)} (${n})</span>`:''; }).join('')}
+    ${focusN?`<span class="fc ${_spFilt==='_focus'?'on':''}" onclick="spSetFilt('_focus')">🎯 Focus (${focusN})</span>`:''}
+  </div>`:'';
   // Filter chips — tap करके सीधे बदलो
   const tagRow=`<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px">${Object.entries(TAGS).map(([k,t])=>{
     const on=c.tag===k;
@@ -5198,38 +5322,42 @@ function renderSmartPop(){
     <div style="display:flex;align-items:center;gap:11px;margin-bottom:10px">
       <div class="qd-av" style="width:48px;height:48px;background:${avBg(c)};font-size:${c.emoji?'21px':'12px'}">${escH(avatarContent(c))}</div>
       <div style="flex:1;min-width:0">
-        <div style="font-size:16.5px;font-weight:900;color:#e2e8f0;line-height:1.25;word-break:break-word">${escH(c.name)}${c.pinned?' 📌':''}${(()=>{const n=linkedCount(c.id);return n?` <span style="font-size:11px;font-weight:900;color:#FF6FA5;background:rgba(255,45,120,.15);border:1px solid #FF2D78;border-radius:11px;padding:1px 9px;vertical-align:middle">🔗 ${n}</span>`:'';})()}${c.active===false?' <span style="font-size:10px;font-weight:900;color:#fca5a5;background:rgba(127,29,29,.5);border:1px solid rgba(239,68,68,.4);border-radius:6px;padding:2px 7px;vertical-align:middle">📦 बंद है</span>':''}</div>
+        <div style="font-size:16.5px;font-weight:900;color:#e2e8f0;line-height:1.25;word-break:break-word">${escH(c.name)}${c.pinned?' 📌':''}${(()=>{const n=linkedCount(c.id);return n?` <span style="font-size:11px;font-weight:900;color:#FF6FA5;background:rgba(255,45,120,.15);border:1px solid #FF2D78;border-radius:11px;padding:1px 9px;vertical-align:middle">🔗 ${n}</span>`:'';})()}${focusN?` <span class="press" onclick="spSetFilt('_focus')" style="cursor:pointer;font-size:10.5px;font-weight:900;color:#fcd34d;background:rgba(245,158,11,.12);border:1px solid var(--focus-color);border-radius:11px;padding:1px 9px;vertical-align:middle;box-shadow:0 0 8px var(--focus-glow)"><span class="fk-badge">🎯</span> ${focusN} focus</span>`:''}${c.active===false?' <span style="font-size:10px;font-weight:900;color:#fca5a5;background:rgba(127,29,29,.5);border:1px solid rgba(239,68,68,.4);border-radius:6px;padding:2px 7px;vertical-align:middle">📦 बंद है</span>':''}</div>
         ${c.phone?`<div style="font-size:12.5px;color:#60a5fa;font-weight:700;margin-top:2px;cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" onclick="spDial()">📱 ${escH(c.phone)}</div>`:''}
       </div>
       <span class="qd-close" onclick="closeSmartPop()">✕</span>
     </div>
     ${tagRow}
+    ${fRow}
     ${(tps.length||doneT.length)?`<div style="background:#060d1a;border:1px solid rgba(30,58,95,.7);border-radius:11px;padding:9px 11px;margin-bottom:8px">
       ${tps.length?`<div style="font-size:9px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">🗣️ किस बारे में बात करनी है</div>`:''}
       ${tps.map((x,n)=>{
         const ci=catInfo(x.cat);
+        const inF=taskInFocus(c.id,x.i);
         const tc=BW_CATC[x.cat||'']||(x.pri==='high'?'#ef4444':'#f59e0b');
-        return `<div class="sp-task" style="--tc:${tc}">
-        <div style="display:flex;align-items:flex-start;gap:9px">
+        return `<div class="sp-task ${inF?'tk-focus':''}" style="--tc:${tc};padding:9px 11px 9px">
+        <div style="display:flex;align-items:flex-start;gap:8px">
           <span class="sp-chk" style="margin-top:1px" onclick="event.stopPropagation();doneTopic('${c.id}',${x.i})"></span>
           <span style="flex:1;min-width:0">
-            <span style="font-size:14.5px;font-weight:800;color:#fcd34d;line-height:1.45;word-break:break-word">${x.pri==='high'?'🔴 ':''}${ci?ci.logo+' ':''}${tps.length>1?(n+1)+'. ':''}${escH(x.t)}</span>
+            <span style="font-size:14px;font-weight:800;color:#fcd34d;line-height:1.4;word-break:break-word">${inF?'<span class="fk-badge">🎯</span> ':''}${x.pri==='high'?'🔴 ':''}${ci?ci.logo+' ':''}${tps.length>1?(n+1)+'. ':''}${escH(x.t)}</span>
             ${x.assignTo?`<span style="font-size:10px;color:#4ade80;font-weight:800;margin-left:6px;white-space:nowrap">👤 ${escH(staffName(x.assignTo))}</span>`:''}
             ${x.at?`<span onclick="event.stopPropagation();spSchedTask('${c.id}',${x.i})" style="display:inline-block;cursor:pointer;font-size:9.5px;font-weight:800;color:#93c5fd;background:rgba(30,58,138,.35);border:1px solid rgba(59,130,246,.4);border-radius:7px;padding:1px 7px;margin-left:6px;vertical-align:1px">📅 ${schedLabel(x.at)}</span>`:''}
             ${linkChipsHTML(c.id,x.i,x)}
+            ${taskBadges(x)}
           </span>
         </div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 0 36px">
-          <span onclick="spEditTask('${c.id}',${x.i})" style="cursor:pointer;font-size:12px;min-width:34px;text-align:center;padding:3px 6px;border:1px dashed rgba(251,191,36,.55);border-radius:8px;color:#fcd34d" title="काम का text सुधारो">✏️</span>
-          <span onclick="spLinkTask('${c.id}',${x.i})" style="cursor:pointer;font-size:12px;min-width:34px;text-align:center;padding:3px 6px;border:1px dashed rgba(255,45,120,.6);border-radius:8px;color:#FF6FA5" title="इस काम से contact जोड़ो">🔗</span>
-          <span onclick="spTogglePri('${c.id}',${x.i})" style="cursor:pointer;font-size:12px;min-width:34px;text-align:center;padding:3px 6px;border:1px dashed ${x.pri==='high'?'rgba(239,68,68,.7)':'rgba(100,116,139,.4)'};border-radius:8px;${x.pri==='high'?'background:rgba(239,68,68,.15)':''}" title="ज़रूरी काम — 🔴 चिह्न लगाओ/हटाओ">${x.pri==='high'?'🔴':'⚪'}</span>
-          <span onclick="openFocusPick('${c.id}',${x.i})" style="cursor:pointer;font-size:12px;min-width:34px;text-align:center;padding:3px 6px;border:1px dashed rgba(168,85,247,.5);border-radius:8px" title="🎯 Focus mode — घड़ी चालू करो">🎯</span>
-          <span onclick="spSchedTask('${c.id}',${x.i})" style="cursor:pointer;font-size:12px;min-width:34px;text-align:center;padding:3px 6px;border:1px dashed ${x.at?'rgba(59,130,246,.65)':'rgba(100,116,139,.4)'};border-radius:8px" title="इस काम को Calendar में डालो — अपना समय/अलार्म">${x.at?'📅':'⏰'}</span>
-          <span onclick="spPickAssign('${c.id}',${x.i})" style="cursor:pointer;font-size:12px;min-width:34px;text-align:center;padding:3px 6px;border:1px dashed ${x.assignTo?'rgba(34,197,94,.65)':'rgba(100,116,139,.4)'};border-radius:8px" title="Staff को सौंपें">👤</span>
-          <span onclick="spPickCat('${c.id}',${x.i})" style="cursor:pointer;font-size:13px;min-width:34px;text-align:center;padding:2px 6px;border:1px dashed rgba(100,116,139,.4);border-radius:8px" title="श्रेणी चुनें">${ci?ci.logo:'⬜'}</span>
+        <div class="sp-tools">
+          <span class="tb" onclick="spEditTask('${c.id}',${x.i})" style="border-color:rgba(251,191,36,.55);color:#fcd34d" title="काम का text सुधारो">✏️</span>
+          <span class="tb" onclick="spLinkTask('${c.id}',${x.i})" style="border-color:rgba(255,45,120,.6);color:#FF6FA5" title="इस काम से contact जोड़ो">🔗</span>
+          <span class="tb" onclick="spTogglePri('${c.id}',${x.i})" style="border-color:${x.pri==='high'?'rgba(239,68,68,.7)':'rgba(100,116,139,.4)'};${x.pri==='high'?'background:rgba(239,68,68,.15)':''}" title="ज़रूरी काम">${x.pri==='high'?'🔴':'⚪'}</span>
+          <span class="tb ${inF?'tk-focus':''}" onclick="openFocusPick('${c.id}',${x.i})" style="border-color:rgba(245,158,11,.55)" title="🎯 Focus — घड़ी चालू करो">🎯</span>
+          <span class="tb" onclick="spSchedTask('${c.id}',${x.i})" style="border-color:${x.at?'rgba(59,130,246,.65)':'rgba(100,116,139,.4)'}" title="Calendar/अलार्म">${x.at?'📅':'⏰'}</span>
+          <span class="tb" onclick="spPickAssign('${c.id}',${x.i})" style="border-color:${x.assignTo?'rgba(34,197,94,.65)':'rgba(100,116,139,.4)'}" title="Staff को सौंपें">👤</span>
+          <span class="tb" onclick="spPickCat('${c.id}',${x.i})" title="श्रेणी चुनें">${ci?ci.logo:'⬜'}</span>
         </div>
       </div>`;
       }).join('')}
+      ${_spFilt&&!tps.length?`<div style="text-align:center;padding:14px;color:#64748b;font-size:12px">इस filter में कोई काम नहीं — <span style="color:#fcd34d;cursor:pointer" onclick="spSetFilt('')">सब देखो</span></div>`:''}
       ${(()=>{
         const doneT=normTopics(c).map((x,i)=>({...x,i})).filter(x=>x.done);
         if(!doneT.length) return '';
@@ -5256,6 +5384,15 @@ function renderSmartPop(){
         <span onclick="spPromoteAsg('${x.srcId}',${x.i})" style="cursor:pointer;font-size:12px;flex-shrink:0;padding:3px 8px;border:1px dashed rgba(59,130,246,.55);border-radius:7px;color:#93c5fd;font-weight:800" title="ऊपर मुख्य कामों में ले जाओ — फिर ⏰/श्रेणी सब">⬆️ मुख्य</span>
       </div>`;
       }).join('')}
+    </div>`:''}
+    ${rvList.length?`<div style="background:rgba(245,158,11,.06);border:1px dashed rgba(245,158,11,.5);border-radius:11px;padding:9px 11px;margin-bottom:8px">
+      <div style="font-size:9.5px;font-weight:900;color:#fcd34d;margin-bottom:5px">🔍 Review Pending (${rvList.length}) — staff ने बिना PIN पूरा किया, आप approve करें</div>
+      ${rvList.map(x=>`<div style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-top:1px solid rgba(245,158,11,.15)">
+        <span style="flex:1;min-width:0;font-size:12.5px;font-weight:700;color:#fde68a;word-break:break-word">${taskInFocus(c.id,x.i)?'<span class="fk-badge">🎯</span> ':''}${escH(x.t)}
+          <span style="display:block;font-size:9px;color:#94a3b8;margin-top:1px">🕘 ${x.rvw&&x.rvw.at?new Date(x.rvw.at).toLocaleString('hi-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'}):''} को clear किया</span></span>
+        <button class="log-btn press" onclick="rvApprove('${c.id}',${x.i})" title="PIN से approve — पूरा">✅</button>
+        <button class="log-btn press" onclick="rvReject('${c.id}',${x.i})" title="वापस list में भेजो">↩️</button>
+      </div>`).join('')}
     </div>`:''}
     ${(()=>{
       // 🔗 इस contact से जुड़े काम (reverse view) — दूसरे कहीं का काम, इनसे link है

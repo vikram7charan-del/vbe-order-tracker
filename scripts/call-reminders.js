@@ -220,12 +220,27 @@ async function main() {
         }
       }
       if (tgChat) {
+        // 📞⏰ rich digests — नाम+tap-call नंबर+काम+कितना लेट, pagination-बटन के साथ
+        // ('…और 23' वाला मरा हुआ digest ख़त्म — PROMPT 8)
+        const tgCore = require('../functions/telegram-core');
+        const dataAll = tgCore.collectAll(snap); dataAll.settings = settingsData || {};
         for (const m of msgs) {
-          const link = m.link || APP_LINK;
-          const text = '*' + m.title.replace(/[*_`\[]/g, '') + '*\n' + m.body + '\n\n👉 ' + link;
+          let payload = null;
+          if (m.tag === 'vbe-call-due') {
+            const d0 = tgCore.callsDigest(dataAll, Date.now(), 0);
+            payload = { chat_id: tgChat, text: d0.text, parse_mode: 'Markdown', disable_web_page_preview: true };
+            if (d0.reply_markup) payload.reply_markup = d0.reply_markup;
+          } else if (m.tag === 'vbe-task-due') {
+            const d0 = tgCore.dueTasksDigest(dataAll, Date.now(), 0);
+            payload = { chat_id: tgChat, text: d0.text, parse_mode: 'Markdown', disable_web_page_preview: true };
+            if (d0.reply_markup) payload.reply_markup = d0.reply_markup;
+          } else {
+            const link = m.link || APP_LINK;
+            payload = { chat_id: tgChat, text: '*' + m.title.replace(/[*_`\[]/g, '') + '*\n' + m.body + '\n\n👉 ' + link, parse_mode: 'Markdown', disable_web_page_preview: true };
+          }
           const rs = await fetch('https://api.telegram.org/bot' + tgTok + '/sendMessage', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: tgChat, text, parse_mode: 'Markdown', disable_web_page_preview: true }),
+            body: JSON.stringify(payload),
           }).then((r) => r.json());
           if (rs.ok) tgSent++;
         }

@@ -633,7 +633,11 @@ body:not(.anim-off) .aic-orb .orb-core{animation:orbCore 2.2s ease-in-out infini
 .bw-sum span{font-size:8.5px;color:#8b9bbb;font-weight:800;letter-spacing:.3px}
 .bw-chips{display:flex;gap:6px;overflow-x:auto;padding:0 0 10px;scrollbar-width:none}
 .bw-chip{flex-shrink:0;font-size:10.5px;font-weight:800;color:#8b9bbb;border:1.5px solid rgba(125,152,214,.2);border-radius:16px;padding:5px 12px;cursor:pointer;background:rgba(12,20,37,.6);white-space:nowrap}
-.bw-chip.on{border-color:color-mix(in srgb,var(--acc) 70%,transparent);color:#fff;background:linear-gradient(150deg,color-mix(in srgb,var(--acc) 30%,transparent),color-mix(in srgb,var(--acc2) 16%,transparent))}
+.bw-chip.on{border-color:color-mix(in srgb,var(--acc) 70%,transparent);color:#fff;background:linear-gradient(150deg,color-mix(in srgb,var(--acc) 30%,transparent),color-mix(in srgb,var(--acc2) 16%,transparent));box-shadow:0 0 10px color-mix(in srgb,var(--acc) 45%,transparent)}
+@keyframes bwLate{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.0)}50%{box-shadow:0 0 14px 1px rgba(239,68,68,.35)}}
+.bw-row.latep{border-left-color:#ef4444!important;animation:bwLate 2.6s ease-in-out infinite}
+.bw-ring{width:40px;height:40px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;color:#4ade80;background:conic-gradient(#22c55e var(--bp,0%),rgba(125,152,214,.15) 0)}
+.bw-ring>i{width:30px;height:30px;border-radius:50%;background:#0a1120;display:flex;align-items:center;justify-content:center;font-style:normal}
 .bw-row{display:flex;gap:8px;align-items:flex-start;background:linear-gradient(163deg,rgba(20,30,56,.9),rgba(8,13,26,.96));border:1px solid rgba(125,152,214,.16);border-left-width:4px;border-radius:13px;padding:9px 10px;margin-bottom:7px;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .bw-row.dragging{opacity:.45;border-style:dashed}
 .bw-ghost{position:fixed;z-index:9999;pointer-events:none;background:linear-gradient(160deg,#312e81,#1e1b4b);color:#fcd34d;font-size:12px;font-weight:900;padding:8px 14px;border-radius:12px;border:1px solid rgba(168,85,247,.6);box-shadow:0 12px 30px rgba(0,0,0,.55);max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1487,6 +1491,13 @@ body.hdr-folded .hdr-row2{display:none}
     <div class="as-grid" id="as-grid"></div>
     <div class="as-lab">⚡ जोश का स्तर (Level)</div>
     <div class="as-levels" id="as-levels"></div>
+    <div class="as-lab">🔊 माहौल की आवाज़ (scene के साथ)</div>
+    <div style="display:flex;align-items:center;gap:10px;padding:2px 2px 6px">
+      <span class="press" id="as-mute" onclick="sndMute()" style="cursor:pointer;font-size:20px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(125,152,214,.3);border-radius:12px">🔊</span>
+      <input type="range" id="as-vol" min="0" max="100" value="25" oninput="sndVol(this.value)" style="flex:1;accent-color:#a855f7;height:26px">
+      <span id="as-volt" style="font-size:11px;font-weight:900;color:#c4b5fd;width:38px;text-align:right">25%</span>
+    </div>
+    <div style="font-size:9px;color:#7d8db0;margin:-2px 2px 8px">बारिश की टप-टप, झींगुर, लहरों की आवाज़ — सब phone से ही बनती है (कोई file नहीं)। धीमी रखी है ताकि काम में बाधा न हो।</div>
     <button class="as-close" onclick="closeAnimStudio()">✓ हो गया</button>
   </div>
 </div>
@@ -4662,7 +4673,9 @@ function renderBulk(keepQ){
     if((t.at&&new Date(t.at).getTime()<now)||(t.nextCallAt&&new Date(t.nextCallAt).getTime()<now))cnt.late++;
     if(t.at){const x=new Date(t.at).getTime(); if(x>=t0&&x<t1)cnt.today++;}
     if(t.cat&&catN[t.cat]!=null)catN[t.cat]++; else if(!t.cat)catN.none++; });
-  document.getElementById('bw-sum').innerHTML=[
+  const _pc=cnt.total?Math.round(cnt.done/cnt.total*100):0;
+  document.getElementById('bw-sum').innerHTML=
+    `<div class="bw-ring" style="--bp:${_pc}%" title="कुल प्रगति"><i>${_pc}%</i></div>`+[
     ['*','pending',cnt.pend,'बाकी','#60a5fa'],['*','late',cnt.late,'लेट','#f87171'],['*','today',cnt.today,'आज','#fbbf24'],['*','done',cnt.done,'पूरे','#4ade80'],
     ['golden','pending',catN.golden,'🏆 गोल्डन',BW_CATC.golden],['computer','pending',catN.computer,'💻',BW_CATC.computer],['market','pending',catN.market,'🛒',BW_CATC.market],['jalipa','pending',catN.jalipa,'🏪',BW_CATC.jalipa],['none','pending',catN.none,'⬜',BW_CATC['']]
   ].map(x=>`<div class="bw-sum" onclick="_bwCat='${x[0]}';_bwF='${x[1]}';renderBulk()"><b style="color:${x[4]}">${x[2]}</b><span>${x[3]}</span></div>`).join('');
@@ -4681,7 +4694,7 @@ function renderBulk(keepQ){
     const late=!t.done&&t.at&&new Date(t.at).getTime()<now;
     const pri=BW_PRI.find(p=>p[0]===(t.pri||''))||BW_PRI[0];
     const inF=taskInFocus(t.cid,t.ti);
-    return `<div class="bw-row ${sel?'sel':''} ${t.dg?'tk-delegated':inF?'tk-focus':''}" data-bwkey="${key}" style="border-left-color:${t.dg?'var(--delegated-color)':cc}">
+    return `<div class="bw-row ${sel?'sel':''} ${t.dg?'tk-delegated':inF?'tk-focus':''} ${late?'latep':''}" data-bwkey="${key}" style="border-left-color:${t.dg?'var(--delegated-color)':cc}">
       <input type="checkbox" class="bw-ck" ${sel?'checked':''} onchange="bwTgl('${key}')">
       <div style="flex:1;min-width:0">
         <div style="font-size:13.5px;font-weight:800;color:${t.done?'#64748b':'#fcd34d'};line-height:1.4;word-break:break-word;${t.done?'text-decoration:line-through':''}">${escH(t.t)}</div>
@@ -5964,6 +5977,13 @@ const BG_SCENES=[
   {k:'silk',  em:'🌊',nm:'लहरें'},
   {k:'rain',  em:'🌧️',nm:'बारिश'},
   {k:'fw',    em:'🎆',nm:'आतिशबाज़ी'},
+  {k:'thun',  em:'🌩️',nm:'तूफ़ानी बारिश'},
+  {k:'snow',  em:'❄️',nm:'बर्फ़बारी'},
+  {k:'leaf',  em:'🍂',nm:'पतझड़'},
+  {k:'diya',  em:'🪔',nm:'दीवाली दीये'},
+  {k:'dhoop', em:'🕉️',nm:'मंदिर धूप'},
+  {k:'sunset',em:'🌅',nm:'रेगिस्तान साँझ'},
+  {k:'holi',  em:'🎇',nm:'होली रंग'},
   {k:'none',  em:'🚫',nm:'सादा'},
 ];
 const LVL_SHORT={off:'🚫 बंद',soft:'🍃 हल्की',premium:'✨ Premium',max:'🚀 Max'};
@@ -5988,7 +6008,8 @@ function _glow(rgb){
 }
 function _buildBase(){
   const g=_bgX.createLinearGradient(0,0,0,_bgH);
-  g.addColorStop(0,'#070c18'); g.addColorStop(.5,'#04060e'); g.addColorStop(1,'#03040a');
+  if(_scene==='sunset'){ g.addColorStop(0,'#1a1030'); g.addColorStop(.45,'#4a1a3a'); g.addColorStop(.72,'#8a3a1a'); g.addColorStop(1,'#120a14'); }
+  else { g.addColorStop(0,'#070c18'); g.addColorStop(.5,'#04060e'); g.addColorStop(1,'#03040a'); }
   _bgBase=g;
 }
 function _buildVig(){
@@ -6017,6 +6038,9 @@ function bgInit(){
   if(_scene==='aurora'){
     const cols=[a,a2,a3,a,a2,a3];
     for(let i=0;i<6;i++)_bgParts.push({k:'g',x:Math.random()*_bgW,y:_bgH*(0.12+Math.random()*0.7),r:D*(0.26+Math.random()*0.2),c:cols[i],a:0.09+Math.random()*0.06,sx:0.3+Math.random()*0.5,sy:0.25+Math.random()*0.4,ph:Math.random()*7,ax:_bgW*0.26,ay:_bgH*0.12});
+    // ✨ upgrade: टिमटिमाते तारे + कभी-कभी टूटता तारा (bgDraw का stars-shoot aurora में भी)
+    const sn=_cnt(60);
+    for(let i=0;i<sn;i++){ const L=Math.random(); _bgParts.push({k:'s',x:Math.random()*_bgW,y:Math.random()*_bgH,r:L>0.9?1.8:Math.random()*1+0.4,b:0.3+L*0.6,tw:Math.random()*7,sp:Math.random()*0.03+0.006,vy:0.01+L*0.05,g:L>0.9,c:white}); }
   } else if(_scene==='stars'){
     const n=_cnt(120);
     for(let i=0;i<n;i++){ const L=Math.random(); _bgParts.push({k:'s',x:Math.random()*_bgW,y:Math.random()*_bgH,r:L>0.86?Math.random()*1.7+1.1:Math.random()*1.1+0.4,b:0.35+L*0.65,tw:Math.random()*7,sp:Math.random()*0.03+0.006,vy:0.02+L*0.16,g:L>0.86,c:i%12===0?a:white}); }
@@ -6029,11 +6053,35 @@ function bgInit(){
   } else if(_scene==='silk'){
     const n=_cnt(6);
     for(let i=0;i<n;i++)_bgParts.push({k:'w',y:(_bgH*(i+1))/(n+1),amp:22+Math.random()*44,freq:0.005+Math.random()*0.006,sp:0.4+Math.random()*0.8,ph:Math.random()*7,c:i%2?a2:a});
-  } else if(_scene==='rain'){
-    const n=_cnt(70);
+  } else if(_scene==='rain'||_scene==='thun'){
+    const n=_cnt(_scene==='thun'?95:70);
     for(let i=0;i<n;i++)_bgParts.push({k:'r',x:Math.random()*_bgW,y:Math.random()*_bgH,len:9+Math.random()*15,sp:6.5+Math.random()*7,dr:0.8+Math.random()*1.2,al:0.18+Math.random()*0.3});
+  } else if(_scene==='snow'){
+    const n=_cnt(80);
+    for(let i=0;i<n;i++){ const L=Math.random(); _bgParts.push({k:'sn',x:Math.random()*_bgW,y:Math.random()*_bgH,r:0.8+L*2.6,sp:0.35+L*0.9,ph:Math.random()*7,sw:0.3+Math.random()*0.8,al:0.35+L*0.5}); }
+  } else if(_scene==='leaf'){
+    const n=_cnt(26); const lc=[[217,119,6],[234,88,12],[202,138,4],[190,60,40]];
+    for(let i=0;i<n;i++)_bgParts.push({k:'lv',x:Math.random()*_bgW,y:Math.random()*_bgH,r:4+Math.random()*6,sp:0.5+Math.random()*1.1,ph:Math.random()*7,rot:Math.random()*7,rv:(Math.random()-.5)*0.06,sw:0.6+Math.random()*1.2,c:lc[i%4]});
+  } else if(_scene==='diya'){
+    const n=Math.min(11,_cnt(9));
+    for(let i=0;i<n;i++){ const bx=_bgW*(0.06+((i+0.5)/n)*0.88+(Math.random()-.5)*0.03);
+      _bgParts.push({k:'dy',x:bx,y:_bgH-(18+Math.random()*46)-(i%2?26:0),ph:Math.random()*7,fs:0.9+Math.random()*0.5}); }
+    const sn=_cnt(28);
+    for(let i=0;i<sn;i++){ const L=Math.random(); _bgParts.push({k:'s',x:Math.random()*_bgW,y:Math.random()*_bgH*0.6,r:Math.random()*1+0.4,b:0.25+L*0.5,tw:Math.random()*7,sp:0.01,vy:0.008,g:false,c:gold}); }
+  } else if(_scene==='dhoop'){
+    for(let i=0;i<3;i++) _bgParts.push({k:'src',x:_bgW*(0.25+i*0.25),y:_bgH*0.92});
+  } else if(_scene==='sunset'){
+    _bgParts.push({k:'sun',x:_bgW*0.5,y:_bgH*0.58,r:Math.min(_bgW,_bgH)*0.34});
+    const sn=_cnt(22);
+    for(let i=0;i<sn;i++)_bgParts.push({k:'hz',x:Math.random()*_bgW,y:_bgH*(0.45+Math.random()*0.25),r:2+Math.random()*3,ph:Math.random()*7,sp:0.15+Math.random()*0.3});
+  } else if(_scene==='holi'){
+    /* रंग-गुबार bgDraw में spawn होते हैं (_bgFw की तरह _bgHoli) */
+  }
+  if(_scene==='silk'){
+    _bgParts.push({k:'moon',x:_bgW*0.76,y:_bgH*0.2,r:Math.min(_bgW,_bgH)*0.09});
   }
 }
+let _bgHoli=[],_bgBolt=null,_bgFlash=0;
 function bgDraw(){
   const x=_bgX,IN=_inten(); if(!x)return; _bgT++;
   // 1) deep base fill (opaque — असली गहराई)
@@ -6086,8 +6134,8 @@ function bgDraw(){
     }
     x.globalAlpha=1;
   }
-  // 🌧️ बारिश — तिरछी बूँदें
-  if(_scene==='rain'){
+  // 🌧️ बारिश — तिरछी बूँदें (तूफ़ान में भी)
+  if(_scene==='rain'||_scene==='thun'){
     x.lineWidth=1.3; x.lineCap='round';
     for(const p of _bgParts){
       if(p.k!=='r') continue;
@@ -6097,6 +6145,107 @@ function bgDraw(){
       x.strokeStyle='rgba(165,200,255,'+(p.al*IN)+')';
       x.beginPath(); x.moveTo(p.x,p.y); x.lineTo(p.x-p.dr*2.2,p.y-p.len); x.stroke();
     }
+  }
+  // 🌩️ तूफ़ान — बिजली की चमक + कड़क-रेखा
+  if(_scene==='thun'){
+    if(Math.random()<0.006*IN&&_bgFlash<=0){ _bgFlash=1;
+      const bx=_bgW*(0.15+Math.random()*0.7); let by=0; const seg=[[bx,0]];
+      while(by<_bgH*0.55){ by+=18+Math.random()*26; seg.push([seg[seg.length-1][0]+(Math.random()-.5)*46,by]); }
+      _bgBolt={seg,life:1};
+    }
+    if(_bgFlash>0){ x.globalAlpha=_bgFlash*0.22*IN; x.fillStyle='#cfe0ff'; x.fillRect(0,0,_bgW,_bgH); x.globalAlpha=1; _bgFlash-=0.06; }
+    if(_bgBolt){ const b=_bgBolt; b.life-=0.07;
+      if(b.life>0){ x.globalAlpha=b.life; x.strokeStyle='rgba(220,235,255,.95)'; x.lineWidth=2.4; x.shadowColor='#9db8ff'; x.shadowBlur=14;
+        x.beginPath(); b.seg.forEach((pt,i2)=>i2===0?x.moveTo(pt[0],pt[1]):x.lineTo(pt[0],pt[1])); x.stroke(); x.shadowBlur=0; x.globalAlpha=1; }
+      else _bgBolt=null;
+    }
+  }
+  // ❄️/🍂/🪔/🕉️/🌅 — बाक़ी नए scenes
+  if(_scene==='snow'){
+    for(const p2 of _bgParts){ if(p2.k!=='sn') continue;
+      p2.ph+=0.012; p2.y+=p2.sp; p2.x+=Math.sin(p2.ph)*p2.sw;
+      if(p2.y>_bgH+6){ p2.y=-6; p2.x=Math.random()*_bgW; }
+      x.globalAlpha=p2.al*IN; x.fillStyle='#eaf2ff'; x.beginPath(); x.arc(p2.x,p2.y,p2.r,0,7); x.fill(); }
+    x.globalAlpha=1;
+  }
+  if(_scene==='leaf'){
+    for(const p2 of _bgParts){ if(p2.k!=='lv') continue;
+      p2.ph+=0.014; p2.rot+=p2.rv; p2.y+=p2.sp; p2.x+=Math.sin(p2.ph)*p2.sw;
+      if(p2.y>_bgH+10){ p2.y=-10; p2.x=Math.random()*_bgW; }
+      x.save(); x.translate(p2.x,p2.y); x.rotate(p2.rot);
+      x.globalAlpha=0.75*IN; x.fillStyle='rgb('+p2.c[0]+','+p2.c[1]+','+p2.c[2]+')';
+      x.beginPath(); x.ellipse(0,0,p2.r,p2.r*0.55,0,0,7); x.fill(); x.restore(); }
+    x.globalAlpha=1;
+  }
+  if(_scene==='diya'){
+    x.globalCompositeOperation='lighter';
+    for(const p2 of _bgParts){ if(p2.k!=='dy') continue;
+      p2.ph+=0.09;
+      const fl=(0.72+0.28*Math.sin(p2.ph*2.1)+0.12*Math.sin(p2.ph*5.3))*p2.fs;
+      const R=26*fl;
+      x.globalAlpha=0.5*IN; x.drawImage(_glow([255,170,60]),p2.x-R,p2.y-R-9,R*2,R*2);
+      x.globalAlpha=0.95; x.fillStyle='#ffdf9e';
+      x.beginPath(); x.ellipse(p2.x,p2.y-9,2.6*fl,6.5*fl,0,0,7); x.fill();
+      x.globalAlpha=0.9; x.fillStyle='#7a3010';
+      x.beginPath(); x.ellipse(p2.x,p2.y+2,10,4.4,0,0,7); x.fill(); }
+    x.globalAlpha=1; x.globalCompositeOperation='source-over';
+  }
+  if(_scene==='dhoop'){
+    if(Math.random()<0.5){ const srcs=_bgParts.filter(q=>q.k==='src'); const sc=srcs[Math.floor(Math.random()*srcs.length)];
+      if(sc&&_bgParts.length<260) _bgParts.push({k:'sm',x:sc.x+(Math.random()-.5)*8,y:sc.y,r:5+Math.random()*7,vy:0.5+Math.random()*0.5,ph:Math.random()*7,life:1}); }
+    x.globalCompositeOperation='lighter';
+    for(let i2=_bgParts.length-1;i2>=0;i2--){ const p2=_bgParts[i2]; if(p2.k!=='sm') continue;
+      p2.ph+=0.02; p2.y-=p2.vy; p2.x+=Math.sin(p2.ph)*0.6; p2.r+=0.06; p2.life-=0.004;
+      if(p2.life<=0){ _bgParts.splice(i2,1); continue; }
+      x.globalAlpha=Math.max(0,p2.life)*0.10*IN; x.drawImage(_glow([210,200,230]),p2.x-p2.r,p2.y-p2.r,p2.r*2,p2.r*2); }
+    x.globalAlpha=1; x.globalCompositeOperation='source-over';
+  }
+  if(_scene==='sunset'){
+    const sun=_bgParts.find(q=>q.k==='sun');
+    if(sun){ x.globalCompositeOperation='lighter';
+      x.globalAlpha=0.5*IN; x.drawImage(_glow([255,150,60]),sun.x-sun.r,sun.y-sun.r,sun.r*2,sun.r*2);
+      x.globalAlpha=0.85; x.fillStyle='#ffb45e'; x.beginPath(); x.arc(sun.x,sun.y,sun.r*0.28,0,7); x.fill();
+      x.globalAlpha=1; x.globalCompositeOperation='source-over'; }
+    x.fillStyle='rgba(14,7,16,.92)';
+    x.beginPath(); x.moveTo(0,_bgH);
+    for(let px=0;px<=_bgW;px+=14){ x.lineTo(px,_bgH*0.78+Math.sin(px*0.006+1)*_bgH*0.05); }
+    x.lineTo(_bgW,_bgH); x.closePath(); x.fill();
+    x.fillStyle='rgba(8,4,10,.96)';
+    x.beginPath(); x.moveTo(0,_bgH);
+    for(let px=0;px<=_bgW;px+=14){ x.lineTo(px,_bgH*0.88+Math.sin(px*0.004+4)*_bgH*0.04); }
+    x.lineTo(_bgW,_bgH); x.closePath(); x.fill();
+    x.globalCompositeOperation='lighter';
+    for(const p2 of _bgParts){ if(p2.k!=='hz') continue;
+      p2.ph+=0.02; const al=(0.10+0.10*Math.sin(p2.ph))*IN;
+      x.globalAlpha=Math.max(0,al); x.drawImage(_glow([255,180,90]),p2.x-p2.r*3,p2.y-p2.r*3,p2.r*6,p2.r*6); }
+    x.globalAlpha=1; x.globalCompositeOperation='source-over';
+  }
+  if(_scene==='holi'){
+    if(_bgPal&&Math.random()<0.03*IN&&_bgHoli.length<7){
+      const cols=[[255,60,120],[60,200,120],[250,200,40],[80,140,255],[200,80,255],[255,120,40]];
+      const col=cols[Math.floor(Math.random()*cols.length)];
+      const bx=_bgW*(0.1+Math.random()*0.8), by=_bgH*(0.2+Math.random()*0.55), pts=[];
+      for(let k2=0;k2<16;k2++){ const an=Math.random()*7, v=0.7+Math.random()*2.2;
+        pts.push({x:bx,y:by,vx:Math.cos(an)*v,vy:Math.sin(an)*v-0.6,r:9+Math.random()*15,life:1,c:col}); }
+      _bgHoli.push(pts);
+    }
+    x.globalCompositeOperation='lighter';
+    _bgHoli.forEach(cl=>cl.forEach(p2=>{ if(p2.life<=0) return;
+      p2.x+=p2.vx; p2.y+=p2.vy; p2.vy+=0.012; p2.vx*=0.985; p2.r+=0.14; p2.life-=0.008;
+      x.globalAlpha=Math.max(0,p2.life)*0.30*IN; x.drawImage(_glow(p2.c),p2.x-p2.r,p2.y-p2.r,p2.r*2,p2.r*2); }));
+    _bgHoli=_bgHoli.filter(cl=>cl.some(p2=>p2.life>0));
+    x.globalAlpha=1; x.globalCompositeOperation='source-over';
+  }
+  // 🌊 लहरें upgrade — चाँद + पानी पर चाँदनी
+  if(_scene==='silk'){
+    const mn=_bgParts.find(q=>q.k==='moon');
+    if(mn){ x.globalCompositeOperation='lighter';
+      x.globalAlpha=0.5*IN; x.drawImage(_glow([230,238,255]),mn.x-mn.r*2.2,mn.y-mn.r*2.2,mn.r*4.4,mn.r*4.4);
+      x.globalAlpha=0.95; x.fillStyle='#e8efff'; x.beginPath(); x.arc(mn.x,mn.y,mn.r*0.42,0,7); x.fill();
+      const sh=x.createLinearGradient(0,mn.y,0,_bgH);
+      sh.addColorStop(0,'rgba(220,232,255,'+(0.10*IN)+')'); sh.addColorStop(1,'rgba(220,232,255,0)');
+      x.fillStyle=sh; x.fillRect(mn.x-mn.r*0.7,mn.y,mn.r*1.4,_bgH-mn.y);
+      x.globalAlpha=1; x.globalCompositeOperation='source-over'; }
   }
   // 🎆 आतिशबाज़ी — रह-रहकर रंगीन फूल
   if(_scene==='fw'){
@@ -6118,8 +6267,8 @@ function bgDraw(){
     _bgFw=_bgFw.filter(b=>b.some(p=>p.life>0));
     x.globalAlpha=1; x.globalCompositeOperation='source-over';
   }
-  // 3b) shooting star (सिर्फ़ तारे scene में, कभी-कभी)
-  if(_scene==='stars'){
+  // 3b) shooting star (तारे + आकाशगंगा में, कभी-कभी)
+  if(_scene==='stars'||_scene==='aurora'){
     if(!_bgShoot && Math.random()<0.004) _bgShoot={x:Math.random()*_bgW*0.6,y:Math.random()*_bgH*0.35,len:110+Math.random()*110,vx:6+Math.random()*4,vy:2.2+Math.random()*1.8,life:1};
     if(_bgShoot){ const s=_bgShoot; s.x+=s.vx; s.y+=s.vy; s.life-=0.011;
       x.globalAlpha=Math.max(0,s.life)*IN;
@@ -6136,17 +6285,139 @@ function bgDraw(){
   if(_bgVig){ x.fillStyle=_bgVig; x.fillRect(0,0,_bgW,_bgH); }
 }
 function bgLoop(){ _bgRAF=requestAnimationFrame(bgLoop); if(!_bgPaused) bgDraw(); }
+/* ══ 🔊 AMBIENT SOUND — Web Audio, पूरा synthesized (कोई file नहीं) ══ */
+let _aCtx=null,_aMaster=null,_aNodes=[],_aTimers=[],_aOn=false;
+let _aVol=Number(localStorage.getItem('vbe_ct_vol')||25)/100;
+let _aMuted=localStorage.getItem('vbe_ct_mute')==='1';
+function _aLvlMul(){ return _anim==='soft'?0.6:_anim==='max'?1.35:1; }
+function _aNoiseBuf(){
+  if(_aCtx._nb) return _aCtx._nb;
+  const len=_aCtx.sampleRate*2, b=_aCtx.createBuffer(1,len,_aCtx.sampleRate), d=b.getChannelData(0);
+  for(let i=0;i<len;i++) d[i]=Math.random()*2-1;
+  return _aCtx._nb=b;
+}
+function _aNoise(type,freq,q,gain,lfoRate,lfoDepth){
+  const src=_aCtx.createBufferSource(); src.buffer=_aNoiseBuf(); src.loop=true;
+  const f=_aCtx.createBiquadFilter(); f.type=type; f.frequency.value=freq; f.Q.value=q||0.8;
+  const g=_aCtx.createGain(); g.gain.value=gain;
+  src.connect(f); f.connect(g); g.connect(_aMaster);
+  if(lfoRate){ const lfo=_aCtx.createOscillator(), lg=_aCtx.createGain();
+    lfo.frequency.value=lfoRate; lg.gain.value=lfoDepth||gain*0.5;
+    lfo.connect(lg); lg.connect(g.gain); lfo.start(); _aNodes.push(lfo); }
+  src.start(); _aNodes.push(src,f,g);
+  return {src,f,g};
+}
+function _aTone(freq,type,gain,attack,decay){ /* one-shot */
+  const o=_aCtx.createOscillator(), g=_aCtx.createGain();
+  o.type=type||'sine'; o.frequency.value=freq;
+  const t=_aCtx.currentTime;
+  g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(gain,t+(attack||0.01));
+  g.gain.exponentialRampToValueAtTime(0.0001,t+(attack||0.01)+(decay||0.4));
+  o.connect(g); g.connect(_aMaster); o.start(t); o.stop(t+(attack||0.01)+(decay||0.4)+0.05);
+}
+function _aBurst(freq,q,gain,dur){ /* noise one-shot (thunder/pop/rustle) */
+  const src=_aCtx.createBufferSource(); src.buffer=_aNoiseBuf();
+  const f=_aCtx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=freq; f.Q.value=q||0.7;
+  const g=_aCtx.createGain(); const t=_aCtx.currentTime;
+  g.gain.setValueAtTime(gain,t); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  src.connect(f); f.connect(g); g.connect(_aMaster); src.start(t); src.stop(t+dur+0.05);
+}
+function _aEvery(minMs,maxMs,fn){ /* random-अंतराल scheduler */
+  let stop=false;
+  const tick=()=>{ if(stop||!_aOn) return; try{ fn(); }catch(e){}
+    _aTimers.push(setTimeout(tick, minMs+Math.random()*(maxMs-minMs))); };
+  _aTimers.push(setTimeout(tick, 400+Math.random()*maxMs));
+  return ()=>{ stop=true; };
+}
+function _chirp(){ /* झींगुर */
+  for(let i=0;i<3;i++) setTimeout(()=>_aTone(4200+Math.random()*400,'sine',0.05,0.005,0.05), i*70);
+}
+function sndStop(){
+  _aOn=false;
+  _aTimers.forEach(t=>clearTimeout(t)); _aTimers=[];
+  _aNodes.forEach(nd=>{ try{ nd.stop&&nd.stop(); }catch(e){} try{ nd.disconnect&&nd.disconnect(); }catch(e){} });
+  _aNodes=[];
+}
+function sndStart(){
+  sndStop();
+  if(_aMuted||_aVol<=0||_anim==='off'||_scene==='none') return;
+  try{
+    if(!_aCtx) _aCtx=new (window.AudioContext||window.webkitAudioContext)();
+    if(_aCtx.state==='suspended') _aCtx.resume();
+    if(!_aMaster){ _aMaster=_aCtx.createGain(); _aMaster.connect(_aCtx.destination); }
+    _aMaster.gain.value=_aVol*_aLvlMul();
+    _aOn=true;
+    const sc=_scene;
+    if(sc==='rain'||sc==='thun'){
+      _aNoise('lowpass',1400,0.6,0.16,0.5,0.05);                     // बारिश की झड़ी
+      if(sc==='thun') _aEvery(6000,16000,()=>_aBurst(140,0.5,0.5,2.2)); // दूर की गड़गड़ाहट
+    } else if(sc==='silk'){
+      _aNoise('bandpass',420,0.5,0.20,0.14,0.13);                    // लहरों का आना-जाना
+    } else if(sc==='fire'||sc==='diya'){
+      _aNoise('lowpass',300,0.5,0.045);                              // रात की हल्की हवा
+      _aEvery(1800,5200,_chirp);                                     // झींगुर
+      if(sc==='diya') _aEvery(2500,7000,()=>_aBurst(2400,1,0.03,0.12)); // दीये की चटक
+    } else if(sc==='dhoop'){
+      const d1=_aCtx.createOscillator(), g1=_aCtx.createGain();
+      d1.frequency.value=110; d1.type='sine'; g1.gain.value=0.05;
+      const d2=_aCtx.createOscillator(), g2=_aCtx.createGain();
+      d2.frequency.value=220.5; d2.type='sine'; g2.gain.value=0.025;
+      d1.connect(g1); g1.connect(_aMaster); d2.connect(g2); g2.connect(_aMaster);
+      d1.start(); d2.start(); _aNodes.push(d1,g1,d2,g2);              // ॐ-सा धीमा गूँज
+      _aEvery(12000,26000,()=>_aTone(880,'sine',0.10,0.005,2.4));     // कभी-कभी घंटी
+    } else if(sc==='snow'){
+      _aNoise('lowpass',500,0.5,0.07,0.09,0.03);                      // बर्फ़ीली शांत हवा
+    } else if(sc==='leaf'){
+      _aNoise('lowpass',400,0.5,0.07,0.11,0.04);
+      _aEvery(2200,6000,()=>_aBurst(2600,1.4,0.05,0.35));             // पत्तों की सरसराहट
+    } else if(sc==='sunset'){
+      _aNoise('lowpass',350,0.5,0.09,0.07,0.04);                      // रेगिस्तानी हवा
+      _aEvery(9000,22000,()=>{ _aTone(1900,'sine',0.035,0.02,0.25); setTimeout(()=>_aTone(1500,'sine',0.03,0.02,0.3),300); }); // दूर चिड़िया
+    } else if(sc==='holi'||sc==='fw'){
+      _aNoise('lowpass',600,0.5,0.045);
+      _aEvery(1600,4200,()=>{ _aBurst(900,0.8,0.16,0.3); if(sc==='fw') setTimeout(()=>_aBurst(3000,1.2,0.05,0.5),120); }); // पॉप+चरचराहट
+    } else { /* aurora/stars/orbs — अंतरिक्ष-हवा */
+      _aNoise('lowpass',300,0.5,0.06,0.05,0.03);
+      if(sc==='orbs') _aEvery(2500,6500,()=>_aTone(300+Math.random()*500,'sine',0.04,0.15,0.5)); // बुलबुले
+      if(sc==='stars'||sc==='aurora') _aEvery(9000,20000,()=>_aTone(1200+Math.random()*900,'triangle',0.02,0.4,1.6)); // झिलमिल
+    }
+  }catch(e){}
+}
+window.sndVol=function(v){
+  window._sndTouched=true;
+  _aVol=Math.max(0,Math.min(100,Number(v)))/100;
+  localStorage.setItem('vbe_ct_vol',String(Math.round(_aVol*100)));
+  const t=document.getElementById('as-volt'); if(t) t.textContent=Math.round(_aVol*100)+'%';
+  if(_aVol>0&&_aMuted){ _aMuted=false; localStorage.setItem('vbe_ct_mute','0'); const m=document.getElementById('as-mute'); if(m) m.textContent='🔊'; }
+  if(_aOn&&_aMaster){ _aMaster.gain.value=_aVol*_aLvlMul(); } else sndStart();
+};
+window.sndMute=function(){
+  window._sndTouched=true;
+  _aMuted=!_aMuted; localStorage.setItem('vbe_ct_mute',_aMuted?'1':'0');
+  const m=document.getElementById('as-mute'); if(m) m.textContent=_aMuted?'🔇':'🔊';
+  if(_aMuted) sndStop(); else sndStart();
+};
+function sndSyncUI(){
+  const m=document.getElementById('as-mute'), v=document.getElementById('as-vol'), t=document.getElementById('as-volt');
+  if(m) m.textContent=_aMuted?'🔇':'🔊';
+  if(v) v.value=Math.round(_aVol*100);
+  if(t) t.textContent=Math.round(_aVol*100)+'%';
+}
 function applyScene(){
   _bgCv=_bgCv||document.getElementById('bgfx'); if(!_bgCv)return;
-  if(_anim==='off'||_scene==='none'){ if(_bgRAF){cancelAnimationFrame(_bgRAF);_bgRAF=0;} if(_bgX)_bgX.clearRect(0,0,_bgW,_bgH); _bgCv.style.display='none'; return; }
+  if(_anim==='off'||_scene==='none'){ if(_bgRAF){cancelAnimationFrame(_bgRAF);_bgRAF=0;} if(_bgX)_bgX.clearRect(0,0,_bgW,_bgH); _bgCv.style.display='none'; sndStop(); return; }
   _bgCv.style.display='';
   if(!_bgX)_bgX=_bgCv.getContext('2d');
   bgResize(); bgInit();
+  _bgHoli=[]; _bgBolt=null; _bgFlash=0;
   if(!_bgRAF)_bgRAF=requestAnimationFrame(bgLoop);
+  if(_aCtx||_aOn||(!_aMuted&&_aVol>0&&window._sndTouched)) sndStart(); // gesture के बाद ही
 }
 addEventListener('resize',()=>{ if(_bgCv&&_bgCv.style.display!=='none'){ bgResize(); bgInit(); } });
-document.addEventListener('visibilitychange',()=>{ _bgPaused=document.hidden; });
+document.addEventListener('visibilitychange',()=>{ _bgPaused=document.hidden;
+  try{ if(_aCtx){ if(document.hidden) _aCtx.suspend(); else if(_aOn) _aCtx.resume(); } }catch(e){} });
 async function saveAnimPref(){
+  try{ if(_aOn&&_aMaster) _aMaster.gain.value=_aVol*_aLvlMul(); }catch(e){} // level → आवाज़ का ज़ोर भी
   try{ window._settings=window._settings||{}; window._settings.animScene=_scene; window._settings.animLevel=_anim;
     await setDoc(doc(db,'vbe_call_tracker','_settings'),{id:'_settings',animScene:_scene,animLevel:_anim},{merge:true}); }catch(e){}
 }
@@ -6164,6 +6435,7 @@ function scenePreview(k){
   }
 }
 window.openAnimStudio=function(){
+  window._sndTouched=true; setTimeout(()=>{ try{ sndSyncUI(); }catch(e){} },80);
   const g=document.getElementById('as-grid');
   g.innerHTML=BG_SCENES.map(s=>`<div class="as-scene ${s.k===_scene?'on':''}" data-k="${s.k}" onclick="pickScene('${s.k}')">
       <div class="pv" style="background:${scenePreview(s.k)}"></div><span class="tick">✓</span>
@@ -6174,6 +6446,7 @@ window.openAnimStudio=function(){
 };
 window.closeAnimStudio=function(){ document.getElementById('anim-studio').classList.remove('on'); };
 window.pickScene=function(k){
+  window._sndTouched=true;
   _scene=k; localStorage.setItem('vbe_ct_scene',k); applyScene(); saveAnimPref();
   document.querySelectorAll('#as-grid .as-scene').forEach(e=>e.classList.toggle('on',e.dataset.k===k));
 };

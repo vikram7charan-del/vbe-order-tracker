@@ -1293,6 +1293,31 @@ async function handleUpdate(col, data, update, ownerChat){
     } else if(cd==='bm|team'){
       calls.push({method:'answerCallbackQuery',body:{callback_query_id:cq.id,text:'👥'}});
       calls.push({method:'sendMessage',body:{chat_id:chat,parse_mode:'Markdown',text:teamScore(data,now)}});
+    } else if((m=cd.match(/^pgc\|(\d+)$/))){
+      // 📞 calls digest — अगला/पिछला page (वही message बदलता है)
+      const dgst=callsDigest(data, Date.now(), Number(m[1]));
+      calls.push({method:'answerCallbackQuery',body:{callback_query_id:cq.id,text:'📞'}});
+      const body={chat_id:chat,message_id:cq.message.message_id,text:dgst.text,parse_mode:'Markdown',disable_web_page_preview:true};
+      if(dgst.reply_markup) body.reply_markup=dgst.reply_markup;
+      calls.push({method:'editMessageText',body});
+    } else if((m=cd.match(/^pgt\|(\d+)$/))){
+      // ⏰ tasks digest — pagination
+      const dgst=dueTasksDigest(data, Date.now(), Number(m[1]));
+      calls.push({method:'answerCallbackQuery',body:{callback_query_id:cq.id,text:'⏰'}});
+      const body={chat_id:chat,message_id:cq.message.message_id,text:dgst.text,parse_mode:'Markdown',disable_web_page_preview:true};
+      if(dgst.reply_markup) body.reply_markup=dgst.reply_markup;
+      calls.push({method:'editMessageText',body});
+    } else if((m=cd.match(/^cdn\|(.+)\|(\d+)$/))){
+      // ✅ call निपटी → nextCallAt साफ़ + उसी page पर digest ताज़ा
+      const r=await applyCallDone(col, m[1]); dirty=true;
+      calls.push({method:'answerCallbackQuery',body:{callback_query_id:cq.id,text:r.ok?'✅ call निपटी':'नहीं मिला'}});
+      if(r.ok){
+        const c2=data.contacts.find(z=>z.id===m[1]); if(c2) c2.nextCallAt=null; // memory भी
+        const dgst=callsDigest(data, Date.now(), Number(m[2]));
+        const body={chat_id:chat,message_id:cq.message.message_id,text:dgst.text,parse_mode:'Markdown',disable_web_page_preview:true};
+        if(dgst.reply_markup) body.reply_markup=dgst.reply_markup;
+        calls.push({method:'editMessageText',body});
+      }
     } else if((m=cd.match(/^lk\|(.+)$/))){
       // 👥 owner ने staff चुना → code + deep link + QR (memory data)
       const r=await makeLinkCode(col, data, m[1]);
@@ -1481,6 +1506,69 @@ async function handleUpdate(col, data, update, ownerChat){
   return {calls,dirty,ownerChat:newOwner};
 }
 
+/* ══ 📞⏰ RICH DIGESTS — नाम+नंबर(tap-call)+काम+कितना लेट, 6-8 प्रति page,
+   ➡️ अगले-बटन से pagination (pgc/pgt), per-entry ✅ (cdn / d|) ══ */
+function _dueCalls(data, now){
+  return activeC(data.contacts)
+    .filter(c=>c.nextCallAt&&new Date(c.nextCallAt).getTime()<=now)
+    .sort((a,b)=>new Date(a.nextCallAt).getTime()-new Date(b.nextCallAt).getTime());
+}
+function callsDigest(data, now, start){
+  const due=_dueCalls(data, now);
+  if(!due.length) return {text:'📞 कोई call बाकी नहीं ✓'};
+  let s0=Number(start)||0; if(s0>=due.length) s0=0;
+  const page=due.slice(s0,s0+6);
+  const lateN=due.filter(c=>now-new Date(c.nextCallAt).getTime()>3600e3).length;
+  let text=`📞 *${due.length} calls बाकी* · 🔴 ${lateN} बहुत लेट (${s0+1}–${s0+page.length}/${due.length})\n`;
+  page.forEach((c,i)=>{
+    const late=now-new Date(c.nextCallAt).getTime();
+    const tks=topics(c).filter(x=>!x.done&&!x.rvw).slice(0,2);
+    const ph=c.phone||c.waPhone||''; const dig=_phoneDigits(ph);
+    text+=`\n*${s0+i+1}. ${mdSafe(c.name||'?')}*${late>0?' — 🔴 '+fmtDur(late)+' लेट':''}\n`;
+    if(dig) text+=telLink(ph,dig)+'\n';
+    tks.forEach(x=>{ text+='   📋 '+mdSafe((x.t||'').slice(0,64))+'\n'; });
+  });
+  text+='\nनीचे नंबर दबाकर call निपटाओ 👇';
+  const rows=[];
+  for(let i=0;i<page.length;i+=3)
+    rows.push(page.slice(i,i+3).map((c,j)=>({text:'✅ '+(s0+i+j+1),callback_data:('cdn|'+c.id+'|'+s0).slice(0,64)})));
+  const nav=[];
+  if(s0>0) nav.push({text:'◀️ पिछले',callback_data:'pgc|'+Math.max(0,s0-6)});
+  if(s0+6<due.length) nav.push({text:'➡️ अगले '+Math.min(6,due.length-s0-6)+' देखें',callback_data:'pgc|'+(s0+6)});
+  if(nav.length) rows.push(nav);
+  return {text:text.slice(0,4050), reply_markup:{inline_keyboard:rows}};
+}
+function dueTasksDigest(data, now, start){
+  const L=allTasks(data.contacts)
+    .filter(x=>!x.done&&!x.rvw&&x.at&&new Date(x.at).getTime()<=now)
+    .sort((a,b)=>new Date(a.at).getTime()-new Date(b.at).getTime());
+  if(!L.length) return {text:'⏰ किसी काम का समय बाकी नहीं ✓'};
+  let s0=Number(start)||0; if(s0>=L.length) s0=0;
+  const page=L.slice(s0,s0+8);
+  let text=`⏰ *${L.length} कामों का समय हो गया* (${s0+1}–${s0+page.length}/${L.length})\n`;
+  page.forEach((x,i)=>{
+    const late=now-new Date(x.at).getTime();
+    const dig=_phoneDigits(x.phone);
+    text+=`\n*${s0+i+1}.* ${mdSafe((x.t||'').slice(0,70))}\n   👤 ${mdSafe(x.name||'?')}${late>0?' · 🔴 '+fmtDur(late)+' लेट':''}${dig?'\n   '+telLink(x.phone,dig):''}\n`;
+  });
+  text+='\nनीचे नंबर दबाकर पूरा करो 👇';
+  const rows=[];
+  for(let i=0;i<page.length;i+=4)
+    rows.push(page.slice(i,i+4).map((x,j)=>({text:'✅ '+(s0+i+j+1),callback_data:('d|'+x.cid+'|'+x.ti).slice(0,64)})));
+  const nav=[];
+  if(s0>0) nav.push({text:'◀️ पिछले',callback_data:'pgt|'+Math.max(0,s0-8)});
+  if(s0+8<L.length) nav.push({text:'➡️ अगले '+Math.min(8,L.length-s0-8)+' काम देखें',callback_data:'pgt|'+(s0+8)});
+  if(nav.length) rows.push(nav);
+  return {text:text.slice(0,4050), reply_markup:{inline_keyboard:rows}};
+}
+/* ✅ call निपटी — nextCallAt साफ़ */
+async function applyCallDone(col, cid){
+  const dc=await col.doc(cid).get(); if(!dc.exists) return {ok:false};
+  const c=dc.data();
+  await col.doc(cid).set({nextCallAt:null, lastCallAt:new Date().toISOString()},{merge:true});
+  return {ok:true, name:c.name||''};
+}
+
 /* ⚡ app से जुड़े नए काम → push (poller/scheduled के लिए)। calls लौटाता है। */
 async function autoPushNew(col, data, ownerChat){
   const calls=[];
@@ -1516,5 +1604,6 @@ module.exports={
   tgStaff, staffByChat, staffTasks, staffDigest, teamContacts, teamScore,
   staffLinkAttempt, makeLinkCode, linkPickMsg, autoPushStaffDigest, logEv,
   staffFocusDigest, autoPushFocusHourly, lateBadge, focusItemGuard, autoPushQueued, mdSafe,
-  geminiAsk, geminiAudio, brainContext, brainMenu, brainAnswer, brainReply, handleVoiceNote
+  geminiAsk, geminiAudio, brainContext, brainMenu, brainAnswer, brainReply, handleVoiceNote,
+  callsDigest, dueTasksDigest, applyCallDone
 };

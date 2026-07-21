@@ -1308,6 +1308,14 @@ body.hdr-folded .hdr-row2{display:none}
   </div>
 </div>
 
+<!-- 🧰 TASK SHEET — card पर काम दबाते ही पूरा action popup (universal) -->
+<div class="modal-bg" id="m-tsheet" style="z-index:292" onclick="if(event.target===this)tsClose()">
+  <div class="modal-box" id="ts-card" style="max-width:340px">
+    <div class="modal-title"><span id="ts-title">🧰 काम</span><span class="modal-x" onclick="tsClose()">✕</span></div>
+    <div id="ts-body"></div>
+  </div>
+</div>
+
 <!-- 🔗 WhatsApp भेजो — पहले देखो/सुधारो -->
 <div class="modal-bg" id="m-lcwa" style="z-index:294" onclick="if(event.target===this)closeModal('m-lcwa')">
   <div class="modal-box">
@@ -2357,13 +2365,48 @@ function delegateMsg(delegateName, task, srcC, tags){
   m+='📌 *कार्य:* '+task+'\n';
   if(srcC&&srcC.name) m+='👤 *सम्बंधित व्यक्ति:* '+srcC.name+'\n';
   if(srcC&&(srcC.phone||srcC.waPhone)) m+='📱 *Number:* '+(srcC.phone||srcC.waPhone)+'\n';
-  if(tags) m+='🏷️ *Tag:* '+tags+'\n';
   m+='━━━━━━━━━━━\nकृपया update देकर अवगत कराएँ। — विक्रम चारण, VBE, बाड़मेर';
   return m;
 }
 window.delegateSend=function(cid,i,lcId){
   try{ if(typeof closeLcAct==='function') closeLcAct(); }catch(e){}
   openDelegate(cid,i,lcId); // दो-message popup (staff + party)
+};
+/* ══ 🧰 TASK SHEET — card-theme में काम पर tap → पूरा action popup ══
+   (नाम+नीचे काम वाले card पर काम की पंक्ति दबाते ही — link/assign/सौंपो/edit/message सब) */
+window.tsClose=function(){ document.getElementById('m-tsheet').classList.remove('open'); };
+function tsBtn(icon,label,fn,style){
+  return `<div class="press" onclick="tsClose();${fn}" style="cursor:pointer;display:flex;align-items:center;gap:9px;padding:11px 12px;border-radius:12px;border:1.5px solid ${style||'rgba(30,58,95,.7)'};background:#060d1a;touch-action:manipulation">
+    <span style="font-size:17px;width:24px;text-align:center;flex-shrink:0">${icon}</span>
+    <span style="font-size:12.5px;font-weight:800;color:#cbd5e1;line-height:1.3">${label}</span></div>`;
+}
+window.openTaskSheet=function(cid,i){
+  const c=contacts.find(x=>x.id===cid); if(!c) return;
+  const tps=normTopics(c); const x=tps[i]; if(!x) return;
+  const ci=catInfo(x.cat); const inF=taskInFocus(cid,i);
+  const a=`'${cid}',${i}`;
+  document.getElementById('ts-title').textContent='🧰 '+(c.name||'?');
+  document.getElementById('ts-body').innerHTML=`
+    <div style="background:#060d1a;border:1.5px solid ${x.dg?'rgba(236,72,153,.5)':inF?'var(--focus-color)':'rgba(30,58,95,.7)'};border-radius:12px;padding:10px 12px;margin-bottom:11px">
+      <div style="font-size:14px;font-weight:800;color:#fcd34d;line-height:1.45;word-break:break-word">${inF?'<span class="fk-badge">🎯</span> ':''}${x.pri==='high'?'🔴 ':''}${ci?ci.logo+' ':''}${escH(x.t)}</div>
+      ${x.assignTo?`<div style="font-size:10.5px;color:#4ade80;font-weight:800;margin-top:3px">👤 ${escH(staffName(x.assignTo))} को सौंपा हुआ</div>`:''}
+      ${x.at?`<div style="font-size:10px;color:#93c5fd;font-weight:700;margin-top:2px">📅 ${schedLabel(x.at)}</div>`:''}
+      <div style="margin-top:2px">${linkChipsHTML(cid,i,x)}${taskBadges(x)}</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+      ${tsBtn('✅','काम पूरा हुआ',`doneTopic(${a})`,'rgba(34,197,94,.55)')}
+      ${tsBtn('✏️','सुधारो (edit)',`spEditTask(${a})`,'rgba(251,191,36,.5)')}
+      ${tsBtn('🔗','Contact जोड़ो',`spLinkTask(${a})`,'rgba(255,45,120,.55)')}
+      ${tsBtn('📤','ज़िम्मेदारी सौंपो',`openDelegate(${a})`,'rgba(236,72,153,.55)')}
+      ${tsBtn('👤','Staff को सौंपो',`spPickAssign(${a})`,'rgba(34,197,94,.4)')}
+      ${tsBtn('💬','छोटा message',`spTaskWA(${a})`,'rgba(37,211,102,.5)')}
+      ${tsBtn('🎯','Focus घड़ी',`openFocusPick(${a})`,'rgba(245,158,11,.55)')}
+      ${tsBtn('⏰','Reminder/तारीख',`spSchedTask(${a})`,'rgba(59,130,246,.5)')}
+      ${tsBtn(ci?ci.logo:'🏷️','श्रेणी बदलो',`spPickCat(${a})`)}
+      ${tsBtn(x.pri==='high'?'🔴':'⚪','ज़रूरी काम',`spTogglePri(${a})`,x.pri==='high'?'rgba(239,68,68,.6)':undefined)}
+    </div>
+    <div class="press" onclick="tsClose();openSmartPop('${cid}')" style="cursor:pointer;text-align:center;margin-top:9px;font-size:11px;font-weight:800;color:#94a3b8;padding:8px;border:1px dashed rgba(100,116,139,.4);border-radius:10px">📋 पूरा card खोलो (सब काम एक साथ)</div>`;
+  document.getElementById('m-tsheet').classList.add('open');
 };
 /* 🔍 REVIEW PENDING — बिना PIN focus-काम पूरा करने की कोशिश → यहाँ आए */
 function reviewPending(){
@@ -2716,10 +2759,10 @@ function topicListHTML(c){
   return `<div class="c-topics">${act.map((x,n)=>{
     const ci=catInfo(x.cat);
     const inF=taskInFocus(c.id,x.i);
-    return `<div class="c-topic" ${inF?'style="text-shadow:0 0 10px var(--focus-glow)"':''}><span class="tp-chk" onclick="event.stopPropagation();doneTopic('${c.id}',${x.i})"></span>${inF?'<span class="fk-badge">🎯</span> ':''}${x.pri==='high'?'🔴 ':''}${ci?ci.logo+' ':''}${multi?`<span class="tnum">${n+1}.</span>`:''}${escH(x.t)}${x.assignTo?` <span style="font-size:10px;color:#4ade80;font-weight:800">→👤${escH(staffName(x.assignTo))}</span>`:''}${linkChipsHTML(c.id,x.i,x)}${taskBadges(x)}</div>`;
+    return `<div class="c-topic" onclick="event.stopPropagation();openTaskSheet('${c.id}',${x.i})" style="cursor:pointer;${inF?'text-shadow:0 0 10px var(--focus-glow)':''}"><span class="tp-chk" onclick="event.stopPropagation();doneTopic('${c.id}',${x.i})"></span>${inF?'<span class="fk-badge">🎯</span> ':''}${x.pri==='high'?'🔴 ':''}${ci?ci.logo+' ':''}${multi?`<span class="tnum">${n+1}.</span>`:''}${escH(x.t)}${x.assignTo?` <span style="font-size:10px;color:#4ade80;font-weight:800">→👤${escH(staffName(x.assignTo))}</span>`:''}${linkChipsHTML(c.id,x.i,x)}${taskBadges(x)}</div>`;
   }).join('')}${asg.map(x=>{
     const ci=catInfo(x.cat);
-    return `<div class="c-topic" style="color:#86efac"><span class="tp-chk" style="border-color:#22c55e" onclick="event.stopPropagation();doneTopic('${x.srcId}',${x.i})"></span>${ci?ci.logo+' ':''}${escH(x.t)} <span style="font-size:10px;opacity:.7">(📌 ${escH(x.srcName)})</span></div>`;
+    return `<div class="c-topic" onclick="event.stopPropagation();openTaskSheet('${x.srcId}',${x.i})" style="color:#86efac;cursor:pointer"><span class="tp-chk" style="border-color:#22c55e" onclick="event.stopPropagation();doneTopic('${x.srcId}',${x.i})"></span>${ci?ci.logo+' ':''}${escH(x.t)} <span style="font-size:10px;opacity:.7">(📌 ${escH(x.srcName)})</span></div>`;
   }).join('')}</div>`;
 }
 /* 🕘 हल्का history-log — हर contact पर आख़िरी 40 बदलाव */
@@ -3406,7 +3449,7 @@ async function loadTgFeed(){
   if(!el) return;
   try{
     const snap=await getDocs(query(collection(db,'vbe_ct_events'),orderBy('at','desc'),limit(10)));
-    const L={done:'✅ किया',in_progress:'⏳ कर रहे हैं',blocked:'❌ अटका',snooze:'🕐 टाला',snooze_limit:'🚫 3 बार टाला',linked:'🔗 जुड़े',unlinked:'🔌 हटे',focus_push:'📤 focus भेजा'};
+    const L={done:'✅ किया',in_progress:'⏳ कर रहे हैं',blocked:'❌ अटका',snooze:'🕐 टाला',snooze_limit:'🚫 3 बार टाला',linked:'🔗 जुड़े',unlinked:'🔌 हटे',focus_push:'📤 focus भेजा',assigned:'👤 को काम सौंपा गया',reminder:'⏰ याद दिलाया'};
     const rows=[];
     snap.forEach(d=>{
       const e=d.data(); if(!e||!e.action) return;
@@ -4786,18 +4829,33 @@ window.bwAsFilter=function(v){
 window.bwPickTgl=function(n){ window._bwPick.has(n)?window._bwPick.delete(n):window._bwPick.add(n); bwAsFilter((document.getElementById('bw-asq')||{}).value||''); };
 window.bwPickAdd=function(n){ if(!window._bwNames.includes(n)) window._bwNames.push(n); window._bwPick.add(n); const q=document.getElementById('bw-asq'); if(q)q.value=''; bwAsFilter(''); };
 window.bwAssignApply=function(mode){
-  if(mode==='clear'){ bwPatch(t=>{ t.assignTo=''; }); toast('सौंपना हटाया'); return; }
+  if(mode==='clear'){ bwPatch(t=>{ t.assignTo=''; t.assignAt=''; }); toast('सौंपना हटाया'); return; }
   const picks=[...(window._bwPick||[])];
   if(!picks.length){ toast('पहले staff चुनो ☑️','warn'); return; }
+  // एक ही staff चुना और वह टीम-contact है → cid store करो (Telegram digest/reminder उसी से चलते हैं)
+  const solo=(mode==='set'&&picks.length===1)
+    ?staffList().find(s=>String(s.name||'').trim().toLowerCase()===picks[0].trim().toLowerCase()):null;
   bwPatch((t,c)=>{
     if(mode==='add'){
       const cur=String(t.assignTo||'').split(',').map(x=>x.trim()).filter(Boolean);
       picks.forEach(n=>{ if(!cur.some(x=>x.toLowerCase()===n.toLowerCase())) cur.push(n); });
       t.assignTo=cur.join(', ');
-    } else t.assignTo=picks.join(', ');
-    _logHist(c,'assign',t.t+' → '+t.assignTo);
+    } else t.assignTo=solo?solo.id:picks.join(', ');
+    t.assignAt=new Date().toISOString();
+    _logHist(c,'assign',t.t+' → '+(solo?solo.name:t.assignTo));
   });
   toast('👥 '+picks.join(', ')+' को सौंपा — '+_bwSel.size+' काम');
+  // 📩 वह staff Telegram से जुड़ा हो → bot से पूरा digest भिजवाओ (एक message में सारे काम)
+  if(solo){
+    const e=tgStaffList().find(x=>x.cid===solo.id&&x.chatId&&x.active!==false);
+    if(e){ (async()=>{ try{
+      const q=Array.isArray((window._settings||{}).tgPushQueue)?window._settings.tgPushQueue:[];
+      q.push({kind:'tasks',cid:solo.id,at:Date.now()});
+      window._settings.tgPushQueue=q;
+      await setDoc(doc(db,'vbe_call_tracker','_settings'),{id:'_settings',tgPushQueue:q},{merge:true});
+      toast('📩 '+solo.name.split(/\s+/)[0]+' जी को Telegram पर सूची जाएगी');
+    }catch(e2){} })(); }
+  }
 };
 /* ✏️ बिना खोले काम का text सुधारो */
 window.bwEditTxt=function(key){
@@ -5768,12 +5826,51 @@ window.pickAssign=function(sid){
   if(!c) return;
   const tps=normTopics(c);
   if(!tps[p.idx]) return;
+  const was=tps[p.idx].assignTo||'';
   tps[p.idx].assignTo=sid||'';
+  tps[p.idx].assignAt=sid?new Date().toISOString():''; // ⏰ reminder "X मिनट पहले" इसी से
   c.topics=tps;
   render(); fbSave(c);
   if(hubOpenNow()){ renderHub(); renderCatHub(); }
   toast(sid?('👤 '+staffName(sid)+' को सौंपा — उनके card पर भी दिखेगा'):'👤 Assignment हटाया');
+  if(sid&&sid!==was) tgNotifyAssign(c.id,p.idx,sid); // 📩 Telegram से जुड़ा staff → तुरंत सूचना
 };
+/* 📩 assign करते ही staff के Telegram पर काम + owner को पुष्टि।
+   सीधे भेजो; net fail → bot queue (kind:'assign') से 15 min में चला जाएगा। */
+async function tgNotifyAssign(cid,ti,sid){
+  const e=tgStaffList().find(x=>x.cid===sid&&x.chatId&&x.active!==false);
+  if(!e) return; // यह staff Telegram से जुड़ा ही नहीं — चुपचाप
+  const c=contacts.find(x=>x.id===cid); if(!c) return;
+  const t=normTopics(c)[ti]; if(!t||t.done) return;
+  const md=s=>String(s||'').replace(/([_*`\[])/g,'\\$1');
+  const nm=(staffName(sid)||e.name||'').split(/\s+/)[0]||'जी';
+  let text=`🙏 *${md(nm)} जी*, आपको एक नई ज़िम्मेदारी सौंपी गई है:\n━━━━━━━━━━━\n📌 *काम:* ${md(t.t)}\n`;
+  if(c.name) text+=`👤 *सम्बंधित:* ${md(c.name)}\n`;
+  const dg=_digOf(c.phone||c.waPhone||'');
+  if(dg) text+=`📱 ${md(c.phone||c.waPhone)}\n`;
+  text+='━━━━━━━━━━━\nहो जाए तो नीचे ✅ दबाइए। — विक्रम चारण, VBE';
+  const kb={inline_keyboard:[[
+    {text:'✅ काम हो गया',callback_data:('ud|'+cid+'|'+ti).slice(0,64)},
+    {text:'⏳ कर रहा हूँ',callback_data:('up|'+cid+'|'+ti).slice(0,64)}]]};
+  const queueIt=async(sent)=>{ try{
+    const q=Array.isArray((window._settings||{}).tgPushQueue)?window._settings.tgPushQueue:[];
+    q.push({kind:'assign',cid:sid,srcId:cid,ti,at:Date.now(),sent:!!sent});
+    window._settings.tgPushQueue=q;
+    await setDoc(doc(db,'vbe_call_tracker','_settings'),{id:'_settings',tgPushQueue:q},{merge:true});
+  }catch(e2){} };
+  try{
+    let j=await tgApiApp('sendMessage',{chat_id:e.chatId,parse_mode:'Markdown',disable_web_page_preview:true,text,reply_markup:kb});
+    if(!j.ok&&/parse|entit/i.test(j.description||''))
+      j=await tgApiApp('sendMessage',{chat_id:e.chatId,disable_web_page_preview:true,text:text.replace(/\\([_*`\[])/g,'$1').replace(/\*/g,''),reply_markup:kb});
+    if(!j.ok) throw new Error(j.description||'send fail');
+    toast('✅ '+nm+' जी को Telegram पर सूचित कर दिया गया');
+    await queueIt(true); // bot सिर्फ़ record (event-log) बनाएगा, दोबारा नहीं भेजेगा
+  }catch(err){
+    await queueIt(false); // bot भेजेगा + owner को Telegram पर पुष्टि देगा
+    toast('⏳ Telegram अभी नहीं गया — bot थोड़ी देर में खुद भेज देगा','warn');
+  }
+}
+window.tgNotifyAssign=tgNotifyAssign;
 window.pickCat=function(k){
   const p=_catPick;
   closeCatPick();

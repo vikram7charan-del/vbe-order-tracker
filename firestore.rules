@@ -246,6 +246,14 @@ service cloud.firestore {
       allow read, write, delete: if isAdmin();
     }
 
+    // vbe_ct_events — Telegram bot की append-only हलचल (Admin SDK लिखता है, rules bypass);
+    // app की "🔔 टीम की हलचल" feed को पढ़ने की इजाज़त चाहिए — edit/delete कभी नहीं
+    match /vbe_ct_events/{id} {
+      allow read: if isAdmin();
+      allow create: if isAdmin();
+      allow update, delete: if false;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

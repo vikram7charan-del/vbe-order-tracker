@@ -77,9 +77,12 @@ async function main() {
         // 🎯 Focus hourly push — बदलाव हो तभी (dedupe hash), 22:30–6:30 शांति, 24h+ लेट → owner alert
         const fp = await tg.autoPushFocusHourly(col, s);
         for (const c of fp) await tgApi(tok, c.method, c.body);
-        // 📬 app के 📤 बटन की queue (net/CORS fail fallback)
+        // 📬 app के 📤 बटन + assign की queue (net/CORS fail fallback)
         const pq = await tg.autoPushQueued(col, s);
         for (const c of pq) await tgApi(tok, c.method, c.body);
+        // ⏰ सौंपे कामों की random (15-26 min) याद-दहानी — rotation, 21:00-08:00 शांति
+        const rm = await tg.autoPushStaffReminder(col, s);
+        for (const c of rm) await tgApi(tok, c.method, c.body);
         // 💰 यही एक read सबकुछ करे: data भी ताज़ा (settings/ownerChat बचाकर) —
         // ताकि हर write पर अलग से पूरी collection दोबारा न पढ़नी पड़े।
         s.settings = Object.assign({}, s.settings, { tgChatId: data.settings.tgChatId });

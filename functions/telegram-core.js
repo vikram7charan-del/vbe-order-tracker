@@ -1008,12 +1008,36 @@ async function autoPushQueued(col, data){
   if(!q.length) return calls;
   const now=Date.now();
   const list=tgStaff(data); let changed=false;
+  const ownerChat=data.settings.tgChatId?String(data.settings.tgChatId):'';
   for(const req of q.slice(0,6)){
     if(!req||!req.cid) continue;
     if(req.at&&now-Number(req.at)>2*3600e3) continue;      // 2 घंटे पुराना — छोड़ो
     const s=list.find(x=>x.cid===req.cid);
     if(!s||!s.chatId) continue;
-    const dg=(s.own&&focusItemsOf(data,s.own).length)
+    // 👤 app से assign हुआ → staff को काम + owner को पुष्टि (app भेज चुका हो तो सिर्फ़ record)
+    if(req.kind==='assign'){
+      const src=data.contacts.find(x=>x.id===req.srcId);
+      const t=src?topics(src)[Number(req.ti)]:null;
+      if(!t||t.done) continue;
+      const sName=staffNameOf(data,s.cid)||s.name||'';
+      if(!req.sent){
+        const nm=(sName||'').split(/\s+/)[0]||'जी';
+        let text=`🙏 *${mdSafe(nm)} जी*, आपको एक नई ज़िम्मेदारी सौंपी गई है:\n━━━━━━━━━━━\n📌 *काम:* ${mdSafe(t.t||'')}\n`;
+        if(src.name) text+=`👤 *सम्बंधित:* ${mdSafe(src.name)}\n`;
+        const dig=_phoneDigits(src.phone||'');
+        if(dig) text+=telLink(src.phone,dig)+'\n';
+        text+='━━━━━━━━━━━\nहो जाए तो नीचे ✅ दबाइए। — विक्रम चारण, VBE';
+        calls.push({method:'sendMessage',body:{chat_id:s.chatId,parse_mode:'Markdown',disable_web_page_preview:true,text,
+          reply_markup:{inline_keyboard:[[
+            {text:'✅ काम हो गया',callback_data:('ud|'+req.srcId+'|'+req.ti).slice(0,64)},
+            {text:'⏳ कर रहा हूँ',callback_data:('up|'+req.srcId+'|'+req.ti).slice(0,64)}]]}}});
+        if(ownerChat) calls.push({method:'sendMessage',body:{chat_id:ownerChat,disable_web_page_preview:true,
+          text:`✅ ${sName} को Telegram पर सूचित कर दिया गया — "${(t.t||'').slice(0,50)}" (${istHM(now)})`}});
+      }
+      await logEv(col,{action:'assigned',staff:s.cid,staffName:sName,cid:req.srcId,ti:Number(req.ti),task:(t.t||'').slice(0,80),via:req.sent?'app':'bot'});
+      continue;
+    }
+    const dg=(req.kind!=='tasks'&&s.own&&focusItemsOf(data,s.own).length)
       ?staffFocusDigest(data,s,now,req.mode||s.pref||'detailed',Number(req.start)||0)
       :staffDigest(data,s,now);
     calls.push({method:'sendMessage',body:Object.assign({chat_id:s.chatId,parse_mode:'Markdown',disable_web_page_preview:true,text:dg.text},dg.reply_markup?{reply_markup:dg.reply_markup}:{})});
@@ -1021,6 +1045,41 @@ async function autoPushQueued(col, data){
     await logEv(col,{action:'focus_push',staff:s.cid,staffName:staffNameOf(data,s.cid)||s.name,trigger:'app-queue'});
   }
   await col.doc('_settings').set({tgPushQueue:[]},{merge:true}); data.settings.tgPushQueue=[];
+  if(changed) await saveTgStaff(col,data,list);
+  return calls;
+}
+/* ⏰ सौंपे काम की random याद-दहानी — हर staff को 15-26 min के random अंतर पर,
+   एक बार में एक ही काम, वही काम लगातार दो बार नहीं (rotation), रात 21:00–08:00 शांति।
+   हर भेजा reminder vbe_ct_events में record → owner की हलचल feed में दिखता है। */
+function _remGap(){ return (15+Math.floor(Math.random()*12))*60000; } // 15-26 min
+async function autoPushStaffReminder(col, data, now){
+  const calls=[]; now=now||Date.now();
+  const istH=Number(new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Kolkata',hour:'numeric',hour12:false}).format(new Date(now)));
+  if(istH<8||istH>=21) return calls; // 🌙 quiet hours
+  const list=tgStaff(data); let changed=false;
+  for(const s of list){
+    if(!s.chatId||s.active===false) continue;
+    const tasks=staffTasks(data,s.cid,now); // हर pending सौंपा काम reminder के दायरे में
+    if(!tasks.length){ if(s.nextRemAt){ s.nextRemAt=0; changed=true; } continue; }
+    if(!s.nextRemAt||Number(s.nextRemAt)<now-3*3600e3){ s.nextRemAt=now+_remGap(); changed=true; continue; }
+    if(now<Number(s.nextRemAt)) continue;
+    // 🔁 rotation — पिछली बार वाला काम फिर नहीं (एक से ज़्यादा हों तो)
+    let pool=tasks;
+    if(tasks.length>1&&s.lastRemKey) pool=tasks.filter(t=>(t.cid+'|'+t.ti)!==s.lastRemKey);
+    const t=pool[Math.floor(Math.random()*pool.length)];
+    const sName=staffNameOf(data,s.cid)||s.name||'';
+    const nm=(sName||'').split(/\s+/)[0]||'जी';
+    const asg=t.assignAt?new Date(t.assignAt).getTime():(t.dg&&t.dg.at?new Date(t.dg.at).getTime():0);
+    const ago=asg&&asg<now?(now-asg<3600e3?Math.max(1,Math.round((now-asg)/60000))+' मिनट':fmtDur(now-asg))+' पहले ':'';
+    const text=`⏰ *${mdSafe(nm)} जी*, ${ago}आपको यह ज़िम्मेदारी सौंपी गई थी:\n📌 "${mdSafe((t.t||'').slice(0,90))}"${t.cname?'\n👤 '+mdSafe(t.cname):''}\n\nआपने इस पर क्या कार्रवाई की?`;
+    calls.push({method:'sendMessage',body:{chat_id:s.chatId,parse_mode:'Markdown',disable_web_page_preview:true,text,
+      reply_markup:{inline_keyboard:[[
+        {text:'✅ काम हो गया',callback_data:('ud|'+t.cid+'|'+t.ti).slice(0,64)},
+        {text:'⏳ कर रहा हूँ',callback_data:('up|'+t.cid+'|'+t.ti).slice(0,64)},
+        {text:'❌ दिक्कत',callback_data:('ub|'+t.cid+'|'+t.ti).slice(0,64)}]]}}});
+    s.lastRemKey=t.cid+'|'+t.ti; s.nextRemAt=now+_remGap(); changed=true;
+    await logEv(col,{action:'reminder',staff:s.cid,staffName:sName,cid:t.cid,ti:t.ti,task:(t.t||'').slice(0,80)});
+  }
   if(changed) await saveTgStaff(col,data,list);
   return calls;
 }
@@ -1603,7 +1662,7 @@ module.exports={
   handleUpdate, autoPushNew, autoPushFocus, autoPushNudge, autoPushMenu,
   tgStaff, staffByChat, staffTasks, staffDigest, teamContacts, teamScore,
   staffLinkAttempt, makeLinkCode, linkPickMsg, autoPushStaffDigest, logEv,
-  staffFocusDigest, autoPushFocusHourly, lateBadge, focusItemGuard, autoPushQueued, mdSafe,
+  staffFocusDigest, autoPushFocusHourly, lateBadge, focusItemGuard, autoPushQueued, autoPushStaffReminder, mdSafe,
   geminiAsk, geminiAudio, brainContext, brainMenu, brainAnswer, brainReply, handleVoiceNote,
   callsDigest, dueTasksDigest, applyCallDone
 };

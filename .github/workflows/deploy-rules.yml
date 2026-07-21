@@ -36,7 +36,14 @@ jobs:
         env:
           FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
         run: printf '%s' "$FIREBASE_SA" > "$RUNNER_TEMP/sa.json"
-      - name: Deploy Firestore + Storage rules
+      - name: Deploy Firestore rules
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/sa.json
-        run: npx firebase-tools@latest deploy --only firestore:rules,storage --project vbe-order-tracker-60324 --non-interactive
+        run: npx firebase-tools@latest deploy --only firestore:rules --project vbe-order-tracker-60324 --non-interactive
+      # Storage console में अभी set up नहीं है — जब तक 'Get Started' न दबे,
+      # storage rules deploy fail होगा; इसलिए अलग step, fail होने पर भी बाकी न रुके
+      - name: Deploy Storage rules (best-effort)
+        continue-on-error: true
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/sa.json
+        run: npx firebase-tools@latest deploy --only storage --project vbe-order-tracker-60324 --non-interactive

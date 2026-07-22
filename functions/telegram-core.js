@@ -984,7 +984,9 @@ async function autoPushFocusHourly(col, data){
     const fs=focusItemsOf(data, s.own);
     if(!fs.length) continue;
     if(now-Number(s.lastFocusAt||0)<55*60000) continue;   // ~हर घंटे
-    const hash=fs.map(f=>f.key+':'+lateBadge(now-(f.until||now))).join('|');
+    // ⚠️ dedup key में lateBadge मत डालो — वह वक़्त के साथ बदलता है (2h→3h→…) और
+    // वही message बार-बार भेज देता है (A1 spam-loop की जड़)। सिर्फ़ काम-set बदले तभी नया।
+    const hash=fs.map(f=>f.key).sort().join('|');
     if(hash===s.lastFocusHash && now-Number(s.lastFocusAt||0)<6*3600e3) continue; // कुछ नया नहीं → चुप
     const dg=staffFocusDigest(data, s, now, s.pref||'detailed');
     calls.push({method:'sendMessage',body:Object.assign({chat_id:s.chatId,parse_mode:'Markdown',disable_web_page_preview:true,text:dg.text},dg.reply_markup?{reply_markup:dg.reply_markup}:{})});
@@ -1037,6 +1039,36 @@ async function autoPushQueued(col, data){
       await logEv(col,{action:'assigned',staff:s.cid,staffName:sName,cid:req.srcId,ti:Number(req.ti),task:(t.t||'').slice(0,80),via:req.sent?'app':'bot'});
       continue;
     }
+    // 📤 app से delegation / 👁️ overseer नियुक्त → दोनों पक्षों की पूरी जानकारी भेजो (Part D3)
+    if(req.kind==='delegate'){
+      const src=data.contacts.find(x=>x.id===req.srcId);
+      const t=src?topics(src)[Number(req.ti)]:null;
+      if(!t||t.done) continue;
+      const rName=staffNameOf(data,s.cid)||s.name||''; const isOver=req.role==='overseer';
+      if(!req.sent){
+        const nm=(rName||'').split(/\s+/)[0]||'जी';
+        const pDig=_phoneDigits(src.phone||src.waPhone||'');
+        // staff = जिसे काम सौंपा (assignTo या dg.to)
+        const stName=t.assignTo?staffNameOf(data,t.assignTo):(t.dg&&t.dg.to?t.dg.to:'');
+        const stPhone=t.dg&&t.dg.phone?t.dg.phone:'';
+        let text=isOver
+          ?`👁️ *${mdSafe(nm)} जी* — आपको इस काम की देखरेख (Overseer) सौंपी गई है:\n━━━━━━━━━━━\n📌 *काम:* ${mdSafe(t.t||'')}\n`
+          :`🙏 *${mdSafe(nm)} जी*, आपको एक ज़िम्मेदारी सौंपी गई है:\n━━━━━━━━━━━\n📌 *काम:* ${mdSafe(t.t||'')}\n`;
+        text+=`\n🧑‍🤝‍🧑 *पार्टी:* ${mdSafe(src.name||'')}`+(pDig?'\n'+telLink(src.phone||src.waPhone,pDig):'')+'\n';
+        if(stName) text+=`👤 *Staff:* ${mdSafe(stName)}`+(stPhone?' — '+mdSafe(stPhone):'')+'\n';
+        if(t.at) text+=`⏰ *Deadline:* ${istParts(t.at)} ${istHM(t.at)}\n`;
+        text+=`🗓️ सौंपा: ${istHM(now)}\n━━━━━━━━━━━\n${isOver?'दोनों तरफ़ नज़र रखिए।':'हो जाए तो नीचे ✅ दबाइए।'} — विक्रम चारण, VBE`;
+        calls.push({method:'sendMessage',body:{chat_id:s.chatId,parse_mode:'Markdown',disable_web_page_preview:true,text,reply_markup:_remKb({cid:req.srcId,ti:req.ti})}});
+        if(ownerChat) calls.push({method:'sendMessage',body:{chat_id:ownerChat,disable_web_page_preview:true,
+          text:`✅ ${rName} को ${isOver?'देखरेख (Overseer) की':''} Telegram सूचना भेज दी — "${(t.t||'').slice(0,50)}" (${istHM(now)})`}});
+      }
+      // notif-state दर्ज → reminders अब इसी काम को follow करेंगे (पहला reminder ~20 min बाद)
+      const map=notifMap(data); const k=notifKey(req.srcId,req.ti,s.cid);
+      map[k]=Object.assign({cid:req.srcId,ti:Number(req.ti),rcpt:s.cid,rcptName:rName,firstSentAt:now,sendCount:1,status:'pending'},map[k]||{},{lastSentAt:now,nextDueAt:now+_remGap(),lastOk:true});
+      await saveNotif(col,data,map);
+      await logEv(col,{action:isOver?'overseer':'delegated',staff:s.cid,staffName:rName,cid:req.srcId,ti:Number(req.ti),task:(t.t||'').slice(0,80),via:req.sent?'app':'bot'});
+      continue;
+    }
     const dg=(req.kind!=='tasks'&&s.own&&focusItemsOf(data,s.own).length)
       ?staffFocusDigest(data,s,now,req.mode||s.pref||'detailed',Number(req.start)||0)
       :staffDigest(data,s,now);
@@ -1048,38 +1080,102 @@ async function autoPushQueued(col, data){
   if(changed) await saveTgStaff(col,data,list);
   return calls;
 }
-/* ⏰ सौंपे काम की random याद-दहानी — हर staff को 15-26 min के random अंतर पर,
-   एक बार में एक ही काम, वही काम लगातार दो बार नहीं (rotation), रात 21:00–08:00 शांति।
-   हर भेजा reminder vbe_ct_events में record → owner की हलचल feed में दिखता है। */
-function _remGap(){ return (15+Math.floor(Math.random()*12))*60000; } // 15-26 min
+/* ══════════════════════════════════════════════════════════
+   📋 NOTIFICATION-STATE MACHINE (Part A1 — spam-loop व नई delegation fix)
+   एक ही जगह हर delegated/assigned काम की भेज-स्थिति:
+   _settings.ctNotif[key] = {cid,ti,rcpt,rcptName,firstSentAt,lastSentAt,
+                             sendCount,nextDueAt,status,lastOk,lastError}
+   key = cid|ti|rcpt। यही dedup + rotation + delivery-log का सच है।
+   ══════════════════════════════════════════════════════════ */
+function notifMap(data){ return (data.settings.ctNotif&&typeof data.settings.ctNotif==='object')?data.settings.ctNotif:{}; }
+function notifKey(cid,ti,rcpt){ return cid+'|'+ti+'|'+rcpt; }
+async function saveNotif(col, data, map){ await col.doc('_settings').set({ctNotif:map},{merge:true}); data.settings.ctNotif=map; }
+/* interval 18-25 min (Part A1.2) */
+function _remGap(){ return (18+Math.floor(Math.random()*8))*60000; }
+/* किसी काम के पूरे/टलने पर उसकी सारी notif-state साफ़ (reminders रुकें) */
+function clearNotifForTask(map, cid, ti){
+  let ch=false; Object.keys(map).forEach(k=>{ const n=map[k]; if(n&&n.cid===cid&&Number(n.ti)===Number(ti)){ delete map[k]; ch=true; } });
+  return ch;
+}
+/* इस recipient (staff/overseer) को अभी किन कामों की याद देनी है */
+function pendingForRcpt(data, rcptCid, now){
+  const out=[];
+  activeC(data.contacts).forEach(c=>{
+    if(c.id===rcptCid) return;
+    topics(c).forEach((x,i)=>{
+      if(x.done||x.rvw) return;
+      if(x.snoozeUntil&&Number(x.snoozeUntil)>now) return;
+      const isAssign=x.assignTo===rcptCid;
+      const isDeleg=x.dg&&x.dg.id===rcptCid;
+      const isOver=x.overseer&&x.overseer.id===rcptCid;
+      if(!isAssign&&!isDeleg&&!isOver) return;
+      out.push({...x,cid:c.id,ti:i,cname:c.name||'?',cphone:c.phone||c.waPhone||'',role:isOver?'overseer':isDeleg?'deleg':'assign'});
+    });
+  });
+  out.sort((a,b)=>a.cid===b.cid?catRank(a.cat)-catRank(b.cat):(a.cid<b.cid?-1:1));
+  return out;
+}
+/* एक काम का reminder message (single) */
+function _remMsg(data, t, now){
+  const asg=t.assignAt?new Date(t.assignAt).getTime():(t.dg&&t.dg.at?new Date(t.dg.at).getTime():0);
+  const ago=asg&&asg<now?((now-asg<3600e3?Math.max(1,Math.round((now-asg)/60000))+' मिनट':fmtDur(now-asg))+' पहले '):'';
+  const dig=_phoneDigits(t.cphone);
+  return `⏰ ${ago}आपको यह ज़िम्मेदारी सौंपी गई थी:\n📌 *${mdSafe((t.t||'').slice(0,110))}*${t.cname?'\n👤 '+mdSafe(t.cname):''}${dig?'\n'+telLink(t.cphone,dig):''}\n\nआपने इस पर क्या कार्रवाई की?`;
+}
+function _remKb(t){ return {inline_keyboard:[[
+  {text:'✅ काम हो गया',callback_data:('ud|'+t.cid+'|'+t.ti).slice(0,64)},
+  {text:'⏳ कर रहा हूँ',callback_data:('up|'+t.cid+'|'+t.ti).slice(0,64)},
+  {text:'❌ दिक्कत',callback_data:('ub|'+t.cid+'|'+t.ti).slice(0,64)}]]}; }
+/* ⏰ delegation reminders — एकमात्र reminder-authority (Part A1)
+   18-25 min अंतराल, rotation (वही काम back-to-back नहीं), >3 pending → एक batch digest,
+   रात 21:00–08:00 शांति, हर भेज notif-state में record (delivery-log)। */
 async function autoPushStaffReminder(col, data, now){
   const calls=[]; now=now||Date.now();
   const istH=Number(new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Kolkata',hour:'numeric',hour12:false}).format(new Date(now)));
-  if(istH<8||istH>=21) return calls; // 🌙 quiet hours
-  const list=tgStaff(data); let changed=false;
+  if(istH<8||istH>=21) return calls;                       // 🌙 quiet hours
+  const list=tgStaff(data); const map=notifMap(data); let changed=false, nchanged=false;
   for(const s of list){
     if(!s.chatId||s.active===false) continue;
-    const tasks=staffTasks(data,s.cid,now); // हर pending सौंपा काम reminder के दायरे में
-    if(!tasks.length){ if(s.nextRemAt){ s.nextRemAt=0; changed=true; } continue; }
-    if(!s.nextRemAt||Number(s.nextRemAt)<now-3*3600e3){ s.nextRemAt=now+_remGap(); changed=true; continue; }
-    if(now<Number(s.nextRemAt)) continue;
-    // 🔁 rotation — पिछली बार वाला काम फिर नहीं (एक से ज़्यादा हों तो)
-    let pool=tasks;
-    if(tasks.length>1&&s.lastRemKey) pool=tasks.filter(t=>(t.cid+'|'+t.ti)!==s.lastRemKey);
-    const t=pool[Math.floor(Math.random()*pool.length)];
-    const sName=staffNameOf(data,s.cid)||s.name||'';
-    const nm=(sName||'').split(/\s+/)[0]||'जी';
-    const asg=t.assignAt?new Date(t.assignAt).getTime():(t.dg&&t.dg.at?new Date(t.dg.at).getTime():0);
-    const ago=asg&&asg<now?(now-asg<3600e3?Math.max(1,Math.round((now-asg)/60000))+' मिनट':fmtDur(now-asg))+' पहले ':'';
-    const text=`⏰ *${mdSafe(nm)} जी*, ${ago}आपको यह ज़िम्मेदारी सौंपी गई थी:\n📌 "${mdSafe((t.t||'').slice(0,90))}"${t.cname?'\n👤 '+mdSafe(t.cname):''}\n\nआपने इस पर क्या कार्रवाई की?`;
-    calls.push({method:'sendMessage',body:{chat_id:s.chatId,parse_mode:'Markdown',disable_web_page_preview:true,text,
-      reply_markup:{inline_keyboard:[[
-        {text:'✅ काम हो गया',callback_data:('ud|'+t.cid+'|'+t.ti).slice(0,64)},
-        {text:'⏳ कर रहा हूँ',callback_data:('up|'+t.cid+'|'+t.ti).slice(0,64)},
-        {text:'❌ दिक्कत',callback_data:('ub|'+t.cid+'|'+t.ti).slice(0,64)}]]}}});
-    s.lastRemKey=t.cid+'|'+t.ti; s.nextRemAt=now+_remGap(); changed=true;
-    await logEv(col,{action:'reminder',staff:s.cid,staffName:sName,cid:t.cid,ti:t.ti,task:(t.t||'').slice(0,80)});
+    const pend=pendingForRcpt(data, s.cid, now);
+    if(!pend.length){ if(s.nextRemAt){ s.nextRemAt=0; changed=true; } continue; }
+    // हर pending काम की notif-state सुनिश्चित (नई delegation → तुरंत due)
+    pend.forEach(t=>{ const k=notifKey(t.cid,t.ti,s.cid);
+      if(!map[k]){ map[k]={cid:t.cid,ti:t.ti,rcpt:s.cid,rcptName:staffNameOf(data,s.cid)||s.name||'',firstSentAt:0,lastSentAt:0,sendCount:0,nextDueAt:now,status:'pending'}; nchanged=true; } });
+    // recipient-स्तर पर अगला due समय (per-staff throttle, ताकि एक साथ spam न हो)
+    if(s.nextRemAt&&Number(s.nextRemAt)>now) continue;
+    // इस समय जो काम due हैं
+    const due=pend.filter(t=>{ const n=map[notifKey(t.cid,t.ti,s.cid)]; return !n||!n.nextDueAt||Number(n.nextDueAt)<=now; });
+    if(!due.length) continue;
+    const sName=staffNameOf(data,s.cid)||s.name||''; const nm=(sName||'').split(/\s+/)[0]||'जी';
+    if(due.length>3){
+      // 📋 batch digest — एक ही numbered message (Part A1.4)
+      const top=due.slice(0,8);
+      let text=`⏰ *${mdSafe(nm)} जी* — आपके ${due.length} काम बाकी हैं:\n`;
+      top.forEach((t,i)=>{ text+=`\n*${i+1}.* ${mdSafe((t.t||'').slice(0,70))}${t.cname?' — 👤'+mdSafe(t.cname.split(/\s+/)[0]):''}`; });
+      if(due.length>top.length) text+=`\n…और ${due.length-top.length}`;
+      text+='\n\nजो हो जाए उसका नंबर ✅ दबाइए 👇';
+      const rows=top.map((t,i)=>[
+        {text:'✅ '+(i+1),callback_data:('ud|'+t.cid+'|'+t.ti).slice(0,64)},
+        {text:'⏳ '+(i+1),callback_data:('up|'+t.cid+'|'+t.ti).slice(0,64)},
+        {text:'❌ '+(i+1),callback_data:('ub|'+t.cid+'|'+t.ti).slice(0,64)}]);
+      calls.push({method:'sendMessage',body:{chat_id:s.chatId,parse_mode:'Markdown',disable_web_page_preview:true,text,reply_markup:{inline_keyboard:rows}}});
+      const gap=_remGap();
+      top.forEach(t=>{ const k=notifKey(t.cid,t.ti,s.cid); const n=map[k]; n.firstSentAt=n.firstSentAt||now; n.lastSentAt=now; n.sendCount=(n.sendCount||0)+1; n.nextDueAt=now+gap; n.status='pending'; n.lastOk=true; });
+      s.nextRemAt=now+gap; s.lastRemKey=''; nchanged=true; changed=true;
+      await logEv(col,{action:'reminder',staff:s.cid,staffName:sName,batch:due.length,task:top.length+' काम (digest)'});
+    } else {
+      // 🔁 single — rotation: वही काम लगातार दो बार नहीं
+      let pool=due; if(due.length>1&&s.lastRemKey) pool=due.filter(t=>(t.cid+'|'+t.ti)!==s.lastRemKey);
+      if(!pool.length) pool=due;
+      const t=pool[Math.floor(Math.random()*pool.length)];
+      calls.push({method:'sendMessage',body:{chat_id:s.chatId,parse_mode:'Markdown',disable_web_page_preview:true,text:`⏰ *${mdSafe(nm)} जी*, `+_remMsg(data,t,now),reply_markup:_remKb(t)}});
+      const gap=_remGap(); const k=notifKey(t.cid,t.ti,s.cid); const n=map[k];
+      n.firstSentAt=n.firstSentAt||now; n.lastSentAt=now; n.sendCount=(n.sendCount||0)+1; n.nextDueAt=now+gap; n.status='pending'; n.lastOk=true;
+      s.lastRemKey=t.cid+'|'+t.ti; s.nextRemAt=now+gap; nchanged=true; changed=true;
+      await logEv(col,{action:'reminder',staff:s.cid,staffName:sName,cid:t.cid,ti:t.ti,task:(t.t||'').slice(0,80)});
+    }
   }
+  if(nchanged) await saveNotif(col,data,map);
   if(changed) await saveTgStaff(col,data,list);
   return calls;
 }
@@ -1119,6 +1215,7 @@ async function handleStaffCallback(col, data, cq, st, ownerChat){
     const it=await focusItemGuard(col,st,m[1]);
     if(!it){ ack('यह काम आपका नहीं / मिला नहीं'); return {calls,dirty}; }
     const r=await applyFocusComplete(col,m[1]); dirty=true;
+    if(it&&it.id!=null&&it.i!=null){ const map=notifMap(data); if(clearNotifForTask(map,it.id,Number(it.i))) await saveNotif(col,data,map); } // ⏹️ reminders बंद
     await logEv(col,{action:'done',staff:st.cid,staffName:sName,task:(r.task||'').slice(0,80),focus:true});
     ack('✅ शाबाश!'); mir('✅',r.task);
     say(`✅ *हो गया:* ${mdSafe((r.task||'').slice(0,60))}\n\nबहुत बढ़िया ${sName.split(/\s+/)[0]} जी! 🙌`);
@@ -1202,6 +1299,7 @@ async function handleStaffCallback(col, data, cq, st, ownerChat){
     const g=await staffTopic(col,st.cid,m[1],m[2]);
     if(!g){ ack('यह काम आपका नहीं / मिला नहीं'); return {calls,dirty}; }
     const r=await applyDone(col,m[1],m[2]); dirty=true;
+    { const map=notifMap(data); if(clearNotifForTask(map,m[1],Number(m[2]))) await saveNotif(col,data,map); } // ⏹️ reminders बंद
     await logEv(col,{action:'done',staff:st.cid,staffName:sName,cid:m[1],ti:Number(m[2]),task:(r.task||'').slice(0,80)});
     ack('✅ शाबाश!'); mir('✅',r.task);
     say(`✅ *हो गया:* ${mdSafe((r.task||'').slice(0,60))}\n👤 ${mdSafe(r.name||'')}\n\nबहुत बढ़िया ${sName.split(/\s+/)[0]} जी! 🙌`);
@@ -1663,6 +1761,7 @@ module.exports={
   tgStaff, staffByChat, staffTasks, staffDigest, teamContacts, teamScore,
   staffLinkAttempt, makeLinkCode, linkPickMsg, autoPushStaffDigest, logEv,
   staffFocusDigest, autoPushFocusHourly, lateBadge, focusItemGuard, autoPushQueued, autoPushStaffReminder, mdSafe,
+  notifMap, notifKey, saveNotif, clearNotifForTask, pendingForRcpt,
   geminiAsk, geminiAudio, brainContext, brainMenu, brainAnswer, brainReply, handleVoiceNote,
   callsDigest, dueTasksDigest, applyCallDone
 };

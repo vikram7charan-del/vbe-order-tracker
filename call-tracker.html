@@ -653,6 +653,15 @@ body:not(.anim-off) .aic-orb .orb-core{animation:orbCore 2.2s ease-in-out infini
 .bw-bar .bb{font-family:inherit;font-size:12px;font-weight:800;border:1px solid rgba(125,152,214,.3);border-radius:9px;background:rgba(20,30,56,.8);color:#c6d2e8;padding:6px 9px;cursor:pointer}
 .asst-pulse{display:inline-block;animation:asstPulse 1.1s ease-in-out infinite}
 @keyframes asstPulse{0%,100%{transform:scale(1);filter:drop-shadow(0 0 6px rgba(168,85,247,.5))}50%{transform:scale(1.18);filter:drop-shadow(0 0 16px rgba(168,85,247,.9))}}
+/* 🎙️ सुनते समय का ग्राफ़िक — धड़कते ring + चलती हुई तरंग (waveform) */
+.asst-listen{position:relative;display:flex;flex-direction:column;align-items:center;gap:10px;padding:6px 0 2px}
+.asst-orb{position:relative;width:78px;height:78px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:34px;
+  background:radial-gradient(circle at 50% 38%,#7c3aed,#3b0d78);box-shadow:0 0 0 0 rgba(168,85,247,.55);animation:asstRing 1.5s ease-out infinite;will-change:transform,box-shadow}
+@keyframes asstRing{0%{box-shadow:0 0 0 0 rgba(168,85,247,.55),0 0 18px rgba(168,85,247,.6)}70%{box-shadow:0 0 0 22px rgba(168,85,247,0),0 0 26px rgba(168,85,247,.7)}100%{box-shadow:0 0 0 0 rgba(168,85,247,0),0 0 18px rgba(168,85,247,.6)}}
+.asst-wave{display:flex;align-items:center;justify-content:center;gap:4px;height:34px}
+.asst-wave i{width:5px;border-radius:3px;background:linear-gradient(180deg,#c4b5fd,#8b5cf6);transform:translateZ(0);animation:asstBar .9s ease-in-out infinite}
+.asst-wave i:nth-child(1){animation-delay:0s}.asst-wave i:nth-child(2){animation-delay:.12s}.asst-wave i:nth-child(3){animation-delay:.24s}.asst-wave i:nth-child(4){animation-delay:.36s}.asst-wave i:nth-child(5){animation-delay:.48s}.asst-wave i:nth-child(6){animation-delay:.30s}.asst-wave i:nth-child(7){animation-delay:.18s}.asst-wave i:nth-child(8){animation-delay:.06s}
+@keyframes asstBar{0%,100%{height:8px;opacity:.5}50%{height:32px;opacity:1}}
 .aic-act{font-family:inherit;font-size:10.5px;font-weight:800;color:#c6d2e8;cursor:pointer;
   background:linear-gradient(160deg,rgba(32,44,74,.7),rgba(12,20,37,.7));border:1px solid rgba(125,152,214,.26);border-radius:9px;padding:6px 10px;
   transition:transform .13s cubic-bezier(.2,.9,.3,1.4),border-color .18s;touch-action:manipulation}
@@ -2355,7 +2364,16 @@ function taskBadges(x){
   if(x.dg&&x.dg.to){
     const t=x.dg.at?new Date(x.dg.at).toLocaleString('hi-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'}):'';
     h+=`<span class="dg-badge">📤 → ${escH(x.dg.to)}${t?' · '+escH(t):''}</span>`;
+    // 📨 Telegram delivery-log (Part A1.5): ✓ पहुँचा / ✗ नाकाम / ⏳ भेज रहे/queue
+    const tg=x.dg.tg;
+    if(tg){
+      const st=tg.ok===true?{t:'📨 Telegram ✓',c:'#22c55e',b:'rgba(34,197,94,.15)',bd:'rgba(34,197,94,.5)'}
+             :tg.ok===false?{t:'📨 Telegram ✗',c:'#f87171',b:'rgba(239,68,68,.12)',bd:'rgba(239,68,68,.5)'}
+             :{t:'📨 Telegram ⏳',c:'#fbbf24',b:'rgba(245,158,11,.12)',bd:'rgba(245,158,11,.5)'};
+      h+=`<span title="${tg.err?escH(tg.err):''}" style="display:inline-block;font-size:9px;font-weight:800;color:${st.c};background:${st.b};border:1px solid ${st.bd};border-radius:9px;padding:1px 7px;margin-left:4px">${st.t}${tg.count>1?' ·'+tg.count:''}</span>`;
+    }
   }
+  if(x.overseer&&x.overseer.name) h+=`<span style="display:inline-block;font-size:9px;font-weight:800;color:#c4b5fd;background:rgba(139,92,246,.14);border:1px solid rgba(139,92,246,.5);border-radius:9px;padding:1px 7px;margin-left:4px">👁️ ${escH((x.overseer.name||'').split(/\s+/)[0])}</span>`;
   if(x.rvw&&!x.done) h+=`<span class="rv-badge">🔍 Review में</span>`;
   return h;
 }
@@ -2538,6 +2556,8 @@ window.dgSendStaff=function(){
   const msg=delegateMsg((st&&st.name)||'', x.t||'', c, ci?ci.label:'');
   d.staffSent=true; _dgSave(); dgRender();
   toast('📤 '+((st&&st.name)||'')+' को भेजा');
+  // 📩 अगर यह contact Telegram से जुड़ा है → तुरंत Telegram भी + reminders चालू (A1 fix)
+  try{ tgNotifyDelegate(d.cid,d.i,d.tid,'deleg'); }catch(e){}
   location.href='whatsapp://send?phone='+dig+'&text='+encodeURIComponent(msg);
 };
 window.dgSendParty=function(){
@@ -3449,15 +3469,18 @@ async function loadTgFeed(){
   if(!el) return;
   try{
     const snap=await getDocs(query(collection(db,'vbe_ct_events'),orderBy('at','desc'),limit(10)));
-    const L={done:'✅ किया',in_progress:'⏳ कर रहे हैं',blocked:'❌ अटका',snooze:'🕐 टाला',snooze_limit:'🚫 3 बार टाला',linked:'🔗 जुड़े',unlinked:'🔌 हटे',focus_push:'📤 focus भेजा',assigned:'👤 को काम सौंपा गया',reminder:'⏰ याद दिलाया'};
+    const L={done:'✅ किया',in_progress:'⏳ कर रहे हैं',blocked:'❌ अटका',snooze:'🕐 टाला',snooze_limit:'🚫 3 बार टाला',linked:'🔗 जुड़े',unlinked:'🔌 हटे',focus_push:'📤 focus भेजा',assigned:'👤 को काम सौंपा गया',reminder:'⏰ याद दिलाया',delegated:'📤 ज़िम्मेदारी भेजी',overseer:'👁️ देखरेख सौंपी'};
     const rows=[];
     snap.forEach(d=>{
       const e=d.data(); if(!e||!e.action) return;
       const t=e.at?new Date(e.at).toLocaleTimeString('hi-IN',{hour:'numeric',minute:'2-digit'}):'';
       rows.push(`<div style="font-size:10.5px;color:#94a3b8;padding:2px 0;border-bottom:1px dashed rgba(64,88,140,.2)">🔔 <b style="color:#e2e8f0">${escH(e.staffName||'?')}</b> ${L[e.action]||escH(e.action)}${e.task?' — '+escH(String(e.task).slice(0,34)):''}${e.reason?' ('+escH(e.reason)+')':''} <span style="color:#5b6b86">${t}</span></div>`);
     });
-    if(rows.length) el.innerHTML=`<div style="background:#0a1120;border:1px solid rgba(59,130,246,.35);border-radius:12px;padding:9px 12px;margin-bottom:10px">
-      <div style="font-size:9.5px;font-weight:900;color:#93c5fd;margin-bottom:4px">🔔 टीम की हलचल (Telegram)</div>${rows.join('')}</div>`;
+    el.innerHTML=`<div style="background:#0a1120;border:1px solid rgba(59,130,246,.35);border-radius:12px;padding:9px 12px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <div style="flex:1;font-size:9.5px;font-weight:900;color:#93c5fd">🔔 टीम की हलचल (Telegram)</div>
+        <span class="press" onclick="tgSelfTest()" style="cursor:pointer;font-size:9px;font-weight:900;color:#a5b4fc;background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.5);border-radius:9px;padding:3px 9px">🧪 जाँच</span>
+      </div>${rows.length?rows.join(''):'<div style="font-size:10px;color:#64748b;padding:3px 0">अभी कोई हलचल नहीं</div>'}</div>`;
   }catch(e){ /* index/permission — चुपचाप */ }
 }
 window.fdashAI=async function(){
@@ -4448,9 +4471,12 @@ function aicAssistant(){
     closeAiComp(); openAiAdd(); toast('इस browser में बोली-पहचान नहीं — 🎤 से बोलें या लिखें','warn'); return;
   }
   rp.innerHTML=`<div style="text-align:center;padding:12px 0 6px">
-    <div class="asst-pulse" style="font-size:40px">🎙️</div>
-    <div style="font-size:13px;font-weight:800;color:#c4b5fd;margin-top:7px">बोलिए…</div>
-    <div id="asst-live" style="min-height:20px;font-size:12.5px;font-weight:800;color:#fcd34d;margin-top:6px"></div>
+    <div class="asst-listen">
+      <div class="asst-orb">🎙️</div>
+      <div class="asst-wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    </div>
+    <div style="font-size:14px;font-weight:900;color:#c4b5fd;margin-top:9px">🔴 सुन रहा हूँ… बोलिए</div>
+    <div id="asst-live" style="min-height:22px;font-size:13.5px;font-weight:800;color:#fcd34d;margin-top:6px;line-height:1.5"></div>
     <div style="font-size:10.5px;color:#8b9bbb;margin-top:3px">जैसे: "नवीन भाई को बोल दो दो प्रिंटर मंगवा दे, फोकस में डाल दो"</div>
     <button class="aic-act" style="margin-top:11px" onclick="try{window._asstStop&&window._asstStop()}catch(e){}">⏹ बस, इतना ही</button>
     <div style="display:flex;gap:7px;margin-top:13px;align-items:center">
@@ -5871,6 +5897,68 @@ async function tgNotifyAssign(cid,ti,sid){
   }
 }
 window.tgNotifyAssign=tgNotifyAssign;
+/* 📤 DELEGATION → Telegram तुरंत (Part A1) — दोनों पक्षों की पूरी जानकारी।
+   असली API नतीजा → task.dg.tg delivery-log (✓/✗/⏳)। fail → bot queue (kind:'delegate')। */
+async function tgNotifyDelegate(cid,ti,rcptCid,role){
+  const c=contacts.find(x=>x.id===cid); if(!c) return;
+  const t=normTopics(c)[ti]; if(!t||t.done) return;
+  const e=tgStaffList().find(x=>x.cid===rcptCid&&x.chatId&&x.active!==false);
+  const markLog=(patch)=>{ const dg=Object.assign({},t.dg||{},{tg:Object.assign({},(t.dg&&t.dg.tg)||{},patch)}); patchTopic(cid,ti,{dg}); };
+  const queueIt=async(sent)=>{ try{
+    const q=Array.isArray((window._settings||{}).tgPushQueue)?window._settings.tgPushQueue:[];
+    q.push({kind:'delegate',cid:rcptCid,srcId:cid,ti,role:role||'deleg',at:Date.now(),sent:!!sent});
+    window._settings.tgPushQueue=q;
+    await setDoc(doc(db,'vbe_call_tracker','_settings'),{id:'_settings',tgPushQueue:q},{merge:true});
+  }catch(e2){} };
+  if(!e){ markLog({ok:false,at:Date.now(),err:'Telegram से जुड़ा नहीं'}); return; } // WhatsApp-only delegate — Telegram नहीं
+  markLog({ok:null,at:Date.now()}); // ⏳ भेज रहे हैं
+  const md=s=>String(s||'').replace(/([_*`\[])/g,'\\$1');
+  const nm=(staffName(rcptCid)||e.name||'').split(/\s+/)[0]||'जी';
+  const isOver=role==='overseer';
+  const pDig=_digOf(c.phone||c.waPhone||'');
+  const stName=t.assignTo?staffName(t.assignTo):(t.dg&&t.dg.to?t.dg.to:'');
+  let text=isOver
+    ?`👁️ *${md(nm)} जी* — आपको इस काम की देखरेख (Overseer) सौंपी गई है:\n━━━━━━━━━━━\n📌 *काम:* ${md(t.t)}\n`
+    :`🙏 *${md(nm)} जी*, आपको एक ज़िम्मेदारी सौंपी गई है:\n━━━━━━━━━━━\n📌 *काम:* ${md(t.t)}\n`;
+  text+=`\n🧑‍🤝‍🧑 *पार्टी:* ${md(c.name||'')}`+(pDig?`\n📱 ${md(c.phone||c.waPhone)}`:'')+'\n';
+  if(stName) text+=`👤 *Staff:* ${md(stName)}\n`;
+  if(t.at) text+=`⏰ *Deadline:* ${schedLabel(t.at)}\n`;
+  text+=`🗓️ सौंपा: ${new Date().toLocaleTimeString('hi-IN',{hour:'numeric',minute:'2-digit'})}\n━━━━━━━━━━━\n${isOver?'दोनों तरफ़ नज़र रखिए।':'हो जाए तो नीचे ✅ दबाइए।'} — विक्रम चारण, VBE`;
+  const kb={inline_keyboard:[[
+    {text:'✅ काम हो गया',callback_data:('ud|'+cid+'|'+ti).slice(0,64)},
+    {text:'⏳ कर रहा हूँ',callback_data:('up|'+cid+'|'+ti).slice(0,64)},
+    {text:'❌ दिक्कत',callback_data:('ub|'+cid+'|'+ti).slice(0,64)}]]};
+  try{
+    let j=await tgApiApp('sendMessage',{chat_id:e.chatId,parse_mode:'Markdown',disable_web_page_preview:true,text,reply_markup:kb});
+    if(!j.ok&&/parse|entit/i.test(j.description||''))
+      j=await tgApiApp('sendMessage',{chat_id:e.chatId,disable_web_page_preview:true,text:text.replace(/\\([_*`\[])/g,'$1').replace(/\*/g,''),reply_markup:kb});
+    if(!j.ok) throw new Error(j.description||'send fail');
+    markLog({ok:true,at:Date.now(),count:(((t.dg&&t.dg.tg&&t.dg.tg.count)||0)+1),err:''});
+    await queueIt(true); // bot सिर्फ़ notif-state दर्ज करे (reminders शुरू), दोबारा न भेजे
+    toast('✅ '+nm+' जी को Telegram पर सूचना भेज दी');
+  }catch(err){
+    markLog({ok:false,at:Date.now(),err:String(err&&err.message||'net').slice(0,50)});
+    await queueIt(false); // bot भेजेगा + reminders शुरू करेगा
+    toast('⏳ Telegram अभी नहीं गया — bot थोड़ी देर में भेज देगा','warn');
+  }
+}
+window.tgNotifyDelegate=tgNotifyDelegate;
+/* 🧪 Telegram delivery self-test (Part A1.6) — एक test message + असली API नतीजा */
+window.tgSelfTest=async function(){
+  const oc=(window._settings||{}).tgChatId;
+  if(!oc){ toast('⚠️ पहले 📩 से bot token + अपना chat जोड़ें','err'); return; }
+  toast('🧪 test भेज रहे हैं…');
+  try{
+    const j=await tgApiApp('sendMessage',{chat_id:oc,disable_web_page_preview:true,
+      text:'🧪 VBE Call Tracker — Telegram जाँच ✅\nसमय: '+new Date().toLocaleString('hi-IN',{hour:'numeric',minute:'2-digit',day:'numeric',month:'short'})+'\nयह message दिख रहा है = delivery चालू है।'});
+    if(!j.ok) throw new Error(j.description||'unknown');
+    toast('✅ Test पहुँच गया — Telegram delivery ठीक है');
+  }catch(e){
+    const em=String(e&&e.message||e);
+    alert('❌ Telegram test नाकाम:\n\n'+em+'\n\n(यही असली API error है — token/chat जाँचें)');
+    toast('❌ Test नाकाम — ऊपर कारण देखें','err');
+  }
+};
 window.pickCat=function(k){
   const p=_catPick;
   closeCatPick();

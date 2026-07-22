@@ -662,6 +662,15 @@ body:not(.anim-off) .aic-orb .orb-core{animation:orbCore 2.2s ease-in-out infini
 .asst-wave i{width:5px;border-radius:3px;background:linear-gradient(180deg,#c4b5fd,#8b5cf6);transform:translateZ(0);animation:asstBar .9s ease-in-out infinite}
 .asst-wave i:nth-child(1){animation-delay:0s}.asst-wave i:nth-child(2){animation-delay:.12s}.asst-wave i:nth-child(3){animation-delay:.24s}.asst-wave i:nth-child(4){animation-delay:.36s}.asst-wave i:nth-child(5){animation-delay:.48s}.asst-wave i:nth-child(6){animation-delay:.30s}.asst-wave i:nth-child(7){animation-delay:.18s}.asst-wave i:nth-child(8){animation-delay:.06s}
 @keyframes asstBar{0%,100%{height:8px;opacity:.5}50%{height:32px;opacity:1}}
+/* 🎯 deep-link highlight — किसी काम पर सीधे पहुँचने पर 2.5s की धड़कती अंगूठी */
+.tk-deeplink{animation:tkDeep 2.5s ease-out 1;border-radius:12px;position:relative;z-index:1}
+@keyframes tkDeep{0%{box-shadow:0 0 0 0 rgba(245,158,11,.85),0 0 22px rgba(245,158,11,.7);background:rgba(245,158,11,.16)}
+  60%{box-shadow:0 0 0 10px rgba(245,158,11,0),0 0 26px rgba(245,158,11,.45);background:rgba(245,158,11,.10)}
+  100%{box-shadow:0 0 0 0 rgba(245,158,11,0);background:transparent}}
+/* ▶️/⏸️ per-row focus play-pause toggle (B2) */
+.fc-play{flex:0 0 auto;width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;margin-right:2px;
+  font-size:12px;border-radius:8px;cursor:pointer;background:rgba(124,58,237,.18);border:1px solid rgba(168,85,247,.45);color:#c4b5fd;touch-action:manipulation}
+.fc-track.paused{animation-play-state:paused!important}
 .aic-act{font-family:inherit;font-size:10.5px;font-weight:800;color:#c6d2e8;cursor:pointer;
   background:linear-gradient(160deg,rgba(32,44,74,.7),rgba(12,20,37,.7));border:1px solid rgba(125,152,214,.26);border-radius:9px;padding:6px 10px;
   transition:transform .13s cubic-bezier(.2,.9,.3,1.4),border-color .18s;touch-action:manipulation}
@@ -952,9 +961,9 @@ body.th-geo{--acc:#a5b4fc;--acc2:#6366f1}
 #focus-bar-k{border-bottom-color:rgba(34,197,94,.35)}
 #focus-bar-k .fc-item{background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.55);box-shadow:0 5px 12px -7px rgba(34,197,94,.4)}
 #focus-bar-k .fc-ring .tm{color:#bbf7d0}
-#focus-bar-k .fc-task{font-size:8px;max-width:110px;-webkit-line-clamp:1}
+#focus-bar-k .fc-task{font-size:12.5px;max-width:172px;-webkit-line-clamp:2;font-family:inherit}
 #focus-bar-k .fc-owner{color:#4ade80}
-.fc-owner{flex-shrink:0;writing-mode:vertical-rl;text-orientation:mixed;font-size:8.5px;font-weight:900;letter-spacing:.5px;color:#a78bfa;display:flex;align-items:center}
+.fc-owner{flex-shrink:0;writing-mode:vertical-rl;text-orientation:mixed;font-size:10.5px;font-weight:900;letter-spacing:.5px;color:#a78bfa;display:flex;align-items:center}
 #focus-bar-d .fc-owner{color:#fbbf24}
 .fc-item.d{background:rgba(34,211,238,.13);border-color:rgba(34,211,238,.6);
   box-shadow:0 7px 16px -8px rgba(34,211,238,.45),inset 0 1px 0 rgba(255,255,255,.14)}
@@ -979,8 +988,9 @@ body:not(.anim-off) .fc-item:not(.over) .fc-ring .prg{animation:fcGlowP 2.4s eas
 .fc-st{display:inline-block;font-size:7px;font-weight:900;letter-spacing:.6px;border-radius:5px;padding:1px 5px;margin-left:4px;vertical-align:1px;color:#fff}
 .fc-st.run{background:linear-gradient(120deg,#2563eb,#38bdf8)}
 .fc-st.late{background:linear-gradient(120deg,#b91c1c,#f97316)}
-.fc-task{font-size:9.5px;font-weight:800;color:#e2e8f0;line-height:1.3;max-width:135px;
+.fc-task{font-size:12.5px;font-weight:800;color:#eaf0ff;line-height:1.32;max-width:172px;font-family:inherit;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.fc-task .fc-sub{font-size:9.5px}
 .fc-x{font-size:14px;color:#8b7bb8;cursor:pointer;padding:4px;flex-shrink:0}
 .fc-item.over{border-color:#ef4444}
 .fc-item.over .fc-ring{--p:100;--fc:#ef4444;box-shadow:inset 0 1px 2px rgba(255,255,255,.14),inset 0 -2px 5px rgba(0,0,0,.7),0 0 12px -3px rgba(239,68,68,.7)}
@@ -3165,6 +3175,30 @@ window.stopFocus=function(key){
   saveFocus(); renderFocusBar(); render();
   toast('🗑 Focus से हटा');
 };
+/* 🎯 deep-link — किसी भी जगह से किसी काम पर सीधे: card खोलो → उस काम तक scroll →
+   2.5s धड़कती हाइलाइट → filter/collapsed section अपने-आप खुले। सब जगह यही इस्तेमाल। */
+window.deepLinkToTask=function(cid,ti){
+  ti=Number(ti);
+  if(typeof _spFilt!=='undefined') _spFilt=''; // filter हटाओ ताकि काम छुपा न रहे
+  window._dlDone=false;
+  openSmartPop(cid);
+  const tryScroll=(tries)=>{
+    const pop=document.getElementById('sp-popup'); if(!pop){ if(tries>0) setTimeout(()=>tryScroll(tries-1),80); return; }
+    let node=pop.querySelector('.sp-task[data-ti="'+ti+'"]');
+    if(!node){
+      // हो सकता है काम "पूरे हुए" collapsed block में हो → उसे खोलो, फिर ढूँढो
+      const exp=pop.querySelector('[data-doneexp]'); if(exp&&exp.getAttribute('data-doneexp')==='0'){ exp.click(); }
+      node=pop.querySelector('.sp-task[data-ti="'+ti+'"]')||pop.querySelector('[data-ti="'+ti+'"]');
+    }
+    if(node){
+      try{ node.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){ node.scrollIntoView(); }
+      node.classList.remove('tk-deeplink'); void node.offsetWidth; node.classList.add('tk-deeplink');
+      try{ navigator.vibrate&&navigator.vibrate(20); }catch(e){}
+      setTimeout(()=>node.classList.remove('tk-deeplink'),2600);
+    } else if(tries>0){ setTimeout(()=>tryScroll(tries-1),90); }
+  };
+  setTimeout(()=>tryScroll(8),160);
+};
 function fcItemHTML(f){
   const left=f.until-Date.now();
   const over=left<=0;
@@ -3172,9 +3206,10 @@ function fcItemHTML(f){
   const mm=Math.floor(Math.abs(left)/60000), ss=Math.floor((Math.abs(left)%60000)/1000);
   const ow=(f.own||'v'); const d=ow==='d';
   const lateTxt=Math.abs(left)>=3600000?fmtCompact(Math.abs(left))+' लेट':mm+'m '+String(ss).padStart(2,'0')+'s लेट'; // सेकंड-सेकंड टिकती घड़ी
-  return `<div class="fc-item ${d?'d':''} ${over?'over':''}" data-key="${f.key}" onclick="openSmartPop('${f.id}')">
+  let _ti=f.i; if(_ti==null){ const _c=contacts.find(x=>x.id===f.id); _ti=_c?firstPendIdx(_c):0; } // पुराने focus items में i नहीं
+  return `<div class="fc-item ${d?'d':''} ${over?'over':''}" data-key="${f.key}" onclick="deepLinkToTask('${f.id}',${_ti})">
     <div class="fc-ring" style="--p:${p.toFixed(1)};--fc:${over?'#ef4444':(ow==='k'?'#22c55e':d?'#22d3ee':'#a855f7')}"><svg viewBox="0 0 44 44"><circle class="trk" cx="22" cy="22" r="19"/><circle class="prg" cx="22" cy="22" r="19"/></svg><span class="tm">${mm}:${String(ss).padStart(2,'0')}</span></div>
-    <div class="fc-task"><span style="font-weight:900;color:${ow==='k'?'#4ade80':d?'#67e8f9':'#c4b5fd'}">🎯 ${ow==='k'?'कैलाश':d?'दिनेश':'विक्रम'}</span> · ${escH(f.t)}<div style="font-size:8px;color:#8b96b8;font-weight:800;margin-top:1px">${f.mins}m<span class="fc-st ${over?'late':'run'}">${over?'LATE':'चालू'}</span></div></div>
+    <div class="fc-task"><span style="font-weight:900;color:${ow==='k'?'#4ade80':d?'#67e8f9':'#c4b5fd'}">🎯 ${ow==='k'?'कैलाश':d?'दिनेश':'विक्रम'}</span> · ${escH(f.t)}<div class="fc-sub" style="color:#9fb0d4;font-weight:800;margin-top:2px">${f.mins}m<span class="fc-st ${over?'late':'run'}">${over?'LATE':'चालू'}</span></div></div>
     <span class="fc-x" onclick="event.stopPropagation();stopFocus('${f.key}')">✕</span>
   </div>`;
 }
@@ -3191,13 +3226,23 @@ function renderFocusBar(){
   bv.classList.toggle('on',!!vs.length);
   bd.classList.toggle('on',!!ds.length);
   if(bk) bk.classList.toggle('on',!!ks.length);
-  _fcBar(bv,'विक्रम भाई · '+vs.length,vs);
-  _fcBar(bd,'दिनेश जी · '+ds.length,ds);
-  if(bk) _fcBar(bk,'कैलाश · '+ks.length,ks);
+  _fcBar(bv,'विक्रम भाई · '+vs.length,vs,'v');
+  _fcBar(bd,'दिनेश जी · '+ds.length,ds,'d');
+  if(bk) _fcBar(bk,'कैलाश · '+ks.length,ks,'k');
 }
+/* ▶️/⏸️ किसी एक row का scroll रोको/चलाओ — session भर याद (B2) */
+let _fcPaused={};
+window.fcTogglePause=function(own,btn){
+  _fcPaused[own]=!_fcPaused[own];
+  const id={v:'focus-bar',d:'focus-bar-d',k:'focus-bar-k'}[own];
+  const el=document.getElementById(id); const track=el&&el.querySelector('.fc-track');
+  if(track) track.classList.toggle('paused',!!_fcPaused[own]);
+  if(btn){ btn.textContent=_fcPaused[own]?'▶️':'⏸️'; }
+  try{ navigator.vibrate&&navigator.vibrate(15); }catch(e){}
+};
 /* 🎠 strip renderer — items ≥3 तो seamless marquee (track दो बार = बिना jump loop);
    हर second पूरा rebuild नहीं — सिर्फ़ timer/ring update, वरना animation टूटती। */
-function _fcBar(el,label,items){
+function _fcBar(el,label,items,own){
   if(!el) return;
   if(!items.length){ el.innerHTML=''; el._fcSig=''; return; }
   const sig=items.map(f=>f.key).join('|');
@@ -3205,8 +3250,9 @@ function _fcBar(el,label,items){
   if(el._fcSig!==sig||el._fcMarq!==marq){
     el._fcSig=sig; el._fcMarq=marq;
     const inner=items.map(fcItemHTML).join('');
-    el.innerHTML=`<span class="fc-owner">${label}</span>`+(marq
-      ?`<div class="fc-track run" style="--fcDur:${Math.max(20,items.length*8)}s" ontouchstart="this.classList.add('hold')" ontouchend="var t=this;setTimeout(function(){t.classList.remove('hold')},3000)" ontouchcancel="var t=this;setTimeout(function(){t.classList.remove('hold')},3000)">${inner}${inner}</div>`
+    const playBtn=marq?`<span class="fc-play" onclick="event.stopPropagation();fcTogglePause('${own}',this)" title="इस पंक्ति का scroll रोको/चलाओ">${_fcPaused[own]?'▶️':'⏸️'}</span>`:'';
+    el.innerHTML=playBtn+`<span class="fc-owner">${label}</span>`+(marq
+      ?`<div class="fc-track run${_fcPaused[own]?' paused':''}" style="--fcDur:${Math.max(20,items.length*8)}s" ontouchstart="this.classList.add('hold')" ontouchend="var t=this;setTimeout(function(){t.classList.remove('hold')},3000)" ontouchcancel="var t=this;setTimeout(function(){t.classList.remove('hold')},3000)">${inner}${inner}</div>`
       :inner);
   } else {
     const own=el.querySelector('.fc-owner'); if(own&&own.textContent!==label) own.textContent=label;
@@ -5607,6 +5653,9 @@ window.closeSmartPop=function(){
 };
 let _spFilt=''; // popup का task-filter: '' सब | cat-key | '_focus'
 window.spSetFilt=function(k){ _spFilt=(_spFilt===k)?'':k; renderSmartPop(); };
+/* C1 — पूरे हुए काम collapse/expand (per-contact याद, session भर) */
+window._spDoneExp=window._spDoneExp||{};
+window.spToggleDone=function(cid){ window._spDoneExp[cid]=!window._spDoneExp[cid]; renderSmartPop(); };
 function renderSmartPop(){
   const c=contacts.find(x=>x.id===_spId);
   if(!c){ closeSmartPop(); return; }
@@ -5648,7 +5697,7 @@ function renderSmartPop(){
         const ci=catInfo(x.cat);
         const inF=taskInFocus(c.id,x.i);
         const tc=BW_CATC[x.cat||'']||(x.pri==='high'?'#ef4444':'#f59e0b');
-        return `<div class="sp-task ${x.dg?'tk-delegated':inF?'tk-focus':''}" style="--tc:${tc};padding:9px 11px 9px">
+        return `<div class="sp-task ${x.dg?'tk-delegated':inF?'tk-focus':''}" data-ti="${x.i}" style="--tc:${tc};padding:9px 11px 9px">
         <div style="display:flex;align-items:flex-start;gap:8px">
           <span class="sp-chk" style="margin-top:1px" onclick="event.stopPropagation();doneTopic('${c.id}',${x.i})"></span>
           <span style="flex:1;min-width:0">
@@ -5676,13 +5725,20 @@ function renderSmartPop(){
       ${(()=>{
         const doneT=normTopics(c).map((x,i)=>({...x,i})).filter(x=>x.done);
         if(!doneT.length) return '';
-        return `<div style="border-top:1.5px dashed rgba(100,116,139,.45);margin-top:7px;padding-top:6px">
-          <div style="font-size:9px;font-weight:800;color:#4ade80;margin-bottom:3px">✅ पूरे हुए काम (${doneT.length}) — गलती हुई तो ↩️ से वापस लाएं</div>
-          ${doneT.map(x=>`<div style="display:flex;align-items:center;gap:6px;padding:3px 0">
-            <span style="flex:1;font-size:12px;color:#64748b;text-decoration:line-through;word-break:break-word">${escH(x.t)}</span>
-            <button class="log-btn" onclick="undoneTopic('${c.id}',${x.i})" title="वापस काम की सूची में">↩️</button>
-            <button class="log-btn del" onclick="delTopicPermanent('${c.id}',${x.i})" title="हमेशा के लिए मिटाओ">🗑</button>
-          </div>`).join('')}
+        // C1 — collapsed pill (default बंद), per-contact याद (_spDoneExp)
+        const exp=!!(window._spDoneExp&&window._spDoneExp[c.id]);
+        return `<div style="border-top:1.5px dashed rgba(100,116,139,.45);margin-top:7px;padding-top:7px">
+          <div class="press" data-doneexp="${exp?1:0}" onclick="spToggleDone('${c.id}')" style="cursor:pointer;display:flex;align-items:center;gap:7px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.3);border-radius:10px;padding:8px 11px">
+            <span style="font-size:12.5px;font-weight:900;color:#4ade80;flex:1">✅ पूरे हुए काम (${doneT.length})</span>
+            <span style="font-size:13px;color:#4ade80;transition:transform .2s;transform:rotate(${exp?180:0}deg)">▾</span>
+          </div>
+          <div style="overflow:hidden;transition:max-height .3s ease;max-height:${exp?doneT.length*40+20:0}px">
+            <div style="padding-top:${exp?6:0}px">${doneT.map(x=>`<div style="display:flex;align-items:center;gap:6px;padding:3px 0">
+              <span style="flex:1;font-size:12px;color:#64748b;text-decoration:line-through;word-break:break-word">${escH(x.t)}</span>
+              <button class="log-btn" onclick="undoneTopic('${c.id}',${x.i})" title="वापस काम की सूची में">↩️</button>
+              <button class="log-btn del" onclick="delTopicPermanent('${c.id}',${x.i})" title="हमेशा के लिए मिटाओ">🗑</button>
+            </div>`).join('')}</div>
+          </div>
         </div>`;
       })()}
     </div>`:''}

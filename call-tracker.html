@@ -2410,12 +2410,14 @@ function patchTopic(cid,i,patch){
   fbSave(c); render(); if(typeof _spId!=='undefined'&&_spId===cid) renderSmartPop();
   return tps[i];
 }
-/* 📛 साझा badges — 📤 delegated + 🔍 review — हर view में यही दिखें */
-function taskBadges(x){
-  let h='';
+/* 📛 साझा badges — 📤 delegated + 🔍 review — हर view में यही दिखें।
+   cid/ti दिए हों तो पिंक chip TAPPABLE → वहीं से काम पूरा/edit (PIN) + auto-settle। */
+function taskBadges(x,cid,ti){
+  let h=''; const tapable=(cid!=null&&ti!=null);
   if(x.dg&&x.dg.to){
     const t=x.dg.at?new Date(x.dg.at).toLocaleString('hi-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'}):'';
-    h+=`<span class="dg-badge">📤 → ${escH(x.dg.to)}${t?' · '+escH(t):''}</span>`;
+    const tap=tapable?`onclick="event.stopPropagation();dgChipAct('${cid}',${ti})" style="cursor:pointer" title="दबाकर काम पूरा/edit करें"`:'';
+    h+=`<span class="dg-badge" ${tap}>📤 → ${escH(x.dg.to)}${t?' · '+escH(t):''}${tapable?' ›':''}</span>`;
     // 📨 Telegram delivery-log (Part A1.5): ✓ पहुँचा / ✗ नाकाम / ⏳ भेज रहे/queue
     const tg=x.dg.tg;
     if(tg){
@@ -2429,6 +2431,27 @@ function taskBadges(x){
   if(x.rvw&&!x.done) h+=`<span class="rv-badge">🔍 Review में</span>`;
   return h;
 }
+/* 📤 पिंक delegated chip दबाने पर — छोटा action: ✅ पूरा (PIN → auto-settle) · ✏️ edit · 📋 पूरा sheet */
+window.dgChipAct=function(cid,ti){
+  const c=contacts.find(x=>x.id===cid); if(!c) return;
+  const x=normTopics(c)[ti]; if(!x) return;
+  const a=`'${cid}',${ti}`;
+  document.getElementById('ts-title').textContent='📤 '+((x.dg&&x.dg.to)||'सौंपा काम');
+  document.getElementById('ts-body').innerHTML=`
+    <div style="background:#060d1a;border:1.5px solid rgba(236,72,153,.5);border-radius:12px;padding:10px 12px;margin-bottom:11px">
+      <div style="font-size:13.5px;font-weight:800;color:#fcd34d;line-height:1.45;word-break:break-word">${escH(x.t)}</div>
+      <div style="font-size:10px;color:#f9a8d4;font-weight:800;margin-top:3px">📤 ${escH((x.dg&&x.dg.to)||'')} को सौंपा${x.dg&&x.dg.at?' · '+new Date(x.dg.at).toLocaleString('hi-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'}):''}</div>
+      <div style="margin-top:3px">${taskBadges(x)}</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+      ${tsBtn('✅','काम पूरा हुआ',`doneTopic(${a})`,'rgba(34,197,94,.6)')}
+      ${tsBtn('✏️','सुधारो (edit)',`spEditTask(${a})`,'rgba(251,191,36,.5)')}
+      ${tsBtn('🔗','फिर सौंपो / देखरेख',`spLinkTask(${a})`,'rgba(255,45,120,.55)')}
+      ${tsBtn('👁','पूरा काम खोलो',`deepLinkToTask(${a})`,'rgba(59,130,246,.5)')}
+    </div>
+    <div style="font-size:9px;color:#7d8db0;margin-top:8px;text-align:center">✅ पर PIN डालते ही काम हर जगह settle होगा + ${escH(((x.dg&&x.dg.to)||'').split(/\s+/)[0])} को "पूरा हुआ" Telegram जाएगा</div>`;
+  document.getElementById('m-tsheet').classList.add('open');
+};
 /* 📤 DELEGATION — जुड़े contact को WhatsApp handoff + badge + save */
 function delegateMsg(delegateName, task, srcC, tags){
   let m='🙏 *'+delegateName+'*, आपको एक महत्वपूर्ण ज़िम्मेदारी सौंपी जा रही है।\n━━━━━━━━━━━\n';
@@ -2461,7 +2484,7 @@ window.openTaskSheet=function(cid,i){
       <div style="font-size:14px;font-weight:800;color:#fcd34d;line-height:1.45;word-break:break-word">${inF?'<span class="fk-badge">🎯</span> ':''}${x.pri==='high'?'🔴 ':''}${ci?ci.logo+' ':''}${escH(x.t)}</div>
       ${x.assignTo?`<div style="font-size:10.5px;color:#4ade80;font-weight:800;margin-top:3px">👤 ${escH(staffName(x.assignTo))} को सौंपा हुआ</div>`:''}
       ${x.at?`<div style="font-size:10px;color:#93c5fd;font-weight:700;margin-top:2px">📅 ${schedLabel(x.at)}</div>`:''}
-      <div style="margin-top:2px">${linkChipsHTML(cid,i,x)}${taskBadges(x)}</div>
+      <div style="margin-top:2px">${linkChipsHTML(cid,i,x)}${taskBadges(x,cid,i)}</div>
     </div>
     <div class="press" onclick="tsClose();spLinkTask(${a})" style="cursor:pointer;display:flex;align-items:center;gap:9px;padding:12px;border-radius:12px;border:1.5px solid #FF2D78;background:linear-gradient(135deg,rgba(131,24,67,.35),rgba(255,45,120,.14));margin-bottom:9px">
       <span style="font-size:19px">🔗</span><span style="flex:1"><b style="font-size:13px;color:#FF6FA5">जोड़ो · सौंपो · देखरेख</b><span style="display:block;font-size:9.5px;color:#f9a8d4">party + staff + 👁️ overseer — सब एक जगह</span></span><span style="color:#FF6FA5;font-size:17px">›</span>
@@ -2832,7 +2855,7 @@ function topicListHTML(c){
   return `<div class="c-topics">${act.map((x,n)=>{
     const ci=catInfo(x.cat);
     const inF=taskInFocus(c.id,x.i);
-    return `<div class="c-topic" onclick="event.stopPropagation();openTaskSheet('${c.id}',${x.i})" style="cursor:pointer;${inF?'text-shadow:0 0 10px var(--focus-glow)':''}"><span class="tp-chk" onclick="event.stopPropagation();doneTopic('${c.id}',${x.i})"></span>${inF?'<span class="fk-badge">🎯</span> ':''}${x.pri==='high'?'🔴 ':''}${ci?ci.logo+' ':''}${multi?`<span class="tnum">${n+1}.</span>`:''}${escH(x.t)}${x.assignTo?` <span style="font-size:10px;color:#4ade80;font-weight:800">→👤${escH(staffName(x.assignTo))}</span>`:''}${linkChipsHTML(c.id,x.i,x)}${taskBadges(x)}</div>`;
+    return `<div class="c-topic" onclick="event.stopPropagation();openTaskSheet('${c.id}',${x.i})" style="cursor:pointer;${inF?'text-shadow:0 0 10px var(--focus-glow)':''}"><span class="tp-chk" onclick="event.stopPropagation();doneTopic('${c.id}',${x.i})"></span>${inF?'<span class="fk-badge">🎯</span> ':''}${x.pri==='high'?'🔴 ':''}${ci?ci.logo+' ':''}${multi?`<span class="tnum">${n+1}.</span>`:''}${escH(x.t)}${x.assignTo?` <span style="font-size:10px;color:#4ade80;font-weight:800">→👤${escH(staffName(x.assignTo))}</span>`:''}${linkChipsHTML(c.id,x.i,x)}${taskBadges(x,c.id,x.i)}</div>`;
   }).join('')}${asg.map(x=>{
     const ci=catInfo(x.cat);
     return `<div class="c-topic" onclick="event.stopPropagation();openTaskSheet('${x.srcId}',${x.i})" style="color:#86efac;cursor:pointer"><span class="tp-chk" style="border-color:#22c55e" onclick="event.stopPropagation();doneTopic('${x.srcId}',${x.i})"></span>${ci?ci.logo+' ':''}${escH(x.t)} <span style="font-size:10px;opacity:.7">(📌 ${escH(x.srcName)})</span></div>`;
@@ -5028,7 +5051,7 @@ function renderBulk(keepQ){
         <div style="margin-top:4px">
           <span class="bw-badge" style="background:${cc}" onclick="bwCycleCat('${key}')" title="श्रेणी बदलो — tap">${ci?ci.logo+' '+ci.label:'⬜ बिना श्रेणी'}</span>
           <span class="bw-badge" style="background:#1e293b;border:1px solid rgba(125,152,214,.3)" onclick="bwCyclePri('${key}')" title="Priority — tap">${pri[1]}</span>
-          ${taskBadges(t)}
+          ${taskBadges(t,key.split('|')[0],key.split('|')[1])}
         </div>
       </div>
       <div style="display:grid;grid-template-columns:30px 30px;gap:4px;flex-shrink:0">
@@ -5917,7 +5940,7 @@ function renderSmartPop(){
             ${x.assignTo?`<span style="font-size:10px;color:#4ade80;font-weight:800;margin-left:6px;white-space:nowrap">👤 ${escH(staffName(x.assignTo))}</span>`:''}
             ${x.at?`<span onclick="event.stopPropagation();spSchedTask('${c.id}',${x.i})" style="display:inline-block;cursor:pointer;font-size:9.5px;font-weight:800;color:#93c5fd;background:rgba(30,58,138,.35);border:1px solid rgba(59,130,246,.4);border-radius:7px;padding:1px 7px;margin-left:6px;vertical-align:1px">📅 ${schedLabel(x.at)}</span>`:''}
             ${linkChipsHTML(c.id,x.i,x)}
-            ${taskBadges(x)}
+            ${taskBadges(x,c.id,x.i)}
             ${!(x.cat||'')?`<span class="press" onclick="event.stopPropagation();spPickCat('${c.id}',${x.i})" style="cursor:pointer;display:inline-block;font-size:9px;font-weight:800;color:#fcd34d;background:rgba(245,158,11,.12);border:1px dashed rgba(245,158,11,.6);border-radius:8px;padding:1px 7px;margin-left:4px">🏷️ श्रेणी जोड़ो</span>`:''}
           </span>
         </div>
@@ -5982,7 +6005,7 @@ function renderSmartPop(){
       if(!lk.length) return '';
       return `<div style="background:rgba(255,45,120,.06);border:1px solid rgba(255,45,120,.4);border-radius:11px;padding:9px 11px;margin-bottom:8px">
         <div style="font-size:9px;font-weight:800;color:#FF6FA5;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">🔗 इनसे जुड़े काम (${lk.length})</div>
-        ${lk.map(x=>{ const ci=catInfo(x.cat); return `<div onclick="openSmartPop('${x.srcId}')" style="cursor:pointer;display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-top:1px solid rgba(255,45,120,.15)">
+        ${lk.map(x=>{ const ci=catInfo(x.cat); return `<div onclick="deepLinkToTask('${x.srcId}',${x.i})" style="cursor:pointer;display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-top:1px solid rgba(255,45,120,.15)">
           <span style="flex:1;min-width:0;font-size:12.5px;font-weight:700;color:#fbcfe8;line-height:1.4;word-break:break-word">${ci?ci.logo+' ':''}${escH(x.t)}<span style="display:block;font-size:9.5px;color:#94a3b8;margin-top:1px">📌 ${escH(x.srcName)}</span></span>
         </div>`; }).join('')}
       </div>`;

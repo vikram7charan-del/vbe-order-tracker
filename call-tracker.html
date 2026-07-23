@@ -106,7 +106,17 @@ body{
   backdrop-filter:blur(16px) saturate(1.35);-webkit-backdrop-filter:blur(16px) saturate(1.35);
   border-bottom:1px solid rgba(125,152,214,.12);
   padding:8px 13px 2px;
+  transition:transform .28s cubic-bezier(.4,0,.2,1);
 }
+/* F5 — scroll नीचे तो header छिपे, ऊपर तो वापस (contact grid को ज़्यादा जगह) */
+body.hdr-hide .app-hdr{transform:translateY(-100%)}
+/* F1 — एक compact row: ☰ · search · ← App */
+.hdr-top{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.hdr-menu-btn{position:relative;flex:0 0 auto;font-size:16px;font-weight:900;padding:7px 12px}
+.hdr-late{position:absolute;top:-6px;right:-6px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;
+  background:linear-gradient(120deg,#b91c1c,#f97316);color:#fff;font-size:9px;font-weight:900;
+  display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px -1px rgba(239,68,68,.7);animation:latePulse 2s ease-in-out infinite}
+@keyframes latePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
 .hdr-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
 .hdr-title{font-size:15px;font-weight:900;color:#f59e0b;letter-spacing:.2px}
 .hdr-sub{font-size:9px;color:#475569;margin-top:1px}
@@ -1028,7 +1038,7 @@ body:not(.anim-off) .fc-item.over .fc-ring{animation:fcBreath 1.5s ease-in-out i
 .sv-grid>.sv-item:nth-child(even){border-radius:18px 18px 6px 18px}
 .sv-item.overdue{box-shadow:0 10px 22px -12px rgba(0,0,0,.8),0 0 14px -4px rgba(239,68,68,.3),inset 0 1px 0 rgba(255,255,255,.07)}
 
-body.hdr-folded .hdr-btns>*:not(#hdr-fold):not(#hdr-search){display:none}
+body.hdr-folded .hdr-btns{display:none}
 body.hdr-folded .hdr-row2{display:none}
 #hdr-fold{background:linear-gradient(150deg,color-mix(in srgb,var(--acc) 40%,#0d1526),color-mix(in srgb,var(--acc2) 26%,#0d1526))!important;border-color:color-mix(in srgb,var(--acc) 60%,transparent)!important;color:#fff!important;font-weight:900;box-shadow:0 3px 12px -4px color-mix(in srgb,var(--acc) 70%,transparent),inset 0 1px 0 rgba(255,255,255,.2)!important}
 </style>
@@ -1061,14 +1071,20 @@ body.hdr-folded .hdr-row2{display:none}
 <!-- ══ MAIN APP ══ -->
 <div id="s-app" style="display:none">
 
-  <!-- Sticky Header -->
-  <div class="app-hdr">
-    <div class="app-tag-row">
-      <div class="app-tag">📞 Call Tracker <span id="hdr-sub" class="app-tag-sub">· Follow-up</span></div>
-      <a href="./" class="btn-back" title="पुरानी VBE ऐप">← App</a>
+  <!-- Sticky Header (auto-hide on scroll) -->
+  <div class="app-hdr" id="app-hdr">
+    <!-- F — एक compact row: ☰ (late badge) · search · ← App -->
+    <div class="hdr-top">
+      <button class="btn-icon hdr-menu-btn" id="hdr-fold" onclick="foldHdr()" title="मेन्यू खोलो/बंद करो" style="cursor:pointer;font-family:inherit">☰<span id="hdr-late-badge" onclick="event.stopPropagation();setFilter('_late')" class="hdr-late" style="display:none"></span></button>
+      <span id="hdr-search" style="flex:1;min-width:0;position:relative;display:flex">
+        <input class="inp" id="search-inp" style="padding:8px 30px 8px 12px;font-size:13px;border-radius:10px;width:100%"
+               placeholder="🔍 नाम या नंबर खोजें..." oninput="onSearchInput(this.value)">
+        <span id="search-clear" onclick="clearSearch()" style="display:none;position:absolute;right:9px;top:50%;transform:translateY(-50%);font-size:14px;color:#64748b;cursor:pointer;padding:4px">✕</span>
+      </span>
+      <a href="./" class="btn-back" id="hdr-back" title="पुरानी VBE ऐप">← App</a>
     </div>
+    <span id="hdr-sub" style="display:none"></span>
     <div class="hdr-btns">
-        <button class="btn-icon" id="hdr-fold" onclick="foldHdr()" title="मेन्यू खोलो/बंद करो — इसी बटन को दबाकर" style="cursor:pointer;font-family:inherit">☰ मेन्यू</button>
         <button class="btn-icon btn-ai" onclick="openAiAdd()" title="🎙️ बोलकर काम जोड़ें — AI समझकर समय पर अलार्म लगा देगा" style="cursor:pointer;font-family:inherit">🎙️ बोलो</button>
         <button class="btn-icon" onclick="openBroadcast()" title="भेजो Mode — सबको एक-एक करके WhatsApp" style="cursor:pointer;font-family:inherit">📤</button>
         <button class="btn-icon" onclick="openHub()" title="श्रेणी Hub — category-wise सारे काम" style="cursor:pointer;font-family:inherit">🗂️</button>
@@ -1082,11 +1098,6 @@ body.hdr-folded .hdr-row2{display:none}
         <button class="btn-icon" onclick="tgConnect()" title="📩 Telegram जोड़ें — reminder/plan सीधे Telegram पर" style="cursor:pointer;font-family:inherit">📩</button>
         <a href="./quick-add.html" class="btn-icon" title="Quick Order Add">📦</a>
         <button class="btn-icon" id="day-btn" onclick="gotoDay()" title="📅 मेरा दिन — इसी पेज पर timeline" style="cursor:pointer;font-family:inherit">📅 दिन</button>
-        <span id="hdr-search" style="flex:1;min-width:110px;max-width:230px;position:relative;display:flex">
-          <input class="inp" id="search-inp" style="padding:7px 30px 7px 11px;font-size:12.5px;border-radius:9px;width:100%"
-                 placeholder="🔍 नाम या नंबर खोजें..." oninput="onSearchInput(this.value)">
-          <span id="search-clear" onclick="clearSearch()" style="display:none;position:absolute;right:9px;top:50%;transform:translateY(-50%);font-size:14px;color:#64748b;cursor:pointer;padding:4px">✕</span>
-        </span>
       </div>
 
     <!-- Stats (compact) + ➕ नया दाईं तरफ (पुराना सही स्थान) -->
@@ -1816,6 +1827,10 @@ function sorted(){
         // काम-श्रेणी filter — जिनके पास इस श्रेणी का बाकी काम है
         const ck=_activeFilter.slice(4);
         if(!normTopics(c).some(x=>!x.done&&x.cat===ck)) return false;
+      } else if(_activeFilter==='_notag'){ // 🏷️ बिना श्रेणी — जिन contacts पर tag नहीं
+        if(c.tag) return false;
+      } else if(_activeFilter==='_late'){ // ⚠️ सिर्फ़ late वाले
+        if(status(c)!=='overdue') return false;
       } else if(_activeFilter && (c.tag||'')!==_activeFilter) return false;
     }
     // Swipe से hide किए हुए — search में फिर भी दिखते हैं ताकि कुछ छूटे नहीं
@@ -1861,11 +1876,21 @@ function schedNextT(c){
 /* ──────── Render ──────── */
 let _lastHN=-1;
 let _animNext=true; // पहली render में 3D entrance, फिर सिर्फ़ view/filter बदलने पर
+let _catNudged=false;
+function catNudge(){ // E1 — session में एक बार हल्का reminder बिना-श्रेणी वालों का
+  if(_catNudged) return; _catNudged=true;
+  try{
+    const noTag=contacts.filter(c=>c.active!==false&&!c.tag).length;
+    let noCat=0; contacts.forEach(c=>{ if(c.active!==false) normTopics(c).forEach(x=>{ if(!x.done&&!(x.cat||'')) noCat++; }); });
+    if(noTag+noCat>=5) setTimeout(()=>toast('🏷️ '+noTag+' contact + '+noCat+' काम बिना श्रेणी — ऊपर "🏷️ बिना श्रेणी" से लगाएँ','warn'),1800);
+  }catch(e){}
+}
 function render(){
   const list=sorted();
   const cl=document.getElementById('card-list');
   if(cl) cl.classList.toggle('no-anim',!_animNext);
   renderStrip(list); renderCards(list); renderStats(list); updateHdrSub();
+  catNudge();
   if(typeof aiOrbUpdate==='function') aiOrbUpdate();
   if(hubOpenNow()) renderHub();
   _animNext=false;
@@ -1889,10 +1914,9 @@ function renderStats(list){
   document.getElementById('st-today').textContent=todayCalls();
 }
 function updateHdrSub(){
-  const over=sorted().filter(c=>status(c)==='overdue');
-  const el=document.getElementById('hdr-sub');
-  if(over.length) el.innerHTML=`<span style="color:#f87171;font-weight:800">· ⚠️ ${over.length} late</span>`;
-  else el.textContent='· Follow-up';
+  const over=contacts.filter(c=>c.active!==false&&status(c)==='overdue');
+  const b=document.getElementById('hdr-late-badge');
+  if(b){ if(over.length){ b.style.display='flex'; b.textContent=over.length>99?'99+':String(over.length); b.title=over.length+' काम late — दबाकर देखें'; } else b.style.display='none'; }
 }
 
 /* Strip — pill chips */
@@ -2016,14 +2040,31 @@ function updateViewBtn(){
   const fd=document.getElementById('fc-day');
   if(fd) fd.classList.toggle('on',_view==='day');
 }
-/* ऊपर के बटन एक click में छुपाओ — filters/खोज हमेशा रहें */
+/* ऊपर के बटन एक click में छुपाओ — filters/खोज हमेशा रहें (badge बचा रहे) */
+let _menuTimer=null;
+function _menuAutoClose(){ // F1 — 3 min बेकार पड़े मेन्यू अपने-आप बंद
+  clearTimeout(_menuTimer);
+  if(document.body.classList.contains('hdr-folded')) return;
+  _menuTimer=setTimeout(()=>{ if(!document.body.classList.contains('hdr-folded')){ document.body.classList.add('hdr-folded'); localStorage.setItem('vbe_hdr_fold','1'); try{ window.scrollTo({top:0,behavior:'smooth'}); }catch(e){} } },180000);
+}
 window.foldHdr=function(){
   const on=document.body.classList.toggle('hdr-folded');
   localStorage.setItem('vbe_hdr_fold',on?'1':'');
-  const b=document.getElementById('hdr-fold'); if(b) b.textContent=on?'☰ मेन्यू':'✕ बंद';
+  if(!on) _menuAutoClose(); else clearTimeout(_menuTimer);
 };
 if(localStorage.getItem('vbe_hdr_fold')===null) localStorage.setItem('vbe_hdr_fold','1'); // पहली बार: मेन्यू बंद — ☰ से खुले
-(function(){ const folded=localStorage.getItem('vbe_hdr_fold')==='1'; if(folded) document.body.classList.add('hdr-folded'); const _fb=document.getElementById('hdr-fold'); if(_fb)_fb.textContent=folded?'☰ मेन्यू':'✕ बंद'; })();
+(function(){ if(localStorage.getItem('vbe_hdr_fold')==='1') document.body.classList.add('hdr-folded'); })();
+// मेन्यू के अंदर किसी भी interaction पर 3-min timer reset
+document.addEventListener('click',(e)=>{ if(e.target.closest&&e.target.closest('.hdr-btns')) _menuAutoClose(); },true);
+/* F5 — scroll नीचे तो header छिपे, ऊपर तो वापस */
+let _lastScrollY=0;
+window.addEventListener('scroll',()=>{
+  const y=window.scrollY||document.documentElement.scrollTop||0;
+  if(y<60){ document.body.classList.remove('hdr-hide'); }
+  else if(y>_lastScrollY+8){ document.body.classList.add('hdr-hide'); }
+  else if(y<_lastScrollY-8){ document.body.classList.remove('hdr-hide'); }
+  _lastScrollY=y;
+},{passive:true});
 
 /* Smart View — 2-column grid, पूरा नाम + छोटा गोल icon */
 function renderSmart(list){
@@ -5800,6 +5841,7 @@ function renderSmartPop(){
   const focusN=allT.filter(x=>taskInFocus(c.id,x.i)).length;
   // 🏷️ universal filter engine — chips से छानो (cat या 🎯 focus)
   const tps=_spFilt==='_focus' ? allT.filter(x=>taskInFocus(c.id,x.i))
+          : _spFilt==='_none' ? allT.filter(x=>!(x.cat||''))
           : _spFilt ? allT.filter(x=>(x.cat||'')===_spFilt) : allT;
   const doneT=normTopics(c).map((x,i)=>({...x,i})).filter(x=>x.done);
   const asg=catViewFilter(assignedTo(c.id)); // इस व्यक्ति (staff) को सौंपे गए काम
@@ -5810,6 +5852,7 @@ function renderSmartPop(){
   const fRow=(allT.length>1||focusN)?`<div class="sp-fchips">
     <span class="fc ${!_spFilt?'on':''}" onclick="spSetFilt('')">सब (${allT.length})</span>
     ${TASK_CATS.map(tc=>{ const n=allT.filter(x=>(x.cat||'')===tc.k).length; return n?`<span class="fc ${_spFilt===tc.k?'on':''}" onclick="spSetFilt('${tc.k}')">${tc.logo} ${escH(tc.label)} (${n})</span>`:''; }).join('')}
+    ${(()=>{ const n=allT.filter(x=>!(x.cat||'')).length; return n?`<span class="fc ${_spFilt==='_none'?'on':''}" onclick="spSetFilt('_none')" style="border-color:rgba(245,158,11,.6);color:#fcd34d">🏷️ बिना श्रेणी (${n})</span>`:''; })()}
     ${focusN?`<span class="fc ${_spFilt==='_focus'?'on':''}" onclick="spSetFilt('_focus')">🎯 Focus (${focusN})</span>`:''}
   </div>`:'';
   // Filter chips — tap करके सीधे बदलो
@@ -5844,6 +5887,7 @@ function renderSmartPop(){
             ${x.at?`<span onclick="event.stopPropagation();spSchedTask('${c.id}',${x.i})" style="display:inline-block;cursor:pointer;font-size:9.5px;font-weight:800;color:#93c5fd;background:rgba(30,58,138,.35);border:1px solid rgba(59,130,246,.4);border-radius:7px;padding:1px 7px;margin-left:6px;vertical-align:1px">📅 ${schedLabel(x.at)}</span>`:''}
             ${linkChipsHTML(c.id,x.i,x)}
             ${taskBadges(x)}
+            ${!(x.cat||'')?`<span class="press" onclick="event.stopPropagation();spPickCat('${c.id}',${x.i})" style="cursor:pointer;display:inline-block;font-size:9px;font-weight:800;color:#fcd34d;background:rgba(245,158,11,.12);border:1px dashed rgba(245,158,11,.6);border-radius:8px;padding:1px 7px;margin-left:4px">🏷️ श्रेणी जोड़ो</span>`:''}
           </span>
         </div>
         <div class="sp-tools">
@@ -7561,6 +7605,7 @@ function filterItems(){
     'srch':`<div class="f-chip" onclick="fbSearchOpen()" title="🔍 नाम/नंबर खोजें">🔍</div>`,
     'fdash':`<div class="f-chip" style="border-color:rgba(34,211,238,.6);color:#67e8f9" onclick="openFocusDash()" title="🎯 Focus dashboard — विक्रम/दिनेश">🎯</div>`,
     'all':`<div class="f-chip" data-f="" onclick="setFilter('')">🔍 सब</div>`,
+    'notag':(()=>{ const n=contacts.filter(c=>c.active!==false&&!c.tag).length; return `<div class="f-chip" data-f="_notag" onclick="setFilter('_notag')" style="border-color:rgba(245,158,11,.6);color:#fcd34d" title="जिन पर श्रेणी नहीं लगी">🏷️ बिना श्रेणी${n?' ('+n+')':''}</div>`; })(),
     'arch':`<div class="f-chip" data-f="_arch" onclick="setFilter('_arch')">📦 बंद</div>`
   };
   TAG_LIST.forEach(t=>{ m['t:'+t.k]=`<div class="f-chip" data-f="${t.k}" onclick="setFilter('${t.k}')">${escH(t.label)}</div>`; });
@@ -7568,7 +7613,7 @@ function filterItems(){
   return m;
 }
 function defaultOrder(){
-  return ['asst','bulk','mic','day','add','srch','fdash','all',...TAG_LIST.map(t=>'t:'+t.k),...TASK_CATS.map(tc=>'c:'+tc.k),'arch'];
+  return ['asst','bulk','mic','day','add','srch','fdash','all','notag',...TAG_LIST.map(t=>'t:'+t.k),...TASK_CATS.map(tc=>'c:'+tc.k),'arch'];
 }
 function orderedTokens(){
   const def=defaultOrder();
@@ -7582,7 +7627,7 @@ window.fbSearchOpen=function(){
 };
 function tokLabel(tok){
   if(tok==='asst')return '🧞 बोलो-काम'; if(tok==='bulk')return '📊 सब काम'; if(tok==='mic')return '🎙️ बोलो'; if(tok==='srch')return '🔍 खोज'; if(tok==='day')return '📅 दिन'; if(tok==='add')return '➕ नया';
-  if(tok==='fdash')return '🎯 Focus dash'; if(tok==='all')return '🔍 सब'; if(tok==='arch')return '📦 बंद';
+  if(tok==='fdash')return '🎯 Focus dash'; if(tok==='all')return '🔍 सब'; if(tok==='arch')return '📦 बंद'; if(tok==='notag')return '🏷️ बिना श्रेणी';
   if(tok.startsWith('t:')){ const t=TAG_LIST.find(x=>x.k===tok.slice(2)); return t?t.label:tok; }
   if(tok.startsWith('c:')){ const t=TASK_CATS.find(x=>x.k===tok.slice(2)); return t?t.logo+' '+t.label:tok; }
   return tok;

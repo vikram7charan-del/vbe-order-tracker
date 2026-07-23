@@ -2812,14 +2812,34 @@ window.doneTopic=function(id,idx){
     return;
   }
   if(taskInFocus(id,idx)){ _focus=_focus.filter(f=>!(f.id===id&&Number(f.i)===Number(idx))); saveFocus(); renderFocusBar(); }
-  tps[idx].done=true; tps[idx].doneAt=new Date().toISOString(); if(tps[idx].rvw) tps[idx].rvw=null;
+  const wasDg=tps[idx].dg&&tps[idx].dg.to; const wasOver=tps[idx].overseer;
+  tps[idx].done=true; tps[idx].doneAt=new Date().toISOString(); tps[idx].doneBy='विक्रम'; if(tps[idx].rvw) tps[idx].rvw=null;
   c.topics=tps; _logHist(c,'done',tps[idx].t);
   c.note=tps.filter(x=>!x.done).map(x=>x.t).join(' · ');
   try{ const ev=window.event; celebrate(ev&&ev.clientX,ev&&ev.clientY); }catch(e){ celebrate(); }
   bigCheck(); try{ navigator.vibrate&&navigator.vibrate([18,40,26]); }catch(e){}
+  // C3 — delegated काम पूरा → हर जगह auto-settle: bot reminders रोको (ctNotif साफ़),
+  // delegate/overseer को पूरा होने की सूचना (D3 status-change)।
+  if(wasDg||wasOver) ctSettleDelegated(c,idx,tps[idx]);
   render(); fbSave(c);
   toast('✅ काम पूरा — '+tps[idx].t.slice(0,24));
 };
+/* 📤 delegated/overseer काम settle — reminders रोको + दोनों को "पूरा हुआ" सूचना */
+async function ctSettleDelegated(c,idx,t){
+  try{
+    // 1) bot reminders रोको — ctNotif से इस काम की सारी entries हटाओ
+    const map=(window._settings&&window._settings.ctNotif&&typeof window._settings.ctNotif==='object')?window._settings.ctNotif:null;
+    if(map){ let ch=false; Object.keys(map).forEach(k=>{ const n=map[k]; if(n&&n.cid===c.id&&Number(n.ti)===Number(idx)){ delete map[k]; ch=true; } });
+      if(ch){ window._settings.ctNotif=map; setDoc(doc(db,'vbe_call_tracker','_settings'),{id:'_settings',ctNotif:map},{merge:true}).catch(()=>{}); } }
+    // 2) delegate + overseer को "✅ पूरा हुआ" (जो Telegram से जुड़े हों)
+    const md=s=>String(s||'').replace(/([_*`\[])/g,'\\$1');
+    const notifyDone=async(rcptCid,who)=>{ const e=tgStaffList().find(x=>x.cid===rcptCid&&x.chatId&&x.active!==false); if(!e) return;
+      try{ await tgApiApp('sendMessage',{chat_id:e.chatId,parse_mode:'Markdown',disable_web_page_preview:true,
+        text:`✅ *काम पूरा हुआ:* ${md((t.t||'').slice(0,80))}\n👤 ${md(c.name||'')}\n\nधन्यवाद 🙏 — विक्रम चारण, VBE`}); }catch(e2){} };
+    if(t.dg&&t.dg.id) notifyDone(t.dg.id,'delegate');
+    if(t.overseer&&t.overseer.id&&(!t.dg||t.overseer.id!==t.dg.id)) notifyDone(t.overseer.id,'overseer');
+  }catch(e){}
+}
 window.spEditTask=function(id,idx){
   const c=contacts.find(x=>x.id===id); if(!c) return;
   const tps=normTopics(c); if(!tps[idx]) return;
@@ -5636,7 +5656,7 @@ window.spSchedMain=function(){ openSchedPick('c',_spId); };
 let _spId=null;
 window.openSmartPop=function(id){
   if(_swBlock) return; // swipe के तुरंत बाद click ignore
-  if(_spId!==id) _spFilt=''; // नया contact = filter साफ़
+  if(_spId!==id){ _spFilt=''; _spDraftReset(); } // नया contact = filter + draft साफ़
   _spId=id;
   renderSmartPop();
   document.getElementById('sp-bg').style.display='block';
@@ -5691,6 +5711,7 @@ function renderSmartPop(){
     </div>
     ${tagRow}
     ${fRow}
+    ${spComposerHTML(c)}
     ${(tps.length||doneT.length)?`<div style="background:#060d1a;border:1px solid rgba(30,58,95,.7);border-radius:11px;padding:9px 11px;margin-bottom:8px">
       ${tps.length?`<div style="font-size:9px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">🗣️ किस बारे में बात करनी है</div>`:''}
       ${tps.map((x,n)=>{
@@ -5776,13 +5797,6 @@ function renderSmartPop(){
         </div>`; }).join('')}
       </div>`;
     })()}
-    <div style="margin-bottom:10px">
-      <input class="inp" id="sp-new1" placeholder="➕ नया काम सीधे यहाँ लिखें..." style="padding:9px 11px;font-size:12.5px;margin-bottom:6px" onkeydown="if(event.key==='Enter')spSaveNewTasks()">
-      <div style="display:flex;gap:6px">
-        <input class="inp" id="sp-new2" placeholder="➕ और एक काम..." style="flex:1;min-width:0;padding:9px 11px;font-size:12.5px" onkeydown="if(event.key==='Enter')spSaveNewTasks()">
-        <button onclick="spSaveNewTasks()" style="padding:0 15px;border:none;border-radius:11px;background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff;font-weight:900;font-size:13px;font-family:inherit;cursor:pointer;touch-action:manipulation">💾</button>
-      </div>
-    </div>
     <div style="display:flex;gap:6px;align-items:center;margin-bottom:10px;background:#060d1a;border:1px solid rgba(30,58,95,.7);border-radius:11px;padding:8px 10px">
       <span style="flex:1;min-width:0;font-size:11px;font-weight:800;color:${c.nextCallAt?'#93c5fd':'#64748b'}">📅 ${c.nextCallAt?schedLabel(c.nextCallAt)+(c.calSynced===true&&c.calEventFor===c.nextCallAt?' · ✅ Calendar पर':' · ⏳ जा रहा…'):'Calendar में समय नहीं लगा'}</span>
       <button onclick="spSchedMain()" style="flex-shrink:0;font-size:10.5px;font-weight:900;font-family:inherit;border:none;border-radius:9px;padding:7px 11px;background:linear-gradient(120deg,#1d4ed8,#3b82f6);color:#fff;cursor:pointer;touch-action:manipulation">⏰ ${c.nextCallAt?'बदलो':'समय लगाओ'}</button>
@@ -5823,20 +5837,74 @@ function renderSmartPop(){
       <button class="qd-btn sp-sec" style="color:${c.active===false?'#4ade80':'#fca5a5'};border-color:${c.active===false?'rgba(34,197,94,.5)':'rgba(127,29,29,.5)'}" onclick="spArchToggle()">${c.active===false?'▶️ चालू':'📦 बंद'}</button>
     </div>`;
 }
-/* Popup से सीधे नए काम save */
-window.spSaveNewTasks=function(){
+/* ══ C2 — एक-शॉट composer (contact sheet के सबसे ऊपर) — draft state ══
+   काम लिखते ही साथ-साथ 🏷️श्रेणी 👤assign 🎯focus ⏰deadline 📲WhatsApp चुन लो। */
+let _spDraft={text:'',cat:'',focus:false,at:null,assignTo:'',wa:false};
+function _spDraftReset(){ _spDraft={text:'',cat:'',focus:false,at:null,assignTo:'',wa:false}; }
+function _draftAtDate(kind){
+  const now=new Date();
+  if(kind==='1') return new Date(Date.now()+3600000);
+  if(kind==='e'){ const d=new Date(now); d.setHours(18,0,0,0); if(d<=now) d.setDate(d.getDate()+1); return d; }
+  if(kind==='t'){ const d=new Date(now); d.setDate(d.getDate()+1); d.setHours(10,0,0,0); return d; }
+  return null;
+}
+function _draftAtKind(){ if(!_spDraft.at) return ''; const h=new Date(_spDraft.at).getHours(); const dd=new Date(_spDraft.at).getDate()!==new Date().getDate();
+  if(!dd&&Math.abs(_spDraft.at-Date.now()-3600000)<20*60000) return '1'; if(dd&&h===10) return 't'; if(h===18) return 'e'; return 'x'; }
+window.spDraftCat=function(k){ _spDraft.cat=_spDraft.cat===k?'':k; renderSmartPop(); };
+window.spDraftFocus=function(){ _spDraft.focus=!_spDraft.focus; renderSmartPop(); };
+window.spDraftWA=function(){ _spDraft.wa=!_spDraft.wa; renderSmartPop(); };
+window.spDraftAssign=function(sid){ _spDraft.assignTo=_spDraft.assignTo===sid?'':sid; renderSmartPop(); };
+window.spDraftAt=function(kind){ _spDraft.at=_draftAtDate(kind); renderSmartPop(); };
+window._spDraftText=function(v){ _spDraft.text=v; };
+function spComposerHTML(c){
+  const team=staffList().filter(s=>s.id!==c.id);
+  const catChip=(tc)=>{ const on=_spDraft.cat===tc.k; return `<span class="press" onclick="spDraftCat('${tc.k}')" style="cursor:pointer;font-size:11px;font-weight:800;padding:4px 9px;border-radius:9px;border:1.5px solid ${on?'#3b82f6':'rgba(30,58,95,.7)'};background:${on?'rgba(59,130,246,.16)':'#060d1a'};color:${on?'#60a5fa':'#94a3b8'}">${tc.logo}${on?' '+escH(tc.label):''}</span>`; };
+  const atK=_draftAtKind();
+  const atChip=(k,lbl)=>{ const on=atK===k||(k===''&&!_spDraft.at); return `<span class="press" onclick="spDraftAt('${k}')" style="cursor:pointer;font-size:10.5px;font-weight:800;padding:4px 9px;border-radius:9px;border:1.5px solid ${on?'#3b82f6':'rgba(30,58,95,.7)'};background:${on?'rgba(59,130,246,.16)':'#060d1a'};color:${on?'#93c5fd':'#94a3b8'}">${lbl}</span>`; };
+  return `<div style="background:linear-gradient(160deg,#0a1424,#070e1c);border:1px solid rgba(59,130,246,.4);border-radius:13px;padding:10px 11px;margin-bottom:10px;box-shadow:0 6px 18px -12px rgba(59,130,246,.5)">
+    <div style="font-size:9px;font-weight:900;color:#60a5fa;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">➕ नया काम — एक ही बार में पूरा सेट करो</div>
+    <textarea id="sp-new1" oninput="_spDraftText(this.value);this.style.height='auto';this.style.height=this.scrollHeight+'px'" placeholder="यहाँ काम लिखें… (जैसे: दो प्रिंटर मंगवाओ)" style="width:100%;box-sizing:border-box;resize:none;min-height:40px;font-family:inherit;font-size:13.5px;font-weight:700;color:#eaf0ff;background:#060d1a;border:1px solid rgba(30,58,95,.8);border-radius:10px;padding:9px 11px;line-height:1.45">${escH(_spDraft.text)}</textarea>
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;align-items:center">
+      ${TASK_CATS.map(catChip).join('')}
+    </div>
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;align-items:center">
+      <span style="font-size:9.5px;font-weight:800;color:#64748b">⏰</span>${atChip('','कभी')}${atChip('1','1घंटा')}${atChip('e','आज शाम')}${atChip('t','कल सुबह')}
+      <span class="press" onclick="spDraftFocus()" style="cursor:pointer;font-size:10.5px;font-weight:800;padding:4px 9px;border-radius:9px;border:1.5px solid ${_spDraft.focus?'var(--focus-color)':'rgba(30,58,95,.7)'};background:${_spDraft.focus?'rgba(245,158,11,.14)':'#060d1a'};color:${_spDraft.focus?'#fcd34d':'#94a3b8'}">🎯 Focus</span>
+      ${(c.waPhone||c.phone)?`<span class="press" onclick="spDraftWA()" style="cursor:pointer;font-size:10.5px;font-weight:800;padding:4px 9px;border-radius:9px;border:1.5px solid ${_spDraft.wa?'rgba(37,211,102,.6)':'rgba(30,58,95,.7)'};background:${_spDraft.wa?'rgba(37,211,102,.14)':'#060d1a'};color:${_spDraft.wa?'#4ade80':'#94a3b8'}">📲 WhatsApp</span>`:''}
+    </div>
+    ${team.length?`<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;align-items:center">
+      <span style="font-size:9.5px;font-weight:800;color:#64748b">👤 किसे:</span>
+      ${team.slice(0,6).map(s=>{ const on=_spDraft.assignTo===s.id; return `<span class="press" onclick="spDraftAssign('${s.id}')" style="cursor:pointer;font-size:10.5px;font-weight:800;padding:4px 9px;border-radius:9px;border:1.5px solid ${on?'rgba(34,197,94,.65)':'rgba(30,58,95,.7)'};background:${on?'rgba(34,197,94,.14)':'#060d1a'};color:${on?'#4ade80':'#94a3b8'}">${on?'✓ ':''}${escH((s.name||'').split(/\s+/)[0])}</span>`; }).join('')}
+    </div>`:''}
+    <button class="press" onclick="spSaveNewTasks()" style="width:100%;margin-top:9px;padding:10px;border:none;border-radius:11px;background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff;font-weight:900;font-size:13.5px;font-family:inherit;cursor:pointer;touch-action:manipulation">💾 काम जोड़ो${_spDraft.focus?' + 🎯':''}${_spDraft.wa?' + 📲':''}</button>
+  </div>`;
+}
+/* Popup से सीधे नया काम save — draft की सारी सेटिंग एक साथ लागू */
+window.spSaveNewTasks=async function(){
   const c=contacts.find(x=>x.id===_spId);
   if(!c) return;
-  const v1=(document.getElementById('sp-new1')||{}).value||'';
-  const v2=(document.getElementById('sp-new2')||{}).value||'';
-  const add=[v1.trim(),v2.trim()].filter(Boolean).map(t=>({t,done:false,doneAt:null,cat:'',assignTo:'',addedAt:new Date().toISOString()}));
-  if(!add.length){ toast('⚠️ पहले काम लिखें','warn'); return; }
+  const v1=((document.getElementById('sp-new1')||{}).value||_spDraft.text||'').trim();
+  if(!v1){ toast('⚠️ पहले काम लिखें','warn'); return; }
+  const nt={t:v1,done:false,doneAt:null,cat:_spDraft.cat||'',assignTo:_spDraft.assignTo||'',addedAt:new Date().toISOString()};
+  if(_spDraft.assignTo) nt.assignAt=new Date().toISOString();
+  if(_spDraft.at) nt.at=new Date(_spDraft.at).toISOString();
   const tps=normTopics(c);
   const act=tps.filter(x=>!x.done), don=tps.filter(x=>x.done);
-  c.topics=[...act,...add,...don];
-  c.note=[...act,...add].map(x=>x.t).join(' · ');
-  render(); fbSave(c); renderSmartPop();
-  toast(`✅ ${add.length} काम जुड़ गए`);
+  c.topics=[...act,nt,...don];
+  c.note=[...act,nt].map(x=>x.t).join(' · ');
+  const newIdx=act.length; // नए काम का index
+  fbSave(c);
+  // 🎯 focus में डालो
+  if(_spDraft.focus){ try{ _focus.push({key:c.id+'_'+newIdx+'_'+Date.now(),id:c.id,i:newIdx,t:v1,own:'v',start:Date.now(),until:Date.now()+15*60000,mins:15}); saveFocus(); renderFocusBar(); }catch(e){} }
+  // 👤 assign → Telegram सूचना
+  if(_spDraft.assignTo){ try{ tgNotifyAssign(c.id,newIdx,_spDraft.assignTo); }catch(e){} }
+  // 📲 WhatsApp draft
+  const wantWA=_spDraft.wa; const dig=_tgPhDig(c.waPhone||c.phone);
+  const extras=[]; if(_spDraft.cat)extras.push('श्रेणी'); if(_spDraft.at)extras.push('⏰'); if(_spDraft.focus)extras.push('🎯'); if(_spDraft.assignTo)extras.push('👤'+staffName(_spDraft.assignTo).split(/\s+/)[0]);
+  _spDraftReset();
+  render(); renderSmartPop();
+  toast('✅ काम जुड़ा'+(extras.length?' ('+extras.join(' · ')+')':''));
+  if(wantWA&&dig){ location.href='whatsapp://send?phone='+dig+'&text='+encodeURIComponent(statusMsg(c.name,v1)); }
 };
 /* ══ CATEGORY PICKER — चारों option सामने, सीधे चुनो ══ */
 let _catPick=null;

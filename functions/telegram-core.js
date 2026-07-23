@@ -851,6 +851,16 @@ async function logEv(col, o){
       .set(Object.assign({at:new Date().toISOString(),ch:'telegram'},o));
   }catch(e){}
 }
+/* 👁️ D3 — काम का overseer (जैसे दिनेश जी) Telegram से जुड़ा हो तो status-बदलाव भेजो */
+async function overseerStatusCalls(col, data, cid, ti, emoji, statusLine){
+  try{
+    const dc=await col.doc(cid).get(); if(!dc.exists) return [];
+    const c=dc.data(); const t=topics(c)[Number(ti)]; if(!t||!t.overseer||!t.overseer.id) return [];
+    const s=tgStaff(data).find(x=>x.cid===t.overseer.id&&x.chatId&&x.active!==false); if(!s) return [];
+    return [{method:'sendMessage',body:{chat_id:s.chatId,parse_mode:'Markdown',disable_web_page_preview:true,
+      text:`👁️ *देखरेख अपडेट* — ${emoji} ${statusLine}\n📌 ${mdSafe((t.t||'').slice(0,75))}\n🧑‍🤝‍🧑 ${mdSafe(c.name||'')}`}}];
+  }catch(e){ return []; }
+}
 /* 🔒 isolation guard — doc ताज़ा पढ़ो, topic उसी staff का हो तभी दो */
 async function staffTopic(col, staffCid, cid, ti){
   const dc=await col.doc(cid).get(); if(!dc.exists) return null;
@@ -1303,6 +1313,7 @@ async function handleStaffCallback(col, data, cq, st, ownerChat){
     await logEv(col,{action:'done',staff:st.cid,staffName:sName,cid:m[1],ti:Number(m[2]),task:(r.task||'').slice(0,80)});
     ack('✅ शाबाश!'); mir('✅',r.task);
     say(`✅ *हो गया:* ${mdSafe((r.task||'').slice(0,60))}\n👤 ${mdSafe(r.name||'')}\n\nबहुत बढ़िया ${sName.split(/\s+/)[0]} जी! 🙌`);
+    (await overseerStatusCalls(col,data,m[1],m[2],'✅','पूरा हो गया')).forEach(x=>calls.push(x));
     await refresh('general',0,m[1]);
   } else if((m=cd.match(/^up\|(.+)\|(\d+)$/))){
     const g=await staffTopic(col,st.cid,m[1],m[2]);
@@ -1325,6 +1336,7 @@ async function handleStaffCallback(col, data, cq, st, ownerChat){
     await logEv(col,{action:'in_progress',staff:st.cid,staffName:sName,cid:m[1],ti:Number(m[2]),task:r.task.slice(0,80),dueAt:at.toISOString()});
     ack('⏳ ठीक'); mir('⏳ कर रहा हूँ',r.task,istHM(at.toISOString())+' तक');
     say(`⏳ ठीक है — *${istParts(at.toISOString())} ${istHM(at.toISOString())}* तक।\n📝 ${mdSafe(r.task.slice(0,60))}\nसमय पर याद दिला दूँगा।`);
+    (await overseerStatusCalls(col,data,m[1],m[2],'⏳','कर रहे हैं — '+istHM(at.toISOString())+' तक')).forEach(x=>calls.push(x));
     await refresh('general',0,m[1]);
   } else if((m=cd.match(/^ub\|(.+)\|(\d+)$/))){
     const g=await staffTopic(col,st.cid,m[1],m[2]);
@@ -1342,6 +1354,7 @@ async function handleStaffCallback(col, data, cq, st, ownerChat){
     say(`🚧 ठीक है — विक्रम जी को तुरंत बता दिया।\n📝 ${r.task.slice(0,60)}\nकारण: ${reason}`);
     if(ownerChat) calls.push({method:'sendMessage',body:{chat_id:ownerChat,parse_mode:'Markdown',disable_web_page_preview:true,
       text:`🚧 *काम अटका!*\n👤 ${mdSafe(sName)} का काम: ${mdSafe(r.task.slice(0,70))}\n(${mdSafe(r.cname)})\n❌ कारण: *${reason}*\n\n2 घंटे में हल करें — वरना staff बताना बंद कर देंगे।`}});
+    (await overseerStatusCalls(col,data,m[1],m[2],'🚧','अटका — '+reason)).forEach(x=>calls.push(x));
   } else if((m=cd.match(/^uz\|(.+)\|(\d+)$/))){
     const g=await staffTopic(col,st.cid,m[1],m[2]);
     if(!g){ ack('यह काम आपका नहीं / मिला नहीं'); return {calls,dirty}; }
@@ -1761,7 +1774,7 @@ module.exports={
   tgStaff, staffByChat, staffTasks, staffDigest, teamContacts, teamScore,
   staffLinkAttempt, makeLinkCode, linkPickMsg, autoPushStaffDigest, logEv,
   staffFocusDigest, autoPushFocusHourly, lateBadge, focusItemGuard, autoPushQueued, autoPushStaffReminder, mdSafe,
-  notifMap, notifKey, saveNotif, clearNotifForTask, pendingForRcpt,
+  notifMap, notifKey, saveNotif, clearNotifForTask, pendingForRcpt, overseerStatusCalls,
   geminiAsk, geminiAudio, brainContext, brainMenu, brainAnswer, brainReply, handleVoiceNote,
   callsDigest, dueTasksDigest, applyCallDone
 };

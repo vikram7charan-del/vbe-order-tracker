@@ -3730,7 +3730,9 @@ window.genDayPlan=async function(){
       if(!pend.length) return;
       const t=c.nextCallAt?new Date(c.nextCallAt).getTime():0;
       if(t && (t<now-7*864e5 || t>now+7*864e5)) return; // सिर्फ़ बीते 7 दिन से अगले 7 दिन
-      items.push({id:c.id,name:c.name||'',when:t?new Date(t).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',hour12:false}):null,late:!!(t&&t<now),tasks:pend.slice(0,3).map(x=>x.t)});
+      // 📤 delegation signal — AI को बताओ कौन सौंपा, किसकी देखरेख, delivery हुई या नहीं
+      const dgInfo=pend.filter(x=>x.dg&&x.dg.to).map(x=>({to:x.dg.to,tg:x.dg.tg?(x.dg.tg.ok===true?'भेजा✓':x.dg.tg.ok===false?'नहीं भेजा✗':'भेज रहे'):'सिर्फ़WA',over:x.overseer&&x.overseer.name?x.overseer.name:''}));
+      items.push({id:c.id,name:c.name||'',when:t?new Date(t).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',hour12:false}):null,late:!!(t&&t<now),tasks:pend.slice(0,3).map(x=>x.t),deleg:dgInfo.length?dgInfo:undefined});
     });
     items.sort((a,b)=>(b.late?1:0)-(a.late?1:0));
     const txt=await aiAsk(`विक्रम भाई (army-supply व्यापारी, बाड़मेर) का काम-प्लान बनाओ। दिन के हिस्से: 6-9 योजना, 9-14 जालीपा, 14-18 मार्केटिंग, 18-20 हिसाब।\nजवाब सिर्फ़ JSON: {"lines":[{"id":"contactId या null","txt":"छोटी पंक्ति"}]}\nतीन हिस्से बनाओ, हर हिस्से की पहली पंक्ति heading (id:null): '🔴 बीते 7 दिन के छूटे काम' (late वाले — review ज़रूरी), '📌 आज', '📅 अगले 7 दिन'। हर txt में समय/तारीख + नाम + मुख्य काम (शब्द हूबहू), 12 शब्द तक; कुल 20 पंक्तियाँ तक; late सबसे पहले।\nDATA:\n${JSON.stringify(items.slice(0,45))}`,1500);
@@ -3912,14 +3914,32 @@ function _voicePrompt(nowS, raw, whenRaw){
    'नियम: एक वाक्य में कई अलग काम हों तो हर एक अलग task (max 3)। "name" = जिस पार्टी/व्यक्ति का काम है (contact); "focusOwner" = किसकी घड़ी/focus में डालना है (staff: विक्रम/दिनेश/कैलाश) — दोनों अलग हैं।\n'+
    (whenRaw!==undefined?('समय-वाक्य: '+(whenRaw||'—')+'\nकाम-वाक्य: '+(raw||'—')):('वाक्य: '+(raw||'—')));
 }
+/* 🤖 AI health — आख़िरी नतीजा (status indicator + Hindi error के लिए) */
+window._aiHealth=window._aiHealth||{ok:null,at:0,err:''};
+function _aiErrHindi(m){ m=String(m||'').toLowerCase();
+  if(/quota|exhaust|rate|429|resource_exhausted/.test(m)) return 'AI की आज की मुफ़्त सीमा पूरी — कल फिर, या ⚙️ में दूसरी key';
+  if(/api key|invalid|expired|401|403|permission|api_key/.test(m)) return 'AI key गलत/बंद — ⚙️ में सही key डालें';
+  if(/abort|timeout|network|failed to fetch|load failed/.test(m)) return 'नेट धीमा — फिर कोशिश करें';
+  if(/no-key/.test(m)) return 'पहले ⚙️ से AI key डालें (Gemini AIza… मुफ़्त)';
+  return 'AI में दिक्कत — '+String(m).slice(0,50);
+}
+function _aiMark(ok,err){ window._aiHealth={ok,at:Date.now(),err:err||''}; try{ if(typeof aiStatusSync==='function') aiStatusSync(); }catch(e){} }
+function _isTransient(m){ return /5\d\d|abort|timeout|network|failed to fetch|load failed|unavailable|overload/i.test(String(m||'')); }
 async function aiAsk(prompt,maxTok){
   const gk=gemKey(), ck=aiKey();
-  if(!gk&&!ck) throw new Error('no-key');
-  if(gk){
-    try{ return await _gemAsk(prompt,maxTok,gk); }
-    catch(e){ if(!ck) throw e; }
+  if(!gk&&!ck){ _aiMark(false,'no-key'); throw new Error('no-key'); }
+  let lastErr=null;
+  // एक retry (backoff) transient पर — Gemini→Claude fallback भी
+  for(let attempt=0;attempt<2;attempt++){
+    if(gk){ try{ const t=await _gemAsk(prompt,maxTok,gk); _aiMark(true); return t; }
+      catch(e){ lastErr=e; if(ck) break; if(!_isTransient(e&&e.message)) break; } }
+    else break;
+    await new Promise(r=>setTimeout(r,700*(attempt+1)));
   }
-  return await _claudeAsk(prompt,maxTok,ck);
+  if(ck){ for(let attempt=0;attempt<2;attempt++){
+    try{ const t=await _claudeAsk(prompt,maxTok,ck); _aiMark(true); return t; }
+    catch(e){ lastErr=e; if(!_isTransient(e&&e.message)) break; await new Promise(r=>setTimeout(r,700*(attempt+1))); } } }
+  _aiMark(false,lastErr&&lastErr.message); throw (lastErr||new Error('AI fail'));
 }
 async function _gemAsk(prompt,maxTok,key){
   const ctl=new AbortController();
@@ -4121,13 +4141,24 @@ function aicSuggests(){
   out.push({ico:'✨',t1:'किसी को WhatsApp लिखवाओ',t2:'विक्रम-अंदाज़ में, अपने आप',act:'wa'});
   return out;
 }
+/* 🤖 AI status chip — key + आख़िरी नतीजा दिखाए (G2) */
+function aiStatusChip(){
+  const has=!!(gemKey()||aiKey()); const h=window._aiHealth||{};
+  let dot,txt,col;
+  if(!has){ dot='⚙️'; txt='AI key डालें'; col='#64748b'; }
+  else if(h.ok===false){ dot='❌'; txt=_aiErrHindi(h.err); col='#f87171'; }
+  else if(h.ok===true){ dot='✅'; txt='AI तैयार'; col='#4ade80'; }
+  else { dot='🟢'; txt='AI जुड़ा है'; col='#4ade80'; }
+  return `<div id="ai-status" onclick="${has?'':'setAiKey()'}" style="${has?'':'cursor:pointer'};display:inline-flex;align-items:center;gap:5px;font-size:9.5px;font-weight:800;color:${col};background:${col}18;border:1px solid ${col}55;border-radius:9px;padding:3px 9px;margin-bottom:8px">${dot} ${escH(txt)}</div>`;
+}
+window.aiStatusSync=function(){ const el=document.getElementById('ai-status'); if(el&&el.parentNode){ const w=document.createElement('div'); w.innerHTML=aiStatusChip(); el.parentNode.replaceChild(w.firstChild,el); } };
 window.openAiComp=function(){
   document.getElementById('aic-hi').textContent=aicGreeting();
   const s=aicStats();
   const hlt=ableHealth();
   document.getElementById('aic-sub').textContent = `${hlt>=75?'💚':hlt>=45?'🟡':'🔴'} Business सेहत ${hlt}/100 · ` + (s.late>0 ? `${s.late} काम ध्यान माँग रहे हैं` : (s.callsDue>0?`${s.callsDue} call बाकी`:'सब काबू में 👍'));
   const sug=document.getElementById('aic-sug');
-  sug.innerHTML=aicSuggests().map(x=>`<div class="aic-sug-item" onclick="aicDo('${x.act}')"><span class="ico">${x.ico}</span><span class="tx"><div class="t1">${escH(x.t1)}</div><div class="t2">${escH(x.t2)}</div></span><span class="go">›</span></div>`).join('');
+  sug.innerHTML=aiStatusChip()+aicSuggests().map(x=>`<div class="aic-sug-item" onclick="aicDo('${x.act}')"><span class="ico">${x.ico}</span><span class="tx"><div class="t1">${escH(x.t1)}</div><div class="t2">${escH(x.t2)}</div></span><span class="go">›</span></div>`).join('');
   const rp=document.getElementById('aic-resp'); rp.style.display='none'; rp.textContent='';
   document.getElementById('ai-comp').classList.add('on');
 };

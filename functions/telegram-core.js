@@ -852,6 +852,40 @@ function staffDigest(data, st, now, start){
   }
   return {text:text.slice(0,4050), reply_markup:{inline_keyboard:rows}};
 }
+/* 📩 पूरा digest — सारे काम एक ही बार में (button-pagination नहीं)।
+   Telegram की 4096-char हद के कारण ज़रूरत पड़ने पर कई message, पर सब एक साथ जाएँ।
+   हर message में उसके अपने काम के ✅/⏳/❌/🕐 बटन (≤24 काम/msg → ≤96 बटन)। */
+function staffDigestFull(data, st, now){
+  const tasks=staffTasks(data, st.cid, now);
+  const nm=(staffNameOf(data,st.cid)||st.name||'').split(/\s+/)[0]||'जी';
+  if(!tasks.length) return [{text:`🙏 ${nm} जी — ${greetIST(now)}\n\n✨ अभी कोई काम बाकी नहीं। शाबाश!`}];
+  const PER=24, CHARS=3800; // 24×4=96 बटन (<100 हद); ~3800 char (<4096 हद)
+  const totalPages=Math.ceil(tasks.length/PER);
+  const done=staffDoneToday(data,st.cid,now);
+  const out=[]; let i=0, pageNo=0;
+  while(i<tasks.length){
+    let text=`🙏 *${nm} जी — ${greetIST(now)}*\n`+(totalPages>1?`_(भाग ${pageNo+1}/${totalPages})_ `:'')+`कुल *${tasks.length}* काम बाकी\n`;
+    const chunk=[]; let lastCid=null;
+    while(i<tasks.length && chunk.length<PER && text.length<CHARS){
+      const t=tasks[i];
+      if(t.cid!==lastCid){ lastCid=t.cid; text+='\n━━━━━━━━━━━━━━━\n👤 *'+mdSafe(t.cname)+'*\n'; const dig=_phoneDigits(t.cphone); if(dig) text+=telLink(t.cphone,dig)+'\n'; }
+      const lateMs=t.at?now-new Date(t.at).getTime():0;
+      const mark=(lateMs>0||t.pri==='high')?'🔴':t.st==='blocked'?'🚧':'🟡';
+      text+=`${mark} *${i+1}.* ${mdSafe(t.t)}${lateMs>0?' — '+fmtDur(lateMs)+' लेट':''}\n`;
+      chunk.push({t,n:i+1}); i++;
+    }
+    if(i>=tasks.length) text+=`\n━━━━━━━━━━━━━━━\nआज: ✅${done} पूरे · ⏳${tasks.length} बाकी\nनीचे नंबर के बटन दबाइए 👇`;
+    const rows=chunk.map(({t,n})=>[
+      {text:'✅ '+n,callback_data:('ud|'+t.cid+'|'+t.ti).slice(0,64)},
+      {text:'⏳ '+n,callback_data:('up|'+t.cid+'|'+t.ti).slice(0,64)},
+      {text:'❌ '+n,callback_data:('ub|'+t.cid+'|'+t.ti).slice(0,64)},
+      {text:'🕐 '+n,callback_data:('uz|'+t.cid+'|'+t.ti).slice(0,64)},
+    ]);
+    out.push({text:text.slice(0,4090), reply_markup:{inline_keyboard:rows}});
+    pageNo++;
+  }
+  return out;
+}
 /* 🔒 audit event — append-only, अलग collection (app नहीं पढ़ता) */
 async function logEv(col, o){
   try{
@@ -918,8 +952,9 @@ async function autoPushStaffDigest(col, data){
     if(now-Number(s.lastNudgeAt||0)<gap) continue;
     const tasks=staffTasks(data,s.cid,now);
     if(!tasks.length) continue;
-    const d=staffDigest(data,s,now);
-    calls.push({method:'sendMessage',body:Object.assign({chat_id:s.chatId,parse_mode:'Markdown',disable_web_page_preview:true,text:d.text},d.reply_markup?{reply_markup:d.reply_markup}:{})});
+    // 📩 पूरी list एक ही बार में (कई message हों तो सब एक साथ) — button-पेजिंग नहीं
+    for(const d of staffDigestFull(data,s,now))
+      calls.push({method:'sendMessage',body:Object.assign({chat_id:s.chatId,parse_mode:'Markdown',disable_web_page_preview:true,text:d.text},d.reply_markup?{reply_markup:d.reply_markup}:{})});
     s.lastNudgeAt=now; changed=true;
   }
   if(changed) await saveTgStaff(col,data,list);
@@ -1088,10 +1123,14 @@ async function autoPushQueued(col, data){
       await logEv(col,{action:isOver?'overseer':'delegated',staff:s.cid,staffName:rName,cid:req.srcId,ti:Number(req.ti),task:(t.t||'').slice(0,80),via:req.sent?'app':'bot'});
       continue;
     }
-    const dg=(req.kind!=='tasks'&&s.own&&focusItemsOf(data,s.own).length)
-      ?staffFocusDigest(data,s,now,req.mode||s.pref||'detailed',Number(req.start)||0)
-      :staffDigest(data,s,now);
-    calls.push({method:'sendMessage',body:Object.assign({chat_id:s.chatId,parse_mode:'Markdown',disable_web_page_preview:true,text:dg.text},dg.reply_markup?{reply_markup:dg.reply_markup}:{})});
+    if(req.kind!=='tasks'&&s.own&&focusItemsOf(data,s.own).length){
+      const dg=staffFocusDigest(data,s,now,req.mode||s.pref||'detailed',Number(req.start)||0);
+      calls.push({method:'sendMessage',body:Object.assign({chat_id:s.chatId,parse_mode:'Markdown',disable_web_page_preview:true,text:dg.text},dg.reply_markup?{reply_markup:dg.reply_markup}:{})});
+    } else {
+      // 📩 पूरी list एक साथ (कई message हों तो सब एक बार में)
+      for(const dg of staffDigestFull(data,s,now))
+        calls.push({method:'sendMessage',body:Object.assign({chat_id:s.chatId,parse_mode:'Markdown',disable_web_page_preview:true,text:dg.text},dg.reply_markup?{reply_markup:dg.reply_markup}:{})});
+    }
     s.lastPushAt=now; s.lastFocusAt=now; changed=true;
     await logEv(col,{action:'focus_push',staff:s.cid,staffName:staffNameOf(data,s.cid)||s.name,trigger:'app-queue'});
   }
@@ -1785,7 +1824,7 @@ module.exports={
   contactReviewList, contactReviewCards, contactFocusStart,
   applyDone, applyAdd, applyFocusAdd, applyFocusComplete, applyFocusExtend, applyFocusRemove,
   handleUpdate, autoPushNew, autoPushFocus, autoPushNudge, autoPushMenu,
-  tgStaff, staffByChat, staffTasks, staffDigest, teamContacts, teamScore,
+  tgStaff, staffByChat, staffTasks, staffDigest, staffDigestFull, teamContacts, teamScore,
   staffLinkAttempt, makeLinkCode, linkPickMsg, autoPushStaffDigest, logEv,
   staffFocusDigest, autoPushFocusHourly, lateBadge, focusItemGuard, autoPushQueued, autoPushStaffReminder, mdSafe,
   notifMap, notifKey, saveNotif, clearNotifForTask, pendingForRcpt, overseerStatusCalls,

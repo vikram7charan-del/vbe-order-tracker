@@ -329,12 +329,19 @@ body.hdr-hide .app-hdr{transform:translateY(-100%)}
 .c-name{font-size:16px;font-weight:900;color:#e2e8f0;letter-spacing:.1px;line-height:1.3;word-break:break-word;display:flex;align-items:center;gap:4px;flex-wrap:wrap}
 .pin-dot{font-size:10px}
 /* विषय — किस बारे में बात करनी है (नाम के नीचे, पूरी width, कटे नहीं) */
-.c-topics{margin-top:3px}
-.c-topic{font-size:12.5px;font-weight:700;color:#fbbf24;line-height:1.45;word-break:break-word;margin-bottom:3px}
+.c-topics{margin-top:5px;display:flex;flex-direction:column}
+/* हर काम एक साफ़ पंक्ति — बड़ा tap-zone वाला ✅ + अलग text-zone; बीच में divider
+   ताकि पास-पास होने पर भी गलत काम पूरा न हो (सही जगह ही tap लगे) */
+.c-topic{display:flex;align-items:flex-start;gap:12px;font-size:12.5px;font-weight:700;color:#fbbf24;
+  line-height:1.5;word-break:break-word;padding:11px 2px;border-bottom:1px solid rgba(148,163,184,.16)}
+.c-topic:last-child{border-bottom:none}
+.c-topic .c-txt{flex:1;min-width:0;cursor:pointer;padding:1px 0}
 .c-topic .tnum{color:#f59e0b;opacity:.75;margin-right:2px}
 /* काम पूरा करने का गोल checkbox */
-.tp-chk{display:inline-block;width:16px;height:16px;border-radius:50%;border:2px solid #f59e0b;margin-right:6px;vertical-align:-3px;cursor:pointer;flex-shrink:0;background:transparent;touch-action:manipulation}
-.tp-chk:active{background:rgba(34,197,94,.45);border-color:#22c55e}
+.tp-chk{position:relative;width:24px;height:24px;border-radius:50%;border:2.5px solid #f59e0b;flex-shrink:0;
+  cursor:pointer;background:transparent;touch-action:manipulation;margin-top:1px;transition:transform .1s}
+.tp-chk::after{content:'';position:absolute;inset:-9px}/* बड़ा (~42px) tap-zone — गलत काम पूरा न हो */
+.tp-chk:active{background:rgba(34,197,94,.55);border-color:#22c55e;transform:scale(.88)}
 /* ✨ Premium task cards (Smart Popup) — border वाला card + चमकदार ✓ बटन */
 .sp-task{position:relative;background:linear-gradient(158deg,rgba(23,33,60,.94),rgba(9,14,28,.97));border:1px solid rgba(125,152,214,.22);border-left:4px solid var(--tc,#f59e0b);border-radius:15px;padding:11px 13px 12px;margin-bottom:10px;box-shadow:0 7px 18px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.05);transition:transform .12s ease,box-shadow .2s}
 .sp-task::after{content:"";position:absolute;inset:0;border-radius:15px;pointer-events:none;box-shadow:0 0 0 1px color-mix(in srgb,var(--tc,#f59e0b) 22%,transparent),0 0 16px -4px color-mix(in srgb,var(--tc,#f59e0b) 45%,transparent)}
@@ -2873,14 +2880,14 @@ function topicListHTML(c){
     const inF=taskInFocus(c.id,x.i);
     // 🎨 रंग-कोड: 📤 delegated → गुलाबी, बाक़ी → amber (default)
     const dgC=x.dg&&x.dg.to?'color:#FF9EC4;':'';
-    return `<div class="c-topic" onclick="event.stopPropagation();openTaskSheet('${c.id}',${x.i})" style="cursor:pointer;${dgC}${inF?'text-shadow:0 0 10px var(--focus-glow)':''}"><span class="tp-chk" onclick="event.stopPropagation();doneTopic('${c.id}',${x.i})"></span>${inF?'<span class="fk-badge">🎯</span> ':''}${x.pri==='high'?'🔴 ':''}${ci?ci.logo+' ':''}${multi?`<span class="tnum">${n+1}.</span>`:''}${escH(x.t)}${x.assignTo?` <span style="font-size:10px;color:#4ade80;font-weight:800">→👤${escH(staffName(x.assignTo))}</span>`:''}${linkChipsHTML(c.id,x.i,x)}${taskBadges(x,c.id,x.i)}</div>`;
+    return `<div class="c-topic" style="${dgC}${inF?'text-shadow:0 0 10px var(--focus-glow)':''}"><span class="tp-chk" onclick="event.stopPropagation();doneTopic('${c.id}',${x.i})" title="यह काम पूरा"></span><span class="c-txt" onclick="event.stopPropagation();openTaskSheet('${c.id}',${x.i})">${inF?'<span class="fk-badge">🎯</span> ':''}${x.pri==='high'?'🔴 ':''}${ci?ci.logo+' ':''}${multi?`<span class="tnum">${n+1}.</span>`:''}${escH(x.t)}${x.assignTo?` <span style="font-size:10px;color:#4ade80;font-weight:800">→👤${escH(staffName(x.assignTo))}</span>`:''}${linkChipsHTML(c.id,x.i,x)}${taskBadges(x,c.id,x.i)}</span></div>`;
   }).join('')}${asg.map(x=>{
     const ci=catInfo(x.cat);
-    return `<div class="c-topic" onclick="event.stopPropagation();openTaskSheet('${x.srcId}',${x.i})" style="color:#86efac;cursor:pointer"><span class="tp-chk" style="border-color:#22c55e" onclick="event.stopPropagation();doneTopic('${x.srcId}',${x.i})"></span>👤 ${ci?ci.logo+' ':''}${escH(x.t)} <span style="font-size:10px;opacity:.7">(📌 ${escH(x.srcName)})</span></div>`;
+    return `<div class="c-topic" style="color:#86efac"><span class="tp-chk" style="border-color:#22c55e" onclick="event.stopPropagation();doneTopic('${x.srcId}',${x.i})" title="यह काम पूरा"></span><span class="c-txt" onclick="event.stopPropagation();openTaskSheet('${x.srcId}',${x.i})">👤 ${ci?ci.logo+' ':''}${escH(x.t)} <span style="font-size:10px;opacity:.7">(📌 ${escH(x.srcName)})</span></span></div>`;
   }).join('')}${ovr.map(x=>{
     const ci=catInfo(x.cat);
-    // 👁️ देखरेख वाले काम — बैंगनी, दूसरे contact के; tap → openTaskSheet (navigate नहीं)
-    return `<div class="c-topic" onclick="event.stopPropagation();openTaskSheet('${x.srcId}',${x.i})" style="color:#c4b5fd;cursor:pointer"><span class="tp-chk" style="border-color:#a78bfa" onclick="event.stopPropagation();doneTopic('${x.srcId}',${x.i})"></span>👁️ ${ci?ci.logo+' ':''}${escH(x.t)} <span style="font-size:10px;opacity:.7">(📌 ${escH(x.srcName)})</span></div>`;
+    // 👁️ देखरेख वाले काम — बैंगनी, दूसरे contact के; text-zone → openTaskSheet (navigate नहीं)
+    return `<div class="c-topic" style="color:#c4b5fd"><span class="tp-chk" style="border-color:#a78bfa" onclick="event.stopPropagation();doneTopic('${x.srcId}',${x.i})" title="यह काम पूरा"></span><span class="c-txt" onclick="event.stopPropagation();openTaskSheet('${x.srcId}',${x.i})">👁️ ${ci?ci.logo+' ':''}${escH(x.t)} <span style="font-size:10px;opacity:.7">(📌 ${escH(x.srcName)})</span></span></div>`;
   }).join('')}</div>`;
 }
 /* 🕘 हल्का history-log — हर contact पर आख़िरी 40 बदलाव */

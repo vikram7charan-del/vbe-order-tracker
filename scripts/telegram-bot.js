@@ -114,7 +114,7 @@ async function main() {
           try {
             const b64 = await tgDownloadFileB64(tok, r.voice.file_id);
             if (b64) {
-              const vr = await tg.handleVoiceNote(col, data, b64, r.voice.mime, r.voice.chat);
+              const vr = await tg.handleVoiceNote(col, data, b64, r.voice.mime, r.voice.chat, r.voice.staffCid);
               if (vr.dirty) dirty = true;
               for (const c of vr.calls) await tgApi(tok, c.method, c.body);
             } else {

@@ -606,13 +606,25 @@ async function brainReply(data, q, now){
   return await aiFallback(data.settings, data.contacts, q, now); // Claude (अगर key हो)
 }
 /* 🎤 voice note handle — poller से OGG-b64 आता है; transcribe+समझो+काम करो */
-async function handleVoiceNote(col, data, b64, mime, chat){
+async function handleVoiceNote(col, data, b64, mime, chat, staffCid){
   const calls=[]; let dirty=false;
   const now=Date.now(), pd=n=>String(n).padStart(2,'0'), d=new Date();
   const nowS=d.getFullYear()+'-'+pd(d.getMonth()+1)+'-'+pd(d.getDate())+' '+pd(d.getHours())+':'+pd(d.getMinutes());
   // 🔑 ताज़ा key पढ़ो (owner ने अभी-अभी डाली हो तो memory में न हो) — 1 doc
   let settings=data.settings;
   try{ const sd=await col.doc('_settings').get(); if(sd.exists){ settings=Object.assign({}, data.settings, sd.data()); data.settings=settings; } }catch(e){}
+  // 👷 staff की आवाज़ → हूबहू लिखो फिर AI-action (owner जैसा task-add नहीं)
+  if(staffCid){
+    const st=tgStaff(data).find(x=>x.cid===staffCid&&x.chatId);
+    const tr=await geminiAudio(settings, b64, mime, 'यह हिंदी आवाज़-संदेश हूबहू लिखो। सिर्फ़ बोले गए शब्द दो, कुछ और नहीं।');
+    if(tr&&tr.err) return {calls:[{method:'sendMessage',body:{chat_id:chat,text:'🎤 '+gemErrHindi(tr.err)}}],dirty:false};
+    const heard=String((tr&&tr.text)||'').trim();
+    const echo=heard?'🎤 _"'+mdSafe(heard.slice(0,130))+'"_\n\n':'';
+    if(st&&heard){ try{ const sr=await staffTextAction(col,data,st,heard,null,now);
+      if(sr){ sr.calls.unshift({method:'sendMessage',body:{chat_id:chat,parse_mode:'Markdown',text:echo.trim()}}); return sr; } }catch(e){} }
+    const dg=st?((st.own&&focusItemsOf(data,st.own).length)?staffFocusDigest(data,st,now,st.pref||'detailed'):staffDigest(data,st,now)):{text:'🎤 समझ नहीं आया — फिर बोलिए।'};
+    return {calls:[{method:'sendMessage',body:Object.assign({chat_id:chat,parse_mode:'Markdown',disable_web_page_preview:true,text:echo+dg.text},dg.reply_markup?{reply_markup:dg.reply_markup}:{})}],dirty:false};
+  }
   const roster=activeC(data.contacts).map(c=>c.name).filter(Boolean).slice(0,150).join(', ');
   const prompt='तुम विक्रम भाई के काम-सहायक हो। यह आवाज़-संदेश (हिंदी) सुनो। पहले हूबहू लिखो, फिर समझो कि यह "सवाल" है या "नया काम"।\n'+
     (roster?('मेरे contacts (नाम इसी सूची से हूबहू): '+roster+'\n'):'')+
@@ -885,6 +897,51 @@ function staffDigestFull(data, st, now){
     pageNo++;
   }
   return out;
+}
+/* ══════════════════════════════════════════════════════════
+   🤖 2026 TWO-WAY — staff सादा हिंदी/voice लिखे → Gemini समझे कि कौन-सा काम +
+   क्या करना है (done/delay/note/list) → bot वही action ले (isolation से), 👍
+   reaction दे, owner को mirror करे। README वाला "router" — पर free long-poll पर।
+   ══════════════════════════════════════════════════════════ */
+async function staffTextAction(col, data, st, text, msgId, now){
+  const gk=data.settings&&data.settings.gemKey;
+  const tasks=staffTasks(data, st.cid, now);
+  if(!gk||!tasks.length) return null;                       // AI नहीं / काम नहीं → digest fallback
+  const sName=staffNameOf(data,st.cid)||st.name||'';
+  const list=tasks.slice(0,40).map((t,i)=>`${i+1}. ${t.t}${t.cname?' ('+t.cname+')':''}`).join('\n');
+  const prompt=`तुम VBE के काम-सहायक हो। staff "${sName}" ने Telegram पर लिखा: "${String(text).slice(0,300)}"।\nउनके बाकी काम (नंबर सहित):\n${list}\n\nसमझो staff क्या कहना चाहते हैं। सिर्फ़ JSON दो:\n{"intent":"done|delay|note|list|none","task_no":<सूची का नंबर या null>,"reason":"delay/note का कारण या null","reply":"1 पंक्ति हिंदी"}\nनियम: "हो गया/कर दिया/पूरा/भेज दिया/लगा दिया"→done · "देरी/कल/बाद में/नहीं हो पाया/अटका/टाइम लगेगा"→delay(reason) · "नोट/याद/लिख लो"→note · "मेरे काम/कितने बाकी/list"→list · आम बात या साफ़ न हो→none। एक भी काम पक्का न पहचानें तो task_no=null।`;
+  let r; try{ r=await geminiAsk(data.settings, prompt, true); }catch(e){ return null; }
+  if(!r||r.err||!r.text) return null;
+  let j=null; try{ j=JSON.parse((r.text.match(/\{[\s\S]*\}/)||[r.text])[0]); }catch(e){}
+  if(!j||!j.intent||j.intent==='none'||j.intent==='list') return null;   // digest पर छोड़ो
+  const t=j.task_no?tasks[Number(j.task_no)-1]:null; if(!t) return null;
+  const calls=[]; let dirty=false;
+  const oc=data.settings.tgChatId?String(data.settings.tgChatId):'';
+  const react=(emoji)=>{ if(msgId) calls.push({method:'setMessageReaction',body:{chat_id:st.chatId,message_id:msgId,reaction:[{type:'emoji',emoji}]}}); };
+  const mir=(emoji,task,extra)=>{ if(oc) calls.push({method:'sendMessage',body:{chat_id:oc,disable_web_page_preview:true,text:`🔔 ${sName} → ${emoji} "${(task||'').slice(0,60)}"${extra?' — '+extra:''} (🤖 AI, ${istHM(now)})`}}); };
+  const say=(t2)=>calls.push({method:'sendMessage',body:{chat_id:st.chatId,parse_mode:'Markdown',disable_web_page_preview:true,text:t2}});
+  if(j.intent==='done'){
+    const g=await staffTopic(col,st.cid,t.cid,t.ti); if(!g) return null;   // isolation
+    const rr=await applyDone(col,t.cid,t.ti); dirty=true;
+    const map=notifMap(data); if(clearNotifForTask(map,t.cid,t.ti)) await saveNotif(col,data,map);
+    await logEv(col,{action:'done',staff:st.cid,staffName:sName,cid:t.cid,ti:t.ti,task:(rr.task||'').slice(0,80),via:'ai-text'});
+    (await overseerStatusCalls(col,data,t.cid,t.ti,'✅','पूरा हो गया')).forEach(x=>calls.push(x));
+    react('🎉'); mir('✅',rr.task||t.t);
+    say(`✅ *समझ गया — हो गया:* ${mdSafe((rr.task||t.t||'').slice(0,70))}${t.cname?'\n👤 '+mdSafe(t.cname):''}\n\nशाबाश ${sName.split(/\s+/)[0]} जी! 🙌`);
+  } else if(j.intent==='delay'){
+    const r2=await staffPatch(col,st.cid,t.cid,t.ti,{st:'prog',snoozeUntil:now+2*3600e3,delayReason:(j.reason||'').slice(0,80)});
+    if(!r2) return null; dirty=true;
+    await logEv(col,{action:'in_progress',staff:st.cid,staffName:sName,cid:t.cid,ti:t.ti,task:(t.t||'').slice(0,80),reason:j.reason||'',via:'ai-text'});
+    react('👌'); mir('⏳ देरी',t.t,j.reason||'');
+    say(`⏳ *ठीक — बाद में:* ${mdSafe((t.t||'').slice(0,70))}${j.reason?'\n📝 '+mdSafe(j.reason):''}\nक़रीब 2 घंटे बाद फिर याद दिला दूँगा।`);
+  } else if(j.intent==='note'){
+    const g=await staffTopic(col,st.cid,t.cid,t.ti); if(!g) return null;
+    await staffPatch(col,st.cid,t.cid,t.ti,{staffNote:(j.reason||String(text)).slice(0,120)}); dirty=true;
+    await logEv(col,{action:'note',staff:st.cid,staffName:sName,cid:t.cid,ti:t.ti,task:(t.t||'').slice(0,80),reason:j.reason||''});
+    react('✍️'); mir('📝 नोट',t.t,j.reason||'');
+    say(`✍️ नोट जोड़ दिया — ${mdSafe((t.t||'').slice(0,60))}`);
+  } else return null;
+  return {calls,dirty};
 }
 /* 🔒 audit event — append-only, अलग collection (app नहीं पढ़ता) */
 async function logEv(col, o){
@@ -1648,8 +1705,19 @@ async function handleUpdate(col, data, update, ownerChat){
     }
     const st=staffByChat(data, chat);
     if(st){
-      if(msg.voice||msg.audio){ calls.push({method:'sendMessage',body:{chat_id:chat,text:'🎙️ अभी बटन ही चलते हैं — नीचे ✅/⏳/❌/🕐 दबाइए।'}}); return {calls,dirty,ownerChat:newOwner}; }
+      if(msg.voice||msg.audio){
+        // 🎤 staff voice → owner जैसा ही: download करके AI समझे (VOICE signal, staff chat के साथ)
+        if(data.settings&&data.settings.gemKey){ const v=msg.voice||msg.audio;
+          return {calls:[], dirty, ownerChat:newOwner, voice:{file_id:v.file_id, mime:v.mime_type||'audio/ogg', chat, staffCid:st.cid}}; }
+        calls.push({method:'sendMessage',body:{chat_id:chat,text:'🎙️ नीचे ✅/⏳/❌/🕐 बटन दबाइए — या साफ़ लिखकर बताइए कौन-सा काम हुआ।'}}); return {calls,dirty,ownerChat:newOwner};
+      }
       if(!st.own){ const o=focusOwnerIn(staffNameOf(data,st.cid)||st.name||''); if(o){ const l2=tgStaff(data); const e2=l2.find(x=>x.cid===st.cid); if(e2){ e2.own=o; await saveTgStaff(col,data,l2); st.own=o; } } }
+      // 🤖 2026 two-way — सादा हिंदी वाक्य ("सब्ज़ी वाला काम हो गया") → AI सही काम पर action
+      const stTxt=(msg.text||msg.caption||'').trim();
+      if(stTxt && stTxt.length>3 && !/^(है|हैं|hi|hello|hey|नमस्ते|राम\s*राम|jai|जय|menu|मेन्यू|मेनू|list|मेरे\s*काम|काम|tasks?|\/\w+)$/i.test(stTxt)){
+        try{ const sr=await staffTextAction(col, data, st, stTxt, msg.message_id, now);
+          if(sr){ return {calls:sr.calls, dirty:sr.dirty, ownerChat:newOwner}; } }catch(e){}
+      }
       const d=(st.own&&focusItemsOf(data,st.own).length)?staffFocusDigest(data,st,now,st.pref||'detailed'):staffDigest(data,st,now);
       calls.push({method:'sendMessage',body:Object.assign({chat_id:chat,parse_mode:'Markdown',disable_web_page_preview:true,text:d.text},d.reply_markup?{reply_markup:d.reply_markup}:{})});
       return {calls,dirty,ownerChat:newOwner};

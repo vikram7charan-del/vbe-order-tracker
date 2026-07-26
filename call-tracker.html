@@ -2414,7 +2414,7 @@ function patchTopic(cid,i,patch){
   const tps=normTopics(c); if(!tps[i]) return null;
   tps[i]=Object.assign({},tps[i],patch);
   c.topics=tps; c.note=tps.filter(x=>!x.done).map(x=>x.t).join(' · ');
-  fbSave(c); render(); if(typeof _spId!=='undefined'&&_spId===cid) renderSmartPop();
+  fbSave(c); render(); if(typeof _spId!=='undefined'&&_spId) renderSmartPop(); // खुला कार्ड ताज़ा (cross-contact भी)
   return tps[i];
 }
 /* 📛 साझा badges — 📤 delegated + 🔍 review — हर view में यही दिखें।
@@ -2854,18 +2854,32 @@ function groupedActive(c){
   return normTopics(c).map((x,i)=>({...x,i})).filter(x=>!x.done&&!x.rvw)
     .sort((a,b)=>((a.cat in order)?order[a.cat]:9)-((b.cat in order)?order[b.cat]:9));
 }
+/* 👁️ यह contact जिन कामों की देखरेख (overseer) कर रहा — दूसरे contacts के काम */
+function overseenBy(cid){
+  const out=[];
+  contacts.forEach(z=>{ if(z.active===false) return;
+    normTopics(z).forEach((x,i)=>{ if(!x.done&&!x.rvw&&x.overseer&&x.overseer.id===cid) out.push({...x,i,srcId:z.id,srcName:z.name||'?'}); }); });
+  return out;
+}
 function topicListHTML(c){
   const act=catViewFilter(groupedActive(c));
   const asg=catViewFilter(assignedTo(c.id));
-  if(!act.length&&!asg.length) return '';
+  const ovr=catViewFilter(overseenBy(c.id));
+  if(!act.length&&!asg.length&&!ovr.length) return '';
   const multi=act.length>1;
   return `<div class="c-topics">${act.map((x,n)=>{
     const ci=catInfo(x.cat);
     const inF=taskInFocus(c.id,x.i);
-    return `<div class="c-topic" onclick="event.stopPropagation();openTaskSheet('${c.id}',${x.i})" style="cursor:pointer;${inF?'text-shadow:0 0 10px var(--focus-glow)':''}"><span class="tp-chk" onclick="event.stopPropagation();doneTopic('${c.id}',${x.i})"></span>${inF?'<span class="fk-badge">🎯</span> ':''}${x.pri==='high'?'🔴 ':''}${ci?ci.logo+' ':''}${multi?`<span class="tnum">${n+1}.</span>`:''}${escH(x.t)}${x.assignTo?` <span style="font-size:10px;color:#4ade80;font-weight:800">→👤${escH(staffName(x.assignTo))}</span>`:''}${linkChipsHTML(c.id,x.i,x)}${taskBadges(x,c.id,x.i)}</div>`;
+    // 🎨 रंग-कोड: 📤 delegated → गुलाबी, बाक़ी → amber (default)
+    const dgC=x.dg&&x.dg.to?'color:#FF9EC4;':'';
+    return `<div class="c-topic" onclick="event.stopPropagation();openTaskSheet('${c.id}',${x.i})" style="cursor:pointer;${dgC}${inF?'text-shadow:0 0 10px var(--focus-glow)':''}"><span class="tp-chk" onclick="event.stopPropagation();doneTopic('${c.id}',${x.i})"></span>${inF?'<span class="fk-badge">🎯</span> ':''}${x.pri==='high'?'🔴 ':''}${ci?ci.logo+' ':''}${multi?`<span class="tnum">${n+1}.</span>`:''}${escH(x.t)}${x.assignTo?` <span style="font-size:10px;color:#4ade80;font-weight:800">→👤${escH(staffName(x.assignTo))}</span>`:''}${linkChipsHTML(c.id,x.i,x)}${taskBadges(x,c.id,x.i)}</div>`;
   }).join('')}${asg.map(x=>{
     const ci=catInfo(x.cat);
-    return `<div class="c-topic" onclick="event.stopPropagation();openTaskSheet('${x.srcId}',${x.i})" style="color:#86efac;cursor:pointer"><span class="tp-chk" style="border-color:#22c55e" onclick="event.stopPropagation();doneTopic('${x.srcId}',${x.i})"></span>${ci?ci.logo+' ':''}${escH(x.t)} <span style="font-size:10px;opacity:.7">(📌 ${escH(x.srcName)})</span></div>`;
+    return `<div class="c-topic" onclick="event.stopPropagation();openTaskSheet('${x.srcId}',${x.i})" style="color:#86efac;cursor:pointer"><span class="tp-chk" style="border-color:#22c55e" onclick="event.stopPropagation();doneTopic('${x.srcId}',${x.i})"></span>👤 ${ci?ci.logo+' ':''}${escH(x.t)} <span style="font-size:10px;opacity:.7">(📌 ${escH(x.srcName)})</span></div>`;
+  }).join('')}${ovr.map(x=>{
+    const ci=catInfo(x.cat);
+    // 👁️ देखरेख वाले काम — बैंगनी, दूसरे contact के; tap → openTaskSheet (navigate नहीं)
+    return `<div class="c-topic" onclick="event.stopPropagation();openTaskSheet('${x.srcId}',${x.i})" style="color:#c4b5fd;cursor:pointer"><span class="tp-chk" style="border-color:#a78bfa" onclick="event.stopPropagation();doneTopic('${x.srcId}',${x.i})"></span>👁️ ${ci?ci.logo+' ':''}${escH(x.t)} <span style="font-size:10px;opacity:.7">(📌 ${escH(x.srcName)})</span></div>`;
   }).join('')}</div>`;
 }
 /* 🕘 हल्का history-log — हर contact पर आख़िरी 40 बदलाव */
@@ -2895,6 +2909,9 @@ window.doneTopic=function(id,idx){
   // delegate/overseer को पूरा होने की सूचना (D3 status-change)।
   if(wasDg||wasOver) ctSettleDelegated(c,idx,tps[idx]);
   render(); fbSave(c);
+  // 🔄 खुला हुआ कार्ड ताज़ा करो — चाहे काम किसी और contact का हो (देखरेख/focus/जुड़े
+  // section, पिंक chip)। पहले यह नहीं होता था → काम हटता नहीं दिखता था (बग)।
+  if(typeof _spId!=='undefined'&&_spId) renderSmartPop();
   toast('✅ काम पूरा — '+tps[idx].t.slice(0,24));
 };
 /* 📤 delegated/overseer काम settle — reminders रोको + दोनों को "पूरा हुआ" सूचना */
@@ -6058,7 +6075,7 @@ function renderSmartPop(){
         <div style="font-size:9px;font-weight:800;color:#FF6FA5;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">🔗 इनसे जुड़े काम (${lk.length})</div>
         ${lk.map(x=>{ const ci=catInfo(x.cat); return `<div style="display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-top:1px solid rgba(255,45,120,.15)">
           <span class="sp-chk" style="margin-top:2px;border-color:#FF6FA5;flex-shrink:0" onclick="event.stopPropagation();doneTopic('${x.srcId}',${x.i})" title="यहीं से काम पूरा करो (PIN)"></span>
-          <span onclick="deepLinkToTask('${x.srcId}',${x.i})" style="cursor:pointer;flex:1;min-width:0;font-size:12.5px;font-weight:700;color:#fbcfe8;line-height:1.4;word-break:break-word">${ci?ci.logo+' ':''}${escH(x.t)}<span style="display:block;font-size:9.5px;color:#94a3b8;margin-top:1px">📌 ${escH(x.srcName)}</span></span>
+          <span onclick="openTaskSheet('${x.srcId}',${x.i})" style="cursor:pointer;flex:1;min-width:0;font-size:12.5px;font-weight:700;color:#fbcfe8;line-height:1.4;word-break:break-word">${ci?ci.logo+' ':''}${escH(x.t)}<span style="display:block;font-size:9.5px;color:#94a3b8;margin-top:1px">📌 ${escH(x.srcName)} ›</span></span>
         </div>`; }).join('')}
       </div>`;
     })()}

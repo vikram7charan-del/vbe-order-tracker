@@ -5895,6 +5895,48 @@ window.spSetFilt=function(k){ _spFilt=(_spFilt===k)?'':k; renderSmartPop(); };
 /* C1 — पूरे हुए काम collapse/expand (per-contact याद, session भर) */
 window._spDoneExp=window._spDoneExp||{};
 window.spToggleDone=function(cid){ window._spDoneExp[cid]=!window._spDoneExp[cid]; renderSmartPop(); };
+/* ══ 🎯 इस व्यक्ति के Focus काम — उनके कार्ड में ही (row tap → openTaskSheet, navigate नहीं) ══ */
+function focusSecHTML(c){
+  const role=_tgOwnMatch(c.name); if(!role) return '';
+  const fs=_focus.filter(f=>(f.own||'v')===role).sort((a,b)=>(a.until||0)-(b.until||0));
+  if(!fs.length) return '';
+  const roleName={v:'विक्रम भाई',d:'दिनेश जी',k:'कैलाश भाई'}[role];
+  let h=`<div style="background:linear-gradient(160deg,rgba(245,158,11,.11),rgba(20,14,4,.45));border:1px solid var(--focus-color);border-radius:12px;padding:10px 11px;margin-bottom:10px;box-shadow:0 6px 16px -12px rgba(245,158,11,.6)">
+    <div style="font-size:10px;font-weight:900;color:#fcd34d;margin-bottom:7px"><span class="fk-badge">🎯</span> ${escH(roleName)} के Focus में (${fs.length})</div>`;
+  fs.forEach(f=>{
+    const src=contacts.find(z=>z.id===f.id); const left=(f.until||0)-Date.now();
+    const st=left<=0?`<span style="color:#f87171">🔴 ${fmtCompact(-left)} लेट</span>`:`<span style="color:#4ade80">⏳ ${fmtCompact(left)}</span>`;
+    h+=`<div class="press" onclick="openTaskSheet('${f.id}',${f.i})" style="cursor:pointer;display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-top:1px solid rgba(245,158,11,.15)">
+      <span class="sp-chk" style="margin-top:2px;border-color:#f59e0b;flex-shrink:0" onclick="event.stopPropagation();doneTopic('${f.id}',${f.i})" title="PIN से पूरा"></span>
+      <span style="flex:1;min-width:0"><span style="font-size:12.5px;font-weight:800;color:#fde68a;line-height:1.4;word-break:break-word">${escH(f.t)}</span><span style="display:block;font-size:9.5px;color:#94a3b8;margin-top:1px">📌 ${escH(src?src.name:'?')} · ${st}</span></span>
+      <span style="font-size:15px;color:#fcd34d">›</span></div>`;
+  });
+  h+='</div>'; return h;
+}
+/* ══ 👁️ इनकी देखरेख में (Overseer) — party+staff दोनों, row tap → openTaskSheet ══ */
+function overseerSecHTML(c){
+  const items=[];
+  contacts.forEach(z=>{ if(z.active===false) return; normTopics(z).forEach((x,i)=>{ if(!x.done&&x.overseer&&x.overseer.id===c.id) items.push({...x,i,cid:z.id,cname:z.name||'?'}); }); });
+  if(!items.length) return '';
+  const now=Date.now();
+  let h=`<div style="background:linear-gradient(160deg,rgba(139,92,246,.13),rgba(12,8,24,.45));border:1px solid rgba(139,92,246,.55);border-radius:12px;padding:10px 11px;margin-bottom:10px;box-shadow:0 6px 16px -12px rgba(139,92,246,.6)">
+    <div style="font-size:10px;font-weight:900;color:#c4b5fd;margin-bottom:7px">👁️ इनकी देखरेख में (${items.length}) — दोनों पक्षों पर नज़र</div>`;
+  items.forEach(t=>{
+    const staffN=t.assignTo?staffName(t.assignTo):(t.dg&&t.dg.to?t.dg.to:'—');
+    const since=t.dg&&t.dg.at?t.dg.at:t.assignAt; const dur=since?fmtCompact(now-new Date(since).getTime())+' से':'';
+    const stTxt=t.st==='blocked'?'🚧 अटका':t.st==='prog'?'⏳ चालू':'🟡 बाकी';
+    h+=`<div class="press" onclick="openTaskSheet('${t.cid}',${t.i})" style="cursor:pointer;display:flex;gap:8px;align-items:flex-start;padding:7px 0;border-top:1px solid rgba(139,92,246,.15)">
+      <span class="sp-chk" style="margin-top:2px;border-color:#a78bfa;flex-shrink:0" onclick="event.stopPropagation();doneTopic('${t.cid}',${t.i})" title="PIN से पूरा — origin पर भी settle"></span>
+      <span style="flex:1;min-width:0">
+        <span style="font-size:12.5px;font-weight:800;color:#e9d5ff;line-height:1.4;word-break:break-word">${escH(t.t)}</span>
+        <span style="display:block;font-size:9.5px;color:#94a3b8;margin-top:1px">🧑‍🤝‍🧑 ${escH(t.cname)} · 👤 ${escH((staffN||'').split(/\s+/)[0])}${t.at?' · ⏰ '+escH(schedLabel(t.at)):''}${dur?' · '+dur:''}</span>
+      </span>
+      <span style="font-size:9px;font-weight:900;color:${t.st==='blocked'?'#f87171':t.st==='prog'?'#67e8f9':'#fbbf24'};white-space:nowrap;margin-top:2px">${stTxt}</span>
+    </div>`;
+  });
+  h+=`<div style="font-size:8.5px;color:#7d8db0;margin-top:6px;text-align:center">काम पर दबाओ → वहीं edit/party/staff/settle — दूसरी जगह अपने-आप sync</div></div>`;
+  return h;
+}
 function renderSmartPop(){
   const c=contacts.find(x=>x.id===_spId);
   if(!c){ closeSmartPop(); return; }
@@ -5933,6 +5975,8 @@ function renderSmartPop(){
     ${tagRow}
     ${fRow}
     ${spComposerHTML(c)}
+    ${focusSecHTML(c)}
+    ${overseerSecHTML(c)}
     ${(tps.length||doneT.length)?`<div style="background:#060d1a;border:1px solid rgba(30,58,95,.7);border-radius:11px;padding:9px 11px;margin-bottom:8px">
       ${tps.length?`<div style="font-size:9px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">🗣️ किस बारे में बात करनी है</div>`:''}
       ${tps.map((x,n)=>{
@@ -6108,7 +6152,9 @@ window.spSaveNewTasks=async function(){
   if(!v1){ toast('⚠️ पहले काम लिखें','warn'); return; }
   const nt={t:v1,done:false,doneAt:null,cat:_spDraft.cat||'',assignTo:_spDraft.assignTo||'',addedAt:new Date().toISOString()};
   if(_spDraft.assignTo) nt.assignAt=new Date().toISOString();
-  if(_spDraft.at) nt.at=new Date(_spDraft.at).toISOString();
+  // ⏰ deadline: चुना हो तो वही, वरना अपने-आप +30 मिनट (calendar/alarm में लग जाए)
+  nt.at = _spDraft.at ? new Date(_spDraft.at).toISOString() : new Date(Date.now()+30*60000).toISOString();
+  nt.autoAt = !_spDraft.at; // ऑटो लगा था — बताने के लिए
   const tps=normTopics(c);
   const act=tps.filter(x=>!x.done), don=tps.filter(x=>x.done);
   c.topics=[...act,nt,...don];
@@ -6121,7 +6167,7 @@ window.spSaveNewTasks=async function(){
   if(_spDraft.assignTo){ try{ tgNotifyAssign(c.id,newIdx,_spDraft.assignTo); }catch(e){} }
   // 📲 WhatsApp draft
   const wantWA=_spDraft.wa; const dig=_tgPhDig(c.waPhone||c.phone);
-  const extras=[]; if(_spDraft.cat)extras.push('श्रेणी'); if(_spDraft.at)extras.push('⏰'); if(_spDraft.focus)extras.push('🎯'); if(_spDraft.assignTo)extras.push('👤'+staffName(_spDraft.assignTo).split(/\s+/)[0]);
+  const extras=[]; if(_spDraft.cat)extras.push('श्रेणी'); extras.push(_spDraft.at?'⏰':'⏰ +30min'); if(_spDraft.focus)extras.push('🎯'); if(_spDraft.assignTo)extras.push('👤'+staffName(_spDraft.assignTo).split(/\s+/)[0]);
   _spDraftReset();
   render(); renderSmartPop();
   toast('✅ काम जुड़ा'+(extras.length?' ('+extras.join(' · ')+')':''));

@@ -812,36 +812,45 @@ function greetIST(now){
   const part=h<12?'सुबह':h<16?'दोपहर':h<20?'शाम':'रात';
   return part+' '+(h%12||12)+' बजे';
 }
-/* 📩 staff digest — contact-grouped, ≤5 block, नंबर वाले 4-बटन */
-function staffDigest(data, st, now){
+/* 📩 staff digest — contact-grouped, 10-10 pagination (▶️ आगे), बड़ा पूरा message।
+   "…और N" वाला dead-end हटा — अब ◀️/▶️ बटन से पूरी list देखी जा सकती है। */
+const DIGEST_PER=10;
+function staffDigest(data, st, now, start){
+  start=Math.max(0,Number(start)||0);
   const tasks=staffTasks(data, st.cid, now);
   const nm=(staffNameOf(data,st.cid)||st.name||'').split(/\s+/)[0]||'जी';
   if(!tasks.length) return {text:`🙏 ${nm} जी — ${greetIST(now)}\n\n✨ अभी कोई काम बाकी नहीं। शाबाश!`};
-  const byC=[]; const idx={};
-  tasks.forEach(t=>{ if(idx[t.cid]===undefined){ idx[t.cid]=byC.length; byC.push({cid:t.cid,cname:t.cname,cphone:t.cphone,list:[]}); } byC[idx[t.cid]].list.push(t); });
-  const blocks=byC.slice(0,5); const hidden=byC.length-blocks.length;
-  let n=0; const numbered=[];
-  let text=`🙏 *${nm} जी — ${greetIST(now)}*\n`;
-  blocks.forEach(b=>{
-    text+='\n━━━━━━━━━━━━━━━\n👤 *'+mdSafe(b.cname)+'*\n';
-    const dig=_phoneDigits(b.cphone);
-    if(dig) text+=telLink(b.cphone,dig)+'\n';
-    b.list.forEach(t=>{
-      n++; numbered.push(t);
-      const lateMs=t.at?now-new Date(t.at).getTime():0;
-      const mark=(lateMs>0||t.pri==='high')?'🔴':t.st==='blocked'?'🚧':'🟡';
-      text+=`${mark} *${n}.* ${mdSafe(t.t)}${lateMs>0?' — '+fmtDur(lateMs)+' लेट':''}\n`;
-    });
+  if(start>=tasks.length) start=0;
+  const page=tasks.slice(start, start+DIGEST_PER);
+  const endN=start+page.length;
+  let text=`🙏 *${nm} जी — ${greetIST(now)}*\nकुल *${tasks.length}* काम बाकी${tasks.length>DIGEST_PER?` · दिखा रहे ${start+1}–${endN}`:''}\n`;
+  // page के अंदर contact-वार group
+  let lastCid=null;
+  page.forEach((t,i)=>{
+    if(t.cid!==lastCid){ lastCid=t.cid;
+      text+='\n━━━━━━━━━━━━━━━\n👤 *'+mdSafe(t.cname)+'*\n';
+      const dig=_phoneDigits(t.cphone); if(dig) text+=telLink(t.cphone,dig)+'\n';
+    }
+    const lateMs=t.at?now-new Date(t.at).getTime():0;
+    const mark=(lateMs>0||t.pri==='high')?'🔴':t.st==='blocked'?'🚧':'🟡';
+    text+=`${mark} *${start+i+1}.* ${mdSafe(t.t)}${lateMs>0?' — '+fmtDur(lateMs)+' लेट':''}\n`;
   });
-  if(hidden>0) text+=`\n…और ${hidden} जगह के काम — पहले ये पूरे करें`;
   text+=`\n━━━━━━━━━━━━━━━\nआज: ✅${staffDoneToday(data,st.cid,now)} पूरे · ⏳${tasks.length} बाकी\nनीचे नंबर के बटन दबाइए 👇`;
-  const rows=numbered.slice(0,8).map((t,i)=>[
-    {text:'✅ '+(i+1),callback_data:('ud|'+t.cid+'|'+t.ti).slice(0,64)},
-    {text:'⏳ '+(i+1),callback_data:('up|'+t.cid+'|'+t.ti).slice(0,64)},
-    {text:'❌ '+(i+1),callback_data:('ub|'+t.cid+'|'+t.ti).slice(0,64)},
-    {text:'🕐 '+(i+1),callback_data:('uz|'+t.cid+'|'+t.ti).slice(0,64)},
+  const rows=page.map((t,i)=>[
+    {text:'✅ '+(start+i+1),callback_data:('ud|'+t.cid+'|'+t.ti).slice(0,64)},
+    {text:'⏳ '+(start+i+1),callback_data:('up|'+t.cid+'|'+t.ti).slice(0,64)},
+    {text:'❌ '+(start+i+1),callback_data:('ub|'+t.cid+'|'+t.ti).slice(0,64)},
+    {text:'🕐 '+(start+i+1),callback_data:('uz|'+t.cid+'|'+t.ti).slice(0,64)},
   ]);
-  return {text, reply_markup:{inline_keyboard:rows}};
+  // ◀️/🔄/▶️ pagination — जब 10 से ज़्यादा काम हों
+  if(tasks.length>DIGEST_PER){
+    const nav=[];
+    if(start>0) nav.push({text:'◀️ पिछले',callback_data:('ug|'+Math.max(0,start-DIGEST_PER)).slice(0,64)});
+    nav.push({text:'🔄 ताज़ा',callback_data:('ug|'+start).slice(0,64)});
+    if(endN<tasks.length) nav.push({text:`▶️ बाकी ${tasks.length-endN}`,callback_data:('ug|'+endN).slice(0,64)});
+    rows.push(nav);
+  }
+  return {text:text.slice(0,4050), reply_markup:{inline_keyboard:rows}};
 }
 /* 🔒 audit event — append-only, अलग collection (app नहीं पढ़ता) */
 async function logEv(col, o){
@@ -1214,7 +1223,7 @@ async function handleStaffCallback(col, data, cq, st, ownerChat){
       d3=Object.assign({}, data, {contacts});
     }
     const st3=tgStaff(d3).find(x=>x.cid===st.cid)||st;
-    const dg=(kind==='focus')?staffFocusDigest(d3,st3,Date.now(),st3.pref||'detailed',pageStart||0):staffDigest(d3,st3,Date.now());
+    const dg=(kind==='focus')?staffFocusDigest(d3,st3,Date.now(),st3.pref||'detailed',pageStart||0):staffDigest(d3,st3,Date.now(),pageStart||0);
     const body={chat_id:chat,message_id:cq.message.message_id,text:dg.text,parse_mode:'Markdown',disable_web_page_preview:true};
     if(dg.reply_markup) body.reply_markup=dg.reply_markup;
     calls.push({method:'editMessageText',body});
@@ -1303,6 +1312,11 @@ async function handleStaffCallback(col, data, cq, st, ownerChat){
     // ▶️/◀️ — अगला/पिछला 10 का भाग (वही message बदलता है)
     ack('📄');
     await refresh('focus', Number(m[1]));
+    return {calls,dirty};
+  }
+  if((m=cd.match(/^ug\|(\d+)$/))){ // ◀️/▶️ digest pagination
+    ack('');
+    await refresh('general', Number(m[1]), null);
     return {calls,dirty};
   }
   if((m=cd.match(/^ud\|(.+)\|(\d+)$/))){

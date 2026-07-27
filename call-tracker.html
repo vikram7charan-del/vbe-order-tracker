@@ -5884,8 +5884,17 @@ window.tgTest=async function(){
       const j=await r.json();
       if(!j.ok){ toast('⚠️ token ग़लत लग रहा — दोबारा 📩 से डालें','err'); return; }
       const upd=(j.result||[]).filter(u=>u.message&&u.message.chat);
-      if(!upd.length){ alert('❗ अभी तक आपका message नहीं मिला।\n\nपहले अपने bot को Telegram पर "hi" भेजें, फिर दोबारा 📩 → OK दबाएँ।'); return; }
-      chatId=String(upd[upd.length-1].message.chat.id);
+      if(!upd.length){
+        // 🎯 auto-detect फेल (bot ने updates पहले ही पढ़ लिए) → अपनी Telegram ID सीधे डालो।
+        // ID कैसे पाएँ: Telegram पर @userinfobot खोलें → /start → "Id: ..." वाला नंबर।
+        const man=prompt('❗ आपका message auto-detect नहीं हुआ (bot पहले ही पढ़ चुका)।\n\nपक्का तरीका — अपनी Telegram ID सीधे डालिए:\nTelegram पर @userinfobot खोलें → /start → जो "Id: 8897814872" जैसा नंबर मिले, वही यहाँ डालें 👇','');
+        if(man===null) return;
+        const digits=(man||'').replace(/[^0-9]/g,'');
+        if(digits.length<5){ toast('⚠️ सही Telegram ID (सिर्फ़ नंबर) डालें','err'); return; }
+        chatId=digits;
+      } else {
+        chatId=String(upd[upd.length-1].message.chat.id);
+      }
       window._settings=window._settings||{}; window._settings.tgChatId=chatId;
       try{ await setDoc(doc(db,'vbe_call_tracker','_settings'),{id:'_settings',tgChatId:chatId},{merge:true}); }catch(e){}
     }

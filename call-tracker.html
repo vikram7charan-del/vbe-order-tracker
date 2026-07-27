@@ -1111,7 +1111,7 @@ body.hdr-folded .hdr-row2{display:none}
         <button class="btn-icon" onclick="openAnimStudio()" title="🎬 Animation Studio — जीवंत background और जोश का स्तर चुनें" style="cursor:pointer;font-family:inherit">🎬</button>
         <button class="btn-icon" onclick="unhideAll()" title="Swipe किए हुए सब वापस लाओ" style="cursor:pointer;font-family:inherit">👁️</button>
         <button class="btn-icon" onclick="setAiKey()" title="🤖 AI key डालें — Google Gemini (AIza… मुफ़्त) या Claude" style="cursor:pointer;font-family:inherit">⚙️</button>
-        <button class="btn-icon" onclick="tgConnect()" title="📩 Telegram जोड़ें — reminder/plan सीधे Telegram पर" style="cursor:pointer;font-family:inherit">📩</button>
+        <button class="btn-icon" onclick="tgSetup()" title="📩 Telegram सेटअप — जुड़ें, owner बनें, test करें" style="cursor:pointer;font-family:inherit">📩</button>
         <a href="./quick-add.html" class="btn-icon" title="Quick Order Add">📦</a>
         <button class="btn-icon" id="day-btn" onclick="gotoDay()" title="📅 मेरा दिन — इसी पेज पर timeline" style="cursor:pointer;font-family:inherit">📅 दिन</button>
       </div>
@@ -1344,6 +1344,14 @@ body.hdr-folded .hdr-row2{display:none}
       <button onclick="pinCancel()" style="font-size:14px;color:#fca5a5">✕</button><button onclick="pinKey(0)">0</button><button onclick="pinBack()" style="font-size:16px">⌫</button>
     </div>
     <div id="pin-alt" style="margin-top:10px"></div>
+  </div>
+</div>
+
+<!-- 📩 Telegram सेटअप — dedicated panel (status + owner-connect + test) -->
+<div class="modal-bg" id="m-tgsetup" style="z-index:294" onclick="if(event.target===this)closeModal('m-tgsetup')">
+  <div class="modal-box" style="max-width:360px">
+    <div class="modal-title"><span>📩 Telegram सेटअप</span><span class="modal-x" onclick="closeModal('m-tgsetup')">✕</span></div>
+    <div id="tgsetup-body"></div>
   </div>
 </div>
 
@@ -5852,6 +5860,46 @@ window.setAiKey=async function(){
    token + chat_id दोनों _settings में save (locked DB) — GitHub छूने की ज़रूरत नहीं।
    cron (scripts/call-reminders.js) इन्हें पढ़कर हर reminder Telegram पर भी भेजता है। */
 function tgTok(){ return (window._settings&&window._settings.tgBotToken)||''; }
+/* ══ 📩 DEDICATED TELEGRAM SETUP PANEL — status + one-tap owner-connect + test ══ */
+window.tgSetup=function(){
+  const S=window._settings||{};
+  const tok=tgTok(), chat=S.tgChatId||'', bot=S.tgBotUser||'', staffN=(Array.isArray(S.tgStaff)?S.tgStaff.filter(s=>s.chatId&&s.active!==false).length:0);
+  const row=(ico,label,ok,val)=>`<div style="display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:11px;background:#060d1a;border:1px solid rgba(30,58,95,.7);margin-bottom:6px">
+    <span style="font-size:16px;flex-shrink:0">${ico}</span>
+    <span style="flex:1;min-width:0"><b style="font-size:12.5px;color:#e2e8f0">${label}</b>${val?`<span style="display:block;font-size:10px;color:#94a3b8;word-break:break-all">${escH(val)}</span>`:''}</span>
+    <span style="font-size:15px;flex-shrink:0;color:${ok?'#4ade80':'#f87171'}">${ok?'✓':'✗'}</span></div>`;
+  const btn=(txt,fn,col,sub)=>`<button class="press" onclick="${fn}" style="width:100%;margin-top:7px;padding:11px;border:none;border-radius:12px;background:${col};color:#fff;font-weight:900;font-size:13px;font-family:inherit;cursor:pointer;touch-action:manipulation">${txt}${sub?`<span style="display:block;font-size:9.5px;font-weight:700;opacity:.85;margin-top:1px">${sub}</span>`:''}</button>`;
+  let h=`<div style="font-size:11px;color:#94a3b8;margin-bottom:11px;line-height:1.5">आपके Call Tracker का अपना Telegram — यहीं से जुड़िए, किसी बाहरी bot की ज़रूरत नहीं।</div>`;
+  h+=row('🤖','Bot Token', !!tok, tok?'जुड़ा हुआ ✓':'अभी नहीं डाला');
+  h+=row('👤','आपका Telegram (मालिक)', !!chat, chat?('ID: '+chat):'अभी नहीं जुड़े — नीचे से जोड़ें');
+  h+=row('🔗','Bot का नाम', !!bot, bot?('@'+bot):'"hi" भेजते ही पता चल जाएगा');
+  h+=row('👥','जुड़े staff', staffN>0, staffN?(staffN+' लोग'):'कोई नहीं — "link" से जोड़ें');
+  if(!tok){
+    h+=btn('1️⃣ Bot Token डालें','tgConnect()','linear-gradient(135deg,#1d4ed8,#3b82f6)','@BotFather से मिला token');
+  } else {
+    h+=btn(chat?'🔄 मुझे (मालिक) दुबारा जोड़ो':'📲 मुझे (मालिक) जोड़ो — एक tap','tgOwnerClaim()','#8b5cf6','bot पर Start दबाते ही जुड़ जाएँगे');
+    h+=btn('🧪 Test — message आता है या नहीं','tgTest()','linear-gradient(135deg,#059669,#22c55e)');
+    h+=btn('🔑 Token बदलें','tgConnect()','#0d1526');
+  }
+  h+=`<div class="press" onclick="window.open('https://claude.ai/code/artifact/508b9830-5f99-49ff-bb03-3e4911b3b688','_blank')" style="cursor:pointer;text-align:center;margin-top:10px;font-size:11px;font-weight:800;color:#93c5fd;padding:8px;border:1px dashed rgba(59,130,246,.4);border-radius:10px">📖 बॉट से कैसे बात करें — पूरी गाइड</div>`;
+  document.getElementById('tgsetup-body').innerHTML=h;
+  openModal('m-tgsetup');
+};
+/* 📲 मालिक एक-tap जुड़े — owner claim code बनाकर bot deep-link खोलो (कोई बाहरी bot नहीं) */
+window.tgOwnerClaim=async function(){
+  const S=window._settings||{}; const bot=S.tgBotUser||'';
+  const code=String(Math.floor(1000+Math.random()*9000));
+  S.ownerClaimCode=code; S.ownerClaimAt=Date.now(); window._settings=S;
+  try{ await setDoc(doc(db,'vbe_call_tracker','_settings'),{id:'_settings',ownerClaimCode:code,ownerClaimAt:Date.now()},{merge:true}); }catch(e){ toast('⚠️ save नहीं हुआ — net देखें','err'); return; }
+  if(bot){
+    const link='https://t.me/'+bot+'?start=own'+code;
+    toast('📲 Telegram खुल रहा है — नीचे "Start/शुरू" दबाइए');
+    location.href=link;
+  } else {
+    // bot username अभी नहीं — bot को "hi" भेजकर वापस आएँ, फिर auto-detect होगा
+    alert('📲 अपने bot को Telegram पर खोलिए और भेजिए:\n\nown'+code+'\n\n(यह code 20 मिनट चलेगा — भेजते ही आप मालिक के रूप में जुड़ जाएँगे। bot का नाम एक बार "hi" भेजने पर पता चल जाएगा, फिर एक-tap link मिलेगा।)');
+  }
+};
 window.tgConnect=async function(){
   const cur=tgTok();
   const msg=cur
@@ -5885,16 +5933,13 @@ window.tgTest=async function(){
       if(!j.ok){ toast('⚠️ token ग़लत लग रहा — दोबारा 📩 से डालें','err'); return; }
       const upd=(j.result||[]).filter(u=>u.message&&u.message.chat);
       if(!upd.length){
-        // 🎯 auto-detect फेल (bot ने updates पहले ही पढ़ लिए) → अपनी Telegram ID सीधे डालो।
-        // ID कैसे पाएँ: Telegram पर @userinfobot खोलें → /start → "Id: ..." वाला नंबर।
-        const man=prompt('❗ आपका message auto-detect नहीं हुआ (bot पहले ही पढ़ चुका)।\n\nपक्का तरीका — अपनी Telegram ID सीधे डालिए:\nTelegram पर @userinfobot खोलें → /start → जो "Id: 8897814872" जैसा नंबर मिले, वही यहाँ डालें 👇','');
-        if(man===null) return;
-        const digits=(man||'').replace(/[^0-9]/g,'');
-        if(digits.length<5){ toast('⚠️ सही Telegram ID (सिर्फ़ नंबर) डालें','err'); return; }
-        chatId=digits;
-      } else {
-        chatId=String(upd[upd.length-1].message.chat.id);
+        // 🎯 auto-detect फेल (bot ने updates पहले ही पढ़ लिए) → साफ़ owner-claim से जोड़ो।
+        if(confirm('❗ अभी message नहीं मिला (bot पहले ही पढ़ चुका)।\n\nपक्का तरीका: "📲 मुझे (मालिक) जोड़ो" — bot पर Start दबाते ही आप जुड़ जाएँगे। अभी खोलूँ?')){
+          closeModal('m-tgsetup'); tgOwnerClaim();
+        }
+        return;
       }
+      chatId=String(upd[upd.length-1].message.chat.id);
       window._settings=window._settings||{}; window._settings.tgChatId=chatId;
       try{ await setDoc(doc(db,'vbe_call_tracker','_settings'),{id:'_settings',tgChatId:chatId},{merge:true}); }catch(e){}
     }

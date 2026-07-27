@@ -1693,8 +1693,17 @@ async function handleUpdate(col, data, update, ownerChat){
   const chat=String(msg.chat.id);
   if(!newOwner){ newOwner=chat; try{ await col.doc('_settings').set({tgChatId:chat},{merge:true}); }catch(e){} data.settings.tgChatId=chat; }
   if(chat!==newOwner){
-    // 👥 non-owner chat: पहले link-code, फिर linked staff, वरना विनम्र मना
+    // 👥 non-owner chat: पहले owner-claim, फिर link-code, फिर linked staff, वरना विनम्र मना
     const rawT=(msg.text||'').trim();
+    // 📲 owner-claim — app से बना code (own1234 / "/start own1234") → यही chat मालिक बने
+    const ocm=rawT.match(/^(?:\/start[ _]+)?own(\d{3,6})$/i);
+    if(ocm && data.settings.ownerClaimCode && String(ocm[1])===String(data.settings.ownerClaimCode) && (Date.now()-Number(data.settings.ownerClaimAt||0)<20*60000)){
+      try{ await col.doc('_settings').set({tgChatId:chat, ownerClaimCode:'', ownerClaimAt:0},{merge:true}); }catch(e){}
+      data.settings.tgChatId=chat; data.settings.ownerClaimCode='';
+      calls.push({method:'sendMessage',body:{chat_id:chat,parse_mode:'Markdown',disable_web_page_preview:true,
+        text:'✅ *विक्रम जी — आप जुड़ गए!* 🙏\nअब सारी रिपोर्ट, टीम की हलचल और अलर्ट यहीं आएँगे।\nमेन्यू के लिए *"है"* लिखिए।'}});
+      return {calls, dirty:true, ownerChat:chat};
+    }
     const cm=rawT.match(/^\/start[ _]+([A-Za-z]{2,5}-?\d{3,5})$/i)||rawT.match(/^([A-Za-z]{2,5}-\d{3,5})$/);
     if(cm){
       const r=await staffLinkAttempt(col, data, chat, cm[1], msg.from);

@@ -14,6 +14,8 @@
 <title>VBE – Call Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<!-- 📆 प्रतिदिन view के लिए: Anek Devanagari (डेट) · Mukta (बॉडी) · IBM Plex Mono (समय/गिनती) -->
+<link href="https://fonts.googleapis.com/css2?family=Anek+Devanagari:wght@500;700;800&family=Mukta:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html{height:100%;overflow-x:clip;overscroll-behavior-x:none}
@@ -339,6 +341,61 @@ body.anim-off .card{background:#07111e;backdrop-filter:none;-webkit-backdrop-fil
 /* 📆 प्रतिदिन view — दिन बदलने पर slide */
 @keyframes slInR{from{transform:translateX(26px);opacity:.3}to{transform:translateX(0);opacity:1}}
 @keyframes slInL{from{transform:translateX(-26px);opacity:.3}to{transform:translateX(0);opacity:1}}
+/* ═══ 📆 प्रतिदिन — शांत, आँखों को आराम देने वाला redesign ═══ */
+#m-daily .modal-box{height:92dvh;max-height:92dvh}
+#m-daily .modal-box::before{display:none}   /* grab-handle हटाओ — रेल टकराती है */
+#m-daily *{font-family:'Mukta','Noto Sans Devanagari',sans-serif}
+/* A) डेट रेल — scroll-container का सीधा बच्चा sticky → पूरी scroll में ऊपर टिका रहे */
+#m-daily #daily-head{position:sticky;top:0;z-index:5}
+.d-rail{background:linear-gradient(140deg,#182a5f,#3a1f6e);
+  padding:12px 10px 0;box-shadow:0 6px 18px -10px rgba(0,0,0,.8)}
+.d-rail-row{display:flex;align-items:stretch;gap:8px}
+.d-arrow{flex-shrink:0;width:52px;min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  background:rgba(255,255,255,.14);border-radius:13px;color:#fff;cursor:pointer;touch-action:manipulation;transition:transform .12s,opacity .2s;border:none;font-family:inherit}
+.d-arrow:active{transform:scale(.92)}
+.d-arrow.off{opacity:.32;pointer-events:none}
+.d-arrow .ar{font-size:22px;font-weight:800;line-height:1}
+.d-arrow .al{font-size:8.5px;font-weight:700;color:rgba(255,255,255,.82);white-space:nowrap;font-family:'IBM Plex Mono',monospace}
+.d-center{flex:1;min-width:0;text-align:center;display:flex;flex-direction:column;justify-content:center;padding:2px 0}
+.d-kicker{font-size:9px;font-weight:700;color:rgba(255,255,255,.72);letter-spacing:.1em;text-transform:uppercase}
+.d-date{font-family:'Anek Devanagari',sans-serif;font-size:20px;font-weight:800;color:#fff;line-height:1.1;letter-spacing:.2px}
+.d-count{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;color:rgba(255,255,255,.85);margin-top:2px}
+.d-close{position:absolute;top:8px;right:10px;font-size:17px;color:rgba(255,255,255,.85);cursor:pointer;padding:4px;line-height:1;touch-action:manipulation}
+/* पतली progress bar — उस दिन कितने पूरे */
+.d-prog{height:3px;background:rgba(255,255,255,.16);border-radius:3px;margin:9px 2px 0;overflow:hidden}
+.d-prog>i{display:block;height:100%;background:linear-gradient(90deg,#34d399,#a7f3d0);border-radius:3px;transition:width .35s ease}
+/* B) swipe track */
+#daily-track{will-change:transform}
+/* C) शांत task card */
+.d-card{background:rgba(17,22,40,.72);border:1px solid #232A44;border-radius:14px;padding:12px 13px;margin-bottom:12px;transition:border-color .2s}
+.d-card.done{opacity:.62}
+.d-top{display:flex;align-items:flex-start;gap:10px}
+.d-chk{flex-shrink:0;width:24px;height:24px;border-radius:8px;border:2px solid #3a4468;margin-top:1px;cursor:pointer;position:relative;touch-action:manipulation;transition:border-color .15s,background .15s}
+.d-chk:active{transform:scale(.9)}
+.d-chk::after{content:"";position:absolute;inset:-9px}
+.d-card.done .d-chk{background:#22c55e;border-color:#22c55e}
+.d-card.done .d-chk::before{content:"✓";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#04120a;font-size:15px;font-weight:900}
+.d-body{flex:1;min-width:0}
+.d-txt{font-family:'Mukta',sans-serif;font-size:16px;font-weight:500;color:#E4E7F2;line-height:1.5;word-break:break-word;
+  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
+.d-card.exp .d-txt{-webkit-line-clamp:unset;overflow:visible}
+.d-card.done .d-txt{text-decoration:line-through;color:#8b93ad}
+.d-hi{color:#fbbf24;font-weight:700}   /* पीला सिर्फ़ हाइलाइट के लिए */
+.d-more{display:none;margin-top:4px;background:none;border:none;padding:2px 0;color:#7aa2ff;font-size:12px;font-weight:600;font-family:'Mukta',sans-serif;cursor:pointer;touch-action:manipulation}
+.d-card.exp .d-more{display:none!important}
+.d-meta{font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:500;color:#8b93ad;margin-top:5px;display:flex;flex-wrap:wrap;gap:2px 8px}
+.d-who{color:#8fb4ff}
+/* शांत मोनोक्रोम chip line (डैश बॉर्डर हटा) */
+.d-tools{display:flex;gap:7px;overflow-x:auto;white-space:nowrap;margin-top:9px;padding-bottom:2px;scrollbar-width:none}
+.d-tools::-webkit-scrollbar{display:none}
+.d-tb{flex:0 0 auto;width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;font-size:14px;
+  background:rgba(255,255,255,.04);border:1px solid #2a3350;border-radius:9px;color:#aab4d0;cursor:pointer;touch-action:manipulation;transition:transform .12s,background .15s}
+.d-tb:active{transform:scale(.9);background:rgba(255,255,255,.1)}
+.d-tb.on{border-color:#f59e0b;color:#fcd34d;background:rgba(245,158,11,.12)}
+@media (prefers-reduced-motion:reduce){
+  #daily-track{transition:none!important;animation:none!important}
+  .d-prog>i{transition:none}
+}
 .c-topics{margin-top:2px;display:flex;flex-direction:column}
 /* हर काम एक साफ़ पंक्ति — बड़ा tap-zone वाला ✅ + अलग text-zone; बीच में divider
    ताकि पास-पास होने पर भी गलत काम पूरा न हो (सही जगह ही tap लगे) */
@@ -1359,9 +1416,12 @@ body.hdr-folded .hdr-row2{display:none}
 
 <!-- 📆 प्रतिदिन — किस दिन कौन-कौन से काम जोड़े (swipe से पिछले दिन) -->
 <div class="modal-bg" id="m-daily" style="z-index:196" onclick="if(event.target===this)closeModal('m-daily')">
-  <div class="modal-box" style="max-width:410px;max-height:92dvh;display:flex;flex-direction:column;padding:0;overflow:hidden">
-    <div id="daily-head"></div>
-    <div id="daily-body" style="overflow-y:auto;flex:1;padding:11px 12px 16px" ontouchstart="dailyTS(event)" ontouchend="dailyTE(event)"></div>
+  <div class="modal-box" style="max-width:410px;display:flex;flex-direction:column;padding:0;overflow:hidden">
+    <div id="daily-body" style="overflow-y:auto;flex:1;padding:0"
+         ontouchstart="dailyTS(event)" ontouchmove="dailyTM(event)" ontouchend="dailyTE(event)">
+      <div id="daily-head"></div>
+      <div id="daily-track" style="padding:12px 12px 20px"></div>
+    </div>
   </div>
 </div>
 
@@ -6042,6 +6102,8 @@ function overseerSecHTML(c){
 let _dailyOff=0;
 function _dayStart(off){ const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-off); return d; }
 function _isSameDay(iso,d){ if(!iso) return false; const t=new Date(iso); return t.getFullYear()===d.getFullYear()&&t.getMonth()===d.getMonth()&&t.getDate()===d.getDate(); }
+function _rm(){ return window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches; }
+function _track(){ return document.getElementById('daily-track'); }
 function dailyList(off){
   const d=_dayStart(off); const out=[];
   contacts.forEach(c=>{ normTopics(c).forEach((x,i)=>{ if(_isSameDay(x.addedAt,d)) out.push({...x,i,cid:c.id,cname:c.name||'?'}); }); });
@@ -6049,69 +6111,134 @@ function dailyList(off){
   return {d,out};
 }
 function _dailyLabel(off){ return off===0?'आज':off===1?'कल':off===2?'परसों':off+' दिन पहले'; }
-window.openDaily=function(){ _dailyOff=0; renderDaily(); openModal('m-daily'); };
-window.dailyNav=function(delta){ const n=_dailyOff+delta; if(n<0){ toast('आज से आगे नहीं 🙂','warn'); return; } if(n>400) return; _dailyOff=n; renderDaily(delta); };
+function _dailyMini(off){ if(off<0) return ''; return _dayStart(off).toLocaleDateString('hi-IN',{day:'numeric',month:'short'}); }
+/* सबसे पुराना दिन जिसमें कोई काम जोड़ा गया — उससे पीछे ‹ बंद */
+function _dailyMaxOff(){ let max=0; const today=_dayStart(0).getTime();
+  contacts.forEach(c=>normTopics(c).forEach(x=>{ if(!x.addedAt) return; const d=new Date(x.addedAt); if(isNaN(d)) return; d.setHours(0,0,0,0);
+    const off=Math.round((today-d.getTime())/86400000); if(off>max&&off<=400) max=off; })); return max; }
+window.openDaily=function(){ _dailyOff=0; renderDaily(); openModal('m-daily');
+  if(!window._dailyKeyBound){ window._dailyKeyBound=true;
+    document.addEventListener('keydown',e=>{ const m=document.getElementById('m-daily'); if(!m||!m.classList.contains('open')) return;
+      if(e.key==='ArrowLeft'){ e.preventDefault(); dailyNav(1); } else if(e.key==='ArrowRight'){ e.preventDefault(); dailyNav(-1); } }); }
+};
+window.dailyNav=function(delta){ const n=_dailyOff+delta;
+  if(n<0){ toast('आज से आगे नहीं 🙂','warn'); const tr=_track(); if(tr){ tr.style.transition='transform .2s'; tr.style.transform='none'; tr.style.opacity='1'; } return; }
+  if(n>_dailyMaxOff()){ const tr=_track(); if(tr){ tr.style.transition='transform .2s'; tr.style.transform='none'; tr.style.opacity='1'; } return; }
+  _dailyOff=n; renderDaily(delta); };
 function renderDailyIfOpen(){ const m=document.getElementById('m-daily'); if(m&&m.classList.contains('open')) renderDaily(); }
 function renderDaily(dir){
   const {d,out}=dailyList(_dailyOff);
   const dstr=d.toLocaleDateString('hi-IN',{weekday:'short',day:'numeric',month:'long'});
   const lbl=_dailyLabel(_dailyOff);
   const doneN=out.filter(x=>x.done).length, actN=out.length-doneN;
+  const maxOff=_dailyMaxOff(); const canOld=_dailyOff<maxOff, canNew=_dailyOff>0;
+  const pct=out.length?Math.round(doneN/out.length*100):0;
+  /* A) डेट रेल — sticky, हमेशा ऊपर एक ही जगह */
   document.getElementById('daily-head').innerHTML=`
-    <div style="background:linear-gradient(140deg,#1d4ed8,#7c3aed);padding:12px 13px">
-      <div style="display:flex;align-items:center;gap:8px">
-        <span class="press" onclick="dailyNav(1)" style="cursor:pointer;font-size:20px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.17);border-radius:11px;color:#fff;flex-shrink:0">‹</span>
-        <div style="flex:1;text-align:center;min-width:0">
-          <div style="font-size:9.5px;font-weight:900;color:rgba(255,255,255,.82);letter-spacing:.08em;text-transform:uppercase">📆 इस दिन जोड़े गए काम</div>
-          <div style="font-size:17.5px;font-weight:900;color:#fff;line-height:1.15">${escH(lbl)} · ${escH(dstr)}</div>
+    <div class="d-rail">
+      <span class="d-close" onclick="closeModal('m-daily')">✕</span>
+      <div class="d-rail-row">
+        <button class="d-arrow ${canOld?'':'off'}" onclick="dailyNav(1)" aria-label="पिछला दिन">
+          <span class="ar">‹</span><span class="al">${canOld?escH(_dailyMini(_dailyOff+1)):'शुरू'}</span></button>
+        <div class="d-center">
+          <span class="d-kicker">📆 इस दिन जोड़े गए काम</span>
+          <span class="d-date">${escH(lbl)} · ${escH(dstr)}</span>
+          <span class="d-count">${out.length?`${out.length} जोड़े · ${actN} बाकी · ${doneN} पूरे`:'कोई काम नहीं'}</span>
         </div>
-        <span class="press" onclick="dailyNav(-1)" style="cursor:pointer;font-size:20px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:${_dailyOff===0?'rgba(255,255,255,.06)':'rgba(255,255,255,.17)'};border-radius:11px;color:${_dailyOff===0?'rgba(255,255,255,.35)':'#fff'};flex-shrink:0">›</span>
-        <span onclick="closeModal('m-daily')" style="cursor:pointer;font-size:19px;color:#fff;padding:4px 2px 4px 4px;flex-shrink:0">✕</span>
+        <button class="d-arrow ${canNew?'':'off'}" onclick="dailyNav(-1)" aria-label="अगला दिन">
+          <span class="ar">›</span><span class="al">${canNew?escH(_dailyMini(_dailyOff-1)):'आज'}</span></button>
       </div>
-      <div style="text-align:center;margin-top:7px;font-size:10.5px;font-weight:800;color:rgba(255,255,255,.94)">${out.length?`${out.length} जोड़े · ⏳${actN} बाकी · ✅${doneN} पूरे`:'कोई काम नहीं'} <span style="opacity:.7">· ↔️ swipe</span></div>
+      <div class="d-prog"><i style="width:${pct}%"></i></div>
     </div>`;
-  const body=document.getElementById('daily-body');
-  if(!out.length){ body.innerHTML=`<div style="text-align:center;padding:44px 12px;color:#64748b"><div style="font-size:38px">🗓️</div><div style="font-size:13px;margin-top:10px">${escH(lbl)} कोई काम नहीं जोड़ा गया।<br><span style="font-size:11px;color:#475569">‹ › या swipe से दूसरा दिन देखें</span></div></div>`; }
-  else body.innerHTML=out.map(dailyTaskHTML).join('');
-  if(dir!==undefined){ body.style.animation='none'; requestAnimationFrame(()=>{ body.style.animation=(dir>0?'slInR':'slInL')+' .22s ease'; }); }
+  const tr=_track();
+  if(!out.length){ tr.innerHTML=`<div style="text-align:center;padding:52px 14px;color:#64748b">
+      <div style="font-size:40px">🗓️</div>
+      <div style="font-size:14px;margin-top:12px;font-family:'Mukta',sans-serif;color:#8b93ad">${escH(lbl)} कोई काम नहीं जोड़ा गया।<br>
+      <span style="font-size:12px;color:#556">‹ › या उँगली से swipe करके दूसरा दिन देखें</span></div></div>`; }
+  else tr.innerHTML=out.map(dailyTaskHTML).join('');
+  /* B) दिन बदलने का slide (260ms) — reduced-motion हो तो सीधा */
+  tr.style.opacity='1';
+  if(dir!==undefined && !_rm()){
+    const W=tr.offsetWidth||320; tr.style.transition='none'; tr.style.transform='translateX('+(dir>0?-W:W)+'px)';
+    requestAnimationFrame(()=>{ tr.style.transition='transform .26s cubic-bezier(.22,.61,.36,1),opacity .26s ease'; tr.style.transform='none'; });
+  } else { tr.style.transition='none'; tr.style.transform='none'; }
+  /* C) लंबे टेक्स्ट पर ही "पूरा देखें" दिखाओ (3-line clamp से बड़ा हो तो) */
+  requestAnimationFrame(()=>{ tr.querySelectorAll('.d-card:not(.done)').forEach(card=>{
+    const t=card.querySelector('.d-txt'), more=card.querySelector('.d-more');
+    if(t&&more&&t.scrollHeight-t.clientHeight>3) more.style.display='block'; }); });
 }
+window.dailyExpand=function(btn){ const card=btn.closest('.d-card'); if(card) card.classList.add('exp'); };
 function dailyTaskHTML(x){
   const ci=catInfo(x.cat); const inF=taskInFocus(x.cid,x.i);
   const tm=x.addedAt?new Date(x.addedAt).toLocaleTimeString('hi-IN',{hour:'numeric',minute:'2-digit'}):'';
-  const tc=(typeof BW_CATC!=='undefined'&&BW_CATC[x.cat||''])||(x.pri==='high'?'#ef4444':'#f59e0b');
+  // मार्कर (emoji अपने-आप रंगीन); text शांत #E4E7F2
+  const mark=(inF?'🎯 ':'')+(x.pri==='high'?'🔴 ':'')+(ci?ci.logo+' ':'');
   if(x.done){
-    return `<div class="sp-task" style="--tc:#22c55e;opacity:.78;padding:9px 11px;margin-bottom:7px">
-      <div style="display:flex;align-items:flex-start;gap:8px">
-        <span style="flex:1;min-width:0"><span style="font-size:13px;font-weight:700;color:#86efac;text-decoration:line-through;word-break:break-word">${ci?ci.logo+' ':''}${escH(x.t)}</span>
-        <span style="display:block;font-size:9.5px;color:#94a3b8;margin-top:2px">👤 ${escH(x.cname)}${tm?' · 🕘 '+escH(tm):''} · ✅ पूरा</span></span>
-        <button class="log-btn" onclick="undoneTopic('${x.cid}',${x.i})" title="वापस लाओ">↩️</button>
-        <button class="log-btn del" onclick="delTopicPermanent('${x.cid}',${x.i})" title="PIN डालकर हमेशा के लिए मिटाओ">🗑</button>
+    return `<div class="d-card done">
+      <div class="d-top">
+        <span class="d-chk" onclick="undoneTopic('${x.cid}',${x.i})" title="वापस active करो"></span>
+        <div class="d-body">
+          <div class="d-txt">${mark}${escH(x.t)}</div>
+          <div class="d-meta"><span class="d-who">👤 ${escH(x.cname)}</span>${tm?'· '+escH(tm):''} · ✅ पूरा</div>
+        </div>
+      </div>
+      <div class="d-tools">
+        <span class="d-tb" onclick="undoneTopic('${x.cid}',${x.i})" title="वापस लाओ">↩️</span>
+        <span class="d-tb" onclick="delTopicPermanent('${x.cid}',${x.i})" title="PIN डालकर हमेशा के लिए मिटाओ">🗑</span>
       </div></div>`;
   }
-  return `<div class="sp-task ${x.dg?'tk-delegated':inF?'tk-focus':''}" data-ti="${x.i}" style="--tc:${tc};padding:9px 11px;margin-bottom:8px">
-    <div style="display:flex;align-items:flex-start;gap:8px">
-      <span class="sp-chk" style="margin-top:1px" onclick="doneTopic('${x.cid}',${x.i})"></span>
-      <span style="flex:1;min-width:0">
-        <span style="font-size:14px;font-weight:800;color:#fcd34d;line-height:1.4;word-break:break-word">${inF?'<span class="fk-badge">🎯</span> ':''}${x.pri==='high'?'🔴 ':''}${ci?ci.logo+' ':''}${escH(x.t)}</span>
-        <span style="display:block;font-size:10px;color:#4ade80;font-weight:800;margin-top:2px">👤 ${escH(x.cname)}${x.assignTo?' → '+escH(staffName(x.assignTo)):''}${tm?' <span style="color:#64748b;font-weight:600">· 🕘 '+escH(tm)+'</span>':''}</span>
-        ${linkChipsHTML(x.cid,x.i,x)}${taskBadges(x,x.cid,x.i)}
-      </span>
+  // मेटा — जिसका काम है (किस कार्ड में जुड़ा) + assignee/सौंपा + देखरेख + समय
+  let who='👤 '+escH(x.cname);
+  if(x.assignTo) who+=' → '+escH(staffName(x.assignTo));
+  else if(x.dg&&x.dg.to) who+=' → '+escH(x.dg.to);
+  let meta=`<span class="d-who">${who}</span>`;
+  if(tm) meta+=`· 🕘 ${escH(tm)}`;
+  if(x.at) meta+=`· ⏰ ${escH(schedLabel(x.at))}`;
+  if(x.dg) meta+=`· 🔗 सौंपा`;
+  if(x.overseer&&x.overseer.name) meta+=`· 👁️ ${escH((x.overseer.name||'').split(/\s+/)[0])}`;
+  return `<div class="d-card" data-ti="${x.i}">
+    <div class="d-top">
+      <span class="d-chk" onclick="doneTopic('${x.cid}',${x.i})" title="PIN से पूरा"></span>
+      <div class="d-body">
+        <div class="d-txt">${mark}${escH(x.t)}</div>
+        <button class="d-more" onclick="dailyExpand(this)">पूरा देखें ▾</button>
+        <div class="d-meta">${meta}</div>
+      </div>
     </div>
-    <div class="sp-tools">
-      <span class="tb" onclick="spEditTask('${x.cid}',${x.i})" style="border-color:rgba(251,191,36,.55);color:#fcd34d" title="सुधारो">✏️</span>
-      <span class="tb" onclick="spLinkTask('${x.cid}',${x.i})" style="border-color:rgba(255,45,120,.6);color:#FF6FA5" title="जोड़ो/सौंपो/देखरेख">🔗</span>
-      <span class="tb" onclick="spPickAssign('${x.cid}',${x.i})" style="border-color:${x.assignTo?'rgba(34,197,94,.65)':'rgba(100,116,139,.4)'}" title="Staff को सौंपो">👤</span>
-      <span class="tb ${inF?'tk-focus':''}" onclick="openFocusPick('${x.cid}',${x.i})" style="border-color:rgba(245,158,11,.55)" title="🎯 Focus">🎯</span>
-      <span class="tb" onclick="spSchedTask('${x.cid}',${x.i})" style="border-color:${x.at?'rgba(59,130,246,.65)':'rgba(100,116,139,.4)'}" title="Reschedule/समय">${x.at?'📅':'⏰'}</span>
-      <span class="tb" onclick="spPickCat('${x.cid}',${x.i})" title="श्रेणी">${ci?ci.logo:'⬜'}</span>
-      <span class="tb" onclick="spTaskWA('${x.cid}',${x.i})" style="border-color:rgba(37,211,102,.55);color:#4ade80" title="💬 message">💬</span>
+    <div class="d-tools">
+      <span class="d-tb" onclick="spEditTask('${x.cid}',${x.i})" title="सुधारो">✏️</span>
+      <span class="d-tb" onclick="spLinkTask('${x.cid}',${x.i})" title="जोड़ो/सौंपो/देखरेख">🔗</span>
+      <span class="d-tb" onclick="spPickAssign('${x.cid}',${x.i})" title="Staff को सौंपो">👤</span>
+      <span class="d-tb ${inF?'on':''}" onclick="openFocusPick('${x.cid}',${x.i})" title="🎯 Focus">🎯</span>
+      <span class="d-tb" onclick="spSchedTask('${x.cid}',${x.i})" title="Reschedule/समय">${x.at?'📅':'⏰'}</span>
+      <span class="d-tb" onclick="spPickCat('${x.cid}',${x.i})" title="श्रेणी">${ci?ci.logo:'🏷️'}</span>
+      <span class="d-tb" onclick="spTaskWA('${x.cid}',${x.i})" title="💬 message">💬</span>
     </div>
   </div>`;
 }
-let _dTX=0,_dTY=0;
-window.dailyTS=function(e){ const t=e.changedTouches[0]; _dTX=t.clientX; _dTY=t.clientY; };
-window.dailyTE=function(e){ const t=e.changedTouches[0]; const dx=t.clientX-_dTX, dy=t.clientY-_dTY;
-  if(Math.abs(dx)>55 && Math.abs(dx)>Math.abs(dy)*1.4){ dailyNav(dx>0?1:-1); } };
+/* B) उँगली के साथ live drag → छोड़ने पर snap (60px से कम = वापस उसी दिन) */
+let _dSX=0,_dSY=0,_dHoriz=null,_dDx=0;
+window.dailyTS=function(e){ const t=e.touches?e.touches[0]:e.changedTouches[0]; _dSX=t.clientX; _dSY=t.clientY; _dHoriz=null; _dDx=0; const tr=_track(); if(tr) tr.style.transition='none'; };
+window.dailyTM=function(e){ const tr=_track(); if(!tr||!e.touches) return; const t=e.touches[0]; const dx=t.clientX-_dSX, dy=t.clientY-_dSY;
+  if(_dHoriz===null){ if(Math.abs(dx)<8&&Math.abs(dy)<8) return; _dHoriz=Math.abs(dx)>Math.abs(dy); }
+  if(!_dHoriz) return;                       // लंबवत → सामान्य scroll चलने दो
+  if(e.cancelable) e.preventDefault();
+  let dd=dx; const atNew=_dailyOff===0, atOld=_dailyOff>=_dailyMaxOff();
+  if((dd<0&&atNew)||(dd>0&&atOld)) dd=dd*0.25;   // सीमा पर rubber-band
+  _dDx=dd; tr.style.transform='translateX('+dd+'px)'; tr.style.opacity=String(Math.max(.55,1-Math.abs(dd)/520));
+};
+window.dailyTE=function(e){ const tr=_track(); if(!tr) return; const wasH=_dHoriz; _dHoriz=null;
+  if(!wasH){ return; }
+  const dx=_dDx, W=tr.offsetWidth||320, older=dx>0;
+  const allowed=older ? _dailyOff<_dailyMaxOff() : _dailyOff>0;
+  if(Math.abs(dx)>60 && allowed){
+    if(_rm()){ tr.style.transition='none'; tr.style.transform='none'; tr.style.opacity='1'; dailyNav(older?1:-1); return; }
+    tr.style.transition='transform .13s ease,opacity .13s ease'; tr.style.transform='translateX('+(older?W:-W)+'px)'; tr.style.opacity='0';
+    setTimeout(()=>dailyNav(older?1:-1),120);
+  } else {
+    tr.style.transition=_rm()?'none':'transform .2s ease,opacity .2s ease'; tr.style.transform='none'; tr.style.opacity='1';
+  }
+};
 function renderSmartPop(){
   const c=contacts.find(x=>x.id===_spId);
   if(!c){ closeSmartPop(); return; }

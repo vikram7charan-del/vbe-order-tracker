@@ -7902,7 +7902,13 @@ function defaultOrder(){
 function orderedTokens(){
   const def=defaultOrder();
   const saved=Array.isArray(window._filterOrder)?window._filterOrder.filter(t=>def.includes(t)):[];
-  return [...saved,...def.filter(t=>!saved.includes(t))];
+  let list=[...saved,...def.filter(t=>!saved.includes(t))];
+  // 📆 प्रतिदिन नया chip है — पुराने saved क्रम की वजह से बार के आख़िर में छिप जाता
+  // था (स्क्रॉल किए बिना दिखता ही नहीं)। इसे हमेशा 📅 दिन के ठीक बाद आगे ले आओ।
+  list=list.filter(t=>t!=='added');
+  const dayIdx=list.indexOf('day');
+  if(dayIdx>=0) list.splice(dayIdx+1,0,'added'); else list.unshift('added');
+  return list;
 }
 window.fbSearchOpen=function(){
   document.body.classList.remove('hdr-folded'); localStorage.setItem('vbe_hdr_fold','');

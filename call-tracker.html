@@ -336,6 +336,9 @@ body.anim-off .card{background:#07111e;backdrop-filter:none;-webkit-backdrop-fil
 /* 📐 काम की सूची अब पूरी चौड़ाई में (avatar column के नीचे नहीं) — जगह का पूरा इस्तेमाल:
    ⚪ बिल्कुल बाएँ, text दाएँ तक फैला। बाईं तरफ़ की खाली पट्टी ख़त्म। */
 .c-tasks-full{padding:2px 12px 9px 13px}
+/* 📆 प्रतिदिन view — दिन बदलने पर slide */
+@keyframes slInR{from{transform:translateX(26px);opacity:.3}to{transform:translateX(0);opacity:1}}
+@keyframes slInL{from{transform:translateX(-26px);opacity:.3}to{transform:translateX(0);opacity:1}}
 .c-topics{margin-top:2px;display:flex;flex-direction:column}
 /* हर काम एक साफ़ पंक्ति — बड़ा tap-zone वाला ✅ + अलग text-zone; बीच में divider
    ताकि पास-पास होने पर भी गलत काम पूरा न हो (सही जगह ही tap लगे) */
@@ -1354,6 +1357,14 @@ body.hdr-folded .hdr-row2{display:none}
   </div>
 </div>
 
+<!-- 📆 प्रतिदिन — किस दिन कौन-कौन से काम जोड़े (swipe से पिछले दिन) -->
+<div class="modal-bg" id="m-daily" style="z-index:196" onclick="if(event.target===this)closeModal('m-daily')">
+  <div class="modal-box" style="max-width:410px;max-height:92dvh;display:flex;flex-direction:column;padding:0;overflow:hidden">
+    <div id="daily-head"></div>
+    <div id="daily-body" style="overflow-y:auto;flex:1;padding:11px 12px 16px" ontouchstart="dailyTS(event)" ontouchend="dailyTE(event)"></div>
+  </div>
+</div>
+
 <!-- 📩 Telegram सेटअप — dedicated panel (status + owner-connect + test) -->
 <div class="modal-bg" id="m-tgsetup" style="z-index:294" onclick="if(event.target===this)closeModal('m-tgsetup')">
   <div class="modal-box" style="max-width:360px">
@@ -1922,6 +1933,7 @@ function render(){
   if(cl) cl.classList.toggle('no-anim',!_animNext);
   renderStrip(list); renderCards(list); renderStats(list); updateHdrSub();
   catNudge();
+  try{ renderDailyIfOpen(); }catch(e){}
   if(typeof aiOrbUpdate==='function') aiOrbUpdate();
   if(hubOpenNow()) renderHub();
   _animNext=false;
@@ -6026,6 +6038,80 @@ function overseerSecHTML(c){
   h+=`<div style="font-size:8.5px;color:#7d8db0;margin-top:6px;text-align:center">काम पर दबाओ → वहीं edit/party/staff/settle — दूसरी जगह अपने-आप sync</div></div>`;
   return h;
 }
+/* ══ 📆 प्रतिदिन — किस दिन कौन-कौन से काम जोड़े (date-wise, swipe से पिछले दिन) ══ */
+let _dailyOff=0;
+function _dayStart(off){ const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-off); return d; }
+function _isSameDay(iso,d){ if(!iso) return false; const t=new Date(iso); return t.getFullYear()===d.getFullYear()&&t.getMonth()===d.getMonth()&&t.getDate()===d.getDate(); }
+function dailyList(off){
+  const d=_dayStart(off); const out=[];
+  contacts.forEach(c=>{ normTopics(c).forEach((x,i)=>{ if(_isSameDay(x.addedAt,d)) out.push({...x,i,cid:c.id,cname:c.name||'?'}); }); });
+  out.sort((a,b)=> new Date(b.addedAt||0)-new Date(a.addedAt||0));
+  return {d,out};
+}
+function _dailyLabel(off){ return off===0?'आज':off===1?'कल':off===2?'परसों':off+' दिन पहले'; }
+window.openDaily=function(){ _dailyOff=0; renderDaily(); openModal('m-daily'); };
+window.dailyNav=function(delta){ const n=_dailyOff+delta; if(n<0){ toast('आज से आगे नहीं 🙂','warn'); return; } if(n>400) return; _dailyOff=n; renderDaily(delta); };
+function renderDailyIfOpen(){ const m=document.getElementById('m-daily'); if(m&&m.classList.contains('open')) renderDaily(); }
+function renderDaily(dir){
+  const {d,out}=dailyList(_dailyOff);
+  const dstr=d.toLocaleDateString('hi-IN',{weekday:'short',day:'numeric',month:'long'});
+  const lbl=_dailyLabel(_dailyOff);
+  const doneN=out.filter(x=>x.done).length, actN=out.length-doneN;
+  document.getElementById('daily-head').innerHTML=`
+    <div style="background:linear-gradient(140deg,#1d4ed8,#7c3aed);padding:12px 13px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="press" onclick="dailyNav(1)" style="cursor:pointer;font-size:20px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.17);border-radius:11px;color:#fff;flex-shrink:0">‹</span>
+        <div style="flex:1;text-align:center;min-width:0">
+          <div style="font-size:9.5px;font-weight:900;color:rgba(255,255,255,.82);letter-spacing:.08em;text-transform:uppercase">📆 इस दिन जोड़े गए काम</div>
+          <div style="font-size:17.5px;font-weight:900;color:#fff;line-height:1.15">${escH(lbl)} · ${escH(dstr)}</div>
+        </div>
+        <span class="press" onclick="dailyNav(-1)" style="cursor:pointer;font-size:20px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:${_dailyOff===0?'rgba(255,255,255,.06)':'rgba(255,255,255,.17)'};border-radius:11px;color:${_dailyOff===0?'rgba(255,255,255,.35)':'#fff'};flex-shrink:0">›</span>
+        <span onclick="closeModal('m-daily')" style="cursor:pointer;font-size:19px;color:#fff;padding:4px 2px 4px 4px;flex-shrink:0">✕</span>
+      </div>
+      <div style="text-align:center;margin-top:7px;font-size:10.5px;font-weight:800;color:rgba(255,255,255,.94)">${out.length?`${out.length} जोड़े · ⏳${actN} बाकी · ✅${doneN} पूरे`:'कोई काम नहीं'} <span style="opacity:.7">· ↔️ swipe</span></div>
+    </div>`;
+  const body=document.getElementById('daily-body');
+  if(!out.length){ body.innerHTML=`<div style="text-align:center;padding:44px 12px;color:#64748b"><div style="font-size:38px">🗓️</div><div style="font-size:13px;margin-top:10px">${escH(lbl)} कोई काम नहीं जोड़ा गया।<br><span style="font-size:11px;color:#475569">‹ › या swipe से दूसरा दिन देखें</span></div></div>`; }
+  else body.innerHTML=out.map(dailyTaskHTML).join('');
+  if(dir!==undefined){ body.style.animation='none'; requestAnimationFrame(()=>{ body.style.animation=(dir>0?'slInR':'slInL')+' .22s ease'; }); }
+}
+function dailyTaskHTML(x){
+  const ci=catInfo(x.cat); const inF=taskInFocus(x.cid,x.i);
+  const tm=x.addedAt?new Date(x.addedAt).toLocaleTimeString('hi-IN',{hour:'numeric',minute:'2-digit'}):'';
+  const tc=(typeof BW_CATC!=='undefined'&&BW_CATC[x.cat||''])||(x.pri==='high'?'#ef4444':'#f59e0b');
+  if(x.done){
+    return `<div class="sp-task" style="--tc:#22c55e;opacity:.78;padding:9px 11px;margin-bottom:7px">
+      <div style="display:flex;align-items:flex-start;gap:8px">
+        <span style="flex:1;min-width:0"><span style="font-size:13px;font-weight:700;color:#86efac;text-decoration:line-through;word-break:break-word">${ci?ci.logo+' ':''}${escH(x.t)}</span>
+        <span style="display:block;font-size:9.5px;color:#94a3b8;margin-top:2px">👤 ${escH(x.cname)}${tm?' · 🕘 '+escH(tm):''} · ✅ पूरा</span></span>
+        <button class="log-btn" onclick="undoneTopic('${x.cid}',${x.i})" title="वापस लाओ">↩️</button>
+        <button class="log-btn del" onclick="delTopicPermanent('${x.cid}',${x.i})" title="PIN डालकर हमेशा के लिए मिटाओ">🗑</button>
+      </div></div>`;
+  }
+  return `<div class="sp-task ${x.dg?'tk-delegated':inF?'tk-focus':''}" data-ti="${x.i}" style="--tc:${tc};padding:9px 11px;margin-bottom:8px">
+    <div style="display:flex;align-items:flex-start;gap:8px">
+      <span class="sp-chk" style="margin-top:1px" onclick="doneTopic('${x.cid}',${x.i})"></span>
+      <span style="flex:1;min-width:0">
+        <span style="font-size:14px;font-weight:800;color:#fcd34d;line-height:1.4;word-break:break-word">${inF?'<span class="fk-badge">🎯</span> ':''}${x.pri==='high'?'🔴 ':''}${ci?ci.logo+' ':''}${escH(x.t)}</span>
+        <span style="display:block;font-size:10px;color:#4ade80;font-weight:800;margin-top:2px">👤 ${escH(x.cname)}${x.assignTo?' → '+escH(staffName(x.assignTo)):''}${tm?' <span style="color:#64748b;font-weight:600">· 🕘 '+escH(tm)+'</span>':''}</span>
+        ${linkChipsHTML(x.cid,x.i,x)}${taskBadges(x,x.cid,x.i)}
+      </span>
+    </div>
+    <div class="sp-tools">
+      <span class="tb" onclick="spEditTask('${x.cid}',${x.i})" style="border-color:rgba(251,191,36,.55);color:#fcd34d" title="सुधारो">✏️</span>
+      <span class="tb" onclick="spLinkTask('${x.cid}',${x.i})" style="border-color:rgba(255,45,120,.6);color:#FF6FA5" title="जोड़ो/सौंपो/देखरेख">🔗</span>
+      <span class="tb" onclick="spPickAssign('${x.cid}',${x.i})" style="border-color:${x.assignTo?'rgba(34,197,94,.65)':'rgba(100,116,139,.4)'}" title="Staff को सौंपो">👤</span>
+      <span class="tb ${inF?'tk-focus':''}" onclick="openFocusPick('${x.cid}',${x.i})" style="border-color:rgba(245,158,11,.55)" title="🎯 Focus">🎯</span>
+      <span class="tb" onclick="spSchedTask('${x.cid}',${x.i})" style="border-color:${x.at?'rgba(59,130,246,.65)':'rgba(100,116,139,.4)'}" title="Reschedule/समय">${x.at?'📅':'⏰'}</span>
+      <span class="tb" onclick="spPickCat('${x.cid}',${x.i})" title="श्रेणी">${ci?ci.logo:'⬜'}</span>
+      <span class="tb" onclick="spTaskWA('${x.cid}',${x.i})" style="border-color:rgba(37,211,102,.55);color:#4ade80" title="💬 message">💬</span>
+    </div>
+  </div>`;
+}
+let _dTX=0,_dTY=0;
+window.dailyTS=function(e){ const t=e.changedTouches[0]; _dTX=t.clientX; _dTY=t.clientY; };
+window.dailyTE=function(e){ const t=e.changedTouches[0]; const dx=t.clientX-_dTX, dy=t.clientY-_dTY;
+  if(Math.abs(dx)>55 && Math.abs(dx)>Math.abs(dy)*1.4){ dailyNav(dx>0?1:-1); } };
 function renderSmartPop(){
   const c=contacts.find(x=>x.id===_spId);
   if(!c){ closeSmartPop(); return; }
@@ -7798,6 +7884,7 @@ function filterItems(){
     'asst':`<div class="f-chip fc-mic" onclick="aicAssistant()" style="border-color:rgba(168,85,247,.7);background:linear-gradient(150deg,rgba(88,28,135,.55),rgba(30,10,60,.55));color:#e9d5ff" title="🧞 बोलकर काम — बोलते ही अपने-आप समझकर जोड़ देगा">🧞 बोलो-काम</div>`,
     'mic':`<div class="f-chip fc-mic" onclick="openAiAdd()" title="बोलकर काम जोड़ें (form के साथ)">🎙️ बोलो</div>`,
     'day':`<div class="f-chip fc-day" id="fc-day" onclick="gotoDay()" title="📅 मेरा दिन">📅 दिन</div>`,
+    'added':`<div class="f-chip" style="border-color:rgba(124,58,237,.6);color:#c4b5fd" onclick="openDaily()" title="📆 प्रतिदिन — किस दिन कौन-से काम जोड़े">📆 प्रतिदिन</div>`,
     'add':`<div class="f-chip fc-add" onclick="openAddModal()" title="नया contact/काम">➕ नया</div>`,
     'srch':`<div class="f-chip" onclick="fbSearchOpen()" title="🔍 नाम/नंबर खोजें">🔍</div>`,
     'fdash':`<div class="f-chip" style="border-color:rgba(34,211,238,.6);color:#67e8f9" onclick="openFocusDash()" title="🎯 Focus dashboard — विक्रम/दिनेश">🎯</div>`,
@@ -7810,7 +7897,7 @@ function filterItems(){
   return m;
 }
 function defaultOrder(){
-  return ['asst','bulk','mic','day','add','srch','fdash','all','notag',...TAG_LIST.map(t=>'t:'+t.k),...TASK_CATS.map(tc=>'c:'+tc.k),'arch'];
+  return ['asst','bulk','mic','day','added','add','srch','fdash','all','notag',...TAG_LIST.map(t=>'t:'+t.k),...TASK_CATS.map(tc=>'c:'+tc.k),'arch'];
 }
 function orderedTokens(){
   const def=defaultOrder();
@@ -7824,7 +7911,7 @@ window.fbSearchOpen=function(){
 };
 function tokLabel(tok){
   if(tok==='asst')return '🧞 बोलो-काम'; if(tok==='bulk')return '📊 सब काम'; if(tok==='mic')return '🎙️ बोलो'; if(tok==='srch')return '🔍 खोज'; if(tok==='day')return '📅 दिन'; if(tok==='add')return '➕ नया';
-  if(tok==='fdash')return '🎯 Focus dash'; if(tok==='all')return '🔍 सब'; if(tok==='arch')return '📦 बंद'; if(tok==='notag')return '🏷️ बिना श्रेणी';
+  if(tok==='fdash')return '🎯 Focus dash'; if(tok==='all')return '🔍 सब'; if(tok==='arch')return '📦 बंद'; if(tok==='notag')return '🏷️ बिना श्रेणी'; if(tok==='added')return '📆 प्रतिदिन';
   if(tok.startsWith('t:')){ const t=TAG_LIST.find(x=>x.k===tok.slice(2)); return t?t.label:tok; }
   if(tok.startsWith('c:')){ const t=TASK_CATS.find(x=>x.k===tok.slice(2)); return t?t.logo+' '+t.label:tok; }
   return tok;

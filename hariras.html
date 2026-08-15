@@ -208,6 +208,36 @@ footer{margin:3.2rem auto 0;max-width:680px;padding:1.6rem 1.05rem 0;border-top:
 .jai{display:block;font-family:'Tiro Devanagari Hindi',serif;color:var(--gold);font-size:1.05rem;margin-bottom:.75rem;letter-spacing:.02em}
 footer .om{font-family:'Tiro Devanagari Hindi',serif;color:var(--sindoor);font-size:1.4rem;display:block;margin-bottom:.5rem}
 
+
+/* ===================== पाठ-ख (दूसरी प्रति) ===================== */
+.pathbar{display:none;max-width:680px;margin:0 auto;padding:0 1.05rem .55rem;align-items:center;gap:.45rem}
+.pathbar.on{display:flex}
+.pathbar .plab{font-size:.72rem;letter-spacing:.16em;color:var(--muted);font-weight:700}
+.pseg{display:flex;gap:2px;padding:3px;border:1px solid var(--glass-brd);border-radius:999px;background:var(--chip)}
+.pseg button{min-width:40px;padding:.28rem .6rem;border-radius:999px;font-size:.86rem;font-weight:600;color:var(--muted);font-family:'Tiro Devanagari Hindi',serif;transition:.2s}
+.pseg button[aria-pressed="true"]{background:linear-gradient(160deg,var(--gold),var(--gold-2));color:#22190B;box-shadow:0 2px 8px var(--glow)}
+html[data-theme="dark"] .pseg button[aria-pressed="true"]{color:#141A26}
+.difftog{margin-left:auto;display:flex;align-items:center;gap:.32rem;padding:.32rem .7rem;border-radius:999px;border:1px solid var(--glass-brd);background:var(--chip);font-size:.76rem;font-weight:600;color:var(--muted);transition:.2s}
+.difftog[aria-pressed="true"]{color:var(--sindoor);border-color:var(--sindoor);background:rgba(168,42,30,.10)}
+.pcount{font-size:.72rem;color:var(--muted)}
+
+.ribbon{display:none;align-items:center;gap:.45rem;margin:0 0 .55rem}
+.ribbon b{font-family:'Mukta',sans-serif;font-size:.64rem;letter-spacing:.18em;font-weight:700;color:#22190B;
+  background:linear-gradient(160deg,var(--gold),var(--gold-2));padding:.16rem .58rem;border-radius:999px}
+.ribbon .meta{font-size:.72rem;color:var(--muted);font-style:italic}
+.ribbon.rib-b b{background:linear-gradient(160deg,var(--sindoor),#C4553F);color:#FFF3E2}
+.pb{display:none;margin-top:1.1rem;padding-top:1rem;border-top:1px dashed var(--gold-soft)}
+
+/* पाठ ख only */
+body[data-path="b"] .doha.has-b>.verse,body[data-path="b"] .doha.has-b>.arth{display:none}
+body[data-path="b"] .pb,body[data-path="both"] .pb{display:block}
+/* दोनों साथ-साथ */
+body[data-path="both"] .doha.has-b .ribbon{display:flex}
+body[data-mode="verse"] .pb .arth,body[data-mode="shravan"] .pb .arth{display:none}
+body[data-path="b"] .doha:not(.has-b) .verse::after{content:"पाठ ख अभी इस छंद का नहीं जुड़ा — ऊपर पाठ क है";display:block;font-family:'Mukta',sans-serif;font-size:.72rem;letter-spacing:.02em;color:var(--muted);margin-top:1rem;padding-top:.7rem;border-top:1px dashed var(--gold-soft)}
+.dw{font-style:normal;background:linear-gradient(180deg,transparent 62%,rgba(168,42,30,.26) 62%);border-radius:2px}
+html[data-theme="dark"] .dw{background:linear-gradient(180deg,transparent 62%,rgba(232,138,120,.30) 62%)}
+
 /* ===================== audio bar ===================== */
 .audiobar{position:fixed;left:50%;transform:translate(-50%,140%);bottom:calc(.7rem + var(--safe-b));width:min(94vw,460px);z-index:70;
   display:flex;align-items:center;gap:.45rem;padding:.55rem .6rem;border-radius:18px;
@@ -299,6 +329,15 @@ footer .om{font-family:'Tiro Devanagari Hindi',serif;color:var(--sindoor);font-s
     </div>
     <button class="tool" id="btn-index" aria-label="अनुक्रम और सहेजे हुए दोहे">🔖<span class="badge" id="bm-badge" hidden></span></button>
     <button class="tool" id="btn-set" aria-label="सेटिंग">⚙️</button>
+  </div>
+  <div class="pathbar" id="pathbar">
+    <span class="plab">पाठ</span>
+    <div class="pseg" role="group" aria-label="कौन-सी प्रति पढ़नी है">
+      <button data-path="a"    aria-pressed="true">क</button>
+      <button data-path="b"    aria-pressed="false">ख</button>
+      <button data-path="both" aria-pressed="false">दोनों</button>
+    </div>
+    <button class="difftog" id="difftog" aria-pressed="false">&#8646; अंतर</button>
   </div>
 </div>
 
@@ -4438,6 +4477,24 @@ footer .om{font-family:'Tiro Devanagari Hindi',serif;color:var(--sindoor);font-s
   <div class="body" id="sheet-body"></div>
 </div>
 
+
+<!-- पाठ-ख — दूसरी मुद्रित प्रति। पाठ-क का मूल HTML ऊपर ज्यों का त्यों है; यह उससे बिल्कुल अलग रहता है।
+     m = छंद का नाम, t = पुस्तक में ऊपर दिया शीर्षक, v = पद्य पंक्तियाँ, a = अर्थ -->
+<script type="application/json" id="path-b-data">
+{
+  "4": {"m":"दोहा","t":"","v":["राम नाम बिना बाँणी राम नाम बिना कथा।","राम नाम बिना शब्दा, सो शब्दा अकथा रथा॥"],
+        "a":"राम (ईश्वर) के नाम स्मरण के बिना वाणी, शब्द तथा कथा — ये सब अर्थहीन अर्थात् व्यर्थ हैं।"},
+  "5": {"m":"दोहा","t":"","v":["राम नाम मयी बाँणी, राम नाम मयी कथा।","राम नाम मया शब्दा, सो शब्दा सक्यारथा॥"],
+        "a":"राम (ईश्वर) के नाम का स्मरण करने वाली वाणी, उनके नाम का प्रभाव प्रकट करने वाली कथा एवं उनके नाम का प्रभाव प्रकट करने वाले शब्द ही सार्थक हैं, अर्थात् सम्बल प्रदान करने वाले हैं।"},
+  "6": {"m":"छंद उप जाति","t":"","v":["गो कोटि दानं ग्रहणे चकाशी,","मक्करे प्रयागे द्युत कल्पवासी।","यज्ञे च मेरु सम हेम दानं,","नहीं तुल्य गोविन्द नाम समानम्॥"],
+        "a":"महाकवि ईसरदास जी कहते हैं कि ग्रहण के समय काशी में किया जाने वाला करोड़ गायों का दान, मक्कर संक्रांति में हजार कल्प का प्रयाग-वास, तथा यज्ञ में सुमेरु पर्वत के बराबर स्वर्ण-दान — ये सब मिल कर भी केवल एक ‘गोविन्द’ नाम की बराबरी नहीं कर सकते।"},
+  "7": {"m":"दोहा","t":"सरस्वती-गणपति स्तुति","v":["सरसत हूँ सनेह जपाँ, गण पत लगाँ पाय।","‘ईसर’ ईश अराधवा सद बुझ करो सहाय॥"],
+        "a":"हे सरस्वती माता! मैं ईसरदास स्नेह पूर्वक आपकी वन्दना करता हुआ गणेश भगवान के चरणों में नत मस्तक हो कर शिव भगवान की अराधना करता हूँ कि आप सभी मुझे सदमति प्रदान कर (काव्य-रचना में) मेरी सहायता करें।"},
+  "8": {"m":"दोहा","t":"गुरु देव स्तुति","v":["लागाँ हूँ पहला लुळे, पीताम्बर गुरु पाय।","भेद महारस भगवत पायो जेण पसाव॥"],
+        "a":"सर्वप्रथम मैं अपने गुरु पीताम्बर जी के चरण स्पर्श करता हूँ, क्योंकि उन्हीं के प्रताप से मद् भागवत जैसे ज्ञान के भण्डार स्वरूप ग्रन्थ के सारांश को समझा सका हूँ।"}
+}
+</script>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -4446,9 +4503,10 @@ footer .om{font-family:'Tiro Devanagari Hindi',serif;color:var(--sindoor);font-s
 
 /* ---------- helpers ---------- */
 var $  = function(s,r){ return (r||document).querySelector(s); };
+function esc(s){ return String(s).replace(/[&<>"]/g, function(ch){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[ch]; }); }
 var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
 function dev(n){ return String(n); }
-var K = { theme:'hr_theme', font:'hr_font', mode:'hr_mode', bm:'hr_bm', pos:'hr_pos', bell:'hr_bell', rate:'hr_rate' };
+var K = { theme:'hr_theme', font:'hr_font', mode:'hr_mode', bm:'hr_bm', pos:'hr_pos', bell:'hr_bell', rate:'hr_rate', path:'hr_path', diff:'hr_diff' };
 function get(k,d){ try{ var v=localStorage.getItem(k); return v===null?d:v; }catch(e){ return d; } }
 function set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
 var REDUCED = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -4535,6 +4593,7 @@ cards.forEach(function(c,i){
   c.style.scrollMarginTop = '84px';
   c.lines = $$('.verse span', c).map(function(s){ return s.textContent.trim(); }).filter(Boolean);
   c.spans = $$('.verse span', c);
+  c.linesA = c.lines; c.spansA = c.spans;
 
   var act = document.createElement('div');
   act.className = 'd-actions';
@@ -4697,16 +4756,17 @@ var Sp = {
     var self = this, g = this.gen;
     var c = cards[this.idx];
     if(!c || !this.playing) return;
-    if(this.line >= c.lines.length){ this.cardDone(); return; }
+    var LN = activeLines(c), SP = activeSpans(c);
+    if(this.line >= LN.length){ this.cardDone(); return; }
 
-    var u = new SpeechSynthesisUtterance(c.lines[this.line]);
+    var u = new SpeechSynthesisUtterance(LN[this.line]);
     if(this.voice) u.voice = this.voice;
     u.lang = this.voice ? this.voice.lang : 'hi-IN';
     u.rate = this.rate();
     u.pitch = 1;
     u.volume = 1;
 
-    var span = c.spans[this.line];
+    var span = SP[this.line];
     u.onstart = function(){ if(g === self.gen && span) span.classList.add('on'); };
     u.onend = function(){
       if(span) span.classList.remove('on');
@@ -4826,6 +4886,128 @@ $('#ab-rate').addEventListener('click', function(){
 });
 $('#ab-rate').textContent = RATES[rateIx].l;
 
+/* =========================================================
+   पाठ-ख — दूसरी मुद्रित प्रति, पाठ-क के साथ-साथ
+   ========================================================= */
+var PB = {};
+try{
+  var pbEl = document.getElementById('path-b-data');
+  if(pbEl) PB = JSON.parse(pbEl.textContent) || {};
+}catch(e){ PB = {}; }
+
+var PATH = get(K.path, 'a');
+var DIFF = get(K.diff, '0') === '1';
+
+function activeLines(c){ return (PATH === 'b' && c.linesB) ? c.linesB : c.linesA; }
+function activeSpans(c){ return (PATH === 'b' && c.spansB) ? c.spansB : c.spansA; }
+
+/* word-level comparison of the two readings */
+function normTok(t){ return t.replace(/[।॥!?,;:'"‘’“”()\-–—\s]/g, ''); }
+function lcsSame(A, B){
+  var n = A.length, m = B.length, i, j, dp = [];
+  for(i = 0; i <= n; i++) dp.push(new Uint16Array(m + 1));
+  for(i = n - 1; i >= 0; i--)
+    for(j = m - 1; j >= 0; j--)
+      dp[i][j] = (normTok(A[i]) === normTok(B[j])) ? dp[i+1][j+1] + 1 : Math.max(dp[i+1][j], dp[i][j+1]);
+  var fa = [], fb = [];
+  for(i = 0; i < n; i++) fa.push(false);
+  for(j = 0; j < m; j++) fb.push(false);
+  i = 0; j = 0;
+  while(i < n && j < m){
+    if(normTok(A[i]) === normTok(B[j])){ fa[i] = true; fb[j] = true; i++; j++; }
+    else if(dp[i+1][j] >= dp[i][j+1]) i++; else j++;
+  }
+  return [fa, fb];
+}
+function flatten(lines){
+  var toks = [], map = [];
+  lines.forEach(function(ln, li){
+    ln.split(/\s+/).filter(Boolean).forEach(function(w){ toks.push(w); map.push(li); });
+  });
+  return { toks: toks, map: map };
+}
+function paintDiff(c){
+  if(!c.linesB) return;
+  var A = flatten(c.linesA), B = flatten(c.linesB), f = lcsSame(A.toks, B.toks);
+  function render(spans, flat, flags){
+    var byLine = {};
+    flat.toks.forEach(function(w, k){
+      (byLine[flat.map[k]] = byLine[flat.map[k]] || []).push(flags[k] ? esc(w) : '<i class="dw">' + esc(w) + '</i>');
+    });
+    spans.forEach(function(sp, li){ if(byLine[li]) sp.innerHTML = byLine[li].join(' '); });
+  }
+  render(c.spansA, A, f[0]);
+  render(c.spansB, B, f[1]);
+  c.dataset.diffPainted = '1';
+}
+function clearDiff(c){
+  if(!c.dataset.diffPainted) return;
+  c.spansA.forEach(function(sp, i){ sp.textContent = c.linesA[i]; });
+  if(c.spansB) c.spansB.forEach(function(sp, i){ sp.textContent = c.linesB[i]; });
+  delete c.dataset.diffPainted;
+}
+function applyDiff(){
+  cards.forEach(function(c){
+    if(DIFF && PATH === 'both' && c.linesB) paintDiff(c); else clearDiff(c);
+  });
+}
+
+/* build the ख block inside each card that has one */
+var PB_COUNT = 0;
+cards.forEach(function(c){
+  var d = PB[c.dataset.n];
+  if(!d || !d.v || !d.v.length) return;
+  PB_COUNT++;
+  c.classList.add('has-b');
+  c.dataset.hasB = '1';
+
+  var ra = document.createElement('div');
+  ra.className = 'ribbon rib-a';
+  ra.innerHTML = '<b>पाठ क</b>';
+  c.insertBefore(ra, c.querySelector('.verse'));
+
+  var meta = d.m ? esc(d.m) + (d.t ? ' · ' + esc(d.t) : '') : (d.t ? esc(d.t) : '');
+  var wrap = document.createElement('div');
+  wrap.className = 'pb';
+  wrap.innerHTML =
+    '<div class="ribbon rib-b"><b>पाठ ख</b>' + (meta ? '<span class="meta">' + meta + '</span>' : '') + '</div>' +
+    '<div class="verse verse-b">' + d.v.map(function(x){ return '<span>' + esc(x) + '</span>'; }).join('') + '</div>' +
+    (d.a ? '<div class="arth arth-b"><b>अर्थ</b>' + esc(d.a) + '</div>' : '');
+  c.insertBefore(wrap, $('.d-actions', c));
+
+  c.linesB = d.v.slice();
+  c.spansB = $$('.verse-b span', c);
+});
+
+var pathbar = $('#pathbar'), pathBtns = $$('.pseg button');
+function setPath(v, byUser){
+  PATH = v;
+  document.body.dataset.path = v;
+  set(K.path, v);
+  pathBtns.forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.path === v ? 'true' : 'false'); });
+  $('#difftog').style.display = (v === 'both') ? '' : 'none';
+  applyDiff();
+  if(byUser){
+    bell();
+    if(v === 'b') toast('पाठ ख — दूसरी मुद्रित प्रति (' + dev(PB_COUNT) + ' छंद जुड़े)', 2800);
+    else if(v === 'both') toast('दोनों पाठ साथ-साथ — ⇆ अंतर दबाकर फ़र्क़ देखिए', 3200);
+    else toast('पाठ क — पहली प्रति', 2000);
+  }
+}
+if(PB_COUNT){
+  pathbar.classList.add('on');
+  setPath(PATH, false);
+  $('#difftog').setAttribute('aria-pressed', DIFF ? 'true' : 'false');
+  pathBtns.forEach(function(b){ b.addEventListener('click', function(){ setPath(b.dataset.path, true); }); });
+  $('#difftog').addEventListener('click', function(){
+    DIFF = !DIFF;
+    set(K.diff, DIFF ? '1' : '0');
+    this.setAttribute('aria-pressed', DIFF ? 'true' : 'false');
+    applyDiff();
+    toast(DIFF ? 'जो शब्द दोनों प्रतियों में अलग हैं, वे रेखांकित हैं' : 'अंतर बंद', 2600);
+  });
+}
+
 /* ---------- card buttons ---------- */
 function ripple(btn, e){
   if(REDUCED) return;
@@ -4909,7 +5091,6 @@ var sections = $$('main.wrap h2').map(function(h, i){
   return { id:h.id, label:label, title:title };
 });
 
-function esc(s){ return String(s).replace(/[&<>"]/g, function(ch){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[ch]; }); }
 
 function renderSheet(tab){
   curTab = tab;

@@ -2160,7 +2160,7 @@ paintBM();
 if('IntersectionObserver' in window){
   var revIO = new IntersectionObserver(function(es){
     es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('seen'); revIO.unobserve(e.target); } });
-  }, { rootMargin:'0px 0px -8% 0px', threshold:0.08 });
+  }, { rootMargin:'0px 0px 40px 0px', threshold:0 });
   cards.forEach(function(c){ revIO.observe(c); });
 
   var posT, CUR = 1;

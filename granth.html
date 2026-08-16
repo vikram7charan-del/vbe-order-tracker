@@ -563,12 +563,13 @@ function mount(data, deep){
     sec.verses.forEach(function(v, i){
       var six = (v.lines.length >= 6) ? ' six' : '';
       var hasB = !!(v.paathB && v.paathB.lines && v.paathB.lines.length);
-      h += '<article class="v' + six + (hasB ? ' has-b' : '') + '" data-sec="' + esc(sec.id) + '" data-n="' + v.n + '">' +
-             '<div class="vnum pad">' + v.n + '</div>' +
+      var vid = (v.n != null) ? v.n : (v.key || 'x');
+      h += '<article class="v' + six + (hasB ? ' has-b' : '') + '" data-sec="' + esc(sec.id) + '" data-n="' + esc(String(vid)) + '">' +
+             '<div class="vnum pad">' + esc(String(v.badge != null ? v.badge : v.n)) + '</div>' +
              (hasB ? '<div class="ribbon"><b>' + esc((G.paathLabels && G.paathLabels.a) || 'पाठ क') + '</b></div>' : '') +
              '<div class="vtext pad">' + v.lines.map(function(l){ return '<span>' + esc(l) + '</span>'; }).join('') + '</div>';
       if(v.artha) h += '<div class="arth"><b>' + esc(v.arthaLabel || 'अर्थ') + '</b>' + esc(v.artha) + '</div>';
-      else h += '<div class="pending">अर्थ शेष</div>';
+      else if(!sec.noArtha && !v.noArtha) h += '<div class="pending">अर्थ शेष</div>';
       if(v.shabdarth) h += '<div class="arth"><b>शब्दार्थ</b>' + esc(v.shabdarth) + '</div>';
       if(hasB){
         var b = v.paathB, meta = [b.meter, b.title].filter(Boolean).map(esc).join(' · ');
@@ -580,7 +581,7 @@ function mount(data, deep){
              '</div>';
       }
       h += '<div class="vacts">' +
-             '<button class="vbtn play" type="button" aria-label="' + esc(unit()) + ' ' + v.n + ' सुनें">' +
+             '<button class="vbtn play" type="button" aria-label="' + esc(unit()) + ' ' + esc(String(vid)) + ' सुनें">' +
                '<span class="ico">&#9654;</span><span class="txt">पद्य सुनें</span></button>' +
              '<span class="sp"></span>' +
              '<button class="vbtn bm" type="button" aria-label="सहेजें" aria-pressed="false">&#128278;</button>' +
@@ -645,7 +646,7 @@ window.addEventListener('scroll', function(){
 
 function cardOf(sectionId, n){
   return CARDS.filter(function(c){
-    return (+c.dataset.n === +n) && (!sectionId || c.dataset.sec === sectionId);
+    return String(c.dataset.n) === String(n) && (!sectionId || c.dataset.sec === sectionId);
   })[0];
 }
 function goTo(sectionId, n, flash){
@@ -660,14 +661,14 @@ function restoreResume(deep){
   var r = $('#resume');
   if(deep && deep.n){ setTimeout(function(){ goTo(deep.sectionId, deep.n, true); }, 250); return; }
   var last = jGet(lrKey(), null);
-  if(!last || !last.n || last.n < 3){ r.classList.remove('on'); return; }
+  if(!last || !last.n || !(+last.n >= 3)){ r.classList.remove('on'); return; }
   $('#resume-n').textContent = last.n;
   r.classList.add('on');
   $('#resume-go').addEventListener('click', function(){ goTo(last.sectionId, last.n, true); r.classList.remove('on'); });
 }
 
 /* ---------- बुकमार्क ---------- */
-function isBM(sec, n){ return BM.some(function(b){ return b.n === +n && (b.sectionId == null || b.sectionId === sec); }); }
+function isBM(sec, n){ return BM.some(function(b){ return String(b.n) === String(n) && (b.sectionId == null || b.sectionId === sec); }); }
 function paintBM(){
   CARDS.forEach(function(c){
     var on = isBM(c.dataset.sec, c.dataset.n), b = $('.vbtn.bm', c);
@@ -677,9 +678,8 @@ function paintBM(){
   if(BM.length){ bd.textContent = BM.length; bd.hidden = false; } else { bd.hidden = true; }
 }
 function toggleBM(sec, n){
-  n = +n;
   if(isBM(sec, n)){
-    BM = BM.filter(function(b){ return !(b.n === n && (b.sectionId == null || b.sectionId === sec)); });
+    BM = BM.filter(function(b){ return !(String(b.n) === String(n) && (b.sectionId == null || b.sectionId === sec)); });
     toast(unit() + ' ' + n + ' हटाया');
   } else {
     BM.push({ sectionId: sec, n: n, ts: Date.now() });
@@ -777,7 +777,8 @@ var Sp = {
     var c = CARDS[this.idx]; if(!c) return;
     CARDS.forEach(function(x){ x.classList.remove('reading'); });
     c.classList.add('seen'); c.classList.add('reading');
-    $('#ab-n').textContent = c.dataset.n;
+    var nb = $('.vnum', c);
+    $('#ab-n').textContent = nb ? nb.textContent : c.dataset.n;
     var ic = $('.vbtn.play .ico', c); if(ic) ic.innerHTML = '&#10073;&#10073;';
     var r = c.getBoundingClientRect();
     if(r.top < 90 || r.bottom > innerHeight - 80 || this.cont)
@@ -930,18 +931,18 @@ function renderSheet(tab){
   if(!G){ sBody.innerHTML = '<div class="empty">ग्रंथ लोड हो रहा है…</div>'; return; }
   if(tab === 'toc'){
     G.sections.forEach(function(sec, i){
-      var f = sec.verses[0], l = sec.verses[sec.verses.length-1];
-      h += '<button class="snav" data-sec="' + esc(sec.id) + '" data-n="' + f.n + '">' +
-             '<small>' + esc(sec.title) + ' · ' + f.n + '–' + l.n + '</small>' +
+      var f = sec.verses[0], l = sec.verses.filter(function(x){ return x.n != null; }).pop() || f;
+      h += '<button class="snav" data-sec="' + esc(sec.id) + '" data-n="' + esc(String(f.n != null ? f.n : (f.key || 'x'))) + '">' +
+             '<small>' + esc(sec.title) + (f.n != null && l.n != null ? ' · ' + f.n + '–' + l.n : '') + '</small>' +
              '<b>' + esc(sec.subtitle || sec.title) + '</b></button>';
     });
   } else if(tab === 'bm'){
     if(!BM.length) h = '<div class="empty"><span>&#128278;</span>अभी कुछ सहेजा नहीं है।<br>किसी पद के नीचे 🔖 दबाएँ।</div>';
-    else BM.slice().sort(function(a,b){ return a.n - b.n; }).forEach(function(b){
+    else BM.slice().sort(function(x,y){ return CARDS.indexOf(cardOf(x.sectionId,x.n)) - CARDS.indexOf(cardOf(y.sectionId,y.n)); }).forEach(function(b){
       var c = cardOf(b.sectionId, b.n);
       h += '<div class="bmrow" data-sec="' + esc(b.sectionId || '') + '" data-n="' + b.n + '">' +
-             '<div class="n">' + b.n + '</div><div class="t pad">' + esc(c ? c.linesA[0] : '') + '</div>' +
-             '<button class="x" data-del="' + b.n + '" data-dsec="' + esc(b.sectionId || '') + '" aria-label="हटाएँ">&#10005;</button></div>';
+             '<div class="n">' + esc(String((c && c.querySelector('.vnum').textContent) || b.n)) + '</div><div class="t pad">' + esc(c ? c.linesA[0] : '') + '</div>' +
+             '<button class="x" data-del="' + esc(String(b.n)) + '" data-dsec="' + esc(b.sectionId || '') + '" aria-label="हटाएँ">&#10005;</button></div>';
     });
   } else {
     h += '<div class="setrow"><div class="lab">रूप-रंग<small>दिन या रात का पाठ</small></div><div class="chips">' +

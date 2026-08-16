@@ -21,7 +21,7 @@ window.GRANTH_REGISTRY = [
     id: "deviyaan",
     title: "देवियांण",
     file: "data/deviyaan.js",
-    count: 14,
+    count: 98,
     unitLabel: "छंद",
     order: 2,
     theme: { accent: "#E0574A", glow: "#C0392B", bg: "#160B10" }

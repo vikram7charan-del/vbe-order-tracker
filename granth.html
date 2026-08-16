@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0B1220">
+<title>॥ ग्रंथ पुस्तकालय ॥ — हरिरस · देवियांण</title>
+<style>
+/* ===================== tokens ===================== */
+:root{
+  color-scheme:light;
+  /* per-granth, set from data/registry — 240ms transition */
+  --accent:#B4862A;
+  --glow:rgba(212,160,23,.55);
+  --deep:#0B1220;
+
+  --bg:#F1E7D3;
+  --paper:#FCF6E7;
+  --paper-2:#F6EDD8;
+  --ink:#1B2740;
+  --ink-soft:#3B3627;
+  --muted:#6E6250;
+  --rule:rgba(0,0,0,.12);
+  --glass:rgba(252,246,231,.88);
+  --glass-brd:rgba(0,0,0,.10);
+  --shadow:0 14px 34px rgba(74,54,22,.10), 0 2px 8px rgba(74,54,22,.07);
+  --chip:rgba(0,0,0,.05);
+  --sheet:#FCF6E7;
+  --on-accent:#1A1206;
+  --fs:1;
+  --safe-b:env(safe-area-inset-bottom,0px);
+  --t:240ms;
+}
+html[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:var(--deep);
+  --paper:rgba(255,255,255,.045);
+  --paper-2:rgba(255,255,255,.02);
+  --ink:#EDE3CB;
+  --ink-soft:#CFC5AE;
+  --muted:#98A3B8;
+  --rule:rgba(255,255,255,.14);
+  --glass:rgba(10,14,26,.86);
+  --glass-brd:rgba(255,255,255,.13);
+  --shadow:0 16px 40px rgba(0,0,0,.55), 0 2px 8px rgba(0,0,0,.35);
+  --chip:rgba(255,255,255,.07);
+  --sheet:#101725;
+  --on-accent:#141A26;
+}
+@media (prefers-color-scheme: dark){
+  html:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:var(--deep);
+    --paper:rgba(255,255,255,.045);
+    --paper-2:rgba(255,255,255,.02);
+    --ink:#EDE3CB;
+    --ink-soft:#CFC5AE;
+    --muted:#98A3B8;
+    --rule:rgba(255,255,255,.14);
+    --glass:rgba(10,14,26,.86);
+    --glass-brd:rgba(255,255,255,.13);
+    --shadow:0 16px 40px rgba(0,0,0,.55), 0 2px 8px rgba(0,0,0,.35);
+    --chip:rgba(255,255,255,.07);
+    --sheet:#101725;
+    --on-accent:#141A26;
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Noto Sans Devanagari','Nirmala UI','Mangal',system-ui,-apple-system,'Segoe UI',sans-serif;
+  line-height:1.75;
+  padding:0 0 calc(7rem + var(--safe-b));
+  transition:background var(--t) ease, color var(--t) ease;
+}
+.pad{font-family:'Tiro Devanagari Hindi','Noto Serif Devanagari','Sanskrit Text','Nirmala UI',serif}
+.wrap{max-width:680px;margin:0 auto;padding:0 1.05rem}
+button{font-family:inherit;color:inherit;background:none;border:none;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:8px}
+
+/* ===================== ग्रंथ पट्टी ===================== */
+.gbar{position:sticky;top:0;z-index:70;background:var(--glass);backdrop-filter:blur(14px) saturate(1.3);-webkit-backdrop-filter:blur(14px) saturate(1.3);border-bottom:1px solid var(--glass-brd)}
+.gscroll{display:flex;gap:.5rem;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
+  padding:.55rem 1.05rem;max-width:680px;margin:0 auto;scrollbar-width:none;
+  -webkit-mask:linear-gradient(90deg,transparent,#000 22px,#000 calc(100% - 22px),transparent);
+  mask:linear-gradient(90deg,transparent,#000 22px,#000 calc(100% - 22px),transparent)}
+.gscroll::-webkit-scrollbar{display:none}
+.gtab{scroll-snap-align:center;flex:none;display:flex;flex-direction:column;align-items:center;gap:.05rem;
+  padding:.42rem 1rem .38rem;border-radius:999px;border:1px solid var(--glass-brd);background:var(--chip);
+  position:relative;transition:.22s;min-height:44px}
+.gtab .nm{font-size:1rem;font-weight:600;line-height:1.2;white-space:nowrap}
+.gtab .sub{font-size:.64rem;letter-spacing:.06em;color:var(--muted);white-space:nowrap}
+.gtab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent);box-shadow:0 4px 16px var(--glow)}
+.gtab[aria-selected="true"] .sub{color:var(--on-accent);opacity:.75}
+.gtab[aria-selected="true"]::after{content:"";position:absolute;left:22%;right:22%;bottom:-6px;height:2px;border-radius:2px;background:var(--accent);box-shadow:0 0 8px var(--glow)}
+.gtab.soon{opacity:.45;border-style:dashed}
+.gtab:active{transform:scale(.95)}
+
+/* ===================== नियंत्रण पट्टी ===================== */
+.topbar{position:sticky;top:0;z-index:60;background:var(--glass);backdrop-filter:blur(14px) saturate(1.3);-webkit-backdrop-filter:blur(14px) saturate(1.3);border-bottom:1px solid var(--glass-brd)}
+.progress{height:3px;background:transparent}
+.progress i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent));box-shadow:0 0 10px var(--glow);transition:width .18s linear}
+.bar{max-width:680px;margin:0 auto;padding:.5rem 1.05rem .55rem;display:flex;align-items:center;gap:.5rem}
+.seg{display:flex;gap:2px;padding:3px;border:1px solid var(--glass-brd);border-radius:999px;background:var(--chip);flex:1}
+.seg button{flex:1;padding:.42rem .3rem;border-radius:999px;font-size:.84rem;font-weight:600;color:var(--muted);white-space:nowrap;transition:.22s}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);box-shadow:0 3px 10px var(--glow)}
+.tool{width:38px;height:38px;min-width:38px;border-radius:12px;border:1px solid var(--glass-brd);display:grid;place-items:center;font-size:1rem;background:var(--chip);transition:.2s;position:relative}
+.tool:active{transform:scale(.92)}
+.tool .badge{position:absolute;top:-5px;right:-5px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:var(--accent);color:var(--on-accent);font-size:.62rem;font-weight:700;display:grid;place-items:center;line-height:1}
+.pathbar{display:none;max-width:680px;margin:0 auto;padding:0 1.05rem .55rem;align-items:center;gap:.45rem}
+.pathbar.on{display:flex}
+.plab{font-size:.72rem;letter-spacing:.16em;color:var(--muted);font-weight:700}
+.pseg{display:flex;gap:2px;padding:3px;border:1px solid var(--glass-brd);border-radius:999px;background:var(--chip)}
+.pseg button{min-width:40px;padding:.28rem .6rem;border-radius:999px;font-size:.86rem;font-weight:600;color:var(--muted);transition:.2s}
+.pseg button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);box-shadow:0 2px 8px var(--glow)}
+.difftog{margin-left:auto;padding:.32rem .7rem;border-radius:999px;border:1px solid var(--glass-brd);background:var(--chip);font-size:.76rem;font-weight:600;color:var(--muted);transition:.2s}
+.difftog[aria-pressed="true"]{color:var(--accent);border-color:var(--accent);background:var(--chip)}
+
+/* ===================== कवर ===================== */
+.cover{position:relative;overflow:hidden;text-align:center;padding:2.8rem 1.05rem 2.2rem;isolation:isolate}
+.yantra{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(120vw,540px);aspect-ratio:1;z-index:-1;opacity:.22;pointer-events:none}
+.yantra .spin{transform-origin:100px 100px;animation:spin 60s linear infinite}
+.yantra .breathe{transform-origin:100px 100px;animation:breathe 4s ease-in-out infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes breathe{0%,100%{opacity:.55;transform:scale(.97)}50%{opacity:1;transform:scale(1.03)}}
+.halo{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);width:min(86vw,380px);aspect-ratio:1;z-index:-2;
+  background:radial-gradient(circle,var(--glow),transparent 62%);opacity:.42}
+.cover .inv{font-size:1.6rem;color:var(--accent);letter-spacing:.04em}
+.cover h1{font-weight:600;font-size:clamp(2.4rem,11vw,3.4rem);line-height:1.1;margin:.4rem 0 .5rem;color:var(--ink)}
+.cover .sub{font-size:.82rem;letter-spacing:.32em;color:var(--accent);margin-bottom:.8rem}
+.cover .range{display:inline-block;font-size:.9rem;letter-spacing:.14em;color:var(--muted);border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:.26rem 1rem;margin-bottom:.85rem}
+.cover .by{color:var(--muted);font-size:.96rem}
+.cover .by strong{color:var(--ink);font-weight:600}
+.resume{margin:1.1rem auto 0;display:none;align-items:center;gap:.5rem;max-width:340px;padding:.6rem .75rem;border:1px solid var(--glass-brd);border-radius:14px;background:var(--paper);box-shadow:var(--shadow);font-size:.88rem}
+.resume.on{display:flex}
+.resume b{color:var(--accent);font-weight:700}
+.resume button{margin-left:auto;padding:.34rem .7rem;border-radius:999px;background:var(--accent);color:var(--on-accent);font-weight:700;font-size:.82rem}
+
+/* ===================== भाग शीर्षक ===================== */
+h2{font-weight:600;font-size:1.34rem;color:var(--ink);margin:2.8rem 0 1.5rem;padding:1rem 0 .9rem;text-align:center;position:relative;scroll-margin-top:104px}
+h2 span{display:block;font-size:.68rem;letter-spacing:.24em;color:var(--accent);margin-bottom:.4rem;font-weight:700}
+h2::before,h2::after{content:"◈";position:absolute;left:50%;transform:translateX(-50%);color:var(--accent);font-size:.7rem;opacity:.7}
+h2::before{top:-.1rem}
+h2::after{bottom:-.2rem}
+
+/* ===================== पद-कार्ड ===================== */
+.v{position:relative;margin:0 0 1.5rem;padding:1.7rem 1.15rem 1.05rem;border-radius:20px;
+  background:linear-gradient(170deg,var(--paper),var(--paper-2));border:1px solid var(--glass-brd);box-shadow:var(--shadow);
+  opacity:0;transform:translateY(16px);transition:opacity .2s ease,transform .2s ease}
+.v.seen{opacity:1;transform:none}
+.v::before{content:"";position:absolute;inset:7px;border-radius:14px;pointer-events:none;opacity:.42;
+  background:
+    linear-gradient(var(--accent),var(--accent)) top left/16px 1px no-repeat,
+    linear-gradient(var(--accent),var(--accent)) top left/1px 16px no-repeat,
+    linear-gradient(var(--accent),var(--accent)) top right/16px 1px no-repeat,
+    linear-gradient(var(--accent),var(--accent)) top right/1px 16px no-repeat,
+    linear-gradient(var(--accent),var(--accent)) bottom left/16px 1px no-repeat,
+    linear-gradient(var(--accent),var(--accent)) bottom left/1px 16px no-repeat,
+    linear-gradient(var(--accent),var(--accent)) bottom right/16px 1px no-repeat,
+    linear-gradient(var(--accent),var(--accent)) bottom right/1px 16px no-repeat}
+.v.reading{border-color:var(--accent);box-shadow:0 0 0 1px var(--glow),0 0 32px var(--glow),var(--shadow)}
+.v.flash{animation:flash 2.2s ease-out 1}
+@keyframes flash{0%{box-shadow:0 0 0 2px var(--accent),0 0 60px var(--glow),var(--shadow)}100%{box-shadow:var(--shadow)}}
+.vnum{position:absolute;top:-.85rem;left:50%;transform:translateX(-50%);min-width:2.2rem;height:2.2rem;padding:0 .4rem;
+  display:grid;place-items:center;background:linear-gradient(170deg,var(--paper),var(--paper-2));
+  border:1px solid var(--accent);color:var(--accent);font-size:.9rem;font-weight:600;line-height:1;
+  clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)}
+.vtext{font-size:calc(clamp(1.16rem,4.6vw,1.4rem) * var(--fs));line-height:1.9;text-align:center;padding:.3rem 0 .1rem;color:var(--ink)}
+.vtext span{display:block}
+.vtext span.on{color:var(--accent);text-shadow:0 0 18px var(--glow)}
+.v.six .vtext{font-size:calc(clamp(1rem,3.9vw,1.18rem) * var(--fs));line-height:1.85}
+.arth{margin-top:1rem;padding:.15rem 0 .15rem .85rem;border-left:2px solid var(--accent);
+  font-size:calc(.99rem * var(--fs));color:var(--ink-soft);line-height:1.85}
+.arth b{display:block;font-size:.66rem;letter-spacing:.22em;color:var(--accent);font-weight:700;margin-bottom:.35rem}
+.pending{display:inline-block;margin-top:.9rem;padding:.2rem .7rem;border-radius:999px;border:1px dashed var(--glass-brd);
+  font-size:.72rem;color:var(--muted)}
+.vacts{display:flex;align-items:center;gap:.5rem;margin-top:.95rem;padding-top:.7rem;border-top:1px solid var(--rule)}
+.vacts .sp{flex:1}
+.vbtn{position:relative;overflow:hidden;display:inline-flex;align-items:center;gap:.4rem;min-height:40px;padding:.42rem .85rem;
+  border-radius:999px;border:1px solid var(--glass-brd);background:var(--chip);font-size:.85rem;font-weight:600;color:var(--muted);transition:.2s}
+.vbtn:active{transform:scale(.94)}
+.vbtn.play{color:var(--accent)}
+.vbtn.play .ico{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--accent);color:var(--on-accent);font-size:.6rem;padding-left:2px}
+.v.reading .vbtn.play{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.v.reading .vbtn.play .ico{background:rgba(0,0,0,.2);padding-left:0}
+.vbtn.bm{width:40px;padding:0;justify-content:center}
+.vbtn.bm.on{color:var(--accent);border-color:var(--accent)}
+.sep{display:flex;align-items:center;justify-content:center;gap:.6rem;margin:0 0 1.5rem;color:var(--accent);opacity:.5;font-size:.7rem}
+.sep::before,.sep::after{content:"";height:1px;width:52px;background:linear-gradient(90deg,transparent,currentColor,transparent)}
+
+/* पाठ क/ख */
+.ribbon{display:none;align-items:center;gap:.45rem;margin:0 0 .55rem}
+.ribbon b{font-size:.62rem;letter-spacing:.18em;font-weight:700;color:var(--on-accent);background:var(--accent);padding:.16rem .58rem;border-radius:999px}
+.ribbon .meta{font-size:.7rem;color:var(--muted);font-style:italic}
+.pb{display:none;margin-top:1.1rem;padding-top:1rem;border-top:1px dashed var(--glass-brd)}
+body[data-path="b"] .v.has-b>.vtext,body[data-path="b"] .v.has-b>.arth{display:none}
+body[data-path="b"] .pb,body[data-path="both"] .pb{display:block}
+body[data-path="both"] .v.has-b .ribbon{display:flex}
+body[data-path="b"] .v:not(.has-b) .vtext::after{content:"पाठ ख अभी इस पद का नहीं जुड़ा — ऊपर पाठ क है";display:block;
+  font-family:inherit;font-size:.72rem;color:var(--muted);margin-top:1rem;padding-top:.7rem;border-top:1px dashed var(--glass-brd)}
+.dw{font-style:normal;background:linear-gradient(180deg,transparent 62%,var(--glow) 62%);border-radius:2px}
+body[data-mode="verse"] .arth,body[data-mode="shravan"] .arth{display:none}
+body[data-mode="shravan"] .vtext{font-size:calc(clamp(1.28rem,5.2vw,1.56rem) * var(--fs));line-height:2.1}
+
+/* ===================== audio bar / fab / sheet / toast ===================== */
+.audiobar{position:fixed;left:50%;transform:translate(-50%,140%);bottom:calc(.7rem + var(--safe-b));width:min(94vw,460px);z-index:75;
+  display:flex;align-items:center;gap:.45rem;padding:.55rem .6rem;border-radius:18px;background:var(--glass);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--glass-brd);box-shadow:var(--shadow);
+  transition:transform .35s cubic-bezier(.2,.7,.3,1)}
+.audiobar.on{transform:translate(-50%,0)}
+.audiobar .now{font-size:.86rem;color:var(--accent);min-width:5.2rem;padding-left:.35rem;line-height:1.25;font-weight:600}
+.audiobar .now small{display:block;font-size:.62rem;letter-spacing:.12em;color:var(--muted);font-weight:400}
+.ctl{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--glass-brd);background:var(--chip);font-size:.95rem;transition:.2s}
+.ctl:active{transform:scale(.9)}
+.ctl.main{width:48px;height:48px;background:var(--accent);color:var(--on-accent);border-color:var(--accent);box-shadow:0 0 18px var(--glow);font-size:1.05rem}
+.ctl.rate{width:auto;padding:0 .6rem;font-size:.78rem;font-weight:700;color:var(--accent)}
+.fab{position:fixed;right:.9rem;bottom:calc(1rem + var(--safe-b));z-index:65;display:flex;align-items:center;gap:.45rem;
+  padding:.72rem 1rem;border-radius:999px;background:var(--accent);color:var(--on-accent);font-weight:700;font-size:.9rem;
+  box-shadow:0 10px 26px rgba(0,0,0,.28),0 0 24px var(--glow);overflow:hidden;transition:transform .25s,opacity .25s}
+.fab:active{transform:scale(.94)}
+.fab.hide{transform:translateY(130%);opacity:0;pointer-events:none}
+.ripple{position:absolute;border-radius:50%;background:var(--glow);transform:translate(-50%,-50%) scale(0);opacity:.7;pointer-events:none;animation:rip .6s ease-out forwards}
+@keyframes rip{to{transform:translate(-50%,-50%) scale(9);opacity:0}}
+.scrim{position:fixed;inset:0;z-index:80;background:rgba(6,6,10,.55);opacity:0;pointer-events:none;transition:opacity .3s}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:50%;bottom:0;transform:translate(-50%,102%);width:min(100vw,560px);max-height:82vh;z-index:85;
+  background:var(--sheet);border:1px solid var(--glass-brd);border-bottom:0;border-radius:24px 24px 0 0;box-shadow:0 -18px 50px rgba(0,0,0,.32);
+  display:flex;flex-direction:column;transition:transform .38s cubic-bezier(.2,.7,.3,1);padding-bottom:var(--safe-b)}
+.sheet.on{transform:translate(-50%,0)}
+.sheet .grab{width:44px;height:4px;border-radius:4px;background:var(--glass-brd);margin:.6rem auto .2rem}
+.sheet .tabs{display:flex;gap:2px;padding:.55rem .9rem;border-bottom:1px solid var(--rule)}
+.sheet .tabs button{flex:1;padding:.5rem;border-radius:12px;font-size:.88rem;font-weight:600;color:var(--muted)}
+.sheet .tabs button[aria-pressed="true"]{background:var(--chip);color:var(--accent)}
+.sheet .tabs .tab-x{flex:0 0 40px;border-radius:50%;color:var(--muted)}
+.sheet .body{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:.6rem .9rem 1.4rem}
+.snav{display:block;width:100%;text-align:right;padding:.75rem .8rem;border-radius:14px;margin-bottom:.3rem}
+.snav:active{background:var(--chip)}
+.snav b{display:block;font-size:1rem;font-weight:600;color:var(--ink)}
+.snav small{display:block;font-size:.7rem;letter-spacing:.14em;color:var(--accent);margin-bottom:.15rem}
+.bmrow{display:flex;align-items:center;gap:.6rem;padding:.65rem .7rem;border-radius:14px;border:1px solid var(--rule);margin-bottom:.45rem;background:var(--paper)}
+.bmrow .n{min-width:2.1rem;height:2.1rem;border-radius:50%;display:grid;place-items:center;border:1px solid var(--accent);color:var(--accent);font-size:.85rem}
+.bmrow .t{flex:1;font-size:.95rem;line-height:1.5;color:var(--ink);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bmrow .x{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:var(--muted)}
+.empty{text-align:center;color:var(--muted);padding:2rem 1rem;font-size:.92rem}
+.empty span{display:block;font-size:1.7rem;margin-bottom:.5rem;opacity:.6}
+.setrow{display:flex;align-items:center;justify-content:space-between;gap:.7rem;padding:.75rem .2rem;border-bottom:1px solid var(--rule)}
+.setrow:last-child{border-bottom:0}
+.setrow .lab{font-size:.94rem}
+.setrow .lab small{display:block;color:var(--muted);font-size:.76rem}
+.chips{display:flex;gap:.3rem;flex:none}
+.chips button{min-height:38px;padding:0 .7rem;border-radius:12px;border:1px solid var(--glass-brd);background:var(--chip);font-size:.82rem;font-weight:600;color:var(--muted);transition:.2s}
+.chips button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.sw{width:52px;height:30px;border-radius:999px;border:1px solid var(--glass-brd);background:var(--chip);position:relative;flex:none;transition:.25s}
+.sw i{position:absolute;top:2px;left:2px;width:24px;height:24px;border-radius:50%;background:var(--muted);transition:.25s}
+.sw[aria-pressed="true"]{background:var(--accent);border-color:var(--accent)}
+.sw[aria-pressed="true"] i{left:24px;background:var(--on-accent)}
+.toast{position:fixed;left:50%;bottom:calc(5.4rem + var(--safe-b));transform:translate(-50%,20px);z-index:90;
+  padding:.65rem 1.05rem;border-radius:999px;background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border:1px solid var(--glass-brd);box-shadow:var(--shadow);font-size:.88rem;color:var(--ink);
+  opacity:0;pointer-events:none;transition:.3s;max-width:88vw;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.skel{padding:2rem 1.05rem;max-width:680px;margin:0 auto}
+.skel i{display:block;height:14px;border-radius:8px;background:var(--chip);margin:0 auto .9rem;animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.5}50%{opacity:1}}
+.loaderr{text-align:center;padding:3rem 1.2rem;color:var(--muted)}
+.loaderr button{margin-top:1rem;padding:.55rem 1.1rem;border-radius:999px;background:var(--accent);color:var(--on-accent);font-weight:700}
+.closing{margin:3rem auto 0;max-width:680px;padding:1.6rem 1.05rem 0;border-top:1px solid var(--rule);text-align:center;color:var(--muted);font-size:.92rem}
+.closing .l1{display:block;color:var(--accent);font-size:1.25rem;margin-bottom:.45rem;font-weight:600}
+.closing .l2{display:block;color:var(--accent);opacity:.85;margin-bottom:.7rem}
+
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  .yantra .spin,.yantra .breathe,.skel i{animation:none!important}
+  .v{opacity:1!important;transform:none!important;transition:none}
+}
+</style>
+</head>
+<body data-mode="both" data-path="a">
+
+<div class="gbar"><div class="gscroll" id="gscroll" role="tablist" aria-label="ग्रंथ"></div></div>
+
+<div class="topbar">
+  <div class="progress"><i id="pbar"></i></div>
+  <div class="bar">
+    <div class="seg" role="group" aria-label="पढ़ने का तरीका">
+      <button data-mode="verse" aria-pressed="false">केवल पद्य</button>
+      <button data-mode="both" aria-pressed="true">पद्य + अर्थ</button>
+      <button data-mode="shravan" aria-pressed="false">श्रवण</button>
+    </div>
+    <button class="tool" id="btn-index" aria-label="अनुक्रम और सहेजे हुए पद">🔖<span class="badge" id="bm-badge" hidden></span></button>
+    <button class="tool" id="btn-set" aria-label="सेटिंग">⚙️</button>
+  </div>
+  <div class="pathbar" id="pathbar">
+    <span class="plab">पाठ</span>
+    <div class="pseg" role="group" aria-label="कौन-सी प्रति">
+      <button data-path="a" aria-pressed="true">क</button>
+      <button data-path="b" aria-pressed="false">ख</button>
+      <button data-path="both" aria-pressed="false">दोनों</button>
+    </div>
+    <button class="difftog" id="difftog" aria-pressed="false">⇆ अंतर</button>
+  </div>
+</div>
+
+<div id="stage"></div>
+
+<div class="audiobar" id="audiobar" role="region" aria-label="श्रवण नियंत्रण">
+  <div class="now"><span id="ab-unit">दोहा</span> <span id="ab-n">1</span><small>सुन रहे हैं</small></div>
+  <button class="ctl" id="ab-prev" aria-label="पिछला">⏮</button>
+  <button class="ctl main" id="ab-play" aria-label="रोकें या चलाएँ">⏸</button>
+  <button class="ctl" id="ab-next" aria-label="अगला">⏭</button>
+  <button class="ctl rate" id="ab-rate" aria-label="गति">1×</button>
+  <button class="ctl" id="ab-stop" aria-label="बंद करें">✕</button>
+</div>
+
+<button class="fab" id="fab">✦ आज का दोहा</button>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="अनुक्रम, सहेजे और सेटिंग">
+  <div class="grab"></div>
+  <div class="tabs">
+    <button data-tab="toc" aria-pressed="true">अनुक्रम</button>
+    <button data-tab="bm" aria-pressed="false">सहेजे</button>
+    <button data-tab="set" aria-pressed="false">सेटिंग</button>
+    <button class="tab-x" id="sheet-x" aria-label="बंद करें">✕</button>
+  </div>
+  <div class="body" id="sheet-body"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="data/registry.js"></script>
+<script>
+(function(){
+"use strict";
+
+var $  = function(s,r){ return (r||document).querySelector(s); };
+var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]; }); }
+function lsGet(k,d){ try{ var v=localStorage.getItem(k); return v===null?d:v; }catch(e){ return d; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+function jGet(k,d){ try{ return JSON.parse(localStorage.getItem(k)) || d; }catch(e){ return d; } }
+function jSet(k,v){ lsSet(k, JSON.stringify(v)); }
+var REDUCED = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+var REG = (window.GRANTH_REGISTRY || []).slice().sort(function(a,b){ return (a.order||0)-(b.order||0); });
+
+/* ---------- साझा सेटिंग ---------- */
+var SET = jGet('granth:settings', {});
+if(SET.fontSize == null) SET.fontSize = 1;
+if(SET.mode == null) SET.mode = 'both';
+if(SET.ttsRate == null) SET.ttsRate = 1;
+if(SET.theme == null) SET.theme = 'auto';
+if(SET.bell == null) SET.bell = 1;
+function saveSet(){ jSet('granth:settings', SET); }
+
+/* ---------- पुराने hariras की याद बचाना (एक बार) ---------- */
+(function migrate(){
+  if(lsGet('granth:migrated','0') === '1') return;
+  try{
+    var old = JSON.parse(lsGet('hr_bm','[]')) || [];
+    if(old.length){
+      var cur = jGet('granth:hariras:bookmarks', []);
+      old.forEach(function(n){
+        if(!cur.some(function(b){ return b.n === n; })) cur.push({ sectionId: null, n: n, ts: Date.now() });
+      });
+      jSet('granth:hariras:bookmarks', cur);
+    }
+    var pos = parseInt(lsGet('hr_pos','0'), 10);
+    if(pos) jSet('granth:hariras:lastRead', { sectionId: null, n: pos });
+    var f = parseFloat(lsGet('hr_font','')); if(f) SET.fontSize = f;
+    var m = lsGet('hr_mode',''); if(m) SET.mode = m;
+    var r = parseFloat(lsGet('hr_rate','')); if(r) SET.ttsRate = r;
+    var t = lsGet('hr_theme',''); if(t) SET.theme = t;
+    var bl = lsGet('hr_bell',''); if(bl !== '') SET.bell = (bl === '1') ? 1 : 0;
+    saveSet();
+  }catch(e){}
+  lsSet('granth:migrated','1');
+})();
+
+/* ---------- toast / bell ---------- */
+var toastEl = $('#toast'), toastT;
+function toast(m, ms){ toastEl.textContent = m; toastEl.classList.add('on'); clearTimeout(toastT);
+  toastT = setTimeout(function(){ toastEl.classList.remove('on'); }, ms||2600); }
+var AC = null;
+function bell(){
+  if(!SET.bell) return;
+  try{
+    var C = window.AudioContext || window.webkitAudioContext; if(!C) return;
+    AC = AC || new C(); if(AC.state === 'suspended') AC.resume();
+    var t = AC.currentTime, g = AC.createGain();
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.09,t+0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+1.4); g.connect(AC.destination);
+    [880,2373,3520].forEach(function(f,i){
+      var o=AC.createOscillator(), og=AC.createGain();
+      o.type='sine'; o.frequency.value=f; og.gain.value=[1,.4,.16][i];
+      o.connect(og); og.connect(g); o.start(t); o.stop(t+1.5);
+    });
+  }catch(e){}
+}
+function haptic(){ try{ navigator.vibrate && navigator.vibrate(8); }catch(e){} }
+
+/* ---------- theme ---------- */
+function applyTheme(v){
+  if(v === 'dark' || v === 'light') document.documentElement.setAttribute('data-theme', v);
+  else document.documentElement.removeAttribute('data-theme');
+}
+function applyFont(v){
+  SET.fontSize = Math.min(1.7, Math.max(0.85, Math.round(v*100)/100));
+  document.documentElement.style.setProperty('--fs', SET.fontSize);
+  saveSet();
+  var l = $('#fs-val'); if(l) l.textContent = Math.round(SET.fontSize*100) + '%';
+}
+function isDark(){
+  var t = SET.theme;
+  return t === 'dark' || (t !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+}
+function applyGranthTheme(th){
+  var r = document.documentElement.style;
+  r.setProperty('--accent', th.accent);
+  r.setProperty('--glow', hexA(th.glow || th.accent, .5));
+  r.setProperty('--deep', th.bg);
+  var meta = document.querySelector('meta[name="theme-color"]');
+  if(meta) meta.setAttribute('content', isDark() ? th.bg : '#F1E7D3');
+}
+function hexA(hex, a){
+  var m = /^#?([0-9a-f]{6})$/i.exec(hex || '');
+  if(!m) return 'rgba(200,160,60,' + a + ')';
+  var n = parseInt(m[1], 16);
+  return 'rgba(' + ((n>>16)&255) + ',' + ((n>>8)&255) + ',' + (n&255) + ',' + a + ')';
+}
+applyTheme(SET.theme);
+applyFont(SET.fontSize);
+
+/* ---------- yantra (inline SVG, per granth) ---------- */
+function yantra(id){
+  if(id === 'deviyaan'){
+    var pet = '';
+    for(var i = 0; i < 16; i++){
+      pet += '<ellipse cx="100" cy="30" rx="9" ry="20" transform="rotate(' + (i*22.5) + ' 100 100)"/>';
+    }
+    return '<svg class="yantra" viewBox="0 0 200 200" aria-hidden="true" fill="none" stroke="var(--accent)" stroke-width="0.7">' +
+      '<g class="breathe">' +
+      '<circle cx="100" cy="100" r="74"/><circle cx="100" cy="100" r="60"/>' +
+      '<g opacity=".75">' + pet + '</g>' +
+      '<path d="M100 34 L156 132 L44 132 Z"/><path d="M100 166 L44 68 L156 68 Z"/>' +
+      '<path d="M100 52 L142 124 L58 124 Z"/><path d="M100 148 L58 76 L142 76 Z"/>' +
+      '<path d="M100 70 L128 118 L72 118 Z"/><path d="M100 130 L72 82 L128 82 Z"/>' +
+      '<circle cx="100" cy="100" r="5" fill="var(--accent)" stroke="none"/>' +
+      '<rect x="14" y="14" width="172" height="172" opacity=".5"/>' +
+      '</g></svg>';
+  }
+  var rays = '', dots = '';
+  for(var k = 0; k < 48; k++){
+    var a = k * 7.5 * Math.PI / 180;
+    rays += '<line x1="' + (100+26*Math.cos(a)).toFixed(1) + '" y1="' + (100+26*Math.sin(a)).toFixed(1) +
+            '" x2="' + (100+86*Math.cos(a)).toFixed(1) + '" y2="' + (100+86*Math.sin(a)).toFixed(1) + '"/>';
+    if(k % 6 === 0) dots += '<circle cx="' + (100+70*Math.cos(a)).toFixed(1) + '" cy="' + (100+70*Math.sin(a)).toFixed(1) + '" r="1.6" fill="var(--accent)" stroke="none"/>';
+  }
+  return '<svg class="yantra" viewBox="0 0 200 200" aria-hidden="true" fill="none" stroke="var(--accent)" stroke-width="0.5">' +
+    '<g class="spin"><g opacity=".8">' + rays + '</g>' + dots + '</g>' +
+    '<g class="breathe"><circle cx="100" cy="100" r="26"/><circle cx="100" cy="100" r="52" opacity=".7"/><circle cx="100" cy="100" r="88" opacity=".5"/></g>' +
+    '</svg>';
+}
+
+/* =========================================================
+   ग्रंथ लोड और रेंडर
+   ========================================================= */
+var G = null;              /* चालू ग्रंथ का data */
+var META = null;           /* registry entry */
+var CARDS = [];            /* सभी पद-कार्ड, क्रम में */
+var CUR = null;            /* {sectionId,n} जहाँ पाठक है */
+var BM = [];               /* चालू ग्रंथ के बुकमार्क */
+var PATH = 'a', DIFF = false;
+
+function keyOf(v, sec){ return (sec.id || '') + ':' + v.n; }
+function unit(){ return (G && G.unitLabel) || 'पद'; }
+function bmKey(){ return 'granth:' + G.id + ':bookmarks'; }
+function lrKey(){ return 'granth:' + G.id + ':lastRead'; }
+
+function loadGranth(id, deep){
+  var meta = REG.filter(function(r){ return r.id === id; })[0];
+  if(!meta){ id = REG[0].id; meta = REG[0]; }
+  META = meta;
+  lsSet('granth:last', id);
+  paintTabs(id);
+  applyGranthTheme(meta.theme || {});
+  if(window.GRANTH_DATA && window.GRANTH_DATA[id]){ mount(window.GRANTH_DATA[id], deep); return; }
+
+  $('#stage').innerHTML = '<div class="skel">' +
+    '<i style="width:52%"></i><i style="width:78%"></i><i style="width:66%"></i><i style="width:84%"></i><i style="width:44%"></i></div>';
+  var sc = document.createElement('script');
+  sc.src = meta.file;
+  sc.onload = function(){
+    if(window.GRANTH_DATA && window.GRANTH_DATA[id]) mount(window.GRANTH_DATA[id], deep);
+    else failed(id);
+  };
+  sc.onerror = function(){ failed(id); };
+  document.head.appendChild(sc);
+}
+function failed(id){
+  $('#stage').innerHTML = '<div class="loaderr">यह ग्रंथ लोड नहीं हो सका — दोबारा कोशिश करें।' +
+    '<br><button id="retry">फिर से</button></div>';
+  $('#retry').addEventListener('click', function(){
+    var m = REG.filter(function(r){ return r.id === id; })[0];
+    if(m && window.GRANTH_DATA) delete window.GRANTH_DATA[id];
+    loadGranth(id);
+  });
+}
+
+function paintTabs(active){
+  var box = $('#gscroll');
+  if(!box.dataset.built){
+    var h = '';
+    REG.forEach(function(r){
+      h += '<button class="gtab" role="tab" data-id="' + r.id + '" aria-selected="false">' +
+             '<span class="nm">' + esc(r.title) + '</span>' +
+             '<span class="sub">' + r.count + ' ' + esc(r.unitLabel) + '</span></button>';
+    });
+    h += '<button class="gtab soon" id="tab-soon"><span class="nm">+ आगे</span><span class="sub">जुड़ते रहेंगे</span></button>';
+    box.innerHTML = h;
+    box.dataset.built = '1';
+    $$('.gtab[data-id]', box).forEach(function(b){
+      b.addEventListener('click', function(){
+        if(b.dataset.id === (META && META.id)) return;
+        haptic(); bell();
+        Sp.stop();
+        location.hash = b.dataset.id;
+        loadGranth(b.dataset.id);
+      });
+    });
+    $('#tab-soon').addEventListener('click', function(){ toast('नए ग्रंथ जुड़ते रहेंगे।', 2400); });
+  }
+  $$('.gtab[data-id]', box).forEach(function(b){
+    var on = b.dataset.id === active;
+    b.setAttribute('aria-selected', on ? 'true' : 'false');
+    if(on && b.scrollIntoView) b.scrollIntoView({ inline:'center', block:'nearest', behavior: REDUCED ? 'auto' : 'smooth' });
+  });
+}
+
+function mount(data, deep){
+  G = data;
+  document.title = '॥ ' + G.title + ' ॥ — ' + (G.author || '');
+  if(G.theme) applyGranthTheme(G.theme);
+  BM = jGet(bmKey(), []);
+
+  var h = '';
+  h += '<header class="cover">' +
+         '<div class="halo"></div>' + yantra(G.id) +
+         (G.invocation ? '<div class="inv pad">' + esc(G.invocation) + '</div>' : '') +
+         '<h1 class="pad">' + esc(G.title) + '</h1>' +
+         (G.subtitle ? '<div class="sub">' + esc(G.subtitle) + '</div>' : '') +
+         (G.rangeLabel ? '<div class="range">' + esc(G.rangeLabel) + '</div>' : '') +
+         '<p class="by">' + (G.author ? 'रचयिता — <strong>' + esc(G.author) + '</strong>' : '') +
+           (G.note ? '<br>' + esc(G.note) : '') + '</p>' +
+         '<div class="resume" id="resume"><div>जहाँ छोड़ा था — ' + esc(unit()) +
+           ' <b id="resume-n">1</b></div><button id="resume-go">वहीं से पढ़ें</button></div>' +
+       '</header><main class="wrap" id="body">';
+
+  G.sections.forEach(function(sec){
+    h += '<h2><span>' + esc(sec.title) + '</span>' + esc(sec.subtitle || '') + '</h2>';
+    sec.verses.forEach(function(v, i){
+      var six = (v.lines.length >= 6) ? ' six' : '';
+      var hasB = !!(v.paathB && v.paathB.lines && v.paathB.lines.length);
+      h += '<article class="v' + six + (hasB ? ' has-b' : '') + '" data-sec="' + esc(sec.id) + '" data-n="' + v.n + '">' +
+             '<div class="vnum pad">' + v.n + '</div>' +
+             (hasB ? '<div class="ribbon"><b>' + esc((G.paathLabels && G.paathLabels.a) || 'पाठ क') + '</b></div>' : '') +
+             '<div class="vtext pad">' + v.lines.map(function(l){ return '<span>' + esc(l) + '</span>'; }).join('') + '</div>';
+      if(v.artha) h += '<div class="arth"><b>' + esc(v.arthaLabel || 'अर्थ') + '</b>' + esc(v.artha) + '</div>';
+      else h += '<div class="pending">अर्थ शेष</div>';
+      if(v.shabdarth) h += '<div class="arth"><b>शब्दार्थ</b>' + esc(v.shabdarth) + '</div>';
+      if(hasB){
+        var b = v.paathB, meta = [b.meter, b.title].filter(Boolean).map(esc).join(' · ');
+        h += '<div class="pb">' +
+               '<div class="ribbon"><b>' + esc((G.paathLabels && G.paathLabels.b) || 'पाठ ख') + '</b>' +
+                 (meta ? '<span class="meta">' + meta + '</span>' : '') + '</div>' +
+               '<div class="vtext vb pad">' + b.lines.map(function(l){ return '<span>' + esc(l) + '</span>'; }).join('') + '</div>' +
+               (b.artha ? '<div class="arth"><b>अर्थ</b>' + esc(b.artha) + '</div>' : '') +
+             '</div>';
+      }
+      h += '<div class="vacts">' +
+             '<button class="vbtn play" type="button" aria-label="' + esc(unit()) + ' ' + v.n + ' सुनें">' +
+               '<span class="ico">&#9654;</span><span class="txt">पद्य सुनें</span></button>' +
+             '<span class="sp"></span>' +
+             '<button class="vbtn bm" type="button" aria-label="सहेजें" aria-pressed="false">&#128278;</button>' +
+           '</div></article>';
+      if(i < sec.verses.length - 1) h += '<div class="sep">&#9672;</div>';
+    });
+  });
+  h += '</main>';
+  if(G.closing) h += '<div class="closing"><span class="l1 pad">' + esc(G.closing.line1) + '</span>' +
+                     (G.closing.line2 ? '<span class="l2 pad">' + esc(G.closing.line2) + '</span>' : '') +
+                     esc(G.rangeLabel || '') + ' — ' + esc(G.author || '') + '</div>';
+  $('#stage').innerHTML = h;
+
+  CARDS = $$('#body .v');
+  CARDS.forEach(function(c){
+    c.style.scrollMarginTop = '112px';
+    c.linesA = $$('.vtext:not(.vb) span', c).map(function(s){ return s.textContent; });
+    c.spansA = $$('.vtext:not(.vb) span', c);
+    var vb = $$('.vb span', c);
+    if(vb.length){ c.linesB = vb.map(function(s){ return s.textContent; }); c.spansB = vb; }
+  });
+
+  /* पाठ पट्टी सिर्फ़ तभी जब सचमुच दो पाठ हों */
+  $('#pathbar').classList.toggle('on', !!G.hasPaathVariants);
+  if(!G.hasPaathVariants){ PATH = 'a'; document.body.dataset.path = 'a'; }
+  else setPath(lsGet('granth:' + G.id + ':path', 'a'), false);
+
+  $('#ab-unit').textContent = unit();
+  $('#fab').innerHTML = '✦ आज का ' + esc(unit());
+  paintBM();
+  observe();
+  restoreResume(deep);
+  if(sheetOpen) renderSheet(curTab);
+}
+
+/* ---------- reveal / position / progress ---------- */
+var revIO = null, posIO = null;
+function observe(){
+  if(revIO) revIO.disconnect();
+  if(posIO) posIO.disconnect();
+  if(!('IntersectionObserver' in window)){ CARDS.forEach(function(c){ c.classList.add('seen'); }); return; }
+  revIO = new IntersectionObserver(function(es){
+    es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('seen'); revIO.unobserve(e.target); } });
+  }, { rootMargin:'0px 0px 40px 0px', threshold:0 });
+  var posT;
+  posIO = new IntersectionObserver(function(es){
+    es.forEach(function(e){ if(e.isIntersecting) CUR = { sectionId: e.target.dataset.sec, n: +e.target.dataset.n }; });
+    clearTimeout(posT);
+    posT = setTimeout(function(){ if(CUR && G) jSet(lrKey(), CUR); }, 600);
+  }, { rootMargin:'-45% 0px -45% 0px', threshold:0 });
+  CARDS.forEach(function(c){ revIO.observe(c); posIO.observe(c); });
+}
+var pbar = $('#pbar'), fab = $('#fab'), ticking = false;
+window.addEventListener('scroll', function(){
+  if(ticking) return; ticking = true;
+  requestAnimationFrame(function(){
+    var h = document.documentElement.scrollHeight - window.innerHeight;
+    pbar.style.width = Math.max(0, Math.min(100, h > 0 ? (scrollY / h) * 100 : 0)) + '%';
+    ticking = false;
+  });
+}, { passive:true });
+
+function cardOf(sectionId, n){
+  return CARDS.filter(function(c){
+    return (+c.dataset.n === +n) && (!sectionId || c.dataset.sec === sectionId);
+  })[0];
+}
+function goTo(sectionId, n, flash){
+  var c = cardOf(sectionId, n);
+  if(!c) return;
+  c.classList.add('seen');
+  c.scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block:'center' });
+  if(flash){ c.classList.remove('flash'); void c.offsetWidth; c.classList.add('flash');
+             setTimeout(function(){ c.classList.remove('flash'); }, 2400); }
+}
+function restoreResume(deep){
+  var r = $('#resume');
+  if(deep && deep.n){ setTimeout(function(){ goTo(deep.sectionId, deep.n, true); }, 250); return; }
+  var last = jGet(lrKey(), null);
+  if(!last || !last.n || last.n < 3){ r.classList.remove('on'); return; }
+  $('#resume-n').textContent = last.n;
+  r.classList.add('on');
+  $('#resume-go').addEventListener('click', function(){ goTo(last.sectionId, last.n, true); r.classList.remove('on'); });
+}
+
+/* ---------- बुकमार्क ---------- */
+function isBM(sec, n){ return BM.some(function(b){ return b.n === +n && (b.sectionId == null || b.sectionId === sec); }); }
+function paintBM(){
+  CARDS.forEach(function(c){
+    var on = isBM(c.dataset.sec, c.dataset.n), b = $('.vbtn.bm', c);
+    b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  var bd = $('#bm-badge');
+  if(BM.length){ bd.textContent = BM.length; bd.hidden = false; } else { bd.hidden = true; }
+}
+function toggleBM(sec, n){
+  n = +n;
+  if(isBM(sec, n)){
+    BM = BM.filter(function(b){ return !(b.n === n && (b.sectionId == null || b.sectionId === sec)); });
+    toast(unit() + ' ' + n + ' हटाया');
+  } else {
+    BM.push({ sectionId: sec, n: n, ts: Date.now() });
+    bell(); toast(unit() + ' ' + n + ' सहेजा 🔖');
+  }
+  jSet(bmKey(), BM);
+  paintBM();
+  if(sheetOpen && curTab === 'bm') renderSheet('bm');
+}
+
+/* ---------- पाठ क/ख + अंतर ---------- */
+function normTok(t){ return t.replace(/[।॥!?,;:'"‘’“”()\-–—\s]/g, ''); }
+function lcsSame(A, B){
+  var n = A.length, m = B.length, i, j, dp = [];
+  for(i = 0; i <= n; i++) dp.push(new Uint16Array(m + 1));
+  for(i = n - 1; i >= 0; i--) for(j = m - 1; j >= 0; j--)
+    dp[i][j] = (normTok(A[i]) === normTok(B[j])) ? dp[i+1][j+1] + 1 : Math.max(dp[i+1][j], dp[i][j+1]);
+  var fa = [], fb = [];
+  for(i = 0; i < n; i++) fa.push(false);
+  for(j = 0; j < m; j++) fb.push(false);
+  i = 0; j = 0;
+  while(i < n && j < m){
+    if(normTok(A[i]) === normTok(B[j])){ fa[i] = fb[j] = true; i++; j++; }
+    else if(dp[i+1][j] >= dp[i][j+1]) i++; else j++;
+  }
+  return [fa, fb];
+}
+function flat(lines){
+  var t = [], mp = [];
+  lines.forEach(function(l, li){ l.split(/\s+/).filter(Boolean).forEach(function(w){ t.push(w); mp.push(li); }); });
+  return { t:t, mp:mp };
+}
+function applyDiff(){
+  CARDS.forEach(function(c){
+    if(DIFF && PATH === 'both' && c.linesB){
+      var A = flat(c.linesA), B = flat(c.linesB), f = lcsSame(A.t, B.t);
+      var put = function(spans, fl, flags){
+        var by = {};
+        fl.t.forEach(function(w, k){ (by[fl.mp[k]] = by[fl.mp[k]] || []).push(flags[k] ? esc(w) : '<i class="dw">' + esc(w) + '</i>'); });
+        spans.forEach(function(sp, li){ if(by[li]) sp.innerHTML = by[li].join(' '); });
+      };
+      put(c.spansA, A, f[0]); put(c.spansB, B, f[1]);
+      c.dataset.painted = '1';
+    } else if(c.dataset.painted){
+      c.spansA.forEach(function(sp, i){ sp.textContent = c.linesA[i]; });
+      if(c.spansB) c.spansB.forEach(function(sp, i){ sp.textContent = c.linesB[i]; });
+      delete c.dataset.painted;
+    }
+  });
+}
+function setPath(v, byUser){
+  PATH = v;
+  document.body.dataset.path = v;
+  if(G) lsSet('granth:' + G.id + ':path', v);
+  $$('.pseg button').forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.path === v ? 'true' : 'false'); });
+  $('#difftog').style.display = (v === 'both') ? '' : 'none';
+  applyDiff();
+  if(byUser){ bell(); toast(v === 'b' ? 'पाठ ख — दूसरी प्रति' : v === 'both' ? 'दोनों पाठ साथ-साथ — ⇆ अंतर दबाइए' : 'पाठ क — पहली प्रति', 2600); }
+}
+$$('.pseg button').forEach(function(b){ b.addEventListener('click', function(){ setPath(b.dataset.path, true); }); });
+$('#difftog').addEventListener('click', function(){
+  DIFF = !DIFF;
+  this.setAttribute('aria-pressed', DIFF ? 'true' : 'false');
+  applyDiff();
+  toast(DIFF ? 'जो शब्द दोनों प्रतियों में अलग हैं, वे रेखांकित हैं' : 'अंतर बंद', 2600);
+});
+
+/* =========================================================
+   श्रवण — केवल मूल पद, अर्थ कभी नहीं
+   ========================================================= */
+var RATES = [0.8, 1, 1.2];
+var rateIx = Math.max(0, RATES.indexOf(SET.ttsRate)); if(rateIx < 0) rateIx = 1;
+function activeLines(c){ return (PATH === 'b' && c.linesB) ? c.linesB : c.linesA; }
+function activeSpans(c){ return (PATH === 'b' && c.spansB) ? c.spansB : c.spansA; }
+
+var Sp = {
+  ok: ('speechSynthesis' in window) && ('SpeechSynthesisUtterance' in window),
+  voice: null, warned: false, idx: -1, line: 0, gen: 0, playing: false, paused: false, cont: false,
+  pickVoice: function(){
+    if(!this.ok) return;
+    var v = speechSynthesis.getVoices() || []; if(!v.length) return;
+    this.voice = v.filter(function(x){ return /^hi\b|^hi[-_]/i.test(x.lang); })[0] ||
+                 v.filter(function(x){ return /^(mr|ne|sa|bn|gu)[-_]/i.test(x.lang); })[0] ||
+                 v.filter(function(x){ return /^en[-_]IN/i.test(x.lang); })[0] || null;
+  },
+  start: function(i, cont){
+    if(!this.ok){ toast('इस ब्राउज़र में आवाज़ की सुविधा नहीं है', 3200); return false; }
+    this.stop(true); this.gen++;
+    this.idx = i; this.line = 0; this.cont = !!cont; this.playing = true; this.paused = false;
+    if(!this.voice) this.pickVoice();
+    if(!this.voice && !this.warned){ this.warned = true; toast('हिंदी आवाज़ नहीं मिली — फ़ोन की सेटिंग में हिंदी वाणी जोड़ें', 4200); }
+    showBar(true); this.openCard(); this.say(); return true;
+  },
+  openCard: function(){
+    var c = CARDS[this.idx]; if(!c) return;
+    CARDS.forEach(function(x){ x.classList.remove('reading'); });
+    c.classList.add('seen'); c.classList.add('reading');
+    $('#ab-n').textContent = c.dataset.n;
+    var ic = $('.vbtn.play .ico', c); if(ic) ic.innerHTML = '&#10073;&#10073;';
+    var r = c.getBoundingClientRect();
+    if(r.top < 90 || r.bottom > innerHeight - 80 || this.cont)
+      c.scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block:'center' });
+  },
+  say: function(){
+    var self = this, g = this.gen, c = CARDS[this.idx];
+    if(!c || !this.playing) return;
+    var LN = activeLines(c), SPN = activeSpans(c);
+    if(this.line >= LN.length){ this.cardDone(); return; }
+    var u = new SpeechSynthesisUtterance(LN[this.line]);
+    if(this.voice) u.voice = this.voice;
+    u.lang = this.voice ? this.voice.lang : 'hi-IN';
+    u.rate = RATES[rateIx]; u.pitch = 1; u.volume = 1;
+    var span = SPN[this.line];
+    u.onstart = function(){ if(g === self.gen && span) span.classList.add('on'); };
+    u.onend = function(){
+      if(span) span.classList.remove('on');
+      if(g !== self.gen || !self.playing) return;
+      self.line++;
+      setTimeout(function(){ if(g === self.gen && self.playing) self.say(); }, 240);
+    };
+    u.onerror = function(e){
+      if(span) span.classList.remove('on');
+      if(g !== self.gen) return;
+      if(e && (e.error === 'interrupted' || e.error === 'canceled')) return;
+      self.stop(); toast('आवाज़ शुरू नहीं हो पाई — फिर से बटन दबाएँ', 3000);
+    };
+    try{ speechSynthesis.speak(u); }catch(err){ this.stop(); toast('आवाज़ शुरू नहीं हो पाई', 2600); }
+  },
+  cardDone: function(){
+    if(this.cont && this.idx + 1 < CARDS.length){
+      this.gen++; this.idx++; this.line = 0; this.openCard();
+      var self = this, g = this.gen;
+      setTimeout(function(){ if(g === self.gen && self.playing) self.say(); }, 420);
+    } else { var was = this.cont; this.stop(); if(was) toast('॥ पाठ पूर्ण हुआ ॥', 3000); }
+  },
+  pause: function(){ if(!this.playing) return; try{ speechSynthesis.pause(); }catch(e){} this.paused = true; $('#ab-play').innerHTML = '&#9654;'; },
+  resume: function(){ if(!this.playing) return; try{ speechSynthesis.resume(); }catch(e){} this.paused = false; $('#ab-play').innerHTML = '&#10073;&#10073;'; },
+  jump: function(d){ var i = this.idx + d; if(i < 0 || i >= CARDS.length) return; this.start(i, this.cont); },
+  restartLine: function(){
+    if(!this.playing) return;
+    this.gen++; var g = this.gen, self = this;
+    try{ speechSynthesis.cancel(); }catch(e){}
+    setTimeout(function(){ if(g === self.gen && self.playing) self.say(); }, 140);
+  },
+  stop: function(quiet){
+    this.gen++; this.playing = false; this.paused = false;
+    try{ speechSynthesis.cancel(); }catch(e){}
+    CARDS.forEach(function(c){
+      c.classList.remove('reading');
+      var ic = $('.vbtn.play .ico', c); if(ic) ic.innerHTML = '&#9654;';
+      $$('.vtext span.on', c).forEach(function(s){ s.classList.remove('on'); });
+    });
+    $('#ab-play').innerHTML = '&#10073;&#10073;';
+    if(!quiet) showBar(false);
+  }
+};
+if(Sp.ok){
+  Sp.pickVoice();
+  speechSynthesis.onvoiceschanged = function(){ Sp.pickVoice(); };
+  if(!/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){
+    setInterval(function(){
+      if(Sp.playing && !Sp.paused && speechSynthesis.speaking){
+        try{ speechSynthesis.pause(); speechSynthesis.resume(); }catch(e){}
+      }
+    }, 9000);
+  }
+  addEventListener('beforeunload', function(){ try{ speechSynthesis.cancel(); }catch(e){} });
+  document.addEventListener('visibilitychange', function(){ if(document.hidden && Sp.playing && !Sp.paused) Sp.pause(); });
+}
+var abar = $('#audiobar');
+function showBar(on){ abar.classList.toggle('on', !!on); fab.classList.toggle('hide', !!on); }
+$('#ab-play').addEventListener('click', function(){
+  bell();
+  if(!Sp.playing){ Sp.start(Math.max(0, CARDS.indexOf(cardOf(CUR && CUR.sectionId, CUR ? CUR.n : 1)) ), document.body.dataset.mode === 'shravan'); return; }
+  if(Sp.paused) Sp.resume(); else Sp.pause();
+});
+$('#ab-prev').addEventListener('click', function(){ Sp.jump(-1); });
+$('#ab-next').addEventListener('click', function(){ Sp.jump(1); });
+$('#ab-stop').addEventListener('click', function(){ Sp.stop(); });
+$('#ab-rate').addEventListener('click', function(){
+  rateIx = (rateIx + 1) % RATES.length;
+  SET.ttsRate = RATES[rateIx]; saveSet();
+  this.textContent = RATES[rateIx] + '×';
+  var s = $('#set-rate'); if(s) renderSheet('set');
+  Sp.restartLine();
+});
+$('#ab-rate').textContent = RATES[rateIx] + '×';
+
+/* ---------- कार्ड बटन ---------- */
+function ripple(btn, e){
+  if(REDUCED) return;
+  var r = btn.getBoundingClientRect(), s = document.createElement('span');
+  s.className = 'ripple';
+  s.style.left = ((e && e.clientX ? e.clientX : r.left + r.width/2) - r.left) + 'px';
+  s.style.top  = ((e && e.clientY ? e.clientY : r.top + r.height/2) - r.top) + 'px';
+  s.style.width = s.style.height = '14px';
+  btn.appendChild(s); setTimeout(function(){ s.remove(); }, 620);
+}
+$('#stage').addEventListener('click', function(e){
+  var t = e.target;
+  var play = t.closest ? t.closest('.vbtn.play') : null;
+  var bm = t.closest ? t.closest('.vbtn.bm') : null;
+  if(play){
+    var c = play.closest('.v'), i = CARDS.indexOf(c);
+    ripple(play, e);
+    if(Sp.playing && Sp.idx === i){ if(Sp.paused) Sp.resume(); else Sp.pause(); }
+    else { bell(); Sp.start(i, document.body.dataset.mode === 'shravan'); }
+    return;
+  }
+  if(bm){ ripple(bm, e); var c2 = bm.closest('.v'); toggleBM(c2.dataset.sec, c2.dataset.n); }
+});
+
+/* ---------- मोड ---------- */
+var segBtns = $$('.seg button');
+function setMode(m, byUser){
+  document.body.dataset.mode = m;
+  SET.mode = m; saveSet();
+  segBtns.forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.mode === m ? 'true' : 'false'); });
+  if(m === 'shravan'){
+    if(byUser){
+      bell();
+      if(Sp.ok){ Sp.start(Math.max(0, CARDS.indexOf(cardOf(CUR && CUR.sectionId, CUR ? CUR.n : 1))), true); toast('श्रवण — ' + unit() + ' क्रम से सुनाए जाएँगे', 2600); }
+      else toast('इस ब्राउज़र में आवाज़ की सुविधा नहीं है', 3200);
+    }
+  } else if(Sp.playing && Sp.cont) Sp.stop();
+}
+segBtns.forEach(function(b){ b.addEventListener('click', function(){ setMode(b.dataset.mode, true); }); });
+
+/* ---------- आज का पद ---------- */
+fab.addEventListener('click', function(e){
+  if(!CARDS.length) return;
+  var d = new Date(), seed = d.getFullYear()*10000 + (d.getMonth()+1)*100 + d.getDate();
+  var i = (seed * 2654435761) % CARDS.length;
+  var c = CARDS[i];
+  ripple(fab, e); bell();
+  goTo(c.dataset.sec, c.dataset.n, true);
+  toast('आज का ' + unit() + ' — ' + c.dataset.n, 2800);
+  setTimeout(function(){ if(Sp.ok) Sp.start(i, false); }, 700);
+});
+
+/* ---------- शीट: अनुक्रम / सहेजे / सेटिंग ---------- */
+var sheetOpen = false, curTab = 'toc';
+var sheet = $('#sheet'), scrim = $('#scrim'), sBody = $('#sheet-body');
+function renderSheet(tab){
+  curTab = tab;
+  $$('.sheet .tabs button[data-tab]').forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.tab === tab ? 'true' : 'false'); });
+  var h = '';
+  if(!G){ sBody.innerHTML = '<div class="empty">ग्रंथ लोड हो रहा है…</div>'; return; }
+  if(tab === 'toc'){
+    G.sections.forEach(function(sec, i){
+      var f = sec.verses[0], l = sec.verses[sec.verses.length-1];
+      h += '<button class="snav" data-sec="' + esc(sec.id) + '" data-n="' + f.n + '">' +
+             '<small>' + esc(sec.title) + ' · ' + f.n + '–' + l.n + '</small>' +
+             '<b>' + esc(sec.subtitle || sec.title) + '</b></button>';
+    });
+  } else if(tab === 'bm'){
+    if(!BM.length) h = '<div class="empty"><span>&#128278;</span>अभी कुछ सहेजा नहीं है।<br>किसी पद के नीचे 🔖 दबाएँ।</div>';
+    else BM.slice().sort(function(a,b){ return a.n - b.n; }).forEach(function(b){
+      var c = cardOf(b.sectionId, b.n);
+      h += '<div class="bmrow" data-sec="' + esc(b.sectionId || '') + '" data-n="' + b.n + '">' +
+             '<div class="n">' + b.n + '</div><div class="t pad">' + esc(c ? c.linesA[0] : '') + '</div>' +
+             '<button class="x" data-del="' + b.n + '" data-dsec="' + esc(b.sectionId || '') + '" aria-label="हटाएँ">&#10005;</button></div>';
+    });
+  } else {
+    h += '<div class="setrow"><div class="lab">रूप-रंग<small>दिन या रात का पाठ</small></div><div class="chips">' +
+         ['auto','light','dark'].map(function(v,i){ return '<button data-th="' + v + '" aria-pressed="' + (SET.theme === v) + '">' + ['सिस्टम','उजाला','अँधेरा'][i] + '</button>'; }).join('') + '</div></div>';
+    h += '<div class="setrow"><div class="lab">अक्षर का आकार<small>बड़े अक्षर = आसान पाठ</small></div><div class="chips">' +
+         [0.95,1.1,1.3,1.5].map(function(v,i){ return '<button data-fs="' + v + '" aria-pressed="' + (Math.abs(SET.fontSize-v)<0.03) + '">' + ['छोटा','सामान्य','बड़ा','सबसे बड़ा'][i] + '</button>'; }).join('') + '</div></div>';
+    h += '<div class="setrow"><div class="lab">वाचन की गति<small>श्रवण की रफ़्तार</small></div><div class="chips" id="set-rate">' +
+         RATES.map(function(r,i){ return '<button data-rt="' + i + '" aria-pressed="' + (i === rateIx) + '">' + r + '×</button>'; }).join('') + '</div></div>';
+    h += '<div class="setrow"><div class="lab">घंटी की ध्वनि<small>बटन दबाने पर मंद घंटी</small></div>' +
+         '<button class="sw" id="bell-sw" aria-pressed="' + (SET.bell ? 'true' : 'false') + '"><i></i></button></div>';
+    h += '<div class="empty" style="padding:1.2rem 1rem .2rem">' + esc(G.title) + ' — कुल ' +
+         G.sections.reduce(function(a,s){ return a + s.verses.length; }, 0) + ' ' + esc(unit()) + ' · सहेजे ' + BM.length + '</div>';
+  }
+  sBody.innerHTML = h;
+}
+function openSheet(t){ renderSheet(t || 'toc'); sheetOpen = true; sheet.classList.add('on'); scrim.classList.add('on'); }
+function closeSheet(){ sheetOpen = false; sheet.classList.remove('on'); scrim.classList.remove('on'); }
+$('#btn-index').addEventListener('click', function(){ openSheet(BM.length ? 'bm' : 'toc'); });
+$('#btn-set').addEventListener('click', function(){ openSheet('set'); });
+$('#sheet-x').addEventListener('click', closeSheet);
+scrim.addEventListener('click', closeSheet);
+document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && sheetOpen) closeSheet(); });
+$$('.sheet .tabs button[data-tab]').forEach(function(b){ b.addEventListener('click', function(){ renderSheet(b.dataset.tab); }); });
+sBody.addEventListener('click', function(e){
+  var t = e.target;
+  var nav = t.closest ? t.closest('.snav') : null;
+  if(nav){ closeSheet(); goTo(nav.dataset.sec, nav.dataset.n, true); return; }
+  var del = t.closest ? t.closest('[data-del]') : null;
+  if(del){ toggleBM(del.dataset.dsec || null, del.dataset.del); return; }
+  var row = t.closest ? t.closest('.bmrow') : null;
+  if(row){ closeSheet(); goTo(row.dataset.sec || null, row.dataset.n, true); return; }
+  var th = t.closest ? t.closest('[data-th]') : null;
+  if(th){ SET.theme = th.dataset.th; saveSet(); applyTheme(SET.theme); if(G && G.theme) applyGranthTheme(G.theme); renderSheet('set'); bell(); return; }
+  var fs = t.closest ? t.closest('[data-fs]') : null;
+  if(fs){ applyFont(parseFloat(fs.dataset.fs)); renderSheet('set'); return; }
+  var rt = t.closest ? t.closest('[data-rt]') : null;
+  if(rt){ rateIx = +rt.dataset.rt; SET.ttsRate = RATES[rateIx]; saveSet(); $('#ab-rate').textContent = RATES[rateIx] + '×'; renderSheet('set'); Sp.restartLine(); return; }
+  var sw = t.closest ? t.closest('#bell-sw') : null;
+  if(sw){ SET.bell = SET.bell ? 0 : 1; saveSet(); sw.setAttribute('aria-pressed', SET.bell ? 'true' : 'false'); if(SET.bell) bell(); }
+});
+
+/* ---------- शुरुआत + deep link ---------- */
+function parseHash(){
+  var h = (location.hash || '').replace(/^#/, '');
+  if(!h) return null;
+  var p = h.split('/');
+  var id = p[0];
+  if(!REG.some(function(r){ return r.id === id; })) return null;
+  var deep = null;
+  if(p[1]){
+    var q = p[1].split(':');
+    deep = q.length > 1 ? { sectionId: q[0], n: +q[1] } : { sectionId: null, n: +q[0] };
+    if(!deep.n) deep = null;
+  }
+  return { id: id, deep: deep };
+}
+var startAt = parseHash();
+setMode(SET.mode, false);
+loadGranth(startAt ? startAt.id : lsGet('granth:last', REG[0] && REG[0].id), startAt && startAt.deep);
+addEventListener('hashchange', function(){
+  var h = parseHash();
+  if(!h) return;
+  if(!META || h.id !== META.id) loadGranth(h.id, h.deep);
+  else if(h.deep) goTo(h.deep.sectionId, h.deep.n, true);
+});
+})();
+</script>
+</body>
+</html>

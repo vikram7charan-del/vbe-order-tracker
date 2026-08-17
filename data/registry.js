@@ -21,7 +21,7 @@ window.GRANTH_REGISTRY = [
   {
     id: "deviyaan",
     title: "देवियांण",
-    file: "data/deviyaan.js",
+    files: ["data/deviyaan.js", "data/deviyaan-audio.js"],
     count: 98,
     unitLabel: "छंद",
     order: 2,

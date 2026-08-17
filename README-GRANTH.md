@@ -12,4 +12,5 @@
 7. दूसरा पाठ हो तो पद में `paathB: { meter, title, lines:[…], artha }` जोड़ दीजिए और ग्रंथ में `hasPaathVariants: true` कर दीजिए।
 8. **वर्तनी अक्षरशः** रखिए — `ळ`, द्वित्व व्यंजन, अनुस्वार, हळंत, `–` — किसी का "सुधार" नहीं।
 9. फाइलें अपने-आप ज़रूरत पर लोड होती हैं, इसलिए ग्रंथ कितने भी हों, फ़ोन धीमा नहीं होगा।
-10. सीधा लिंक ऐसे बनता है: `granth.html#hariras` · किसी पद तक `granth.html#hariras/61` · जहाँ नंबर दोहराते हैं वहाँ `granth.html#deviyaan/bhujangi:3`
+10. **दो पाठ वाला ग्रंथ** — registry में `file` की जगह `files: [meta, पाठ-1, पाठ-2]` दीजिए; विस्तार से `DATA-GUIDE.md` में।
+11. सीधा लिंक ऐसे बनता है: `granth.html#hariras` · किसी पद तक `granth.html#hariras/61` · जहाँ नंबर दोहराते हैं वहाँ `granth.html#deviyaan/bhujangi:3`

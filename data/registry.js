@@ -3,6 +3,7 @@
    ------------------------------------------------------------
    नया ग्रंथ जोड़ने के लिए:
      1. data/<id>.js बनाइए  →  window.GRANTH_DATA["<id>"] = { … }
+        (दो पाठ वाले ग्रंथ के लिए files: [meta, पाठ-1, पाठ-2])
      2. नीचे एक पंक्ति जोड़िए
      3. theme के तीन रंग चुनिए — बस, इंजन को छूने की ज़रूरत नहीं
    ============================================================ */
@@ -11,7 +12,7 @@ window.GRANTH_REGISTRY = [
   {
     id: "hariras",
     title: "हरिरस",
-    file: "data/hariras.js",
+    files: ["data/hariras-meta.js", "data/hariras-k.js", "data/hariras-kh.js"],
     count: 361,
     unitLabel: "दोहा",
     order: 1,

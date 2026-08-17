@@ -22,7 +22,7 @@ window.GRANTH_DATA["hariras"] = {
   closing: { line1: "॥ इति श्री हरिरस सम्पूर्ण ॥", line2: "॥ जय द्वारकाधीश श्री कृष्ण भगवान ॥" },
 
   recensions: [
-    { key: "k",  label: "पाठ क", full: "पाठ क · महादान जी बारहठ (संपादित)", file: "data/hariras-k.js",  primary: true },
+    { key: "k",  label: "पाठ क", full: "पाठ क · महादान जी बारहठ (संपादित)", desc: "शुद्धि करण-सहित सटीक", file: "data/hariras-k.js",  primary: true },
     { key: "kh", label: "पाठ ख", full: "पाठ ख · गुजराती स्रोत",              file: "data/hariras-kh.js" }
   ],
 

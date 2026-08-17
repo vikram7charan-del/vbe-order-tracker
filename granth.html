@@ -734,7 +734,7 @@ function recBlock(key, rec, v, id){
   if(!v) return '<div class="col col-' + key + '">' + lab +
       '<div class="absent">इस पाठ में उपलब्ध नहीं</div></div>';
   var chips = [];
-  if(v.chhand)  chips.push('<span class="ch">' + esc(v.chhand) + '</span>');
+  if(v.chhand)  chips.push('<span class="ch">' + esc(v.chhand) + (v.upa ? ' ' + v.upa : '') + '</span>');
   if(v.shirshak) chips.push('<span>' + esc(v.shirshak) + '</span>');
   if(v.prasang)  chips.push('<span>' + esc(v.prasang) + '</span>');
   var h = '<div class="col col-' + key + '" data-rec="' + key + '">' + lab;
@@ -1108,7 +1108,7 @@ function verseTextOf(card, key){
     if(key && r.key !== key) return;
     var v = recText(r.key)[id];
     if(!v) return;
-    out.push(r.full + '\n' + v.mool.join('\n') + (v.arth ? '\n\nअर्थ — ' + v.arth : ''));
+    out.push(r.full + (r.desc ? ' — ' + r.desc : '') + '\n' + v.mool.join('\n') + (v.arth ? '\n\nअर्थ — ' + v.arth : ''));
   });
   return '॥ ' + G.title + ' ॥ ' + unit() + ' ' + id + '\n\n' + out.join('\n\n— — —\n\n');
 }

@@ -296,6 +296,7 @@ body[data-mark="1"] .v .vbtn.setmark{display:inline-flex}
 .vbtn.setmark{display:none;color:var(--accent);border-color:var(--accent)}
 .vbtn.setmark.done{background:var(--accent);color:var(--on-accent)}
 .marks i.um{background:var(--ink);opacity:.9;height:12px;top:-1px}
+.marks i.st{background:var(--muted);opacity:.35;height:5px;top:2px}
 .mkhint{display:none;margin-top:.45rem;font-size:.72rem;color:var(--muted);text-align:center}
 body[data-mark="1"] .mkhint{display:block}
 
@@ -430,6 +431,8 @@ body[data-mark="1"] .mkhint{display:block}
   <div class="row" style="margin-top:.15rem">
     <span class="tm" id="gn-time" style="text-align:left">0:00</span>
     <span class="sp" style="flex:1"></span>
+    <button class="ctl" id="gn-prev" aria-label="पिछला छंद"></button>
+    <button class="ctl" id="gn-next" aria-label="अगला छंद"></button>
     <button class="ctl rate" id="gn-rate" aria-label="गति">1×</button>
     <span class="tm" id="gn-dur">0:00</span>
   </div>
@@ -1235,6 +1238,9 @@ function setupGaan(){
   $('#gn-play').innerHTML = svg(IC.play, 'f');
   $('#gn-follow').innerHTML = svg(IC.star, 'f');
   $('#gn-close').innerHTML = svg(IC.stop);
+  $('#gn-mark').innerHTML = svg(IC.star, 'f');
+  $('#gn-prev').innerHTML = svg(IC.prev, 'f');
+  $('#gn-next').innerHTML = svg(IC.next, 'f');
   var t = $('#tool-gaan');
   if(t) t.hidden = !GA;
   if(!GA) return;
@@ -1353,6 +1359,22 @@ $('#gn-rate').addEventListener('click', function(){
 })();
 
 
+
+/* छंद-दर-छंद आगे-पीछे — ऑडियो में नापे गए ठहरावों से */
+function stanzaList(){ return (GA && GA.stanzas) || []; }
+function jumpStanza(dir){
+  if(!GA) return;
+  var L = stanzaList();
+  if(!L.length){ toast('इस गायन में छंद-सीमाएँ नहीं नापी गईं', 2600); return; }
+  var a = ensureAudio(), t = a.currentTime, to = null;
+  if(dir > 0){ for(var i = 0; i < L.length; i++) if(L[i] > t + 0.6){ to = L[i]; break; } }
+  else { for(var j = L.length - 1; j >= 0; j--) if(L[j] < t - 1.2){ to = L[j]; break; } if(to == null) to = 0; }
+  if(to == null){ toast('यह आख़िरी छंद है', 2000); return; }
+  playGaan(to);
+}
+$('#gn-prev').addEventListener('click', function(){ jumpStanza(-1); });
+$('#gn-next').addEventListener('click', function(){ jumpStanza(1); });
+
 /* ---------- अपने हाथ से निशान लगाना ---------- */
 var UM = {}, MARKMODE = false;
 function umKey(){ return 'granth:' + G.id + ':usermarks'; }
@@ -1370,6 +1392,7 @@ function refreshMarkers(){
   if(!GA) return;
   GA.live = allMarkers();
   var d = (AU && AU.duration) || GA.duration || 1, mk = '';
+  stanzaList().forEach(function(t){ mk += '<i class="st" style="left:' + (t / d * 100).toFixed(2) + '%"></i>'; });
   GA.live.forEach(function(m){
     mk += '<i class="' + (m.own ? 'um' : '') + '" style="left:' + (m.t / d * 100).toFixed(2) + '%"></i>';
   });

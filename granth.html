@@ -82,7 +82,8 @@ button{font-family:inherit;color:inherit;background:none;border:none;cursor:poin
 :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:8px}
 
 /* ===================== ग्रंथ पट्टी ===================== */
-.gbar{position:sticky;top:0;z-index:70;background:var(--glass);backdrop-filter:blur(14px) saturate(1.3);-webkit-backdrop-filter:blur(14px) saturate(1.3);border-bottom:1px solid var(--glass-brd)}
+.topstack{position:sticky;top:0;z-index:70}
+.gbar{background:var(--glass);backdrop-filter:blur(14px) saturate(1.3);-webkit-backdrop-filter:blur(14px) saturate(1.3);border-bottom:1px solid var(--glass-brd)}
 .gscroll{display:flex;gap:.5rem;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
   padding:.55rem 1.05rem;max-width:680px;margin:0 auto;scrollbar-width:none;
   -webkit-mask:linear-gradient(90deg,transparent,#000 22px,#000 calc(100% - 22px),transparent);
@@ -100,7 +101,7 @@ button{font-family:inherit;color:inherit;background:none;border:none;cursor:poin
 .gtab:active{transform:scale(.95)}
 
 /* ===================== नियंत्रण पट्टी ===================== */
-.topbar{position:sticky;top:0;z-index:60;background:var(--glass);backdrop-filter:blur(14px) saturate(1.3);-webkit-backdrop-filter:blur(14px) saturate(1.3);border-bottom:1px solid var(--glass-brd)}
+.topbar{background:var(--glass);backdrop-filter:blur(14px) saturate(1.3);-webkit-backdrop-filter:blur(14px) saturate(1.3);border-bottom:1px solid var(--glass-brd)}
 .progress{height:3px;background:transparent}
 .progress i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent));box-shadow:0 0 10px var(--glow);transition:width .18s linear}
 .bar{max-width:680px;margin:0 auto;padding:.5rem 1.05rem .55rem;display:flex;align-items:center;gap:.5rem}
@@ -141,7 +142,7 @@ button{font-family:inherit;color:inherit;background:none;border:none;cursor:poin
 .resume button{margin-left:auto;padding:.34rem .7rem;border-radius:999px;background:var(--accent);color:var(--on-accent);font-weight:700;font-size:.82rem}
 
 /* ===================== भाग शीर्षक ===================== */
-h2{font-weight:600;font-size:1.34rem;color:var(--ink);margin:2.8rem 0 1.5rem;padding:1rem 0 .9rem;text-align:center;position:relative;scroll-margin-top:104px}
+h2{font-weight:600;font-size:1.34rem;color:var(--ink);margin:2.8rem 0 1.5rem;padding:1rem 0 .9rem;text-align:center;position:relative;scroll-margin-top:calc(var(--stack, 104px) + 12px)}
 h2 span{display:block;font-size:.68rem;letter-spacing:.24em;color:var(--accent);margin-bottom:.4rem;font-weight:700}
 h2::before,h2::after{content:"◈";position:absolute;left:50%;transform:translateX(-50%);color:var(--accent);font-size:.7rem;opacity:.7}
 h2::before{top:-.1rem}
@@ -288,6 +289,16 @@ body[data-path="both"] .v.two .cols{display:grid;grid-template-columns:1fr;gap:1
 .vbtn.gaan{color:var(--accent)}
 .follow[aria-pressed="true"]{color:var(--accent);border-color:var(--accent)}
 
+
+.gaanbar .mk{position:relative}
+.gaanbar .mk[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+body[data-mark="1"] .v .vbtn.setmark{display:inline-flex}
+.vbtn.setmark{display:none;color:var(--accent);border-color:var(--accent)}
+.vbtn.setmark.done{background:var(--accent);color:var(--on-accent)}
+.marks i.um{background:var(--ink);opacity:.9;height:12px;top:-1px}
+.mkhint{display:none;margin-top:.45rem;font-size:.72rem;color:var(--muted);text-align:center}
+body[data-mark="1"] .mkhint{display:block}
+
 /* ===================== audio bar / fab / sheet / toast ===================== */
 .audiobar{position:fixed;left:50%;transform:translate(-50%,140%);bottom:calc(.7rem + var(--safe-b));width:min(94vw,460px);z-index:75;
   display:flex;align-items:center;gap:.45rem;padding:.55rem .6rem;border-radius:18px;background:var(--glass);
@@ -363,6 +374,7 @@ body[data-path="both"] .v.two .cols{display:grid;grid-template-columns:1fr;gap:1
 </head>
 <body data-mode="both" data-path="a">
 
+<div class="topstack">
 <div class="gbar"><div class="gscroll" id="gscroll" role="tablist" aria-label="ग्रंथ"></div></div>
 
 <div class="topbar">
@@ -388,6 +400,7 @@ body[data-path="both"] .v.two .cols{display:grid;grid-template-columns:1fr;gap:1
     <button class="difftog" id="difftog" aria-pressed="false">अंतर</button>
   </div>
 </div>
+</div>
 
 <div id="stage"></div>
 
@@ -406,12 +419,14 @@ body[data-path="both"] .v.two .cols{display:grid;grid-template-columns:1fr;gap:1
     <button class="ctl main" id="gn-play" aria-label="गायन चलाएँ या रोकें"></button>
     <div class="ttl"><b id="gn-title">गायन</b><small id="gn-sub"></small></div>
     <button class="ctl" id="gn-follow" aria-label="गाया जा रहा छंद साथ-साथ दिखाएँ" aria-pressed="true"></button>
+    <button class="ctl mk" id="gn-mark" aria-label="निशान लगाने का तरीका" aria-pressed="false"></button>
     <button class="ctl" id="gn-close" aria-label="गायन बंद करें"></button>
   </div>
   <div class="seekwrap">
     <input class="seek" id="gn-seek" type="range" min="0" max="1000" value="0" aria-label="गायन में आगे-पीछे">
     <div class="marks" id="gn-marks"></div>
   </div>
+  <div class="mkhint">गायन चलने दीजिए — जिस छंद पर आवाज़ आए, उसके <b>निशान</b> बटन को उसी क्षण दबा दीजिए</div>
   <div class="row" style="margin-top:.15rem">
     <span class="tm" id="gn-time" style="text-align:left">0:00</span>
     <span class="sp" style="flex:1"></span>
@@ -538,6 +553,11 @@ function hexA(hex, a){
 }
 applyTheme(SET.theme);
 applyFont(SET.fontSize);
+function measureStack(){
+  var el = $('.topstack');
+  if(el) document.documentElement.style.setProperty('--stack', Math.round(el.getBoundingClientRect().height) + 'px');
+}
+addEventListener('resize', measureStack);
 
 /* ---------- yantra (inline SVG, per granth) ---------- */
 function yantra(id){
@@ -711,7 +731,7 @@ function mount(data, deep){
 
   CARDS = $$('#body .v');
   CARDS.forEach(function(c){
-    c.style.scrollMarginTop = '112px';
+    c.style.scrollMarginTop = 'calc(var(--stack, 104px) + 12px)';
     if(RECS){
       var ka = $$('.r-' + RECS[0].key + ' span', c), kb = $$('.r-' + RECS[1].key + ' span', c);
       c.spansA = ka; c.linesA = ka.map(function(x){ return x.textContent; });
@@ -745,6 +765,7 @@ function mount(data, deep){
   $('#fab-t').textContent = 'आज का ' + unit();
   paintBM();
   setupGaan();
+  measureStack();
   observe();
   restoreResume(deep);
   if(sheetOpen) renderSheet(curTab);
@@ -1218,23 +1239,27 @@ function setupGaan(){
   if(t) t.hidden = !GA;
   if(!GA) return;
   $('#gn-title').textContent = GA.title || 'गायन';
-  $('#gn-sub').textContent = (GA.singer ? 'स्वर — ' + GA.singer : '') +
-    (GA.markers && GA.markers.length ? ' · ' + GA.markers.length + ' निशान' : '');
+
   $('#gn-dur').textContent = fmt(GA.duration);
-  var mk = '';
-  (GA.markers || []).forEach(function(m){
-    if(!GA.duration) return;
-    mk += '<i style="left:' + (m.t / GA.duration * 100).toFixed(2) + '%"></i>';
-  });
-  $('#gn-marks').innerHTML = mk;
+  loadUM();
+  refreshMarkers();
   /* जिन छंदों का समय मालूम है, उन पर गायन का बटन */
   var byKey = {};
   (GA.markers || []).forEach(function(m){ if(byKey[markKey(m)] == null) byKey[markKey(m)] = m.t; });
+  loadUM();
   CARDS.forEach(function(c){
+    var acts = $$('.vacts', c).pop();
+    if(acts){
+      var sm = document.createElement('button');
+      sm.className = 'vbtn setmark';
+      sm.type = 'button';
+      sm.innerHTML = svg(IC.star, 'f') + '<span class="txt">निशान</span>';
+      sm.addEventListener('click', function(e){ ripple(sm, e); setMark(c); });
+      acts.insertBefore(sm, acts.firstChild);
+    }
     var t2 = byKey[c.dataset.sec + ':' + c.dataset.n];
     if(t2 == null) return;
     c.gaanAt = t2;
-    var acts = $$('.vacts', c).pop();
     if(!acts) return;
     var b = document.createElement('button');
     b.className = 'vbtn gaan';
@@ -1282,7 +1307,7 @@ function onGaanTime(){
   $('#gn-time').textContent = fmt(t);
   var sk = $('#gn-seek');
   if(!sk.dataset.drag) sk.value = Math.round(t / d * 1000);
-  var ms = GA.markers || [], i = -1;
+  var ms = GA.live || GA.markers || [], i = -1;
   for(var k = 0; k < ms.length; k++){ if(ms[k].t <= t + 0.35) i = k; else break; }
   if(i === lastMark) return;
   lastMark = i;
@@ -1327,6 +1352,60 @@ $('#gn-rate').addEventListener('click', function(){
   });
 })();
 
+
+/* ---------- अपने हाथ से निशान लगाना ---------- */
+var UM = {}, MARKMODE = false;
+function umKey(){ return 'granth:' + G.id + ':usermarks'; }
+function loadUM(){ UM = jGet(umKey(), {}); }
+function allMarkers(){
+  var by = {};
+  (GA && GA.markers || []).forEach(function(m){ by[markKey(m)] = { t: m.t, sec: m.sec, n: m.n }; });
+  Object.keys(UM).forEach(function(k){
+    var p = k.split(':');
+    by[k] = { t: UM[k], sec: p[0], n: isNaN(+p[1]) ? p[1] : +p[1], own: true };
+  });
+  return Object.keys(by).map(function(k){ return by[k]; }).sort(function(a,b){ return a.t - b.t; });
+}
+function refreshMarkers(){
+  if(!GA) return;
+  GA.live = allMarkers();
+  var d = (AU && AU.duration) || GA.duration || 1, mk = '';
+  GA.live.forEach(function(m){
+    mk += '<i class="' + (m.own ? 'um' : '') + '" style="left:' + (m.t / d * 100).toFixed(2) + '%"></i>';
+  });
+  $('#gn-marks').innerHTML = mk;
+  var own = Object.keys(UM).length;
+  $('#gn-sub').textContent = (GA.singer ? 'स्वर — ' + GA.singer : '') +
+    ' · ' + GA.live.length + ' निशान' + (own ? ' (' + own + ' आपके)' : '');
+  lastMark = -1;
+  CARDS.forEach(function(c){
+    var b = $('.vbtn.setmark', c);
+    if(b) b.classList.toggle('done', UM[c.dataset.sec + ':' + c.dataset.n] != null);
+  });
+}
+function setMark(card){
+  if(!AU){ toast('पहले गायन चलाइए', 2400); return; }
+  var t = Math.max(0, Math.round(AU.currentTime * 10) / 10);
+  UM[card.dataset.sec + ':' + card.dataset.n] = t;
+  jSet(umKey(), UM);
+  refreshMarkers();
+  bell();
+  toast(unit() + ' ' + card.dataset.n + ' → ' + fmt(t) + ' पर लगा दिया', 2200);
+}
+function marksText(){
+  return allMarkers().map(function(m){
+    return '    { t: ' + Math.round(m.t) + ', sec: "' + m.sec + '", n: ' + m.n + ' },' +
+           (m.own ? '   /* आपका लगाया */' : '');
+  }).join('\n');
+}
+$('#gn-mark').addEventListener('click', function(){
+  MARKMODE = !MARKMODE;
+  document.body.dataset.mark = MARKMODE ? '1' : '0';
+  this.setAttribute('aria-pressed', MARKMODE ? 'true' : 'false');
+  bell();
+  toast(MARKMODE ? 'निशान लगाने का तरीका चालू — छंद पर "निशान" दबाइए' : 'निशान लगाना बंद', 3000);
+});
+
 /* ---------- शीट: अनुक्रम / सहेजे / सेटिंग ---------- */
 var sheetOpen = false, curTab = 'toc';
 var sheet = $('#sheet'), scrim = $('#scrim'), sBody = $('#sheet-body');
@@ -1369,6 +1448,13 @@ function renderSheet(tab){
          RATES.map(function(r,i){ return '<button data-rt="' + i + '" aria-pressed="' + (i === rateIx) + '">' + r + '×</button>'; }).join('') + '</div></div>';
     h += '<div class="setrow"><div class="lab">घंटी की ध्वनि<small>बटन दबाने पर मंद घंटी</small></div>' +
          '<button class="sw" id="bell-sw" aria-pressed="' + (SET.bell ? 'true' : 'false') + '"><i></i></button></div>';
+    if(GA){
+      var own = Object.keys(UM).length;
+      h += '<div class="setrow"><div class="lab">गायन के निशान<small>' +
+             (own ? own + ' निशान आपने लगाए हैं' : 'अभी आपने कोई निशान नहीं लगाया') + '</small></div>' +
+           '<div class="chips"><button id="mk-copy">प्रतिलिपि</button>' +
+             (own ? '<button id="mk-clear">मिटाएँ</button>' : '') + '</div></div>';
+    }
     var tot = G.count || (G.sections ? G.sections.reduce(function(a,s){ return a + s.verses.length; }, 0) : CARDS.length);
     h += '<div class="empty" style="padding:1.2rem 1rem .2rem">' + esc(G.title) + ' — कुल ' + tot + ' ' + esc(unit()) + ' · सहेजे ' + BM.length + '</div>';
   }
@@ -1416,6 +1502,19 @@ sBody.addEventListener('click', function(e){
   if(t.id === 'find-go'){ renderFind(($('#find-q') || {}).value); return; }
   var go = t.closest ? t.closest('[data-go]') : null;
   if(go){ closeSheet(); goTo(go.dataset.gsec || null, go.dataset.go, true); return; }
+  if(t.id === 'mk-copy'){
+    var txt = 'markers: [\n' + marksText() + '\n]';
+    if(navigator.clipboard && navigator.clipboard.writeText)
+      navigator.clipboard.writeText(txt).then(function(){ toast('निशान की सूची प्रतिलिपि हो गई — मुझे भेज दीजिए', 3200); },
+                                             function(){ fallbackCopy(txt, function(){ toast('निशान की सूची प्रतिलिपि हो गई', 2800); }); });
+    else fallbackCopy(txt, function(){ toast('निशान की सूची प्रतिलिपि हो गई', 2800); });
+    return;
+  }
+  if(t.id === 'mk-clear'){
+    UM = {}; jSet(umKey(), UM); refreshMarkers(); renderSheet('set');
+    toast('आपके लगाए निशान मिटा दिए — फाइल वाले वैसे ही हैं', 3000);
+    return;
+  }
   var sw = t.closest ? t.closest('#bell-sw') : null;
   if(sw){ SET.bell = SET.bell ? 0 : 1; saveSet(); sw.setAttribute('aria-pressed', SET.bell ? 'true' : 'false'); if(SET.bell) bell(); }
 });

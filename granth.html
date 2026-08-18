@@ -307,16 +307,14 @@ body[data-mark="1"] .mkhint{display:block}
 .st-head{display:flex;align-items:center;gap:.6rem;padding:.7rem 1rem;border-bottom:1px solid var(--rule);background:var(--glass)}
 .st-head b{flex:1;font-size:.98rem;color:var(--accent)}
 .st-head .prog{font-size:.74rem;color:var(--muted);font-variant-numeric:tabular-nums}
-.st-body{flex:1;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:.9rem}
+.st-body{flex:1;overflow-y:auto;overflow-x:hidden;padding:1rem;display:flex;flex-direction:column;gap:.9rem}
+.st-body>*{min-width:0;max-width:100%}
 .st-card{border:1px solid var(--glass-brd);border-radius:18px;background:linear-gradient(170deg,var(--paper),var(--paper-2));padding:1.1rem;box-shadow:var(--shadow)}
 .st-card .who{display:flex;align-items:center;gap:.5rem;margin-bottom:.7rem}
 .st-card .who i{font-style:normal;min-width:2.2rem;height:2.2rem;display:grid;place-items:center;border:1px solid var(--accent);color:var(--accent);border-radius:50%;font-weight:700}
 .st-card .who span{font-size:.76rem;color:var(--muted)}
 .st-lines{font-size:calc(1.06rem * var(--fs));line-height:1.95;text-align:center;color:var(--ink)}
 .st-lines span{display:block}
-.st-set{margin-top:.9rem;padding-top:.8rem;border-top:1px dashed var(--glass-brd);text-align:center}
-.st-set .val{font-size:1.5rem;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
-.st-set .none{font-size:.86rem;color:var(--muted)}
 .big{display:block;width:100%;padding:1rem;border-radius:16px;background:var(--accent);color:var(--on-accent);font-weight:700;font-size:1.02rem;box-shadow:0 6px 20px var(--glow)}
 .big.ghost{background:var(--chip);color:var(--ink);border:1px solid var(--glass-brd);box-shadow:none}
 .st-row{display:flex;gap:.5rem}
@@ -325,10 +323,37 @@ body[data-mark="1"] .mkhint{display:block}
 .st-time{text-align:center;font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
 .st-time b{color:var(--accent);font-size:1.05rem}
 .st-foot{display:flex;gap:.5rem;padding:.7rem 1rem calc(.7rem + var(--safe-b));border-top:1px solid var(--rule);background:var(--glass)}
-.st-foot button{flex:1;padding:.7rem;border-radius:12px;border:1px solid var(--glass-brd);background:var(--chip);font-size:.84rem;font-weight:600}
-.st-jump{display:flex;gap:.4rem;align-items:center}
-.st-jump select{flex:1;padding:.6rem;border-radius:12px;border:1px solid var(--glass-brd);background:var(--chip);color:var(--ink);font:inherit;font-size:.88rem}
+.st-foot button{flex:1;padding:.7rem .3rem;border-radius:12px;border:1px solid var(--glass-brd);background:var(--chip);font-size:.84rem;font-weight:600}
+.st-jump{display:flex;gap:.4rem;align-items:center;min-width:0}
+.st-jump select{flex:1;min-width:0;width:100%;padding:.6rem;border-radius:12px;border:1px solid var(--glass-brd);background:var(--chip);color:var(--ink);font:inherit;font-size:.88rem}
 .st-hint{font-size:.78rem;color:var(--muted);text-align:center;line-height:1.6}
+
+
+/* समय-पट — शुरू/अंत की काट-छाँट */
+.io{display:grid;grid-template-columns:auto 1fr;gap:.5rem .7rem;align-items:center;margin-top:.9rem}
+.io .lbl{font-size:.76rem;font-weight:700;color:var(--muted);letter-spacing:.06em}
+.io .set{display:flex;align-items:center;gap:.4rem}
+.io .tval{font-size:1.22rem;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;min-width:4.6rem}
+.io .tval.empty{color:var(--muted);font-weight:400;font-size:.92rem}
+.io .tval:not(.empty){cursor:pointer;border-bottom:1px dashed var(--gold-soft,rgba(180,134,42,.4))}
+.io .tval:not(.empty):active{opacity:.6}
+.io .grab{margin-left:auto;padding:.42rem .7rem;border-radius:10px;background:var(--accent);color:var(--on-accent);font-weight:700;font-size:.8rem;white-space:nowrap}
+.nudge{display:flex;gap:.25rem}
+.nudge button{min-width:44px;padding:.34rem .2rem;border-radius:9px;border:1px solid var(--glass-brd);background:var(--chip);
+  font-size:.76rem;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+.nudge button:active{transform:scale(.94)}
+.st-dur{margin-top:.7rem;text-align:center;font-size:.84rem;color:var(--muted)}
+.st-dur b{color:var(--ink);font-variant-numeric:tabular-nums}
+.st-warn{margin-top:.6rem;padding:.5rem .7rem;border-radius:10px;font-size:.78rem;display:none;
+  background:rgba(200,60,40,.12);border:1px solid rgba(200,60,40,.4);color:var(--ink)}
+.st-warn.on{display:block}
+.st-strip{margin-top:.8rem;height:30px;border-radius:9px;background:var(--chip);position:relative;overflow:hidden;
+  border:1px solid var(--glass-brd)}
+.st-strip .seg{position:absolute;top:7px;bottom:7px;border-radius:4px;background:var(--accent);opacity:.85}
+.st-strip .seg.other{background:var(--muted);opacity:.30;top:11px;bottom:11px}
+.st-strip .cur{position:absolute;top:0;bottom:0;width:2px;background:var(--ink);box-shadow:0 0 0 1px var(--paper)}
+.st-strip .lab{position:absolute;right:7px;top:50%;transform:translateY(-50%);font-size:.62rem;color:var(--muted);
+  font-variant-numeric:tabular-nums;background:var(--paper);padding:0 .25rem;border-radius:4px;opacity:.9}
 
 /* ===================== audio bar / fab / sheet / toast ===================== */
 .audiobar{position:fixed;left:50%;transform:translate(-50%,140%);bottom:calc(.7rem + var(--safe-b));width:min(94vw,460px);z-index:75;
@@ -457,7 +482,7 @@ body[data-mark="1"] .mkhint{display:block}
     <input class="seek" id="gn-seek" type="range" min="0" max="1000" value="0" aria-label="गायन में आगे-पीछे">
     <div class="marks" id="gn-marks"></div>
   </div>
-  <div class="mkhint">गायन चलने दीजिए — जिस छंद पर आवाज़ आए, उसके <b>निशान</b> बटन को उसी क्षण दबा दीजिए</div>
+  <div class="mkhint">जिस छंद पर आवाज़ आए, उसके <b>निशान</b> बटन को उसी क्षण दबा दीजिए — वहीं उसका <b>शुरू</b> लग जाएगा। <b>अंत</b> समय-पट में लगेगा।</div>
   <div class="row" style="margin-top:.15rem">
     <span class="tm" id="gn-time" style="text-align:left">0:00</span>
     <span class="sp" style="flex:1"></span>
@@ -504,23 +529,52 @@ body[data-mark="1"] .mkhint{display:block}
     <div class="st-card">
       <div class="who"><i id="st-n">1</i><span id="st-sec">भाग</span></div>
       <div class="st-lines pad" id="st-lines"></div>
-      <div class="st-set" id="st-set"></div>
+
+      <div class="io">
+        <span class="lbl">शुरू</span>
+        <div class="set"><span class="tval empty" id="st-in">—</span>
+          <div class="nudge">
+            <button data-nud="in" data-d="-0.5">−0.5</button>
+            <button data-nud="in" data-d="-0.1">−0.1</button>
+            <button data-nud="in" data-d="0.1">+0.1</button>
+            <button data-nud="in" data-d="0.5">+0.5</button>
+          </div>
+          <button class="grab" id="st-setin">यहीं</button>
+        </div>
+        <span class="lbl">अंत</span>
+        <div class="set"><span class="tval empty" id="st-out">—</span>
+          <div class="nudge">
+            <button data-nud="out" data-d="-0.5">−0.5</button>
+            <button data-nud="out" data-d="-0.1">−0.1</button>
+            <button data-nud="out" data-d="0.1">+0.1</button>
+            <button data-nud="out" data-d="0.5">+0.5</button>
+          </div>
+          <button class="grab" id="st-setout">यहीं</button>
+        </div>
+      </div>
+
+      <div class="st-dur" id="st-len">अवधि — <b>—</b></div>
+      <div class="st-warn" id="st-warn"></div>
+      <div class="st-strip" id="st-strip"><span class="lab">आस-पास</span></div>
     </div>
 
-    <button class="big" id="st-rec">यहीं से — निशान लगाएँ</button>
-    <div class="st-row" id="st-after" hidden>
-      <button class="big ghost" id="st-verify">▷ जाँचें</button>
-      <button class="big ghost" id="st-redo">फिर से</button>
+    <div class="st-row">
+      <button class="big" id="st-hear">▷ यही हिस्सा सुनें</button>
+      <button class="big ghost" id="st-loop" aria-pressed="false">दोहराव</button>
+    </div>
+    <div class="st-row">
+      <button class="big ghost" id="st-chain">अंत = अगले का शुरू</button>
       <button class="big" id="st-next">अगला छंद ›</button>
     </div>
     <div class="st-jump">
       <button class="ctl" id="st-prev" aria-label="पिछला छंद">‹</button>
       <select id="st-sel" aria-label="किसी भी छंद पर जाएँ"></select>
     </div>
-    <div class="st-hint" id="st-hint">गायन चलाइए। जैसे ही यह छंद शुरू हो, नीचे का बड़ा बटन दबा दीजिए।</div>
+    <div class="st-hint" id="st-hint">गायन चलाइए। जैसे ही यह छंद शुरू हो, “शुरू — यहीं” दबाइए; ख़त्म हो तो “अंत — यहीं”।</div>
   </div>
   <div class="st-foot">
     <button id="st-copy">सूची प्रतिलिपि</button>
+    <button id="st-chainall">सब जोड़ें</button>
     <button id="st-clear">सब मिटाएँ</button>
   </div>
 </div>
@@ -1304,6 +1358,11 @@ function fmt(t){
   t = Math.max(0, Math.floor(t || 0));
   return Math.floor(t/60) + ':' + String(t%60).padStart(2,'0');
 }
+function fmtx(t){                      /* दशमलव-सहित — समय-पट के लिए */
+  t = Math.max(0, Math.round((t || 0) * 10) / 10);
+  var m = Math.floor(t / 60), s = t - m * 60;
+  return m + ':' + (s < 10 ? '0' : '') + s.toFixed(1);
+}
 function markKey(m){ return (m.sec || '') + ':' + m.n; }
 function setupGaan(){
   GA = (window.GRANTH_AUDIO && window.GRANTH_AUDIO[G.id]) || null;
@@ -1366,6 +1425,7 @@ function playGaan(at){
   Sp.stop();                       /* श्रवण और गायन एक साथ नहीं */
   var a = ensureAudio();
   $('#gaanbar').classList.add('on');
+  document.body.dataset.mark = '1';
   fab.classList.add('hide');
   if(at != null) a.currentTime = at;
   a.playbackRate = gaRates[gaRi];
@@ -1379,7 +1439,7 @@ function stopGaan(quiet){
   CARDS.forEach(function(c){ c.classList.remove('singing'); });
   lastMark = -1;
   $('#gn-play').innerHTML = svg(IC.play, 'f');
-  if(!quiet){ $('#gaanbar').classList.remove('on'); fab.classList.remove('hide'); }
+  if(!quiet){ $('#gaanbar').classList.remove('on'); delete document.body.dataset.mark; fab.classList.remove('hide'); }
 }
 function onGaanTime(){
   if(!AU || !GA) return;
@@ -1387,15 +1447,33 @@ function onGaanTime(){
   $('#gn-time').textContent = fmt(t);
   var sk = $('#gn-seek');
   if(!sk.dataset.drag) sk.value = Math.round(t / d * 1000);
+  /* चुने हुए हिस्से का बजना — अंत आते ही रुक जाए या फिर से शुरू */
+  if(SEGPLAY){
+    if(t >= SEGPLAY.out - 0.03){
+      if(SEGPLAY.loop) AU.currentTime = SEGPLAY.from;
+      else { AU.pause(); SEGPLAY = null; stEl('play').innerHTML = svg(IC.play, 'f'); stHint('यह हिस्सा पूरा सुन लिया — ठीक न लगे तो सेकंड आगे-पीछे कर लीजिए।'); }
+    }
+  }
   if(STOPEN){
-    $('#st-now').textContent = fmt(t);
+    $('#st-now').textContent = fmtx(t);
     var sk2 = $('#st-seek');
     if(!sk2.dataset.drag) sk2.value = Math.round(t / d * 1000);
+    stripCursor(t);
     return;                      /* समय-पट खुला हो तो पन्ना हिले नहीं */
   }
   if(!SET.gaanFollow) return;    /* समय सही होने तक कूदना बंद */
-  var ms = GA.live || GA.markers || [], i = -1;
-  for(var k = 0; k < ms.length; k++){ if(ms[k].t <= t + 0.35) i = k; else break; }
+  var ms = GA.live || GA.markers || [], i = -1, k;
+  if(GA.hasSegs){
+    /* नापे हुए खंड ही सच हैं — "इस सेकंड से इस सेकंड तक" के भीतर ही उजाला */
+    for(k = 0; k < ms.length; k++){
+      var m0 = ms[k];
+      if(m0.out == null) continue;
+      if(t >= m0.t - 0.15 && t <= m0.out + 0.15){ i = k; break; }
+      if(m0.t > t + 0.15) break;
+    }
+  } else {
+    for(k = 0; k < ms.length; k++){ if(ms[k].t <= t + 0.35) i = k; else break; }
+  }
   if(i === lastMark) return;
   lastMark = i;
   CARDS.forEach(function(c){ c.classList.remove('singing'); });
@@ -1460,19 +1538,51 @@ $('#gn-next').addEventListener('click', function(){ jumpStanza(1); });
 /* ---------- अपने हाथ से निशान लगाना ---------- */
 var UM = {}, MARKMODE = false;
 function umKey(){ return 'granth:' + G.id + ':usermarks'; }
-function loadUM(){ UM = jGet(umKey(), {}); }
+function loadUM(){
+  var raw = jGet(umKey(), {}), o = {}, changed = false;
+  Object.keys(raw).forEach(function(k){
+    var v = raw[k];
+    if(typeof v === 'number'){ o[k] = { in: v, out: null }; changed = true; }        /* पुराना ढंग — सिर्फ़ शुरू */
+    else if(v && typeof v === 'object') o[k] = { in: (v.in != null ? +v.in : null), out: (v.out != null ? +v.out : null) };
+  });
+  UM = o;
+  if(changed) jSet(umKey(), UM);
+}
+function segKeyOf(sec, n){ return sec + ':' + n; }
+function segOf(sec, n){ return UM[segKeyOf(sec, n)] || null; }
+function segSet(sec, n, io, t){
+  var k = segKeyOf(sec, n), s = UM[k] || (UM[k] = { in: null, out: null });
+  s[io] = (t == null) ? null : Math.max(0, Math.round(t * 10) / 10);
+  if(s.in == null && s.out == null) delete UM[k];
+  jSet(umKey(), UM);
+  return UM[k] || null;
+}
 function allMarkers(){
   var by = {};
-  (GA && GA.markers || []).forEach(function(m){ by[markKey(m)] = { t: m.t, sec: m.sec, n: m.n }; });
+  /* डेटा-फ़ाइल के तैयार खंड (शुरू + अंत) — इन्हें पहली वरीयता */
+  (GA && GA.segments || []).forEach(function(m){
+    by[markKey(m)] = { t: +m.in, out: (m.out != null ? +m.out : null), sec: m.sec, n: m.n };
+  });
+  (GA && GA.markers || []).forEach(function(m){
+    if(by[markKey(m)] == null) by[markKey(m)] = { t: m.t, out: null, sec: m.sec, n: m.n };
+  });
+  /* आपके अपने लगाए — सबसे ऊपर */
   Object.keys(UM).forEach(function(k){
-    var p = k.split(':');
-    by[k] = { t: UM[k], sec: p[0], n: isNaN(+p[1]) ? p[1] : +p[1], own: true };
+    var p = k.split(':'), s = UM[k];
+    if(s.in == null){ if(by[k]) by[k].out = s.out; return; }   /* सिर्फ़ अंत लगा हो */
+    by[k] = { t: s.in, out: s.out, sec: p[0], n: isNaN(+p[1]) ? p[1] : +p[1], own: true };
   });
   return Object.keys(by).map(function(k){ return by[k]; }).sort(function(a,b){ return a.t - b.t; });
+}
+function segCount(){
+  var full = 0, part = 0;
+  Object.keys(UM).forEach(function(k){ if(UM[k].in != null && UM[k].out != null) full++; else part++; });
+  return { full: full, part: part, all: full + part };
 }
 function refreshMarkers(){
   if(!GA) return;
   GA.live = allMarkers();
+  GA.hasSegs = GA.live.some(function(m){ return m.out != null; });
   var d = (AU && AU.duration) || GA.duration || 1, mk = '';
   stanzaList().forEach(function(t){ mk += '<i class="st" style="left:' + (t / d * 100).toFixed(2) + '%"></i>'; });
   GA.live.forEach(function(m){
@@ -1490,16 +1600,18 @@ function refreshMarkers(){
 }
 function setMark(card){
   if(!AU){ toast('पहले गायन चलाइए', 2400); return; }
-  var t = Math.max(0, Math.round(AU.currentTime * 10) / 10);
-  UM[card.dataset.sec + ':' + card.dataset.n] = t;
-  jSet(umKey(), UM);
+  var t = AU.currentTime;
+  segSet(card.dataset.sec, card.dataset.n, 'in', t);
   refreshMarkers();
   bell();
-  toast(unit() + ' ' + card.dataset.n + ' → ' + fmt(t) + ' पर लगा दिया', 2200);
+  toast(unit() + ' ' + card.dataset.n + ' का शुरू → ' + fmtx(t) + ' पर लगा दिया', 2400);
 }
+/* डेटा-फ़ाइल में चिपकाने लायक़ सूची — हर छंद का शुरू और अंत */
 function marksText(){
   return allMarkers().map(function(m){
-    return '    { t: ' + Math.round(m.t) + ', sec: "' + m.sec + '", n: ' + m.n + ' },' +
+    return '    { sec: "' + m.sec + '", n: ' + m.n +
+           ', in: ' + (+m.t).toFixed(1) +
+           ', out: ' + (m.out != null ? (+m.out).toFixed(1) : 'null') + ' },' +
            (m.own ? '   /* आपका लगाया */' : '');
   }).join('\n');
 }
@@ -1507,13 +1619,21 @@ $('#gn-mark').addEventListener('click', function(){ bell(); studioOpen(); });
 
 
 /* =========================================================
-   समय-पट — हर छंद का समय अपने हाथ से, वहीं जाँच के साथ
+   समय-पट (v2) — हर छंद का "इस सेकंड से इस सेकंड तक"
+   शुरू और अंत, दोनों अपने हाथ में; ±0.1 / ±0.5 से आगे-पीछे;
+   वहीं का वहीं सुनकर जाँच, दोहराव, और अगले से जोड़ना।
    ========================================================= */
-var SI = 0, STOPEN = false, verifyTimer = null;
+var SI = 0, STOPEN = false, SEGPLAY = null, ST_LOOP = false, ST_PAD = 0.6;
 function stEl(id){ return $('#st-' + id); }
+function stHint(msg){ var h = stEl('hint'); if(h) h.textContent = msg; }
+function curCard(){ return CARDS[SI] || null; }
+function curSeg(){ var c = curCard(); return c ? segOf(c.dataset.sec, c.dataset.n) : null; }
+function segAt(i){ var c = CARDS[i]; return c ? segOf(c.dataset.sec, c.dataset.n) : null; }
+function audioLen(){ return (AU && AU.duration) || (GA && GA.duration) || 1; }
+
 function studioOpen(){
   if(!GA){ toast('इस ग्रंथ का गायन नहीं है', 2400); return; }
-  STOPEN = true;
+  STOPEN = true; SEGPLAY = null;
   $('#studio').classList.add('on');
   $('#gaanbar').classList.remove('on');
   fab.classList.add('hide');
@@ -1523,109 +1643,273 @@ function studioOpen(){
   stEl('play').innerHTML = svg(IC.play, 'f');
   stEl('prevst').innerHTML = svg(IC.prev, 'f');
   stEl('nextst').innerHTML = svg(IC.next, 'f');
-  stEl('dur').textContent = '/ ' + fmt((AU && AU.duration) || GA.duration);
-  var opt = CARDS.map(function(c, i){
-    var mk = UM[c.dataset.sec + ':' + c.dataset.n] != null ? ' ✓' : '';
-    return '<option value="' + i + '">' + unit() + ' ' + c.dataset.n + ' — ' + secTitle(c.dataset.sec) + mk + '</option>';
+  stEl('dur').textContent = '/ ' + fmt(audioLen());
+  stEl('sel').innerHTML = CARDS.map(function(c, i){
+    return '<option value="' + i + '">' + unit() + ' ' + c.dataset.n + ' — ' + secTitle(c.dataset.sec) + optTag(i) + '</option>';
   }).join('');
-  stEl('sel').innerHTML = opt;
-  var t = (GA.stanzas || []), d = (AU && AU.duration) || GA.duration || 1, mk = '';
-  t.forEach(function(x){ mk += '<i class="st" style="left:' + (x / d * 100).toFixed(2) + '%"></i>'; });
+  var d = audioLen(), mk = '';
+  (GA.stanzas || []).forEach(function(x){ mk += '<i class="st" style="left:' + (x / d * 100).toFixed(2) + '%"></i>'; });
   stEl('marks').innerHTML = mk;
-  /* जहाँ से छूटा था, वहीं से */
   var saved = parseInt(lsGet('granth:' + G.id + ':stpos', '0'), 10);
   SI = (saved >= 0 && saved < CARDS.length) ? saved : 0;
   studioPaint();
 }
 function studioClose(){
-  STOPEN = false;
+  STOPEN = false; SEGPLAY = null;
   $('#studio').classList.remove('on');
-  fab.classList.remove('hide');
-  clearTimeout(verifyTimer);
   if(AU) AU.pause();
   refreshMarkers();
+  /* जिस गायन-पट्टी से आए थे, वहीं लौटा दें */
+  if(GA){ $('#gaanbar').classList.add('on'); document.body.dataset.mark = '1'; fab.classList.add('hide'); $('#gn-play').innerHTML = svg(IC.play, 'f'); }
+  else fab.classList.remove('hide');
 }
 function secTitle(id){
   if(G.sections){
     var s2 = G.sections.filter(function(x){ return x.id === id; })[0];
     if(s2) return s2.title;
   }
+  if(G.bhaag){
+    var b = G.bhaag.filter(function(x){ return x.id === id; })[0];
+    if(b) return b.title;
+  }
   return id;
 }
+function optTag(i){
+  var s = segAt(i);
+  if(!s) return '';
+  if(s.in != null && s.out != null) return '  ✓';
+  return '  ·';
+}
+function retagOpt(i){
+  var o = stEl('sel').options[i];
+  if(o) o.textContent = o.textContent.replace(/\s+[✓·]$/, '') + optTag(i);
+}
+
+/* ---------- मुख्य चित्रण ---------- */
 function studioPaint(){
-  var c = CARDS[SI];
+  var c = curCard();
   if(!c) return;
   lsSet('granth:' + G.id + ':stpos', SI);
   stEl('n').textContent = c.dataset.n;
   stEl('sec').textContent = secTitle(c.dataset.sec);
-  stEl('lines').innerHTML = c.linesA.map(function(l){ return '<span>' + esc(l) + '</span>'; }).join('');
+  stEl('lines').innerHTML = activeLines(c).map(function(l){ return '<span>' + esc(l) + '</span>'; }).join('');
   stEl('sel').value = SI;
-  var done = Object.keys(UM).length;
-  stEl('prog').textContent = done + ' / ' + CARDS.length + ' लगे';
-  var key = c.dataset.sec + ':' + c.dataset.n, has = UM[key];
-  if(has != null){
-    stEl('set').innerHTML = '<div class="val">' + fmt(has) + '</div><div class="none">इस छंद का समय लगा हुआ है</div>';
-    stEl('after').hidden = false;
-    stEl('rec').textContent = 'फिर से — इसी जगह लगाएँ';
+  var cnt = segCount();
+  stEl('prog').textContent = cnt.full + ' / ' + CARDS.length + ' पूरे' + (cnt.part ? ' (' + cnt.part + ' अधूरे)' : '');
+  paintIO();
+  stripPaint();
+}
+function paintIO(){
+  var s = curSeg(), c = curCard();
+  var iEl = stEl('in'), oEl = stEl('out');
+  if(s && s.in != null){ iEl.textContent = fmtx(s.in); iEl.classList.remove('empty'); }
+  else { iEl.textContent = '—'; iEl.classList.add('empty'); }
+  if(s && s.out != null){ oEl.textContent = fmtx(s.out); oEl.classList.remove('empty'); }
+  else { oEl.textContent = '—'; oEl.classList.add('empty'); }
+
+  var len = stEl('len');
+  if(s && s.in != null && s.out != null){
+    var d = s.out - s.in;
+    len.innerHTML = 'अवधि — <b>' + d.toFixed(1) + ' सेकंड</b>';
+  } else if(s && s.in != null){
+    /* अनुमान — अगले का शुरू */
+    var nx = nextIn(SI);
+    len.innerHTML = nx != null
+      ? 'अवधि — <b>—</b> <span style="opacity:.7">(अगले का शुरू ' + fmtx(nx) + ' पर है)</span>'
+      : 'अवधि — <b>—</b> <span style="opacity:.7">अंत अभी नहीं लगा</span>';
   } else {
-    var old = (GA.markers || []).filter(function(m){ return m.sec === c.dataset.sec && String(m.n) === String(c.dataset.n); })[0];
-    stEl('set').innerHTML = old
-      ? '<div class="none">पुराना (मशीन का) अनुमान — <b>' + fmt(old.t) + '</b><br>सुनकर सही समय लगा दीजिए</div>'
-      : '<div class="none">अभी इस छंद का समय नहीं लगा</div>';
-    stEl('after').hidden = true;
-    stEl('rec').textContent = 'यहीं से — निशान लगाएँ';
+    len.innerHTML = 'अवधि — <b>—</b> <span style="opacity:.7">गायन चलाकर “यहीं” दबाइए</span>';
   }
+  paintWarn(s);
+  var old = !s || s.in == null ? oldGuess(c) : null;
+  if(old != null) stHint('मशीन का पुराना अनुमान ' + fmtx(old) + ' — सुनकर सही कर दीजिए।');
 }
-function studioRec(){
+function oldGuess(c){
+  var m = ((GA.segments || []).concat(GA.markers || [])).filter(function(x){
+    return x.sec === c.dataset.sec && String(x.n) === String(c.dataset.n);
+  })[0];
+  if(!m) return null;
+  return m.in != null ? +m.in : (m.t != null ? +m.t : null);
+}
+function nextIn(i){
+  for(var k = i + 1; k < CARDS.length; k++){ var s = segAt(k); if(s && s.in != null) return s.in; }
+  return null;
+}
+function prevOut(i){
+  for(var k = i - 1; k >= 0; k--){ var s = segAt(k); if(s && (s.out != null || s.in != null)) return s.out != null ? s.out : s.in; }
+  return null;
+}
+function paintWarn(s){
+  var w = stEl('warn'), msg = [];
+  if(s && s.in != null && s.out != null){
+    if(s.out <= s.in) msg.push('अंत, शुरू से पहले या बराबर है — ठीक कीजिए।');
+    else if(s.out - s.in < 1.2) msg.push('यह हिस्सा बहुत छोटा है (' + (s.out - s.in).toFixed(1) + ' सेकंड)।');
+    else if(s.out - s.in > 90) msg.push('यह हिस्सा बहुत लंबा है (' + Math.round(s.out - s.in) + ' सेकंड) — शायद अंत आगे रह गया।');
+  }
+  var po = prevOut(SI);
+  if(s && s.in != null && po != null && s.in < po - 0.05) msg.push('पिछले छंद का अंत (' + fmtx(po) + ') इससे आगे है — आपस में टकरा रहे हैं।');
+  var ni = nextIn(SI);
+  if(s && s.out != null && ni != null && s.out > ni + 0.05) msg.push('अगले छंद का शुरू (' + fmtx(ni) + ') इससे पीछे है — आपस में टकरा रहे हैं।');
+  var d = audioLen();
+  if(s && s.out != null && s.out > d + 0.5) msg.push('अंत, गायन की कुल लंबाई से बाहर है।');
+  w.innerHTML = msg.join('<br>');
+  w.classList.toggle('on', !!msg.length);
+}
+
+/* ---------- आस-पास की पट्टी ---------- */
+function stripPaint(){
+  var st = stEl('strip');
+  var s = curSeg(), lo, hi;
+  var a = (s && s.in != null) ? s.in : null, b = (s && s.out != null) ? s.out : null;
+  var ni = nextIn(SI), po = prevOut(SI);
+  var pts = [a, b, ni, po].filter(function(x){ return x != null; });
+  if(!pts.length){ st.innerHTML = '<span class="lab">आस-पास — अभी कुछ नहीं लगा</span>'; st.dataset.lo = ''; return; }
+  lo = Math.max(0, Math.min.apply(null, pts) - 6);
+  hi = Math.min(audioLen(), Math.max.apply(null, pts) + 6);
+  if(hi - lo < 8) hi = lo + 8;
+  st.dataset.lo = lo; st.dataset.hi = hi;
+  var W = hi - lo, h = '';
+  function bar(from, to, cls){
+    if(from == null || to == null || to <= from) return;
+    var l = (from - lo) / W * 100, w = (to - from) / W * 100;
+    h += '<span class="seg ' + cls + '" style="left:' + l.toFixed(2) + '%;width:' + Math.max(0.6, w).toFixed(2) + '%"></span>';
+  }
+  for(var k = SI - 2; k <= SI + 2; k++){
+    if(k < 0 || k >= CARDS.length) continue;
+    var g = segAt(k);
+    if(!g || g.in == null) continue;
+    var to = g.out != null ? g.out : Math.min(g.in + 1.2, hi);
+    bar(g.in, to, k === SI ? '' : 'other');
+  }
+  h += '<span class="cur" id="st-cur" style="left:0%"></span>';
+  h += '<span class="lab">' + fmt(lo) + ' — ' + fmt(hi) + '</span>';
+  st.innerHTML = h;
+  if(AU) stripCursor(AU.currentTime);
+}
+function stripCursor(t){
+  var st = stEl('strip'), cur = $('#st-cur');
+  if(!st || !cur || !st.dataset.lo) return;
+  var lo = +st.dataset.lo, hi = +st.dataset.hi;
+  var p = (t - lo) / (hi - lo) * 100;
+  cur.style.display = (p < 0 || p > 100) ? 'none' : 'block';
+  cur.style.left = Math.max(0, Math.min(100, p)).toFixed(2) + '%';
+}
+
+/* ---------- लगाना और खिसकाना ---------- */
+function stamp(io){
   if(!AU){ toast('पहले गायन चलाइए', 2200); return; }
-  var c = CARDS[SI], t = Math.max(0, Math.round(AU.currentTime * 10) / 10);
-  UM[c.dataset.sec + ':' + c.dataset.n] = t;
-  jSet(umKey(), UM);
-  bell();
-  studioPaint();
-  stEl('hint').textContent = 'लगा दिया — "जाँचें" दबाकर सुन लीजिए, ठीक न हो तो "फिर से"।';
-  var o = stEl('sel').options[SI];
-  if(o && o.textContent.indexOf('✓') < 0) o.textContent += ' ✓';
+  var c = curCard();
+  segSet(c.dataset.sec, c.dataset.n, io, AU.currentTime);
+  bell(); paintIO(); stripPaint(); retagOpt(SI);
+  stEl('prog').textContent = segCount().full + ' / ' + CARDS.length + ' पूरे';
+  stHint(io === 'in' ? 'शुरू लग गया — अब जहाँ यह छंद ख़त्म हो, वहाँ “अंत — यहीं” दबाइए।'
+                     : 'अंत लग गया — “यही हिस्सा सुनें” दबाकर जाँच लीजिए।');
 }
-function studioVerify(){
-  var c = CARDS[SI], t = UM[c.dataset.sec + ':' + c.dataset.n];
-  if(t == null) return;
-  clearTimeout(verifyTimer);
-  playGaanRaw(Math.max(0, t - 0.8));
-  stEl('hint').textContent = 'सुनिए — क्या यहीं से यह छंद शुरू हो रहा है?';
-  verifyTimer = setTimeout(function(){ if(AU) AU.pause(); stEl('play').innerHTML = svg(IC.play, 'f'); }, 8000);
+function nudge(io, d){
+  var c = curCard(), s = curSeg();
+  var base = (s && s[io] != null) ? s[io] : (AU ? AU.currentTime : null);
+  if(base == null){ toast('पहले “यहीं” दबाकर समय लगा दीजिए', 2400); return; }
+  segSet(c.dataset.sec, c.dataset.n, io, Math.max(0, base + d));
+  paintIO(); stripPaint(); retagOpt(SI);
+  var nv = curSeg();
+  if(AU && nv && nv[io] != null){ AU.currentTime = Math.max(0, nv[io] - (io === 'out' ? 1.2 : 0)); stripCursor(AU.currentTime); }
 }
-function studioGo(d){
-  var i = SI + d;
-  if(i < 0 || i >= CARDS.length) return;
-  SI = i;
-  clearTimeout(verifyTimer);
-  studioPaint();
-  stEl('hint').textContent = 'गायन चलाइए। जैसे ही यह छंद शुरू हो, बड़ा बटन दबा दीजिए।';
-}
-/* गायन-पट्टी वाला playGaan पन्ना भी चलाता है; समय-पट में सिर्फ़ आवाज़ चाहिए */
+
+/* ---------- सुनना ---------- */
 function playGaanRaw(at){
   var a = ensureAudio();
-  if(at != null) a.currentTime = at;
+  if(at != null) a.currentTime = Math.max(0, at);
   a.playbackRate = gaRates[gaRi];
   var pr = a.play();
   if(pr && pr.catch) pr.catch(function(){ toast('गायन शुरू नहीं हो पाया — फिर दबाइए', 2800); });
   stEl('play').innerHTML = svg(IC.pause);
 }
+function hearSeg(){
+  var s = curSeg();
+  if(!s || s.in == null){ toast('पहले शुरू लगाइए', 2200); return; }
+  var from = Math.max(0, s.in - (ST_LOOP ? 0 : 0));
+  var to = (s.out != null) ? s.out : Math.min(s.in + 12, audioLen());
+  if(to <= from + 0.1){ toast('अंत, शुरू से आगे होना चाहिए', 2600); return; }
+  SEGPLAY = { from: from, out: to, loop: ST_LOOP };
+  playGaanRaw(from);
+  stHint(ST_LOOP ? 'दोहराव चालू — यही हिस्सा बार-बार बजेगा। रोकने के लिए ⏸ दबाइए।'
+                 : 'सुनिए — क्या पूरा छंद इसी बीच में आ रहा है?');
+}
+function hearEdge(io){
+  var s = curSeg();
+  if(!s || s[io] == null) return;
+  SEGPLAY = { from: Math.max(0, s[io] - ST_PAD), out: s[io] + ST_PAD * 2, loop: false };
+  playGaanRaw(SEGPLAY.from);
+}
+
+/* ---------- जोड़ना और आगे बढ़ना ---------- */
+function chainOne(){
+  var c = curCard(), s = curSeg();
+  if(SI + 1 >= CARDS.length){ toast('यह आख़िरी छंद है', 2200); return; }
+  var nc = CARDS[SI + 1], ns = segOf(nc.dataset.sec, nc.dataset.n);
+  if(s && s.out != null && (!ns || ns.in == null)){
+    segSet(nc.dataset.sec, nc.dataset.n, 'in', s.out);
+    retagOpt(SI + 1);
+    toast('अगले छंद का शुरू ' + fmtx(s.out) + ' पर लगा दिया', 2600);
+  } else if(ns && ns.in != null){
+    segSet(c.dataset.sec, c.dataset.n, 'out', ns.in);
+    toast('इस छंद का अंत ' + fmtx(ns.in) + ' कर दिया', 2600);
+  } else { toast('पहले इसका अंत या अगले का शुरू लगाइए', 2800); return; }
+  bell(); paintIO(); stripPaint(); retagOpt(SI);
+}
+function chainAll(){
+  var n = 0;
+  for(var i = 0; i < CARDS.length - 1; i++){
+    var c = CARDS[i], s = segOf(c.dataset.sec, c.dataset.n);
+    if(!s || s.in == null || s.out != null) continue;
+    var ni = nextIn(i);
+    if(ni == null || ni <= s.in) continue;
+    segSet(c.dataset.sec, c.dataset.n, 'out', ni);
+    n++;
+  }
+  if(!n){ toast('जोड़ने लायक़ कुछ नहीं मिला', 2600); return; }
+  bell();
+  CARDS.forEach(function(_, i){ retagOpt(i); });
+  studioPaint();
+  toast(n + ' छंदों का अंत, अगले के शुरू से जोड़ दिया', 3200);
+}
+function studioGo(d){
+  var i = SI + d;
+  if(i < 0 || i >= CARDS.length){ toast(d > 0 ? 'यह आख़िरी छंद है' : 'यह पहला छंद है', 2000); return; }
+  SI = i; SEGPLAY = null;
+  studioPaint();
+  var s = curSeg();
+  stHint(s && s.in != null ? 'इस छंद का समय लगा हुआ है — सुनकर जाँच लीजिए।'
+                           : 'गायन चलाइए। जैसे ही यह छंद शुरू हो, “शुरू — यहीं” दबा दीजिए।');
+}
+
+/* ---------- बटन ---------- */
 stEl('close').addEventListener('click', studioClose);
-stEl('rec').addEventListener('click', studioRec);
-stEl('redo').addEventListener('click', studioRec);
-stEl('verify').addEventListener('click', studioVerify);
+stEl('setin').addEventListener('click', function(){ stamp('in'); });
+stEl('setout').addEventListener('click', function(){ stamp('out'); });
+$$('#studio .nudge button').forEach(function(b){
+  b.addEventListener('click', function(){ nudge(b.dataset.nud, +b.dataset.d); });
+});
+stEl('in').addEventListener('click', function(){ hearEdge('in'); });
+stEl('out').addEventListener('click', function(){ hearEdge('out'); });
+stEl('hear').addEventListener('click', hearSeg);
+stEl('loop').addEventListener('click', function(){
+  ST_LOOP = !ST_LOOP;
+  this.setAttribute('aria-pressed', ST_LOOP ? 'true' : 'false');
+  this.classList.toggle('ghost', !ST_LOOP);
+  if(SEGPLAY) SEGPLAY.loop = ST_LOOP;
+  toast(ST_LOOP ? 'दोहराव चालू' : 'दोहराव बंद', 1800);
+});
+stEl('chain').addEventListener('click', chainOne);
 stEl('next').addEventListener('click', function(){ studioGo(1); });
 stEl('prev').addEventListener('click', function(){ studioGo(-1); });
-stEl('sel').addEventListener('change', function(){ SI = +this.value; clearTimeout(verifyTimer); studioPaint(); });
+stEl('sel').addEventListener('change', function(){ SI = +this.value; SEGPLAY = null; studioPaint(); });
 stEl('play').addEventListener('click', function(){
-  clearTimeout(verifyTimer);
-  if(AU && !AU.paused){ AU.pause(); this.innerHTML = svg(IC.play, 'f'); }
+  if(AU && !AU.paused){ AU.pause(); SEGPLAY = null; this.innerHTML = svg(IC.play, 'f'); }
   else playGaanRaw(null);
 });
-stEl('back').addEventListener('click', function(){ if(AU) AU.currentTime = Math.max(0, AU.currentTime - 2); });
-stEl('fwd').addEventListener('click', function(){ if(AU) AU.currentTime = AU.currentTime + 2; });
+stEl('back').addEventListener('click', function(){ SEGPLAY = null; if(AU) AU.currentTime = Math.max(0, AU.currentTime - 2); });
+stEl('fwd').addEventListener('click', function(){ SEGPLAY = null; if(AU) AU.currentTime = AU.currentTime + 2; });
 stEl('prevst').addEventListener('click', function(){ studioStanza(-1); });
 stEl('nextst').addEventListener('click', function(){ studioStanza(1); });
 function studioStanza(dir){
@@ -1635,7 +1919,7 @@ function studioStanza(dir){
   if(dir > 0){ for(var i = 0; i < L.length; i++) if(L[i] > t + 0.6){ to = L[i]; break; } }
   else { for(var j = L.length - 1; j >= 0; j--) if(L[j] < t - 1.2){ to = L[j]; break; } if(to == null) to = 0; }
   if(to == null) return;
-  clearTimeout(verifyTimer);
+  SEGPLAY = null;
   playGaanRaw(to);
 }
 (function(){
@@ -1643,22 +1927,25 @@ function studioStanza(dir){
   sk.addEventListener('input', function(){ sk.dataset.drag = '1'; });
   sk.addEventListener('change', function(){
     delete sk.dataset.drag;
+    SEGPLAY = null;
     if(!AU) return;
-    AU.currentTime = (+sk.value / 1000) * ((AU.duration || GA.duration || 1));
+    AU.currentTime = (+sk.value / 1000) * audioLen();
   });
 })();
 stEl('copy').addEventListener('click', function(){
-  var txt = 'markers: [\n' + marksText() + '\n]';
+  var txt = 'segments: [\n' + marksText() + '\n]';
   if(navigator.clipboard && navigator.clipboard.writeText)
     navigator.clipboard.writeText(txt).then(function(){ toast('सूची प्रतिलिपि हो गई — मुझे भेज दीजिए', 3200); },
                                            function(){ fallbackCopy(txt, function(){ toast('सूची प्रतिलिपि हो गई', 2800); }); });
   else fallbackCopy(txt, function(){ toast('सूची प्रतिलिपि हो गई', 2800); });
 });
+stEl('chainall').addEventListener('click', chainAll);
 stEl('clear').addEventListener('click', function(){
   if(!Object.keys(UM).length){ toast('अभी आपका कोई निशान नहीं है', 2200); return; }
+  if(!confirm('आपके लगाए सारे समय मिट जाएँगे। मिटाएँ?')) return;
   UM = {}; jSet(umKey(), UM);
   studioPaint();
-  $$('#st-sel option').forEach(function(o){ o.textContent = o.textContent.replace(' ✓',''); });
+  CARDS.forEach(function(_, i){ retagOpt(i); });
   toast('आपके सारे निशान मिटा दिए', 2600);
 });
 
@@ -1707,13 +1994,13 @@ function renderSheet(tab){
     if(GA){
       h += '<div class="setrow"><div class="lab">गायन के साथ पन्ना चले<small>समय सही होने तक बंद रखिए</small></div>' +
            '<button class="sw" id="follow-sw" aria-pressed="' + (SET.gaanFollow ? 'true' : 'false') + '"><i></i></button></div>';
-      h += '<div class="setrow"><div class="lab">समय-पट खोलें<small>हर छंद का समय अपने हाथ से</small></div>' +
+      h += '<div class="setrow"><div class="lab">समय-पट खोलें<small>हर छंद — इस सेकंड से इस सेकंड तक</small></div>' +
            '<div class="chips"><button id="open-studio">खोलें</button></div></div>';
-      var own = Object.keys(UM).length;
-      h += '<div class="setrow"><div class="lab">गायन के निशान<small>' +
-             (own ? own + ' निशान आपने लगाए हैं' : 'अभी आपने कोई निशान नहीं लगाया') + '</small></div>' +
+      var sc = segCount();
+      h += '<div class="setrow"><div class="lab">गायन के समय<small>' +
+             (sc.all ? sc.full + ' पूरे (शुरू+अंत)' + (sc.part ? ', ' + sc.part + ' अधूरे' : '') : 'अभी आपने कोई समय नहीं लगाया') + '</small></div>' +
            '<div class="chips"><button id="mk-copy">प्रतिलिपि</button>' +
-             (own ? '<button id="mk-clear">मिटाएँ</button>' : '') + '</div></div>';
+             (sc.all ? '<button id="mk-clear">मिटाएँ</button>' : '') + '</div></div>';
     }
     var tot = G.count || (G.sections ? G.sections.reduce(function(a,s){ return a + s.verses.length; }, 0) : CARDS.length);
     h += '<div class="empty" style="padding:1.2rem 1rem .2rem">' + esc(G.title) + ' — कुल ' + tot + ' ' + esc(unit()) + ' · सहेजे ' + BM.length + '</div>';
@@ -1727,7 +2014,7 @@ $('#tool-gaan').addEventListener('click', function(){
   if(!GA) return;
   var bar = $('#gaanbar');
   if(bar.classList.contains('on')) stopGaan();
-  else { bar.classList.add('on'); fab.classList.add('hide'); bell(); toast('गायन — ▶ दबाइए', 2400); }
+  else { bar.classList.add('on'); document.body.dataset.mark = '1'; fab.classList.add('hide'); bell(); toast('गायन — ▶ दबाइए', 2400); }
 });
 $('#btn-index').addEventListener('click', function(){ openSheet(BM.length ? 'bm' : 'toc'); });
 $('#btn-set').addEventListener('click', function(){ openSheet('set'); });
@@ -1763,7 +2050,7 @@ sBody.addEventListener('click', function(e){
   var go = t.closest ? t.closest('[data-go]') : null;
   if(go){ closeSheet(); goTo(go.dataset.gsec || null, go.dataset.go, true); return; }
   if(t.id === 'mk-copy'){
-    var txt = 'markers: [\n' + marksText() + '\n]';
+    var txt = 'segments: [\n' + marksText() + '\n]';
     if(navigator.clipboard && navigator.clipboard.writeText)
       navigator.clipboard.writeText(txt).then(function(){ toast('निशान की सूची प्रतिलिपि हो गई — मुझे भेज दीजिए', 3200); },
                                              function(){ fallbackCopy(txt, function(){ toast('निशान की सूची प्रतिलिपि हो गई', 2800); }); });

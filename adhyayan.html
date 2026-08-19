@@ -81,6 +81,7 @@ header.bhead .facts span{font-size:.7rem;color:var(--muted);background:var(--chi
 
 h2.ch{margin:2.4rem 0 1.2rem;text-align:center}
 h2.ch span{display:block;font-size:.62rem;letter-spacing:.28em;color:var(--accent);font-weight:700;margin-bottom:.45rem}
+h2.ch em{display:block;font-style:normal;font-size:.7rem;color:var(--muted);margin-top:.5rem;letter-spacing:.04em}
 h2.ch b{font-family:"Noto Serif Devanagari",serif;font-size:1.32rem;font-weight:600}
 h2.ch::after{content:"";display:block;width:44px;height:2px;background:var(--accent);opacity:.4;margin:.7rem auto 0;border-radius:2px}
 
@@ -96,7 +97,43 @@ p.pa.k-h{font-family:"Noto Serif Devanagari",serif;font-size:calc(1.1rem * var(-
   color:var(--ink);text-align:right;margin-top:1.9rem;margin-bottom:.9rem}
 p.pa.k-h::before{content:"◆ ";color:var(--accent);font-size:.7em;vertical-align:middle}
 p.pa.k-q{border-left:3px solid var(--accent);padding-left:.9rem;font-style:italic;color:var(--ink);
-  background:var(--chip);border-radius:0 10px 10px 0;padding-top:.6rem;padding-bottom:.6rem}
+  background:var(--chip);border-radius:0 10px 10px 0;padding-top:.6rem;padding-bottom:.6rem;
+  font-family:"Noto Serif Devanagari",serif;font-size:calc(1.08rem * var(--fs));text-align:center}
+
+/* गणना-बॉक्स */
+p.pa.k-box{background:var(--paper);border:1px dashed var(--glass-brd);border-radius:12px;
+  padding:.85rem 1rem;font-variant-numeric:tabular-nums;text-align:center;color:var(--ink);
+  line-height:2.1;font-size:calc(.98rem * var(--fs))}
+
+/* चित्र */
+figure.fg{margin:1.6rem 0;border:1px solid var(--glass-brd);border-radius:16px;overflow:hidden;
+  background:var(--paper);box-shadow:var(--shadow)}
+figure.fg .lb{padding:.6rem .9rem;font-size:.68rem;letter-spacing:.16em;color:var(--accent);
+  font-weight:700;border-bottom:1px solid var(--rule)}
+figure.fg img{display:block;width:100%;height:auto;background:#fff}
+figure.fg p.pa.k-cap{margin:0;padding:.85rem .95rem;font-size:calc(.88rem * var(--fs));color:var(--muted);
+  text-align:right;line-height:1.8;border-radius:0}
+figure.fg .dsc{padding:0 .95rem .85rem;font-size:.76rem;color:var(--muted);line-height:1.7;text-align:right;display:none}
+figure.fg.open .dsc{display:block}
+figure.fg .dbtn{display:block;width:100%;padding:.5rem;font-size:.74rem;color:var(--accent);
+  border-top:1px solid var(--rule);font-weight:600}
+
+/* कार्य क़दम */
+.acts{margin:2rem 0 1rem;border:1px solid var(--accent);border-radius:18px;background:var(--paper);
+  box-shadow:var(--shadow);overflow:hidden;counter-reset:act}
+.acts .acth{padding:.85rem 1rem;background:var(--accent);color:var(--on-accent);font-weight:700;
+  font-size:calc(.95rem * var(--fs));text-align:right;line-height:1.6}
+.acts p.pa.k-act{margin:0;padding:.85rem 1rem .85rem 2.9rem;border-bottom:1px solid var(--rule);
+  border-radius:0;position:relative;text-align:right}
+.acts p.pa.k-act::before{counter-increment:act;content:counter(act);position:absolute;left:.9rem;top:.85rem;
+  width:1.5rem;height:1.5rem;border-radius:50%;background:var(--chip);color:var(--accent);
+  font-size:.75rem;font-weight:700;display:grid;place-items:center}
+.acts .actf{padding:.75rem 1rem;font-size:.78rem;color:var(--muted);line-height:1.7;text-align:right}
+
+/* स्रोत की टिप्पणी */
+.pnote{margin:-.7rem 0 1.15rem;padding:.5rem .75rem;border-radius:9px;background:var(--chip);
+  font-size:.74rem;color:var(--muted);line-height:1.7;text-align:right}
+.pnote::before{content:"⌖ ";color:var(--accent);font-weight:700}
 
 mark.hl{background:var(--c1);color:var(--ink);border-radius:3px;padding:.06em .05em;cursor:pointer}
 mark.hl.c2{background:var(--c2)} mark.hl.c3{background:var(--c3)} mark.hl.c4{background:var(--c4)}
@@ -137,6 +174,9 @@ mark.hl.pick{outline:2px solid var(--accent);outline-offset:1px}
   background:var(--chip);margin-bottom:.45rem}
 .cnav small{display:block;font-size:.66rem;letter-spacing:.14em;color:var(--accent);margin-bottom:.2rem}
 .cnav b{font-size:.98rem;font-weight:600}
+.snav{display:block;width:100%;text-align:right;padding:.5rem .9rem .5rem 1.6rem;border-radius:10px;
+  font-size:.85rem;color:var(--ink-soft);margin-bottom:.25rem;background:transparent}
+.snav::before{content:"— ";color:var(--muted)}
 
 .nrow{border:1px solid var(--glass-brd);border-radius:14px;background:var(--paper-2);padding:.75rem .85rem;margin-bottom:.55rem;
   border-right:4px solid var(--c1)}
@@ -353,10 +393,9 @@ function render(data, pid){
   buildTabs();
 
   var facts = [];
-  if(B.paraCount) facts.push(B.paraCount + ' अनुच्छेद');
+  facts.push((B.chapters||[]).length + ' अध्याय');
   if(B.readMins)  facts.push('~' + B.readMins + ' मिनट');
   if(B.pageFrom)  facts.push('पृष्ठ ' + B.pageFrom + '–' + B.pageTo);
-  facts.push((B.chapters||[]).length + ' अध्याय');
   $('#bhead').innerHTML =
     '<div class="kind">अध्ययन-पुस्तक</div>' +
     '<h1>' + esc(B.title) + '</h1>' +
@@ -367,14 +406,44 @@ function render(data, pid){
   var h = '', lastPage = null;
   PARAS = [];
   (B.chapters || []).forEach(function(c){
-    h += '<h2 class="ch"><span>अध्याय</span><b>' + esc(c.title) + '</b></h2>';
+    h += '<h2 class="ch"><span>अध्याय' + (c.no ? ' ' + esc(c.no) : '') + '</span><b>' + esc(c.title) + '</b>' +
+         (c.srcPages ? '<em>किताब के पृष्ठ ' + esc(c.srcPages) + '</em>' : '') + '</h2>';
+    var inAct = false;
     c.paras.forEach(function(p){
-      if(p.page != null && p.page !== lastPage){ h += '<div class="pg">पृष्ठ ' + p.page + '</div>'; lastPage = p.page; }
-      h += '<p class="pa' + (p.k ? ' k-' + p.k : '') + '" data-pid="' + esc(p.pid) + '" data-ch="' + esc(c.id) + '"></p>';
-      PARAS.push({ pid: p.pid, t: p.t, ch: c.id, chTitle: c.title, page: p.page });
+      var pa = function(cls){
+        return '<p class="pa' + cls + '" data-pid="' + esc(p.pid) + '" data-ch="' + esc(c.id) + '"></p>';
+      };
+      /* कार्य क़दम का डिब्बा खुला हो और अब वह हिस्सा नहीं है → बंद कर दें */
+      if(inAct && p.k !== 'act' && p.k !== 'actf'){ h += '</div>'; inAct = false; }
+      if(p.page != null && p.page !== lastPage && p.k !== 'act' && p.k !== 'actf'){
+        h += '<div class="pg">पृष्ठ ' + p.page + '</div>'; lastPage = p.page;
+      }
+
+      if(p.k === 'fig'){
+        h += '<figure class="fg">' +
+               (p.label ? '<div class="lb">' + esc(p.label) + (p.page ? ' · पृष्ठ ' + p.page : '') + '</div>' : '') +
+               '<img src="' + esc(p.src) + '" alt="' + esc(p.label || 'चित्र') + '" loading="lazy">' +
+               pa(' k-cap') +
+               (p.desc ? '<button class="dbtn" data-dsc="1">चित्र में क्या है — पढ़िए</button><div class="dsc">' + esc(p.desc) + '</div>' : '') +
+             '</figure>';
+      } else if(p.k === 'acth'){
+        h += '<div class="acts"><div class="acth" data-pid="' + esc(p.pid) + '">' + esc(p.t) + '</div>';
+        inAct = true;
+      } else if(p.k === 'actf'){
+        h += '<div class="actf">' + esc(p.t) + '</div>';
+      } else {
+        h += pa(p.k ? ' k-' + p.k : '');
+      }
+      if(p.note) h += '<div class="pnote">' + esc(p.note) + '</div>';
+
+      if(p.k !== 'acth' && p.k !== 'actf')
+        PARAS.push({ pid: p.pid, t: p.t, ch: c.id, chTitle: c.title, page: p.page, k: p.k || '' });
     });
+    if(inAct) h += '</div>';
   });
   $('#body').innerHTML = h;
+  var fx = $('#bhead .facts');
+  if(fx) fx.insertAdjacentHTML('afterbegin', '<span>' + PARAS.length + ' अनुच्छेद</span>');
   paintAll();
   refreshBadge();
   setupProgress();
@@ -471,6 +540,9 @@ function onPick(e){
   showPop(s.rect, popNew());
 }
 $('#body').addEventListener('click', function(e){
+  var db = e.target.closest && e.target.closest('.dbtn');
+  if(db){ var fg = db.closest('figure.fg'); fg.classList.toggle('open');
+    db.textContent = fg.classList.contains('open') ? 'विवरण बंद कीजिए' : 'चित्र में क्या है — पढ़िए'; return; }
   var m = e.target.closest && e.target.closest('mark.hl');
   if(!m) return;
   e.stopPropagation();
@@ -594,7 +666,7 @@ $('#res-go').addEventListener('click', function(){
   $('#resume').classList.remove('on');
 });
 function jumpTo(pid){
-  var el = $('#body p.pa[data-pid="' + pid + '"]');
+  var el = $('#body [data-pid="' + pid + '"]');
   if(!el){ toast('वह जगह नहीं मिली', 2000); return; }
   el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   el.classList.add('flash');
@@ -638,9 +710,12 @@ function renderSheet(tab){
 
   if(tab === 'toc'){
     (B.chapters || []).forEach(function(c){
-      var pg = c.paras.filter(function(p){ return p.page != null; })[0];
       h += '<button class="cnav" data-go="' + esc(c.paras[0].pid) + '">' +
-             '<small>अध्याय' + (pg ? ' · पृष्ठ ' + pg.page : '') + '</small><b>' + esc(c.title) + '</b></button>';
+             '<small>अध्याय' + (c.no ? ' ' + esc(c.no) : '') + (c.srcPages ? ' · पृष्ठ ' + esc(c.srcPages) : '') +
+             '</small><b>' + esc(c.title) + '</b></button>';
+      c.paras.filter(function(p){ return p.k === 'h' || p.k === 'acth'; }).forEach(function(p){
+        h += '<button class="snav" data-go="' + esc(p.pid) + '">' + esc(p.t) + '</button>';
+      });
     });
     h += '<div class="empty" style="padding:1rem .5rem 0">' + esc(B.title) + ' — ' + PARAS.length + ' अनुच्छेद · ' + HL.length + ' निशान</div>';
   }

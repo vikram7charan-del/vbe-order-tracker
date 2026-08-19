@@ -83,7 +83,47 @@ node scripts/pustak-banao.js nayi-pustak/pustak-2.md
 | आदेश | `node scripts/pustak-banao.js` | `node scripts/adhyayan-banao.js` |
 | ऐप | `granth.html` | `adhyayan.html` |
 
-## अध्ययन-पुस्तक कैसे लिखें
+## अध्ययन-पुस्तक के दो रास्ते
+
+**रास्ता 1 — सीधा** : `nayi-pustak/adhyayan.md` में लिखिए →
+`node scripts/adhyayan-banao.js`. आसान, बिना किसी तैयारी के।
+
+**रास्ता 2 — अध्याय-दर-अध्याय JSON** : जब किताब को ठीक से डिजिटाइज़ किया
+जा रहा हो (जैसे *द कम्पाउंड इफ़ेक्ट*)। हर अध्याय की एक JSON फ़ाइल —
+
+```
+book/compound_effect_hi/
+  INDEX.md              ← प्रगति और नोट
+  data/ch01.json        ← अध्याय 1  (paragraphs, sections, pull_quotes,
+  data/ch02.json        ←            action_steps, figures, uncertain_spots)
+  chapters/ch01.md      ← पढ़ने लायक़ मार्कडाउन (मूल प्रति)
+  images/ch01_fig01.svg ← चित्र
+```
+
+फिर एक आदेश —
+
+```
+node scripts/book-json-banao.js compound_effect_hi
+```
+
+नया अध्याय बनते ही उसकी `ch02.json` उसी folder में रख दीजिए और यही
+आदेश दोबारा चला दीजिए। सारे अध्याय अपने आप जुड़ जाएँगे।
+
+इस रास्ते में ये सब भी ऐप में आ जाते हैं —
+
+| JSON में | ऐप में |
+|---|---|
+| `sections[].heading` | बीच का शीर्षक (◆ के साथ) + अनुक्रम में उप-पंक्ति |
+| `pull_quotes` | बीच में बड़ा उद्धरण-बॉक्स |
+| `type: "calculation_box"` | गणना का अलग डिब्बा |
+| `figures` | चित्र, कैप्शन, और "चित्र में क्या है — पढ़िए" |
+| `action_steps` | अंत में गिनती वाले **कार्य क़दम** का डिब्बा |
+| `note` / `uncertain_spots` | अनुच्छेद के नीचे छोटी ⌖ टिप्पणी |
+| `page_no` | किताब के असली पृष्ठ-अंक |
+
+कैप्शन और हर कार्य क़दम पर भी **निशान और नोट** लगते हैं।
+
+## अध्ययन-पुस्तक कैसे लिखें (रास्ता 1)
 
 `nayi-pustak/adhyayan.md` खोलिए —
 

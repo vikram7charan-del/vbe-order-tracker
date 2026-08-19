@@ -781,6 +781,7 @@ function paintTabs(active){
              '<span class="nm">' + esc(r.title) + '</span>' +
              '<span class="sub">' + r.count + ' ' + esc(r.unitLabel) + '</span></button>';
     });
+    h += '<button class="gtab soon" id="tab-adh"><span class="nm">अध्ययन</span><span class="sub">पढ़िए · निशान</span></button>';
     h += '<button class="gtab soon" id="tab-soon"><span class="nm">+ आगे</span><span class="sub">जुड़ते रहेंगे</span></button>';
     box.innerHTML = h;
     box.dataset.built = '1';
@@ -793,7 +794,8 @@ function paintTabs(active){
         loadGranth(b.dataset.id);
       });
     });
-    $('#tab-soon').addEventListener('click', function(){ toast('नई पुस्तक जोड़नी हो तो nayi-pustak/pustak.md में लिख दीजिए — अपने आप यहाँ आ जाएगी।', 4200); });
+    $('#tab-adh').addEventListener('click', function(){ location.href = 'adhyayan.html'; });
+    $('#tab-soon').addEventListener('click', function(){ toast('नया ग्रंथ जोड़ना हो तो nayi-pustak/pustak.md में लिख दीजिए — अपने आप यहाँ आ जाएगा।', 4200); });
   }
   $$('.gtab[data-id]', box).forEach(function(b){
     var on = b.dataset.id === active;

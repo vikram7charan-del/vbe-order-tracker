@@ -89,7 +89,7 @@ node scripts/pustak-banao.js nayi-pustak/pustak-2.md
 `node scripts/adhyayan-banao.js`. आसान, बिना किसी तैयारी के।
 
 **रास्ता 2 — अध्याय-दर-अध्याय JSON** : जब किताब को ठीक से डिजिटाइज़ किया
-जा रहा हो (जैसे *द कम्पाउंड इफ़ेक्ट*)। हर अध्याय की एक JSON फ़ाइल —
+जा रहा हो (जैसे *द कम्पाउंड इफ़ेक्ट*)। पूरा विवरण **`books/README.md`** में। हर अध्याय की एक JSON फ़ाइल —
 
 ```
 book/compound_effect_hi/
@@ -104,6 +104,7 @@ book/compound_effect_hi/
 
 ```
 node scripts/book-json-banao.js compound_effect_hi
+node scripts/validate-book.mjs                    ← जाँच
 ```
 
 नया अध्याय बनते ही उसकी `ch02.json` उसी folder में रख दीजिए और यही

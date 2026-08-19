@@ -109,6 +109,7 @@ button{font-family:inherit;color:inherit;background:none;border:none;cursor:poin
 .seg button{flex:1;padding:.42rem .3rem;border-radius:999px;font-size:.84rem;font-weight:600;color:var(--muted);white-space:nowrap;transition:.22s}
 .seg button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);box-shadow:0 3px 10px var(--glow)}
 .tool{width:38px;height:38px;min-width:38px;border-radius:12px;border:1px solid var(--glass-brd);display:grid;place-items:center;font-size:1rem;background:var(--chip);transition:.2s;position:relative}
+[hidden]{display:none !important}   /* display: वाले नियम [hidden] को दबा न दें */
 .tool:active{transform:scale(.92)}
 .tool .badge{position:absolute;top:-5px;right:-5px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:var(--accent);color:var(--on-accent);font-size:.62rem;font-weight:700;display:grid;place-items:center;line-height:1}
 .pathbar{display:none;max-width:680px;margin:0 auto;padding:0 1.05rem .55rem;align-items:center;gap:.45rem}
@@ -792,7 +793,7 @@ function paintTabs(active){
         loadGranth(b.dataset.id);
       });
     });
-    $('#tab-soon').addEventListener('click', function(){ toast('नए ग्रंथ जुड़ते रहेंगे।', 2400); });
+    $('#tab-soon').addEventListener('click', function(){ toast('नई पुस्तक जोड़नी हो तो nayi-pustak/pustak.md में लिख दीजिए — अपने आप यहाँ आ जाएगी।', 4200); });
   }
   $$('.gtab[data-id]', box).forEach(function(b){
     var on = b.dataset.id === active;
@@ -834,7 +835,7 @@ function mount(data, deep){
              '<div class="vtext pad">' + v.lines.map(function(l){ return '<span>' + esc(l) + '</span>'; }).join('') + '</div>';
       if(v.artha) h += '<div class="arth"><b>' + esc(v.arthaLabel || 'अर्थ') + '</b>' + esc(v.artha) + '</div>';
       else if(!sec.noArtha && !v.noArtha) h += '<div class="pending">अर्थ शेष</div>';
-      if(v.shabdarth) h += '<div class="arth"><b>शब्दार्थ</b>' + esc(v.shabdarth) + '</div>';
+      h += shabdBlock(v);
       if(hasB){
         var b = v.paathB, meta = [b.meter, b.title].filter(Boolean).map(esc).join(' · ');
         h += '<div class="pb">' +
@@ -923,6 +924,19 @@ var IC = {
   close:'<path d="M6 6l12 12M18 6L6 18"/>'
 };
 
+/* शब्दार्थ / टिप्पणी — सूची भी चलती है, सीधा वाक्य भी */
+function shabdBlock(v){
+  var h = '';
+  if(v.shabdarth){
+    if(typeof v.shabdarth === 'string') h += '<div class="sarth"><b>शब्दार्थ</b>' + esc(v.shabdarth) + '</div>';
+    else if(v.shabdarth.length)
+      h += '<div class="sarth"><b>शब्दार्थ</b>' + v.shabdarth.map(function(x){
+             return '<i>' + esc(x.shabd) + '</i> — ' + esc(x.arth); }).join(' · ') + '</div>';
+  }
+  if(v.tippani) h += '<div class="tipp">' + esc(v.tippani) + '</div>';
+  if(v.sampadak_note) h += '<div class="tipp">संपादक — ' + esc(v.sampadak_note) + '</div>';
+  return h;
+}
 function recBlock(key, rec, v, id){
   var lab = '<div class="rlab"><span class="dot"></span>' + esc(rec.full || rec.label) + '</div>';
   if(!v) return '<div class="col col-' + key + '">' + lab +
@@ -935,11 +949,7 @@ function recBlock(key, rec, v, id){
   if(chips.length) h += '<div class="meta-chips">' + chips.join('') + '</div>';
   h += '<div class="vtext pad r-' + key + '">' + v.mool.map(function(l){ return '<span>' + esc(l) + '</span>'; }).join('') + '</div>';
   if(v.arth) h += '<div class="arth"><b>' + esc(v.arth_label || 'अर्थ') + '</b>' + esc(v.arth) + '</div>';
-  if(v.shabdarth && v.shabdarth.length)
-    h += '<div class="sarth"><b>शब्दार्थ</b>' + v.shabdarth.map(function(x){
-           return '<i>' + esc(x.shabd) + '</i> — ' + esc(x.arth); }).join(' · ') + '</div>';
-  if(v.tippani) h += '<div class="tipp">' + esc(v.tippani) + '</div>';
-  if(v.sampadak_note) h += '<div class="tipp">संपादक — ' + esc(v.sampadak_note) + '</div>';
+  h += shabdBlock(v);
   h += '<div class="vacts"><button class="vbtn play" type="button" data-rec="' + key + '" aria-label="' +
          esc(rec.label) + ' का ' + esc(unit()) + ' ' + id + ' सुनें"><span class="ico">' + svg(IC.play, 'f') +
          '</span><span class="txt">पद्य सुनें</span></button><span class="sp"></span>' +

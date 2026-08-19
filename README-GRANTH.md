@@ -1,5 +1,11 @@
 # ग्रंथ पुस्तकालय — नया ग्रंथ कैसे जोड़ें
 
+> **सबसे आसान रास्ता (बिना प्रोग्रामिंग):**
+> `nayi-pustak/pustak.md` खोलिए, हिंदी में पुस्तक लिख/चिपका दीजिए,
+> फिर `node scripts/pustak-banao.js` चलाइए — डेटा-फाइल और रजिस्ट्री
+> दोनों अपने आप बन जाती हैं। पूरा तरीक़ा `nayi-pustak/README.md` में।
+> नीचे वाला विवरण तब काम आता है जब हाथ से बारीक़ी करनी हो।
+
 1. **डेटा फाइल बनाइए** — `data/<id>.js`, और उसमें सिर्फ़ इतना लिखिए:
    `window.GRANTH_DATA["<id>"] = { id, title, invocation, subtitle, author, note, rangeLabel, unitLabel, hasPaathVariants, theme, sections:[…] };`
 2. **हर भाग** ऐसा हो: `{ id:"…", title:"…", subtitle:"…", verses:[ { n:1, lines:["…"], artha:"…", shabdarth:null } ] }`

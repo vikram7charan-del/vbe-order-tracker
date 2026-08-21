@@ -163,12 +163,14 @@ async function main() {
       if (!x) continue;
       const addMs = x.addedAt ? Date.parse(x.addedAt) : 0;
       if (!addMs || isNaN(addMs)) continue;               // बिना तारीख़ = skip
-      if (x.at) continue;                                 // explicit ⏰ = syncTopicEvents संभालता है
+      if (x.at && x.tid) continue;                        // ⏰+tid = syncTopicEvents संभालता है (dup न बने)
       const key = x.tid || ('a' + addMs);
       seen.add(key);
       const ent = map[key] || {};
       if (ent.st === 'manual') continue;                  // app से हाथ से डाला — worker छोड़े
-      if (addMs < AUTO_START) { if (!ent.st) { map[key] = { st: 'skip' }; touched = true; } continue; }
+      // सिर्फ़ हाल के काम (आख़िरी 48 घंटे) — पुराने ढेरों काम का flood न बने
+      const refMs = x.at ? Date.parse(x.at) : addMs;
+      if (refMs < now - 48 * 3600000) { if (!ent.st) { map[key] = { st: 'skip' }; touched = true; } continue; }
 
       const evId = eventId(c.id + '_at_' + key);
       const fuId = eventId(c.id + '_fu_' + key);
@@ -184,10 +186,11 @@ async function main() {
         continue;
       }
 
-      // समय — add + lead (quiet-hours shift, urgent=pri high तुरंत)
-      let schedMs = addMs + CFG.lead * 60000;
-      if (x.pri !== 'high') schedMs = quietShift(schedMs);
+      // समय — काम पर ⏰ लगा हो तो वही; वरना add + lead (quiet-hours shift non-urgent)
+      let schedMs = x.at ? Date.parse(x.at) : (addMs + CFG.lead * 60000);
+      if (!x.at && x.pri !== 'high') schedMs = quietShift(schedMs);
       const fuMs = schedMs + CFG.followup * 60000;
+      const canPing = (t) => now >= t && (now - t) <= 3 * 3600000; // सिर्फ़ ताज़ा trigger पर TG (पुराना burst नहीं)
 
       // main event — पहली बार दिखते ही बना दो (start भविष्य में हो तब भी reminder पक्का)
       if (!ent.ev) {
@@ -234,12 +237,12 @@ async function main() {
       // सभी नए काम की याद owner (विक्रम जी) को Telegram पर आए (calendar के साथ-साथ)।
       if (CFG.tgRemind && ent.ev) {
         const day = istHour(now) >= 7 && istHour(now) < 22;   // रात में नहीं
-        if (day && !ent.mSent && now >= schedMs) {
-          await tgNudge(`🔔 काम का समय आ गया\n"${String(x.t).slice(0, 130)}"\n👤 ${x.assignTo || d.name || '—'}\n✅ हो जाए तो पोर्टल में लगाएँ: ${APP_URL}?open=${c.id}`);
-          ent.mSent = true; touched = true;
+        if (!ent.mSent && now >= schedMs) {
+          if (day && canPing(schedMs)) await tgNudge(`🔔 काम का समय आ गया\n"${String(x.t).slice(0, 130)}"\n👤 ${x.assignTo || d.name || '—'}\n✅ हो जाए तो पोर्टल में लगाएँ: ${APP_URL}?open=${c.id}`);
+          ent.mSent = true; touched = true;   // पुराना हो तो चुपचाप mark (burst नहीं)
         }
-        if (day && !ent.fSent && now >= fuMs) {
-          await tgNudge(`🔁 फॉलो-अप — यह काम अब तक बाकी है\n"${String(x.t).slice(0, 130)}"\n👤 ${x.assignTo || d.name || '—'}\n✅ पोर्टल में लगाएँ: ${APP_URL}?open=${c.id}`);
+        if (!ent.fSent && now >= fuMs) {
+          if (day && canPing(fuMs)) await tgNudge(`🔁 फॉलो-अप — यह काम अब तक बाकी है\n"${String(x.t).slice(0, 130)}"\n👤 ${x.assignTo || d.name || '—'}\n✅ पोर्टल में लगाएँ: ${APP_URL}?open=${c.id}`);
           ent.fSent = true; touched = true;
         }
       }
@@ -251,9 +254,11 @@ async function main() {
         for (const iv of CFG.escInts) { acc += iv * 60000; if (since >= acc) want++; }
         want = Math.min(want, CFG.maxEsc);
         if (want > (ent.esc || 0)) {
+          const first = !ent.esc;                          // पहली बार दिखा (पुराना काम) — चुपचाप state
           ent.esc = want; ent.st = want >= CFG.maxEsc ? 'stuck' : 'esc';
           ent.lastEsc = new Date(now).toISOString(); touched = true;
-          if (istHour(now) >= 7 && istHour(now) < 22) {  // शांति में nudge नहीं
+          // nudge सिर्फ़ ताज़ा escalation पर (7-22), पुराने अटके काम का burst नहीं
+          if (istHour(now) >= 7 && istHour(now) < 22 && !(first && since > 6 * 3600000)) {
             await tgNudge(`⚠️ अटका काम (${want}/${CFG.maxEsc}): "${String(x.t).slice(0, 90)}"\n👤 ${x.assignTo || d.name || '—'}\nजोड़ा: ${x.addedAt}\n✅ पोर्टल में पूरा लगाएँ: ${APP_URL}?open=${c.id}`);
           }
         }

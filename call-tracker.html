@@ -6283,10 +6283,9 @@ function _calCfg(){ const c=(window._settings&&window._settings.cal)||{};
 function calKeyOf(x){ if(!x) return ''; if(x.tid) return x.tid; const a=x.addedAt?Date.parse(x.addedAt):0; return a?'a'+a:''; }
 /* लौटाए {k:'pend'|'sync'|'esc'|'stuck'|'fail', label, pct?} या null */
 function calStateOf(c,x){
-  if(!x||x.done||x.at) return null;               // done / explicit-समय (उसका अलग रास्ता) = pill नहीं
+  if(!x||x.done||(x.at&&x.tid)) return null;       // done / ⏰+tid (उसका अलग रास्ता) = pill नहीं
   const cfg=_calCfg(); if(!cfg.enabled) return null;
   const addMs=x.addedAt?Date.parse(x.addedAt):0; if(!addMs||isNaN(addMs)) return null;
-  const start=(window._settings&&+window._settings.calAutoStart)||0;
   const ent=(c&&c.calAuto&&c.calAuto[calKeyOf(x)])||null;
   if(ent){
     if(ent.st==='manual') return {k:'sync',label:'📅 हाथ से डाला'};
@@ -6296,7 +6295,9 @@ function calStateOf(c,x){
     if(ent.st==='synced'){ const t=ent.at?new Date(ent.at):null; return {k:'sync',label:'📅 कैलेंडर में'+(t?' · '+t.toLocaleTimeString('hi-IN',{hour:'numeric',minute:'2-digit'}):'')}; }
     return null; // skip/done
   }
-  if(start && addMs<start) return null;           // feature से पहले जुड़ा = कभी नहीं
+  const refMs=x.at?Date.parse(x.at):addMs;
+  if(refMs < Date.now()-48*3600000) return null;   // 48 घंटे से पुराना = auto नहीं
+  if(x.at) return { k:'pend', label:'⏳ कैलेंडर में जा रहा…' };   // deadline वाला — ring नहीं
   const schedMs=addMs+cfg.lead*60000; const leftMin=Math.round((schedMs-Date.now())/60000);
   const pct=Math.max(0,Math.min(100,Math.round((Date.now()-addMs)/(cfg.lead*60000)*100)));
   return { k:'pend', label:leftMin>0?`⏳ ${leftMin} मिनट में कैलेंडर में`:'⏳ जुड़ने वाला है', pct };
@@ -6304,7 +6305,7 @@ function calStateOf(c,x){
 function calPillHTML(c,x){ const s=calStateOf(c,x); if(!s) return '';
   const tap=s.k==='fail'?` onclick="event.stopPropagation();calRetry('${c.id}','${calKeyOf(x)}')"`:'';
   return ` <span class="cal-pill ${s.k}"${tap}>${escH(s.label)}</span>`; }
-function calRingHTML(c,x){ const s=calStateOf(c,x); if(!s||s.k!=='pend') return '';
+function calRingHTML(c,x){ const s=calStateOf(c,x); if(!s||s.k!=='pend'||s.pct==null) return '';
   return `<span class="cd-ring" style="--p:${s.pct||0}" title="कैलेंडर में जुड़ने का काउंटडाउन"></span>`; }
 window.calRetry=function(cid,key){ const c=contacts.find(z=>z.id===cid); if(!c||!c.calAuto) return;
   const m=Object.assign({},c.calAuto); delete m[key]; c.calAuto=m; fbSave(c);

@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 560" font-family="'Noto Sans Devanagari','Noto Sans',sans-serif">
+  <rect width="800" height="560" fill="#ffffff"/>
+  <text x="400" y="34" text-anchor="middle" font-size="22" font-weight="bold" fill="#111">फ़िगर 2</text>
+
+  <!-- Axes -->
+  <line x1="130" y1="60" x2="130" y2="460" stroke="#111" stroke-width="3"/>
+  <line x1="130" y1="460" x2="740" y2="460" stroke="#111" stroke-width="3"/>
+
+  <!-- Y axis label group -->
+  <text x="120" y="120" text-anchor="end" font-size="16" fill="#111">परिणाम :</text>
+  <text x="120" y="145" text-anchor="end" font-size="15" fill="#333">आमदनी</text>
+  <text x="120" y="170" text-anchor="end" font-size="15" fill="#333">स्वास्थ्य</text>
+  <text x="120" y="195" text-anchor="end" font-size="15" fill="#333">संबंध</text>
+  <text x="120" y="220" text-anchor="end" font-size="15" fill="#333">खुशी</text>
+  <text x="120" y="245" text-anchor="end" font-size="15" fill="#333">सफलता</text>
+
+  <text x="420" y="200" text-anchor="middle" font-size="18" font-weight="bold" fill="#111">चयन   व्यवहार   आदतें</text>
+
+  <!-- Steep rising curve with arrowhead -->
+  <defs>
+    <marker id="arrow2" markerWidth="12" markerHeight="12" refX="6" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#888"/>
+    </marker>
+  </defs>
+  <path d="M 130,300 C 300,300 500,280 620,150 C 660,105 690,80 710,55"
+        fill="none" stroke="#999" stroke-width="6" marker-end="url(#arrow2)"/>
+
+  <!-- baseline heavy segment along bottom for contrast -->
+  <line x1="130" y1="460" x2="740" y2="460" stroke="#555" stroke-width="6"/>
+
+  <!-- Caption -->
+  <foreignObject x="60" y="480" width="680" height="75">
+    <p xmlns="http://www.w3.org/1999/xhtml" style="font-size:13px; color:#222; margin:0; line-height:1.4;">
+      संचयी परिणाम का सिद्धांत हमेशा काम करता है। आपको तो बस यह चुनना है कि यह आपकी ख़ातिर और आपके लाभ के लिए काम करे। अगर आप इसे नज़रअंदाज़ करते हैं, तो आपको इस शक्तिशाली सिद्धांत के नकारात्मक प्रभावों का अनुभव हो सकता है। इससे कोई फ़र्क़ नहीं पड़ता कि इस वक़्त आप इस ग्राफ़ में कहाँ हैं। आप आज ही अपने जीवन में सरल, सकारात्मक परिवर्तन करने का निर्णय ले सकते हैं और अपने मनचाहे लक्ष्य तक पहुँचने के लिए संचयी परिणाम के सिद्धांत का सहारा ले सकते हैं।
+    </p>
+  </foreignObject>
+</svg>

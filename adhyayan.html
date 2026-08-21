@@ -1,0 +1,2313 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#080C11" id="sr-theme-color">
+<title>अध्ययन — पढ़िए, सुनिए, निशान लगाइए</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tiro+Devanagari+Hindi:ital@0;1&family=Noto+Serif+Devanagari:wght@400;500;600&family=Mukta:wght@300;400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════════════════════
+   अध्ययन-पुस्तकालय — "दीपक के नीचे रखी किताब"
+   ──────────────────────────────────────────────────────────────
+   सब कुछ .sr के भीतर scoped है। न :root छुआ है, न कोई tag selector।
+   ग्रंथ (granth.html) से इसका कोई साझा CSS/JS नहीं — अलग file, अलग दुनिया।
+   ══════════════════════════════════════════════════════════════ */
+
+/* ---------- reset (सिर्फ़ .sr के भीतर) ---------- */
+.sr,.sr *,.sr *::before,.sr *::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+.sr button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;text-align:inherit}
+.sr input,.sr textarea,.sr select{font:inherit;color:inherit}
+.sr img,.sr svg{max-width:100%}
+
+/* ══════════ tokens ══════════ */
+.sr{
+  /* अंधेरा कमरा */
+  --sr-ink-900:#080C11; --sr-ink-800:#0F151D; --sr-ink-700:#18202B; --sr-ink-600:#232E3C;
+  /* पीतल का दीपक */
+  --sr-brass-600:#A5762B; --sr-brass-500:#C89545; --sr-brass-300:#E7C689;
+  --sr-paper:#EDE3D0; --sr-sepia:#E6D5B8;
+  --sr-text:#E9E4DA; --sr-text-dim:#93A0AE;
+
+  /* भूमिकाएँ — theme इन्हें बदलता है */
+  --sr-bg:var(--sr-ink-900);
+  --sr-surface:var(--sr-ink-800);
+  --sr-raised:var(--sr-ink-700);
+  --sr-line:var(--sr-ink-600);
+  --sr-fg:var(--sr-text);
+  --sr-fg-dim:var(--sr-text-dim);
+  --sr-accent:var(--sr-brass-500);
+  --sr-accent-soft:var(--sr-brass-600);
+  --sr-accent-bright:var(--sr-brass-300);
+  --sr-on-accent:#120C03;
+  --sr-glow:rgba(200,149,69,.06);
+  --sr-glass:rgba(15,21,29,.78);
+  --sr-shade:rgba(0,0,0,.55);
+
+  /* पाठ */
+  --sr-serif:"Tiro Devanagari Hindi","Noto Serif Devanagari",serif;
+  --sr-body:var(--sr-serif);
+  --sr-ui:"Inter","Mukta",system-ui,sans-serif;
+  --sr-fs:1.06rem; --sr-lh:1.9; --sr-measure:64ch;
+
+  /* नाप */
+  --sr-r-card:16px; --sr-r-sheet:24px;
+  --sr-rail:14px;
+  --sr-top:0px;
+  --sr-safe-b:env(safe-area-inset-bottom,0px);
+  --sr-safe-t:env(safe-area-inset-top,0px);
+
+  min-height:100dvh;
+  background:var(--sr-bg);
+  color:var(--sr-fg);
+  font-family:var(--sr-ui);
+  line-height:1.6;
+  overflow-x:hidden;
+  -webkit-text-size-adjust:100%;
+}
+/* दीपक की रोशनी — ऊपर-केंद्र से बहुत हल्की */
+.sr::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(120% 62% at 50% -12%, var(--sr-glow) 0%, transparent 62%)}
+
+/* ══════════ themes ══════════ */
+.sr[data-theme="paper"]{
+  --sr-bg:#E7DCC6; --sr-surface:#F3EBDA; --sr-raised:#FBF5E7; --sr-line:rgba(60,44,20,.16);
+  --sr-fg:#221B10; --sr-fg-dim:#665740; --sr-accent:#714C0E; --sr-accent-soft:#5A3C0B;
+  --sr-accent-bright:#A5762B; --sr-on-accent:#FFF9EC;
+  --sr-glow:rgba(138,94,21,.05); --sr-glass:rgba(243,235,218,.86); --sr-shade:rgba(50,36,14,.38);
+}
+.sr[data-theme="sepia"]{
+  --sr-bg:#2A2119; --sr-surface:#352A20; --sr-raised:#413327; --sr-line:rgba(230,213,184,.14);
+  --sr-fg:#E6D5B8; --sr-fg-dim:#A79373;
+  --sr-accent:#D9A758; --sr-accent-soft:#B0842F; --sr-accent-bright:#F0CE90;
+  --sr-on-accent:#241A0C; --sr-glow:rgba(217,167,88,.07); --sr-glass:rgba(53,42,32,.84);
+}
+.sr[data-theme="oled"]{
+  --sr-bg:#000; --sr-surface:#070A0E; --sr-raised:#0D1219; --sr-line:#1A2029;
+  --sr-fg:#DCD8CF; --sr-fg-dim:#7C8899; --sr-accent:#A5762B; --sr-accent-soft:#7E5A20;
+  --sr-accent-bright:#C89545; --sr-glow:rgba(165,118,43,.04); --sr-glass:rgba(7,10,14,.86);
+}
+.sr[data-theme="focus"]{
+  --sr-bg:#0A0E13; --sr-surface:#0A0E13; --sr-raised:#141B24; --sr-line:rgba(255,255,255,.07);
+  --sr-fg:#EFEAE0; --sr-fg-dim:#7F8B99; --sr-glow:rgba(200,149,69,.045);
+}
+.sr[data-theme],.sr{transition:background-color .25s ease,color .25s ease}
+
+/* ══════════ साझा छोटे टुकड़े ══════════ */
+.sr .ic{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;display:block}
+.sr .ic.f{fill:currentColor;stroke:none}
+.sr .btn{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;min-height:44px;min-width:44px;
+  padding:.6rem 1rem;border-radius:999px;background:var(--sr-raised);border:1px solid var(--sr-line);
+  font-size:.88rem;font-weight:600;transition:transform .16s,background .2s,border-color .2s}
+.sr .btn:active{transform:scale(.96)}
+.sr .btn.pri{background:linear-gradient(160deg,var(--sr-accent),var(--sr-accent-soft));color:var(--sr-on-accent);border-color:transparent}
+.sr .btn.ghost{background:transparent}
+.sr .ib{width:42px;height:42px;min-width:42px;border-radius:13px;display:grid;place-items:center;
+  background:var(--sr-raised);border:1px solid var(--sr-line);position:relative;transition:.18s}
+.sr .ib:active{transform:scale(.93)}
+.sr .ib .dot{position:absolute;top:-4px;right:-4px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;
+  background:var(--sr-accent);color:var(--sr-on-accent);font-size:.6rem;font-weight:700;display:grid;place-items:center;
+  font-family:var(--sr-ui);font-variant-numeric:tabular-nums}
+.sr [hidden]{display:none !important}
+.sr :focus-visible{outline:2px solid var(--sr-accent);outline-offset:2px;border-radius:6px}
+.sr .num{font-variant-numeric:tabular-nums;font-family:var(--sr-ui)}
+.sr .sronly{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ══════════ view switch ══════════ */
+.sr .view{display:none;position:relative;z-index:1}
+.sr[data-view="lib"]  .view#sr-lib{display:block}
+.sr[data-view="read"] .view#sr-read{display:block}
+
+/* ══════════ पुस्तकालय ══════════ */
+.sr .libhead{padding:calc(1.8rem + var(--sr-safe-t)) 1.15rem .4rem;max-width:720px;margin:0 auto}
+.sr .libhead .eyebrow{font-size:.62rem;letter-spacing:.32em;color:var(--sr-accent);font-weight:700}
+.sr .libhead h1{font-family:var(--sr-serif);font-size:2rem;font-weight:400;margin-top:.5rem;letter-spacing:0;line-height:1.25}
+.sr .libhead p{color:var(--sr-fg-dim);font-size:.86rem;margin-top:.4rem}
+.sr .libwrap{max-width:720px;margin:0 auto;padding:1.2rem 1.15rem calc(3rem + var(--sr-safe-b))}
+
+.sr .hero{position:relative;border-radius:20px;overflow:hidden;border:1px solid var(--sr-line);
+  background:linear-gradient(150deg,var(--sr-raised),var(--sr-surface));margin-bottom:1.4rem;
+  box-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 18px 40px rgba(0,0,0,.28)}
+.sr .hero .in{display:flex;gap:.95rem;padding:1rem;align-items:center}
+.sr .hero .cv{width:66px;min-width:66px;height:92px;border-radius:9px;overflow:hidden;border:1px solid var(--sr-line)}
+.sr .hero .tx{flex:1;min-width:0}
+.sr .hero .lbl{font-size:.6rem;letter-spacing:.26em;color:var(--sr-accent);font-weight:700}
+.sr .hero b{display:block;font-family:var(--sr-serif);font-size:1.16rem;font-weight:400;margin:.32rem 0 .2rem;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sr .hero .meta{font-size:.76rem;color:var(--sr-fg-dim)}
+.sr .hero .bar{height:3px;background:var(--sr-line);position:relative}
+.sr .hero .bar i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--sr-accent-soft),var(--sr-accent-bright))}
+.sr .hero .go{display:flex;align-items:center;justify-content:center;gap:.45rem;padding:.85rem;
+  background:linear-gradient(160deg,var(--sr-accent),var(--sr-accent-soft));color:var(--sr-on-accent);
+  font-weight:700;font-size:.95rem;width:100%}
+
+.sr .sect{font-size:.63rem;letter-spacing:.26em;color:var(--sr-fg-dim);font-weight:700;margin:1.5rem .2rem .7rem}
+.sr .bcard{display:flex;gap:.9rem;align-items:center;width:100%;padding:.8rem;border-radius:var(--sr-r-card);
+  border:1px solid var(--sr-line);background:var(--sr-surface);margin-bottom:.6rem;transition:.2s}
+.sr .bcard:active{transform:scale(.985);background:var(--sr-raised)}
+.sr .bcard .cv{width:54px;min-width:54px;height:76px;border-radius:8px;overflow:hidden;border:1px solid var(--sr-line)}
+.sr .bcard .tx{flex:1;min-width:0;text-align:right}
+.sr .bcard b{display:block;font-family:var(--sr-serif);font-size:1.02rem;font-weight:400;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sr .bcard small{display:block;font-size:.74rem;color:var(--sr-fg-dim);margin-top:.2rem}
+.sr .bcard .st{font-size:.68rem;color:var(--sr-accent);margin-top:.35rem;font-family:var(--sr-ui)}
+.sr .ring{width:38px;min-width:38px;height:38px;position:relative;display:grid;place-items:center}
+.sr .ring svg{transform:rotate(-90deg)}
+.sr .ring .pc{position:absolute;font-size:.6rem;font-weight:700;color:var(--sr-fg-dim);font-family:var(--sr-ui);font-variant-numeric:tabular-nums}
+.sr .ring.done .pc{color:var(--sr-accent)}
+.sr .libnav{display:flex;gap:.5rem;margin-top:1.6rem;flex-wrap:wrap}
+.sr .libnav .btn{flex:1;min-width:44%}
+.sr .empty{text-align:center;color:var(--sr-fg-dim);font-size:.88rem;padding:2.2rem 1rem;line-height:1.9}
+
+/* ══════════ पढ़ने का पन्ना ══════════ */
+.sr .rhead{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;align-items:center;gap:.4rem;
+  padding:calc(.5rem + var(--sr-safe-t)) .7rem .5rem;background:var(--sr-glass);
+  backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);
+  border-bottom:1px solid var(--sr-line);transform:translateY(0);transition:transform .28s cubic-bezier(.2,.7,.3,1)}
+.sr .rhead.up{transform:translateY(-104%)}
+.sr .rhead .ttl{flex:1;min-width:0;padding:0 .2rem}
+.sr .rhead .ttl b{display:block;font-size:.84rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sr .rhead .ttl small{display:block;font-size:.68rem;color:var(--sr-fg-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sr[data-focus="1"] .rhead{transform:translateY(-104%)}
+
+.sr .rwrap{max-width:var(--sr-measure);margin:0 auto;
+  padding:calc(var(--sr-top) + 1.2rem) calc(1.15rem + var(--sr-rail)) calc(7rem + var(--sr-safe-b)) 1.15rem}
+
+/* अध्याय का शीर्षक — असली किताब जैसा दम */
+.sr .chh{margin:2.8rem 0 1.6rem;text-align:center;scroll-margin-top:calc(var(--sr-top) + 18px)}
+.sr .chh .no{font-size:.6rem;letter-spacing:.32em;color:var(--sr-accent);font-weight:700;font-family:var(--sr-ui)}
+.sr .chh h2{font-family:var(--sr-serif);font-size:1.55rem;font-weight:400;line-height:1.35;margin:.7rem 0 .55rem;letter-spacing:0}
+.sr .chh .pp{font-size:.68rem;color:var(--sr-fg-dim);font-family:var(--sr-ui)}
+.sr .chh .rule{width:52px;height:1px;background:var(--sr-accent);opacity:.5;margin:1rem auto 0}
+.sr .chh .rule::after{content:"";display:block;width:5px;height:5px;background:var(--sr-accent);
+  transform:rotate(45deg);margin:-3px auto 0;opacity:.9}
+
+/* पृष्ठ-विभाजक */
+.sr .pgm{display:flex;align-items:center;gap:.75rem;margin:1.9rem 0 1.2rem;
+  font-size:.62rem;letter-spacing:.22em;color:var(--sr-fg-dim);font-family:var(--sr-ui);opacity:.75}
+.sr .pgm::before,.sr .pgm::after{content:"";flex:1;height:1px;background:var(--sr-line)}
+.sr[data-pages="0"] .pgm{display:none}
+
+/* पाठ */
+.sr .bk{font-family:var(--sr-body);font-size:var(--sr-fs);line-height:var(--sr-lh);color:var(--sr-fg);
+  margin:0 0 1.15rem;hyphens:none;word-spacing:.01em;letter-spacing:0;
+  scroll-margin-top:calc(var(--sr-top) + 18px);border-radius:8px;transition:background-color .6s}
+.sr[data-justify="1"] .bk.p{text-align:justify;text-justify:inter-word}
+.sr .bk.flash{background:rgba(200,149,69,.16)}
+.sr .bk.h2{font-family:var(--sr-serif);font-size:calc(var(--sr-fs) * 1.14);font-weight:400;color:var(--sr-accent-bright);
+  margin:2.3rem 0 1rem;text-align:right;line-height:1.5}
+.sr .bk.h2::before{content:"";display:inline-block;width:6px;height:6px;background:var(--sr-accent);
+  transform:rotate(45deg);margin-left:.5rem;vertical-align:middle;opacity:.85}
+.sr .bk.quote{font-family:var(--sr-serif);font-size:calc(var(--sr-fs) * 1.12);text-align:center;
+  color:var(--sr-accent-bright);margin:2rem 0;padding:1.1rem 1rem;border-top:1px solid var(--sr-line);
+  border-bottom:1px solid var(--sr-line);line-height:1.75;position:relative}
+.sr .bk.quote::before,.sr .bk.quote::after{content:"";position:absolute;left:50%;width:22px;height:1px;
+  background:var(--sr-accent);opacity:.6;transform:translateX(-50%)}
+.sr .bk.quote::before{top:-1px} .sr .bk.quote::after{bottom:-1px}
+.sr .bk.calc{background:var(--sr-surface);border:1px dashed var(--sr-line);border-radius:12px;
+  padding:.95rem 1rem;text-align:center;white-space:pre-line;line-height:2.05;
+  font-size:calc(var(--sr-fs) * .96);font-variant-numeric:tabular-nums}
+.sr .bnote{margin:-.6rem 0 1.2rem;padding:.5rem .75rem;border-radius:9px;background:var(--sr-surface);
+  border-right:2px solid var(--sr-accent-soft);font-size:.74rem;color:var(--sr-fg-dim);
+  line-height:1.75;text-align:right;font-family:var(--sr-ui)}
+.sr .bnote::before{content:"⌖ ";color:var(--sr-accent)}
+
+/* चित्र */
+.sr figure.fig{margin:2rem 0;border:1px solid var(--sr-line);border-radius:var(--sr-r-card);overflow:hidden;
+  background:var(--sr-surface)}
+.sr figure.fig .lb{padding:.6rem .9rem;font-size:.62rem;letter-spacing:.2em;color:var(--sr-accent);
+  font-weight:700;border-bottom:1px solid var(--sr-line);font-family:var(--sr-ui)}
+.sr figure.fig .imgwrap{background:#fff;padding:.2rem}
+.sr figure.fig img{display:block;width:100%;height:auto}
+.sr figure.fig .bk.cap{margin:0;padding:.9rem 1rem;font-size:calc(var(--sr-fs) * .86);color:var(--sr-fg-dim);
+  text-align:right;line-height:1.85;border-radius:0}
+.sr figure.fig .dsc{padding:0 1rem .9rem;font-size:.76rem;color:var(--sr-fg-dim);line-height:1.8;
+  text-align:right;display:none;font-family:var(--sr-ui)}
+.sr figure.fig.open .dsc{display:block}
+.sr figure.fig .dbtn{display:block;width:100%;padding:.6rem;font-size:.74rem;color:var(--sr-accent);
+  border-top:1px solid var(--sr-line);font-weight:600;font-family:var(--sr-ui);min-height:44px}
+
+/* कार्य क़दम */
+.sr .acts{margin:2.4rem 0 1.4rem;border:1px solid var(--sr-accent-soft);border-radius:18px;
+  background:var(--sr-surface);overflow:hidden;counter-reset:sract}
+.sr .acts .bk.ah{margin:0;padding:.95rem 1rem;background:linear-gradient(160deg,var(--sr-accent),var(--sr-accent-soft));
+  color:var(--sr-on-accent);font-weight:600;font-size:calc(var(--sr-fs) * .94);text-align:right;
+  border-radius:0;line-height:1.65}
+.sr .acts .bk.ai{margin:0;padding:.95rem 1rem .95rem 3rem;border-bottom:1px solid var(--sr-line);
+  border-radius:0;position:relative;text-align:right;font-size:calc(var(--sr-fs) * .96)}
+.sr .acts .bk.ai:last-of-type{border-bottom:0}
+.sr .acts .bk.ai::before{counter-increment:sract;content:counter(sract);position:absolute;left:.95rem;top:1rem;
+  width:1.6rem;height:1.6rem;border-radius:50%;background:var(--sr-raised);color:var(--sr-accent);
+  font-size:.72rem;font-weight:700;display:grid;place-items:center;font-family:var(--sr-ui)}
+.sr .acts .af{padding:.8rem 1rem;font-size:.76rem;color:var(--sr-fg-dim);line-height:1.8;
+  text-align:right;border-top:1px solid var(--sr-line);font-family:var(--sr-ui)}
+
+/* ══════════ निशान ══════════ */
+.sr mark.hl{background:rgba(231,198,137,.26);color:inherit;border-radius:3px;padding:.05em .04em;cursor:pointer}
+.sr mark.hl.c2{background:rgba(122,214,150,.24)}
+.sr mark.hl.c3{background:rgba(133,180,246,.24)}
+.sr mark.hl.c4{background:rgba(255,138,128,.24)}
+.sr mark.hl.c0{background:transparent;box-shadow:inset 0 -2px 0 rgba(200,149,69,.75)}
+.sr mark.hl.note::after{content:"✎";font-size:.62em;vertical-align:super;color:var(--sr-accent);margin-right:.1em;font-weight:700}
+.sr mark.hl.on{box-shadow:0 0 0 2px var(--sr-accent)}
+.sr[data-theme="paper"] mark.hl{background:rgba(214,168,72,.42)}
+.sr[data-theme="paper"] mark.hl.c2{background:rgba(96,190,128,.36)}
+.sr[data-theme="paper"] mark.hl.c3{background:rgba(104,158,235,.32)}
+.sr[data-theme="paper"] mark.hl.c4{background:rgba(232,108,96,.32)}
+
+/* बोली जा रही पंक्ति */
+.sr .sp{border-radius:4px;transition:background-color .25s}
+.sr .sp.now{background:linear-gradient(90deg,rgba(200,149,69,.20),rgba(200,149,69,.06));
+  box-shadow:inset 2px 0 0 var(--sr-accent)}
+
+/* ══════════ पीतल की पाठ-पट्टी ══════════ */
+.sr .rail{position:fixed;top:0;bottom:0;right:0;width:var(--sr-rail);z-index:35;
+  touch-action:none;display:flex;justify-content:center;cursor:ns-resize}
+.sr .rail .trk{position:absolute;top:calc(var(--sr-safe-t) + 56px);bottom:calc(var(--sr-safe-b) + 28px);
+  width:1.5px;background:var(--sr-line);border-radius:2px}
+.sr .rail .fil{position:absolute;top:0;left:0;right:0;height:0;border-radius:2px;
+  background:linear-gradient(180deg,var(--sr-accent-soft),var(--sr-accent-bright))}
+.sr .rail .nk{position:absolute;left:-3px;width:7.5px;height:1.5px;background:var(--sr-fg-dim);opacity:.55;border-radius:1px}
+.sr .rail .kb{position:absolute;left:50%;transform:translate(-50%,-50%);width:9px;height:9px;border-radius:50%;
+  background:var(--sr-accent-bright);box-shadow:0 0 0 3px var(--sr-bg),0 0 10px 2px rgba(231,198,137,.5);opacity:0;transition:opacity .25s}
+.sr .rail.live .kb,.sr .rail.drag .kb{opacity:1}
+.sr .rail.drag{width:52px}
+.sr .rail .tip{position:absolute;right:16px;transform:translateY(-50%);padding:.35rem .6rem;border-radius:9px;
+  background:var(--sr-raised);border:1px solid var(--sr-line);font-size:.7rem;white-space:nowrap;
+  font-family:var(--sr-ui);font-variant-numeric:tabular-nums;opacity:0;pointer-events:none;transition:opacity .18s}
+.sr .rail.drag .tip{opacity:1}
+@keyframes srbreath{0%,100%{box-shadow:0 0 0 3px var(--sr-bg),0 0 6px 1px rgba(231,198,137,.35)}
+                    50%{box-shadow:0 0 0 3px var(--sr-bg),0 0 16px 5px rgba(231,198,137,.8)}}
+.sr[data-audio="1"] .rail .kb{opacity:1;animation:srbreath 2s ease-in-out infinite}
+
+/* ══════════ चुनने पर आने वाला पट्टा ══════════ */
+.sr .pop{position:absolute;z-index:60;display:none;gap:.28rem;padding:.4rem;border-radius:15px;
+  background:var(--sr-glass);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border:1px solid var(--sr-line);box-shadow:0 12px 34px rgba(0,0,0,.5)}
+.sr .pop.on{display:flex}
+.sr .pop .sw{width:30px;height:30px;border-radius:50%;border:2px solid transparent}
+.sr .pop .sw.c1{background:#E7C689} .sr .pop .sw.c2{background:#7AD696}
+.sr .pop .sw.c3{background:#85B4F6} .sr .pop .sw.c4{background:#FF8A80}
+.sr .pop .sw.on{border-color:var(--sr-fg);transform:scale(1.12)}
+.sr .pop .tb{padding:0 .6rem;height:30px;border-radius:9px;background:var(--sr-raised);font-size:.76rem;
+  font-weight:600;display:flex;align-items:center;white-space:nowrap;font-family:var(--sr-ui)}
+.sr .pop .tb.del{color:#E5796A}
+
+/* ══════════ नीचे की शीट ══════════ */
+.sr .scrim{position:fixed;inset:0;background:var(--sr-shade);opacity:0;pointer-events:none;transition:opacity .28s;z-index:70}
+.sr .scrim.on{opacity:1;pointer-events:auto}
+.sr .sheet{position:fixed;left:0;right:0;bottom:0;z-index:72;max-height:88dvh;display:flex;flex-direction:column;
+  background:var(--sr-surface);border-radius:var(--sr-r-sheet) var(--sr-r-sheet) 0 0;
+  border-top:1px solid var(--sr-line);box-shadow:0 -16px 46px rgba(0,0,0,.5);
+  transform:translateY(102%);transition:transform .34s cubic-bezier(.2,.7,.3,1)}
+.sr .sheet.on{transform:translateY(0)}
+.sr .sheet .grip{width:38px;height:4px;border-radius:2px;background:var(--sr-line);margin:.6rem auto .1rem}
+.sr .sheet .shead{display:flex;align-items:center;gap:.35rem;padding:.5rem .8rem;border-bottom:1px solid var(--sr-line)}
+.sr .sheet .shead b{flex:1;font-size:.92rem;font-weight:600;padding-right:.2rem}
+.sr .sheet .tabs{display:flex;gap:.3rem;padding:.5rem .8rem .5rem;overflow-x:auto;scrollbar-width:none;
+  border-bottom:1px solid var(--sr-line)}
+.sr .sheet .tabs::-webkit-scrollbar{display:none}
+.sr .sheet .tabs button{flex:0 0 auto;padding:.5rem .85rem;border-radius:999px;font-size:.8rem;font-weight:600;
+  color:var(--sr-fg-dim);min-height:40px;line-height:1.7}
+.sr .sheet .tabs button[aria-pressed="true"]{background:var(--sr-accent);color:var(--sr-on-accent)}
+.sr .sheet .sbody{overflow-y:auto;overscroll-behavior:contain;padding:.85rem .9rem calc(1.5rem + var(--sr-safe-b))}
+
+.sr .row{display:flex;align-items:center;gap:.7rem;padding:.85rem .2rem;border-bottom:1px solid var(--sr-line);flex-wrap:wrap}
+.sr .row .lab{min-width:8.5rem}
+.sr .row:last-child{border-bottom:0}
+.sr .row .lab{flex:1;font-size:.92rem;text-align:right}
+.sr .row .lab small{display:block;font-size:.72rem;color:var(--sr-fg-dim);margin-top:.18rem;line-height:1.6}
+.sr .row .chips{display:flex;gap:.3rem;flex-wrap:wrap;justify-content:flex-end}
+.sr .row .chips button{padding:.42rem .72rem;border-radius:10px;border:1px solid var(--sr-line);
+  background:var(--sr-raised);font-size:.79rem;font-weight:600;min-height:38px;font-family:var(--sr-ui)}
+.sr .row .chips button[aria-pressed="true"]{background:var(--sr-accent);color:var(--sr-on-accent);border-color:transparent}
+.sr .tgl{width:48px;min-width:48px;height:28px;border-radius:999px;background:var(--sr-raised);
+  border:1px solid var(--sr-line);position:relative;transition:.24s}
+.sr .tgl i{position:absolute;top:2px;right:2px;width:22px;height:22px;border-radius:50%;background:var(--sr-fg-dim);transition:.24s}
+.sr .tgl[aria-pressed="true"]{background:var(--sr-accent);border-color:transparent}
+.sr .tgl[aria-pressed="true"] i{right:calc(100% - 24px);background:var(--sr-on-accent)}
+.sr .more{width:100%;padding:.8rem;margin-top:.4rem;border-radius:12px;background:var(--sr-raised);
+  border:1px solid var(--sr-line);font-size:.84rem;font-weight:600;color:var(--sr-fg-dim);min-height:44px}
+.sr .fld{width:100%;padding:.7rem .85rem;border-radius:12px;border:1px solid var(--sr-line);
+  background:var(--sr-raised);color:var(--sr-fg);font-size:.9rem;font-family:var(--sr-ui)}
+.sr textarea.fld{min-height:96px;line-height:1.7;resize:vertical;font-family:var(--sr-body);text-align:right}
+.sr .hint{font-size:.74rem;color:var(--sr-fg-dim);line-height:1.75;margin:.55rem .1rem;text-align:right}
+.sr .warnbox{margin:.6rem 0;padding:.7rem .85rem;border-radius:12px;font-size:.78rem;line-height:1.75;
+  background:rgba(229,121,106,.12);border:1px solid rgba(229,121,106,.35);text-align:right}
+
+.sr .cnav{display:block;width:100%;text-align:right;padding:.8rem .9rem;border-radius:13px;
+  border:1px solid var(--sr-line);background:var(--sr-raised);margin-bottom:.45rem;position:relative;overflow:hidden}
+.sr .cnav.cur{border-color:var(--sr-accent)}
+.sr .cnav small{display:block;font-size:.64rem;letter-spacing:.14em;color:var(--sr-accent);margin-bottom:.22rem;font-family:var(--sr-ui)}
+.sr .cnav b{font-size:.97rem;font-weight:600}
+.sr .cnav .cb{position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--sr-line)}
+.sr .cnav .cb i{display:block;height:100%;background:var(--sr-accent)}
+.sr .snav{display:block;width:100%;text-align:right;padding:.5rem .9rem .5rem 1.7rem;border-radius:10px;
+  font-size:.85rem;color:var(--sr-fg-dim);margin-bottom:.2rem;min-height:38px}
+.sr .snav::before{content:"— ";opacity:.6}
+
+.sr .nrow{border:1px solid var(--sr-line);border-radius:14px;background:var(--sr-raised);padding:.75rem .85rem;
+  margin-bottom:.55rem;border-right:4px solid var(--sr-accent);position:relative;overflow:hidden}
+.sr .nrow.c1{border-right-color:#E7C689} .sr .nrow.c2{border-right-color:#7AD696}
+.sr .nrow.c3{border-right-color:#85B4F6} .sr .nrow.c4{border-right-color:#FF8A80}
+.sr .nrow.bm{border-right-style:dashed}
+.sr .nrow .q{font-size:.92rem;line-height:1.8;text-align:right;font-family:var(--sr-body)}
+.sr .nrow .nt{margin-top:.5rem;padding-top:.5rem;border-top:1px dashed var(--sr-line);font-size:.85rem;
+  color:var(--sr-fg-dim);text-align:right;line-height:1.75;white-space:pre-wrap;font-family:var(--sr-body)}
+.sr .nrow .mt{display:flex;gap:.3rem;align-items:center;margin-top:.6rem;flex-wrap:wrap}
+.sr .nrow .mt small{flex:1;font-size:.65rem;color:var(--sr-fg-dim);font-family:var(--sr-ui);min-width:5rem;text-align:right}
+.sr .nrow .mt button{padding:.34rem .62rem;border-radius:9px;background:var(--sr-surface);
+  border:1px solid var(--sr-line);font-size:.73rem;font-weight:600;min-height:34px;font-family:var(--sr-ui)}
+.sr .nrow .mt button.del{color:#E5796A}
+.sr .filt{display:flex;gap:.3rem;margin-bottom:.75rem;flex-wrap:wrap}
+.sr .filt button{padding:.36rem .7rem;border-radius:999px;border:1px solid var(--sr-line);
+  background:var(--sr-raised);font-size:.75rem;font-weight:600;min-height:34px;font-family:var(--sr-ui)}
+.sr .filt button[aria-pressed="true"]{background:var(--sr-accent);color:var(--sr-on-accent);border-color:transparent}
+.sr .filt .d{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:.3rem;vertical-align:middle}
+.sr .grp{font-size:.62rem;letter-spacing:.2em;color:var(--sr-fg-dim);font-weight:700;
+  margin:1rem .2rem .5rem;font-family:var(--sr-ui);text-align:right}
+
+.sr .srch{display:flex;gap:.4rem;margin-bottom:.7rem}
+.sr .srch .fld{flex:1;min-width:0}
+.sr .sres{display:block;width:100%;text-align:right;padding:.7rem .85rem;border-radius:13px;
+  border:1px solid var(--sr-line);background:var(--sr-raised);margin-bottom:.45rem}
+.sr .sres small{display:block;font-size:.64rem;color:var(--sr-accent);margin-bottom:.25rem;font-family:var(--sr-ui)}
+.sr .sres span{font-size:.87rem;line-height:1.8;color:var(--sr-fg-dim);font-family:var(--sr-body)}
+.sr .sres b{background:rgba(231,198,137,.3);color:var(--sr-fg);border-radius:3px;padding:0 .12em;font-weight:600}
+
+/* अंतर्दृष्टि */
+.sr .stats{display:grid;grid-template-columns:1fr 1fr;gap:.55rem;margin-bottom:1rem}
+.sr .stat{border:1px solid var(--sr-line);border-radius:14px;background:var(--sr-raised);padding:.85rem}
+.sr .stat b{display:block;font-size:1.45rem;font-weight:700;font-family:var(--sr-ui);font-variant-numeric:tabular-nums;color:var(--sr-accent-bright)}
+.sr .stat small{display:block;font-size:.7rem;color:var(--sr-fg-dim);margin-top:.2rem}
+.sr .week{display:flex;align-items:flex-end;gap:.4rem;height:88px;padding:.7rem;border:1px solid var(--sr-line);
+  border-radius:14px;background:var(--sr-raised)}
+.sr .week .d{flex:1;display:flex;flex-direction:column;align-items:center;gap:.3rem;height:100%;justify-content:flex-end}
+.sr .week .d i{display:block;width:100%;min-height:3px;border-radius:3px 3px 0 0;
+  background:linear-gradient(180deg,var(--sr-accent-bright),var(--sr-accent-soft))}
+.sr .week .d span{font-size:.6rem;color:var(--sr-fg-dim);font-family:var(--sr-ui)}
+
+/* ══════════ नोट लिखने का पर्दा ══════════ */
+.sr .noteed{position:fixed;inset:0;z-index:80;background:var(--sr-shade);display:none;align-items:flex-end}
+.sr .noteed.on{display:flex}
+.sr .noteed .card{width:100%;background:var(--sr-surface);border-top:1px solid var(--sr-line);
+  border-radius:var(--sr-r-sheet) var(--sr-r-sheet) 0 0;padding:1rem 1rem calc(1rem + var(--sr-safe-b))}
+.sr .noteed .q{font-size:.88rem;line-height:1.8;color:var(--sr-fg-dim);text-align:right;
+  border-right:3px solid var(--sr-accent);padding-right:.7rem;margin-bottom:.8rem;max-height:22vh;
+  overflow-y:auto;font-family:var(--sr-body)}
+.sr .noteed .rw{display:flex;gap:.5rem;margin-top:.8rem}
+.sr .noteed .rw button{flex:1;padding:.85rem;border-radius:13px;font-weight:700;font-size:.94rem;min-height:48px}
+
+/* ══════════ आवाज़ का player ══════════ */
+.sr .player{position:fixed;left:50%;bottom:calc(.8rem + var(--sr-safe-b));transform:translate(-50%,180%);
+  width:min(94vw,520px);z-index:55;border-radius:20px;padding:.75rem .85rem;
+  background:var(--sr-glass);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);
+  border:1px solid var(--sr-accent-soft);box-shadow:0 16px 44px rgba(0,0,0,.5);
+  transition:transform .34s cubic-bezier(.2,.7,.3,1),width .28s,border-radius .28s,padding .28s}
+.sr .player.on{transform:translate(-50%,0)}
+.sr .player .r1{display:flex;align-items:center;gap:.6rem}
+.sr .player .pp{width:44px;min-width:44px;height:44px;border-radius:50%;display:grid;place-items:center;
+  background:linear-gradient(160deg,var(--sr-accent),var(--sr-accent-soft));color:var(--sr-on-accent)}
+.sr .player .tx{flex:1;min-width:0}
+.sr .player .tx b{display:block;font-size:.83rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sr .player .tx small{display:block;font-size:.68rem;color:var(--sr-fg-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sr .player .mn{width:40px;min-width:40px;height:40px;border-radius:11px;display:grid;place-items:center;color:var(--sr-fg-dim)}
+.sr .player .pbar{height:3px;border-radius:2px;background:var(--sr-line);margin:.7rem 0 .55rem;position:relative;overflow:hidden}
+.sr .player .pbar i{position:absolute;inset:0 auto 0 0;width:0;background:linear-gradient(90deg,var(--sr-accent-soft),var(--sr-accent-bright))}
+.sr .player .r2{display:flex;align-items:center;gap:.35rem;justify-content:space-between}
+.sr .player .r2 .t{font-size:.68rem;color:var(--sr-fg-dim);font-family:var(--sr-ui);font-variant-numeric:tabular-nums;min-width:2.6rem}
+.sr .player .r2 button{padding:.3rem .55rem;border-radius:9px;font-size:.76rem;font-weight:600;
+  color:var(--sr-fg-dim);min-height:38px;min-width:38px;display:grid;place-items:center;font-family:var(--sr-ui)}
+.sr .player .r2 button.rate{background:var(--sr-raised);border:1px solid var(--sr-line);color:var(--sr-fg)}
+.sr .player.mini{width:60px;padding:0;border-radius:50%;left:auto;right:1rem;transform:translate(0,0)}
+.sr .player.mini .r1{padding:8px}
+.sr .player.mini .tx,.sr .player.mini .pbar,.sr .player.mini .r2,.sr .player.mini .mn{display:none}
+.sr .prep{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(6rem + var(--sr-safe-b));z-index:56;
+  padding:.55rem .9rem;border-radius:999px;background:var(--sr-raised);border:1px solid var(--sr-line);
+  font-size:.78rem;display:none;align-items:center;gap:.5rem;font-family:var(--sr-ui)}
+.sr .prep.on{display:flex}
+.sr .prep .pb{width:70px;height:3px;border-radius:2px;background:var(--sr-line);overflow:hidden}
+.sr .prep .pb i{display:block;height:100%;width:0;background:var(--sr-accent)}
+
+/* वापस चल रही पंक्ति पर */
+.sr .backpill{position:fixed;left:50%;transform:translate(-50%,14px);bottom:calc(7.2rem + var(--sr-safe-b));z-index:57;
+  padding:.5rem .9rem;border-radius:999px;background:var(--sr-accent);color:var(--sr-on-accent);
+  font-size:.78rem;font-weight:600;font-family:var(--sr-ui);opacity:0;visibility:hidden;
+  transition:opacity .28s,transform .28s,visibility .28s}
+.sr .backpill.on{transform:translate(-50%,0);opacity:1;visibility:visible}
+
+/* बही का तैरता बटन */
+.sr .fab{position:fixed;left:50%;bottom:calc(1rem + var(--sr-safe-b));transform:translateX(-50%);z-index:38;
+  display:flex;align-items:center;gap:.4rem;padding:.62rem 1rem;border-radius:999px;
+  background:var(--sr-glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid var(--sr-line);font-size:.83rem;font-weight:600;color:var(--sr-fg);
+  opacity:.6;transition:opacity .25s,transform .3s}
+.sr .fab:active,.sr .fab:focus-visible{opacity:1}
+.sr .fab.hide{transform:translate(-50%,190%)}
+.sr[data-focus="1"] .fab{transform:translate(-50%,190%)}
+
+/* toast */
+.sr .toast{position:fixed;left:50%;bottom:calc(5.4rem + var(--sr-safe-b));transform:translate(-50%,14px);z-index:90;
+  max-width:88vw;padding:.7rem 1.05rem;border-radius:13px;background:var(--sr-raised);
+  border:1px solid var(--sr-line);color:var(--sr-fg);font-size:.84rem;text-align:center;line-height:1.7;
+  opacity:0;visibility:hidden;pointer-events:none;transition:opacity .28s,transform .28s,visibility .28s;
+  box-shadow:0 12px 34px rgba(0,0,0,.45)}
+.sr .toast.on{opacity:1;visibility:visible;transform:translate(-50%,0)}
+
+/* किताब खुलने का छोटा दृश्य */
+.sr .intro{position:fixed;inset:0;z-index:85;background:var(--sr-bg);display:none;
+  flex-direction:column;align-items:center;justify-content:center;gap:.6rem;padding:2rem}
+.sr .intro.on{display:flex}
+.sr .intro .cv{width:132px;height:186px;border-radius:12px;overflow:hidden;border:1px solid var(--sr-line);
+  opacity:0;transform:scale(.9)}
+.sr .intro h2{font-family:var(--sr-serif);font-size:1.5rem;font-weight:400;text-align:center;opacity:0;transform:translateY(8px);line-height:1.4}
+.sr .intro .au{font-size:.86rem;color:var(--sr-fg-dim);opacity:0;transform:translateY(8px)}
+.sr .intro .pills{display:flex;gap:.4rem;flex-wrap:wrap;justify-content:center;opacity:0;transform:translateY(8px);margin-top:.5rem}
+.sr .intro .pills span{font-size:.7rem;color:var(--sr-fg-dim);background:var(--sr-raised);
+  border:1px solid var(--sr-line);padding:.25rem .65rem;border-radius:999px;font-family:var(--sr-ui)}
+.sr .intro .go{opacity:0;transform:translateY(8px);margin-top:1rem;display:flex;gap:.5rem}
+@keyframes srIn{to{opacity:1;transform:none}}
+.sr .intro.play .cv{animation:srIn .4s ease forwards}
+.sr .intro.play h2{animation:srIn .35s ease .15s forwards}
+.sr .intro.play .au{animation:srIn .35s ease .3s forwards}
+.sr .intro.play .pills{animation:srIn .35s ease .45s forwards}
+.sr .intro.play .go{animation:srIn .35s ease .6s forwards}
+
+@media (prefers-reduced-motion:reduce){
+  .sr *,.sr *::before,.sr *::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;
+    transition-duration:.001ms !important;scroll-behavior:auto !important}
+  .sr .intro .cv,.sr .intro h2,.sr .intro .au,.sr .intro .pills,.sr .intro .go{opacity:1;transform:none}
+}
+</style>
+</head>
+<body class="sr" data-theme="midnight" data-view="lib" data-pages="1" data-justify="1" data-focus="0" data-audio="0">
+
+<!-- ══════════ पुस्तकालय ══════════ -->
+<section class="view" id="sr-lib">
+  <div class="libhead">
+    <div class="eyebrow">अध्ययन</div>
+    <h1>पुस्तकालय</h1>
+    <p id="lib-sub">पढ़िए, सुनिए, निशान लगाइए</p>
+  </div>
+  <div class="libwrap" id="lib-body"></div>
+</section>
+
+<!-- ══════════ पढ़ने का पन्ना ══════════ -->
+<section class="view" id="sr-read">
+  <header class="rhead" id="rhead">
+    <button class="ib" id="r-back" aria-label="पुस्तकालय"><svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div class="ttl"><b id="r-title">—</b><small id="r-sub">—</small></div>
+    <button class="ib" id="r-find" aria-label="खोजें"><svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg></button>
+    <button class="ib" id="r-audio" aria-label="सुनना शुरू करें"><svg class="ic" viewBox="0 0 24 24"><path d="M4 10v4h3l4 3.5v-11L7 10H4z"/><path d="M15.5 9a4 4 0 0 1 0 6"/><path d="M18 6.5a7.5 7.5 0 0 1 0 11"/></svg></button>
+    <button class="ib" id="r-more" aria-label="और विकल्प"><svg class="ic" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg></button>
+  </header>
+
+  <div class="rail" id="rail" role="slider" aria-label="किताब में आगे-पीछे" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0">
+    <div class="trk" id="rail-trk"><div class="fil" id="rail-fil"></div></div>
+    <div class="kb" id="rail-kb"></div>
+    <div class="tip" id="rail-tip">0%</div>
+  </div>
+
+  <main class="rwrap" id="rbody"></main>
+
+  <button class="fab" id="fab" aria-label="मेरी बही">
+    <svg class="ic f" viewBox="0 0 24 24"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z"/></svg>
+    <span id="fab-t">मेरी बही</span>
+  </button>
+</section>
+
+<div class="pop" id="pop"></div>
+<div class="backpill" id="backpill">वापस चल रही पंक्ति पर</div>
+
+<!-- आवाज़ का player -->
+<div class="player" id="player" role="region" aria-label="आवाज़">
+  <div class="r1">
+    <button class="pp" id="pl-play" aria-label="चलाएँ या रोकें"><svg class="ic f" viewBox="0 0 24 24"><path d="M8 5l11 7-11 7z"/></svg></button>
+    <div class="tx"><b id="pl-title">—</b><small id="pl-sub">—</small></div>
+    <button class="mn" id="pl-min" aria-label="छोटा करें"><svg class="ic" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+  </div>
+  <div class="pbar" id="pl-bar"><i id="pl-fill"></i></div>
+  <div class="r2">
+    <span class="t" id="pl-cur">0:00</span>
+    <button id="pl-b15" aria-label="15 सेकंड पीछे">⏪15</button>
+    <button class="rate" id="pl-rate" aria-label="रफ़्तार">1×</button>
+    <button id="pl-f30" aria-label="30 सेकंड आगे">30⏩</button>
+    <button id="pl-stop" aria-label="बंद करें"><svg class="ic" viewBox="0 0 24 24"><rect x="6.5" y="6.5" width="11" height="11" rx="2"/></svg></button>
+    <span class="t" id="pl-tot" style="text-align:right">—</span>
+  </div>
+</div>
+<div class="prep" id="prep"><span id="prep-t">तैयार हो रहा है…</span><span class="pb"><i id="prep-i"></i></span><button id="prep-x" aria-label="रोकें">✕</button></div>
+
+<!-- शीट -->
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="विकल्प">
+  <div class="grip"></div>
+  <div class="tabs" id="sheet-tabs"></div>
+  <div class="sbody" id="sheet-body"></div>
+</div>
+
+<!-- नोट -->
+<div class="noteed" id="noteed" role="dialog" aria-modal="true" aria-label="अपनी बात">
+  <div class="card">
+    <div class="q" id="ne-q"></div>
+    <textarea class="fld" id="ne-t" placeholder="अपनी बात यहाँ लिखिए — यह मेरे काम में कैसे लगेगा…"></textarea>
+    <div class="rw"><button class="btn ghost" id="ne-x">रहने दीजिए</button><button class="btn pri" id="ne-ok">सहेजें</button></div>
+  </div>
+</div>
+
+<!-- किताब खुलने का दृश्य -->
+<div class="intro" id="intro">
+  <div class="cv" id="in-cv"></div>
+  <h2 id="in-title">—</h2>
+  <div class="au" id="in-au">—</div>
+  <div class="pills" id="in-pills"></div>
+  <div class="go" id="in-go"></div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="sronly" id="live" role="status" aria-live="polite"></div>
+
+<script src="data/adhyayan-registry.js"></script>
+<script>
+(function(){
+"use strict";
+/* ══════════════════════════════════════════════════════════════
+   अध्ययन-पुस्तकालय — इंजन
+   ग्रंथ (granth.html) से कुछ भी साझा नहीं। सारी चाबियाँ sr:* से शुरू।
+   ══════════════════════════════════════════════════════════════ */
+
+var $  = function(s,r){ return (r||document).querySelector(s); };
+var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
+var BODY = document.body;
+var RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]; }); }
+function lsGet(k,d){ try{ var v=localStorage.getItem(k); return v===null?d:v; }catch(e){ return d; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+function lsDel(k){ try{ localStorage.removeItem(k); }catch(e){} }
+function jGet(k,d){ try{ var v=JSON.parse(localStorage.getItem(k)); return v==null?d:v; }catch(e){ return d; } }
+function jSet(k,v){ lsSet(k,JSON.stringify(v)); }
+function hash32(s){ var h=0x811c9dc5,i; s=String(s); for(i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=(h*0x01000193)>>>0; } return h.toString(36); }
+function clamp(v,a,b){ return v<a?a:(v>b?b:v); }
+function mmss(t){ t=Math.max(0,Math.floor(t||0)); var m=Math.floor(t/60); return m+':'+String(t%60).padStart(2,'0'); }
+function nowDay(){ return new Date().toISOString().slice(0,10); }
+
+var toastT=null;
+function toast(msg,ms){ var t=$('#toast'); t.textContent=msg; t.classList.add('on');
+  clearTimeout(toastT); toastT=setTimeout(function(){ t.classList.remove('on'); }, ms||2600); }
+function announce(m){ $('#live').textContent=m; }
+
+/* ---------- देवनागरी को एक जैसा कर देना (खोज के लिए) ---------- */
+var NUKTA = { 'क़':'क','ख़':'ख','ग़':'ग','ज़':'ज','ड़':'ड','ढ़':'ढ','फ़':'फ','य़':'य','ऩ':'न','ऱ':'र','ऴ':'ळ' };
+function norm(s){
+  s = String(s==null?'':s).normalize ? String(s).normalize('NFC') : String(s);
+  s = s.replace(/[​-‍﻿]/g,'');            /* ZWJ/ZWNJ */
+  s = s.replace(/[क़ख़ग़ज़ड़ढ़फ़य़ऩऱऴ]/g,function(c){ return NUKTA[c]||c; });
+  s = s.replace(/़/g,'');                            /* नुक़्ता */
+  s = s.replace(/ँ/g,'ं');                      /* चंद्रबिंदु → अनुस्वार */
+  s = s.replace(/ॉ/g,'ो');                      /* ऑ → ओ */
+  s = s.replace(/ळ/g,'ल');
+  s = s.replace(/[।॥.,!?;:"'“”‘’()\[\]—–-]/g,' ');
+  return s.replace(/\s+/g,' ').trim().toLowerCase();
+}
+/* और ढीली छूट — मात्राएँ भी एक कर दें। यह तभी लगती है जब सटीक खोज में कुछ न मिले,
+   ताकि "जादुइ पेनि" लिखने पर भी "जादुई पेनी" मिल जाए। */
+function norm2(s){
+  return norm(s).replace(/[ीि]/g,'ि').replace(/[ूु]/g,'ु').replace(/[ईइ]/g,'इ').replace(/[ऊउ]/g,'उ')
+                .replace(/[ऐए]/g,'ए').replace(/[ौो]/g,'ो').replace(/ं/g,'').replace(/्/g,'');
+}
+
+/* ══════════ सेटिंग ══════════ */
+var DEF = { theme:'midnight', fs:1.06, lh:1.9, measure:64, font:'tiro', pages:1, justify:1,
+            anim:1, rate:1, voice:'Charon', style:'cine', provider:'gemini', model:'',
+            prefetch:2, custom:'' };
+var SET = jGet('sr:settings', {});
+Object.keys(DEF).forEach(function(k){ if(SET[k]==null) SET[k]=DEF[k]; });
+function saveSet(){ jSet('sr:settings',SET); applySet(); }
+
+var FONTS = {
+  tiro:  { nm:'तिरो',        css:'"Tiro Devanagari Hindi","Noto Serif Devanagari",serif' },
+  noto:  { nm:'नोटो सेरिफ़',  css:'"Noto Serif Devanagari",serif' },
+  mukta: { nm:'मुक्ता',       css:'"Mukta","Noto Sans Devanagari",sans-serif' }
+};
+function applySet(){
+  BODY.dataset.theme = SET.theme;
+  BODY.dataset.pages = SET.pages ? '1':'0';
+  BODY.dataset.justify = SET.justify ? '1':'0';
+  BODY.style.setProperty('--sr-fs', SET.fs+'rem');
+  BODY.style.setProperty('--sr-lh', SET.lh);
+  BODY.style.setProperty('--sr-measure', SET.measure+'ch');
+  BODY.style.setProperty('--sr-body', (FONTS[SET.font]||FONTS.tiro).css);
+  var tc = { midnight:'#080C11', paper:'#E7DCC6', sepia:'#2A2119', oled:'#000000', focus:'#0A0E13' }[SET.theme] || '#080C11';
+  $('#sr-theme-color').setAttribute('content', tc);
+}
+applySet();
+
+/* ══════════ स्थिति ══════════ */
+var REG = [], B = null, FLAT = [], CH = [], HL = [], BM = [];
+var view = 'lib', sheetOpen = false, curTab = 'toc', bahiFilt = 0, focusOn = false;
+var COLS = [ {c:1,nm:'याद रखने लायक़',hex:'#E7C689'}, {c:2,nm:'करने लायक़',hex:'#7AD696'},
+             {c:3,nm:'समझने लायक़',hex:'#85B4F6'},   {c:4,nm:'सवाल / असहमति',hex:'#FF8A80'} ];
+
+function K(sfx){ return 'sr:'+sfx+':'+(B?B.id:'x'); }
+
+/* ---------- पुरानी बही को नए रूप में ले आना (कुछ मिटता नहीं) ---------- */
+function migrate(id){
+  var newKey = 'sr:hl:'+id;
+  if(lsGet('sr:mig:'+id,'')) return;
+  var old = jGet('adhyayan:'+id+':hl', null);
+  /* पुरानी पहचान से भी — compound (नमूना) → compound-effect */
+  if(!old && id === 'compound-effect') old = jGet('adhyayan:compound:hl', null);
+  if(old && old.length && !jGet(newKey,null)){
+    jSet(newKey, old.map(function(x){
+      return { i:x.i||hash32(x.p+':'+x.s), p:x.p, s:x.s, e:x.e, c:x.c, n:x.n||'', t:x.t||'', at:x.at||Date.now() };
+    }));
+  }
+  var pos = lsGet('adhyayan:'+id+':pos','');
+  if(pos && !lsGet('sr:pos:'+id,'')) lsSet('sr:pos:'+id, pos);
+  lsSet('sr:mig:'+id,'1');   /* पुरानी चाबियाँ जान-बूझकर नहीं मिटाईं — बैकअप रहें */
+}
+
+/* ══════════ किताबें लाना ══════════ */
+function loadScript(src, ok, fail){
+  var s=document.createElement('script'); s.src=src;
+  s.onload=ok; s.onerror=function(){ fail && fail(); };
+  document.head.appendChild(s);
+}
+function loadRegistry(done){
+  /* सच books/index.json है; न मिले (file:// पर) तो script-tag वाला रूप */
+  fetch('books/index.json',{cache:'no-cache'}).then(function(r){ if(!r.ok) throw 0; return r.json(); })
+    .then(function(j){ REG=j; done(); })
+    .catch(function(){ REG = window.ADHYAYAN_REGISTRY || []; done(); });
+}
+var CACHE = {};
+function loadBook(entry, done, fail){
+  if(CACHE[entry.id]) return done(CACHE[entry.id]);
+  var viaJs = function(){
+    if(!entry.js) return fail && fail();
+    loadScript(entry.js, function(){
+      var d = window.ADHYAYAN_DATA && window.ADHYAYAN_DATA[entry.id];
+      if(d){ CACHE[entry.id]=d; done(d); } else fail && fail();
+    }, fail);
+  };
+  if(!entry.file) return viaJs();
+  fetch(entry.file,{cache:'no-cache'}).then(function(r){ if(!r.ok) throw 0; return r.json(); })
+    .then(function(j){ CACHE[entry.id]=j; done(j); })
+    .catch(viaJs);
+}
+
+/* ══════════ अपने आप बनने वाला आवरण ══════════ */
+function cover(bk, w, h){
+  var t = (bk.title||'?').replace(/^[॥\s"'“”(]*/,'');
+  var ch = t.charAt(0) || '?';
+  var seed = 0, i; for(i=0;i<String(bk.id).length;i++) seed = (seed*31 + String(bk.id).charCodeAt(i))>>>0;
+  var hue = seed % 360;
+  var a = bk.accent || '#C89545';
+  var lines='';
+  for(i=1;i<7;i++) lines += '<line x1="0" y1="'+(i*h/7)+'" x2="'+w+'" y2="'+(i*h/7-h/9)+'" stroke="'+a+'" stroke-width=".6" opacity=".13"/>';
+  return '<svg viewBox="0 0 '+w+' '+h+'" width="100%" height="100%" preserveAspectRatio="none" aria-hidden="true">'+
+    '<defs><linearGradient id="g'+bk.id.replace(/[^a-z0-9]/g,'')+'" x1="0" y1="0" x2="1" y2="1">'+
+      '<stop offset="0" stop-color="hsl('+hue+',18%,14%)"/><stop offset="1" stop-color="hsl('+((hue+40)%360)+',22%,9%)"/>'+
+    '</linearGradient></defs>'+
+    '<rect width="'+w+'" height="'+h+'" fill="url(#g'+bk.id.replace(/[^a-z0-9]/g,'')+')"/>'+ lines +
+    '<rect x="'+(w*.10)+'" y="'+(h*.08)+'" width="'+(w*.80)+'" height="'+(h*.84)+'" fill="none" stroke="'+a+'" stroke-width=".8" opacity=".45"/>'+
+    '<text x="'+(w/2)+'" y="'+(h*.60)+'" text-anchor="middle" font-family="Tiro Devanagari Hindi, serif" '+
+      'font-size="'+(h*.40)+'" fill="'+a+'" opacity=".92">'+esc(ch)+'</text></svg>';
+}
+function ring(pct, size){
+  var r=(size/2)-3, c=2*Math.PI*r, off=c*(1-pct/100);
+  return '<div class="ring'+(pct>=99?' done':'')+'"><svg width="'+size+'" height="'+size+'">'+
+    '<circle cx="'+(size/2)+'" cy="'+(size/2)+'" r="'+r+'" fill="none" stroke="var(--sr-line)" stroke-width="2.5"/>'+
+    '<circle cx="'+(size/2)+'" cy="'+(size/2)+'" r="'+r+'" fill="none" stroke="var(--sr-accent)" stroke-width="2.5" '+
+      'stroke-linecap="round" stroke-dasharray="'+c.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg>'+
+    '<span class="pc">'+(pct>=99?'✓':Math.round(pct))+'</span></div>';
+}
+function agoText(ts){
+  if(!ts) return '';
+  var d = Math.floor((Date.now()-ts)/86400000);
+  if(d<=0) return 'आज';
+  if(d===1) return 'कल';
+  if(d<30) return d+' दिन पहले';
+  var m=Math.floor(d/30); return m+' महीने पहले';
+}
+
+/* ══════════ पढ़ी हुई जगह और प्रगति का हिसाब ══════════ */
+function readState(id){
+  return { pos:lsGet('sr:pos:'+id,''), pct:+lsGet('sr:pct:'+id,'0')||0, at:+lsGet('sr:at:'+id,'0')||0 };
+}
+function setView(v){ view=v; BODY.dataset.view = v==='read'?'read':'lib'; }
+
+/* ══════════ पुस्तकालय ══════════ */
+function renderLib(){
+  var host=$('#lib-body');
+  if(!REG.length){
+    host.innerHTML='<div class="empty">अभी कोई अध्ययन-पुस्तक नहीं जोड़ी गई।<br><br>'+
+      'नई किताब जोड़ने का तरीक़ा <b>nayi-pustak/README.md</b> में लिखा है।</div>';
+    return;
+  }
+  var last=null, lastAt=0;
+  REG.forEach(function(e){ var st=readState(e.id); if(st.at>lastAt){ lastAt=st.at; last=e; } });
+  var h='';
+  if(last){
+    var st=readState(last.id);
+    h += '<div class="hero"><div class="in">'+
+           '<div class="cv">'+cover(last,66,92)+'</div>'+
+           '<div class="tx"><div class="lbl">जारी रखें</div><b>'+esc(last.title)+'</b>'+
+             '<div class="meta">'+esc(st.pos ? (lsGet('sr:chn:'+last.id,'') || 'पढ़ना') : 'शुरू से')+
+             ' · <span class="num">'+Math.round(st.pct)+'%</span> · '+esc(agoText(st.at))+'</div></div>'+
+           ring(st.pct,44)+
+         '</div><div class="bar"><i style="width:'+st.pct+'%"></i></div>'+
+         '<button class="go" data-open="'+esc(last.id)+'" data-resume="1">'+
+           '<svg class="ic f" viewBox="0 0 24 24"><path d="M8 5l11 7-11 7z"/></svg> वहीं से पढ़ें</button></div>';
+  }
+  h += '<div class="sect">सारी पुस्तकें</div>';
+  REG.forEach(function(e){
+    var st=readState(e.id), done=st.pct>=99;
+    h += '<button class="bcard" data-open="'+esc(e.id)+'">'+
+           '<div class="cv">'+cover(e,54,76)+'</div>'+
+           '<div class="tx"><b>'+esc(e.title)+'</b>'+
+             '<small>'+esc(e.author||'')+'</small>'+
+             '<div class="st">'+ (done?'✓ पूर्ण':(st.at? Math.round(st.pct)+'% · '+agoText(st.at) : (e.readMins?'~'+e.readMins+' मिनट':'नई'))) +
+               ' · '+(e.chapters||1)+' अध्याय</div></div>'+
+           ring(st.pct,38)+'</button>';
+  });
+  h += '<div class="libnav">'+
+       '<button class="btn" id="lib-ins"><svg class="ic" viewBox="0 0 24 24"><path d="M4 19h16M7 16V9M12 16V5M17 16v-5"/></svg> मेरी पढ़ाई</button>'+
+       '<button class="btn" id="lib-set"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 3.6v2M12 18.4v2M3.6 12h2M18.4 12h2M6 6l1.4 1.4M16.6 16.6L18 18M18 6l-1.4 1.4M7.4 16.6L6 18"/></svg> सेटिंग</button>'+
+       '<button class="btn ghost" id="lib-granth">॥ ग्रंथ ॥ — हरिरस · देवियांण</button></div>';
+  host.innerHTML=h;
+  var n=REG.length;
+  $('#lib-sub').textContent = n+' पुस्तक'+(n>1?'ें':'')+' · पढ़िए, सुनिए, निशान लगाइए';
+}
+
+/* ══════════ किताब खोलना ══════════ */
+function openBook(id, resume, silent){
+  var e = REG.filter(function(x){ return x.id===id; })[0];
+  if(!e){ toast('यह किताब नहीं मिली',2600); return; }
+  loadBook(e, function(data){
+    B = { id:e.id, title:(data.meta&&data.meta.title)||e.title, author:(data.meta&&data.meta.author)||e.author||'',
+          accent:e.accent||'#C89545', meta:data.meta||{}, chapters:data.chapters||[] };
+    migrate(B.id);
+    HL = jGet('sr:hl:'+B.id, []);
+    BM = jGet('sr:bm:'+B.id, []);
+    flatten();
+    if(silent){ mount(resume); return; }
+    intro(function(r){ mount(r===undefined ? resume : r); });
+  }, function(){ toast('किताब खुल नहीं पाई — फ़ाइल नहीं मिली',3200); });
+}
+
+/* सारे हिस्सों को एक सीधी सूची में — यही सच है */
+function flatten(){
+  FLAT=[]; CH=[];
+  var page=null;
+  (B.chapters||[]).forEach(function(c,ci){
+    var start=FLAT.length;
+    CH.push({ id:c.id, no:c.number!=null?c.number:(ci+1), title:c.title||('अध्याय '+(ci+1)),
+              pages:c.sourcePages||'', from:start, to:start, words:0 });
+    (c.blocks||[]).forEach(function(b){
+      if(b.type==='page'){ page=b.n; return; }
+      if(b.type==='actions'){
+        FLAT.push({ id:b.id, k:'ah', t:b.heading||b.text||'', page:page, ch:ci, act:'open' });
+        (b.items||[]).forEach(function(it){ FLAT.push({ id:it.id, k:'ai', t:it.text, page:page, ch:ci }); });
+        if(b.footer) FLAT.push({ id:hash32(b.footer), k:'af', t:b.footer, page:page, ch:ci, noHl:true });
+        FLAT[FLAT.length-1].act='close';
+        return;
+      }
+      if(b.type==='figure'){
+        FLAT.push({ id:b.id, k:'fig', t:b.caption||b.label||'चित्र', page:b.n!=null?b.n:page, ch:ci,
+                    src:b.src, label:b.label||'', desc:b.description||'' });
+        return;
+      }
+      FLAT.push({ id:b.id, k:b.type==='p'?'p':b.type, t:b.text||'', page:page, ch:ci, note:b.note||'' });
+    });
+    CH[ci].to = FLAT.length-1;
+  });
+  var tot=0;
+  FLAT.forEach(function(f){ f.w = f.t ? f.t.split(/\s+/).length : 0; tot+=f.w; f.cum=tot; });
+  B.words = tot || 1;
+  CH.forEach(function(c){ c.words = (FLAT[c.to]?FLAT[c.to].cum:0) - (FLAT[c.from]?FLAT[c.from].cum-FLAT[c.from].w:0); });
+}
+
+/* ══════════ किताब खुलने का छोटा दृश्य ══════════ */
+function intro(done){
+  var seen = lsGet('sr:seen:'+B.id,'');
+  if(RM || !SET.anim || seen){ lsSet('sr:seen:'+B.id,'1'); done(); return; }
+  var el=$('#intro');
+  $('#in-cv').innerHTML = cover({id:B.id,title:B.title,accent:B.accent},132,186);
+  $('#in-title').textContent = B.title;
+  $('#in-au').textContent = B.author||'';
+  var m=B.meta||{}, pills=[];
+  pills.push(CH.length+' अध्याय');
+  if(m.blocks) pills.push(m.blocks+' अनुच्छेद');
+  if(m.readMins) pills.push('~'+m.readMins+' मिनट');
+  if(m.pageFrom) pills.push('पृष्ठ '+m.pageFrom+'–'+m.pageTo);
+  $('#in-pills').innerHTML = pills.map(function(p){ return '<span>'+esc(p)+'</span>'; }).join('');
+  var st=readState(B.id);
+  $('#in-go').innerHTML = (st.pos? '<button class="btn pri" data-in="resume">जारी रखें</button>':'')+
+                          '<button class="btn" data-in="start">शुरू से पढ़ें</button>';
+  el.classList.add('on'); el.classList.remove('play');
+  void el.offsetWidth; el.classList.add('play');
+  lsSet('sr:seen:'+B.id,'1');
+  el.onclick = function(ev){
+    var b = ev.target.closest('[data-in]');
+    if(!b) return;
+    el.classList.remove('on','play'); el.onclick=null;
+    done(b.dataset.in==='resume');
+  };
+}
+
+/* ══════════ पढ़ने का पन्ना बनाना ══════════ */
+var LAZY=false, MO=null;
+/* एक अध्याय का HTML */
+function chapterHTML(ci){
+  var c=CH[ci], h='', openAct=false, lastPage=null, i;
+  for(i=c.from;i<=c.to;i++){
+    var f=FLAT[i];
+    if(!f) continue;
+    if(f.page!=null && f.page!==lastPage && f.k!=='ai' && f.k!=='af'){
+      if(openAct){ h+='</div>'; openAct=false; }
+      h += '<div class="pgm">पृष्ठ '+f.page+'</div>'; lastPage=f.page;
+    }
+    if(f.act==='open'){ h += '<div class="acts">'; openAct=true; }
+    if(f.k==='fig'){
+      if(openAct){ h+='</div>'; openAct=false; }
+      h += '<figure class="fig">'+
+             (f.label?'<div class="lb">'+esc(f.label)+(f.page?' · पृष्ठ '+f.page:'')+'</div>':'')+
+             '<div class="imgwrap"><img src="'+esc(f.src)+'" alt="'+esc(f.label||'चित्र')+'" loading="lazy" decoding="async"></div>'+
+             blk(f,i,'cap')+
+             (f.desc?'<button class="dbtn" data-dsc="1">चित्र में क्या है — पढ़िए</button><div class="dsc">'+esc(f.desc)+'</div>':'')+
+           '</figure>';
+    } else if(f.k==='af'){
+      h += '<div class="af">'+esc(f.t)+'</div>';
+    } else {
+      h += blk(f,i, f.k==='p'?'p':f.k);
+    }
+    if(f.note) h += '<div class="bnote">'+esc(f.note)+'</div>';
+    if(f.act==='close' && openAct){ h+='</div>'; openAct=false; }
+  }
+  if(openAct) h+='</div>';
+  return h;
+}
+function chapterHead(ci){
+  var c=CH[ci];
+  return '<section class="chh" data-chi="'+ci+'"><div class="no">अध्याय '+c.no+'</div>'+
+         '<h2>'+esc(c.title)+'</h2>'+
+         (c.pages?'<div class="pp">किताब के पृष्ठ '+esc(c.pages)+'</div>':'')+
+         '<div class="rule"></div></section>';
+}
+function estHeight(ci){
+  var c=CH[ci], n=c.to-c.from+1;
+  return Math.max(240, Math.round(n * 96 * (SET.fs/1.06) * (SET.lh/1.9)));
+}
+/* अध्याय को सचमुच खोल देना — ऊपर वाला खुले तो scroll खिसकने न पाए */
+function mountChapter(ci, why){
+  var host=$('#rbody .chunk[data-ci="'+ci+'"]');
+  if(!host || host.dataset.on==='1') return false;
+  var before=host.getBoundingClientRect().top;
+  host.style.minHeight='';
+  host.innerHTML=chapterHTML(ci);
+  host.dataset.on='1';
+  $$('.bk',host).forEach(paintPara);
+  if(IO) $$('.bk',host).forEach(function(el){ IO.observe(el); });
+  var after=host.getBoundingClientRect().top;
+  if(after!==before && before<0) window.scrollBy(0, after-before);   /* ऊपर खुला — जगह पकड़े रहे */
+  buildNotches();
+  return true;
+}
+function ensureChapter(ci){
+  if(!LAZY) return;
+  mountChapter(ci);
+  if(ci>0) mountChapter(ci-1);
+  if(ci<CH.length-1) mountChapter(ci+1);
+}
+/* जो अध्याय अभी परदे पर है, उसे तुरंत खोल दो — पट्टी घसीटने पर खाली जगह न दिखे */
+function mountVisible(){
+  if(!LAZY) return;
+  var vt=-innerHeight*0.6, vb=innerHeight*1.6, did=false;
+  $$('#rbody .chunk').forEach(function(x){
+    if(x.dataset.on==='1') return;
+    var r=x.getBoundingClientRect();
+    if(r.bottom>vt && r.top<vb){ mountChapter(+x.dataset.ci); did=true; }
+  });
+  return did;
+}
+function chapterOfPid(pid){
+  for(var i=0;i<FLAT.length;i++) if(FLAT[i].id===pid) return FLAT[i].ch;
+  return -1;
+}
+
+function mount(resume){
+  setView('read');
+  $('#r-title').textContent = B.title;
+  BODY.style.setProperty('--sr-accent-book', B.accent);
+  LAZY = FLAT.length > 400 && CH.length > 2;
+  var h='';
+  CH.forEach(function(c,ci){
+    h += chapterHead(ci) + '<div class="chunk" data-ci="'+ci+'"'+
+         (LAZY?' style="min-height:'+estHeight(ci)+'px"':'')+'>'+
+         (LAZY?'':chapterHTML(ci))+'</div>';
+  });
+  $('#rbody').innerHTML=h;
+  if(!LAZY) $$('#rbody .chunk').forEach(function(x){ x.dataset.on='1'; });
+  paintAll();
+  refreshFab();
+  measureTop();
+  setupObserver();
+  Audio_.reset();
+  if(LAZY){
+    if(MO) MO.disconnect();
+    MO = new IntersectionObserver(function(ents){
+      ents.forEach(function(en){ if(en.isIntersecting) mountChapter(+en.target.dataset.ci); });
+    }, { rootMargin:'250% 0px 250% 0px' });
+    $$('#rbody .chunk').forEach(function(x){ MO.observe(x); });
+    mountChapter(0);
+  }
+  buildNotches();
+  var st=readState(B.id);
+  if(resume && st.pos){
+    var ci=chapterOfPid(st.pos);
+    if(ci>=0) ensureChapter(ci);
+    setTimeout(function(){ jumpTo(st.pos,true); }, 80);
+  }
+  else window.scrollTo(0,0);
+  updateRail();
+  announce(B.title+' खुल गई');
+}
+function blk(f,i,cls){
+  return '<p class="bk '+cls+'" data-i="'+i+'" data-id="'+esc(f.id)+'"></p>';
+}
+
+/* ══════════ वाक्य तोड़ना (आवाज़ और उजाले के लिए) ══════════ */
+function sentences(t){
+  var out=[], re=/[^।॥!?\n]*[।॥!?]+[\s]*|[^।॥!?\n]+/g, m;
+  while((m=re.exec(t))!==null){
+    if(!m[0].trim()) continue;
+    var s=m.index, e=m.index+m[0].length;
+    while(e>s && /\s/.test(t.charAt(e-1))) e--;
+    if(out.length && (e-s)<12) out[out.length-1].e = e;      /* बहुत छोटा टुकड़ा पिछले से जोड़ दें */
+    else out.push({s:s,e:e});
+  }
+  if(!out.length && t) out.push({s:0,e:t.length});
+  return out;
+}
+function sentsOf(i){
+  var f=FLAT[i];
+  if(!f) return [];
+  if(!f._st) f._st = sentences(f.t);
+  return f._st;
+}
+
+/* ══════════ निशान + वाक्य — एक ही बार में चित्रण ══════════ */
+function paintPara(el){
+  var i=+el.dataset.i, f=FLAT[i];
+  if(!f) return;
+  var src=f.t, mine=HL.filter(function(x){ return x.p===f.id; }).slice().sort(function(a,b){ return a.s-b.s; });
+  var used=[], hs=[];
+  mine.forEach(function(x){
+    var s=clamp(x.s,0,src.length), e=clamp(x.e,0,src.length);
+    if(e<=s) return;
+    if(used.some(function(u){ return s<u[1] && e>u[0]; })) return;
+    used.push([s,e]); hs.push({s:s,e:e,x:x});
+  });
+  var st = f.noHl ? [] : sentsOf(i);
+  var cuts={0:1, }; cuts[src.length]=1;
+  hs.forEach(function(r){ cuts[r.s]=1; cuts[r.e]=1; });
+  st.forEach(function(r){ cuts[r.s]=1; cuts[r.e]=1; });
+  var pts=Object.keys(cuts).map(Number).sort(function(a,b){ return a-b; });
+  var h='', k;
+  for(k=0;k<pts.length-1;k++){
+    var a=pts[k], b=pts[k+1];
+    if(b<=a) continue;
+    var seg=src.slice(a,b);
+    var hit=null, si=-1, q;
+    for(q=0;q<hs.length;q++) if(a>=hs[q].s && b<=hs[q].e){ hit=hs[q]; break; }
+    for(q=0;q<st.length;q++)  if(a>=st[q].s && b<=st[q].e){ si=q; break; }
+    var inner = hit
+      ? '<mark class="hl c'+hit.x.c+(hit.x.n?' note':'')+'" data-h="'+esc(hit.x.i)+'">'+esc(seg)+'</mark>'
+      : esc(seg);
+    h += (si>=0) ? '<span class="sp" data-s="'+i+'.'+si+'">'+inner+'</span>' : inner;
+  }
+  el.innerHTML = h;
+}
+function paintAll(){ $$('#rbody .bk').forEach(paintPara); }
+function remountAll(){
+  if(!LAZY) return;
+  $$('#rbody .chunk').forEach(function(x){ if(x.dataset.on==='1') return; x.style.minHeight=estHeight(+x.dataset.ci)+'px'; });
+}
+function repaint(pid){ $$('#rbody .bk').forEach(function(el){ if(FLAT[+el.dataset.i] && FLAT[+el.dataset.i].id===pid) paintPara(el); }); }
+
+/* ══════════ चुनाव → अक्षरों की गिनती ══════════ */
+function offsetIn(root,node,off){
+  var n=0,w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null),t;
+  while((t=w.nextNode())){ if(t===node) return n+off; n+=t.nodeValue.length; }
+  return n;
+}
+var SEL=null, PICK=null;
+function readSelection(){
+  var sel=window.getSelection();
+  if(!sel||sel.isCollapsed||!sel.rangeCount) return null;
+  var r=sel.getRangeAt(0);
+  var pa=r.startContainer.parentElement && r.startContainer.parentElement.closest('.bk');
+  var pb=r.endContainer.parentElement && r.endContainer.parentElement.closest('.bk');
+  if(!pa||pa!==pb) return null;
+  var f=FLAT[+pa.dataset.i];
+  if(!f||f.noHl) return null;
+  var s=offsetIn(pa,r.startContainer,r.startOffset), e=offsetIn(pa,r.endContainer,r.endOffset);
+  if(e<=s) return null;
+  return { el:pa, pid:f.id, s:s, e:e, txt:f.t.slice(s,e), rect:r.getBoundingClientRect() };
+}
+function hidePop(){ $('#pop').classList.remove('on'); SEL=null; PICK=null;
+  $$('mark.hl.on').forEach(function(m){ m.classList.remove('on'); }); }
+function showPop(rect,html){
+  var p=$('#pop'); p.innerHTML=html; p.classList.add('on');
+  var w=p.offsetWidth, hh=p.offsetHeight;
+  var top = rect.top + scrollY - hh - 10;
+  var topGuard = scrollY + (parseFloat(getComputedStyle(BODY).getPropertyValue('--sr-top'))||56) + 8;
+  if(top < topGuard) top = rect.bottom + scrollY + 10;
+  var left = clamp(rect.left + rect.width/2 - w/2 + scrollX, 8+scrollX, scrollX+innerWidth-w-8-14);
+  p.style.left=left+'px'; p.style.top=top+'px';
+}
+function popNew(){
+  return COLS.map(function(c){ return '<button class="sw c'+c.c+'" data-set="'+c.c+'" aria-label="'+c.nm+'"></button>'; }).join('')+
+    '<button class="tb" data-set="0">✎ सिर्फ़ नोट</button>';
+}
+function popEdit(x){
+  return COLS.map(function(c){ return '<button class="sw c'+c.c+(x.c===c.c?' on':'')+'" data-col="'+c.c+'" aria-label="'+c.nm+'"></button>'; }).join('')+
+    '<button class="tb" data-note="1">✎ '+(x.n?'नोट':'नोट लिखें')+'</button>'+
+    '<button class="tb del" data-del="1">हटाएँ</button>';
+}
+document.addEventListener('selectionchange',function(){
+  var s=window.getSelection();
+  if((!s||s.isCollapsed)&&SEL) hidePop();
+});
+function onPick(e){
+  if(e&&e.target&&e.target.closest&&e.target.closest('mark.hl')) return;
+  var s=readSelection();
+  if(!s){ if(!PICK) hidePop(); return; }
+  SEL=s; PICK=null; showPop(s.rect, popNew());
+}
+$('#rbody').addEventListener('mouseup',onPick);
+$('#rbody').addEventListener('touchend',function(){ setTimeout(onPick,60); });
+$('#rbody').addEventListener('click',function(e){
+  var db=e.target.closest&&e.target.closest('.dbtn');
+  if(db){ var fg=db.closest('figure.fig'); fg.classList.toggle('open');
+    db.textContent = fg.classList.contains('open')?'विवरण बंद कीजिए':'चित्र में क्या है — पढ़िए'; return; }
+  var m=e.target.closest&&e.target.closest('mark.hl');
+  if(!m) return;
+  e.stopPropagation();
+  var x=HL.filter(function(y){ return y.i===m.dataset.h; })[0];
+  if(!x) return;
+  $$('mark.hl.on').forEach(function(q){ q.classList.remove('on'); });
+  $$('mark.hl[data-h="'+m.dataset.h+'"]').forEach(function(q){ q.classList.add('on'); });
+  PICK=x; SEL=null; showPop(m.getBoundingClientRect(), popEdit(x));
+});
+document.addEventListener('click',function(e){
+  if(e.target.closest&&(e.target.closest('#pop')||e.target.closest('#rbody'))) return;
+  hidePop();
+});
+$('#pop').addEventListener('click',function(e){
+  var b=e.target.closest('button'); if(!b) return;
+  if(b.dataset.set!=null){ addHL(+b.dataset.set); return; }
+  if(b.dataset.col!=null && PICK){ PICK.c=+b.dataset.col; saveHL(); repaint(PICK.p);
+    var mm=$('mark.hl[data-h="'+PICK.i+'"]'); if(mm) showPop(mm.getBoundingClientRect(), popEdit(PICK)); return; }
+  if(b.dataset.note && PICK){ openNote(PICK); return; }
+  if(b.dataset.del && PICK){ delHL(PICK); return; }
+});
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function saveHL(){ jSet('sr:hl:'+B.id, HL); refreshFab(); }
+function addHL(c){
+  if(!SEL) return;
+  var x={ i:uid(), p:SEL.pid, s:SEL.s, e:SEL.e, c:c, n:'', t:SEL.txt, at:Date.now() };
+  HL.push(x); saveHL();
+  var pid=SEL.pid;
+  try{ window.getSelection().removeAllRanges(); }catch(err){}
+  hidePop(); repaint(pid);
+  if(c===0){ PICK=x; openNote(x); }
+  else toast('निशान लग गया — दबाकर नोट भी जोड़ सकते हैं',2600);
+}
+function delHL(x){
+  HL=HL.filter(function(y){ return y.i!==x.i; }); saveHL();
+  var pid=x.p; hidePop(); repaint(pid);
+  if(sheetOpen&&curTab==='bahi') renderSheet('bahi');
+  toast('निशान हटा दिया',1800);
+}
+var noteFor=null;
+function openNote(x){
+  noteFor=x; $('#ne-q').textContent=x.t; $('#ne-t').value=x.n||'';
+  $('#noteed').classList.add('on'); setTimeout(function(){ $('#ne-t').focus(); },120);
+}
+$('#ne-x').addEventListener('click',function(){ $('#noteed').classList.remove('on'); noteFor=null; });
+$('#ne-ok').addEventListener('click',function(){
+  if(!noteFor) return;
+  noteFor.n=$('#ne-t').value.trim();
+  if(noteFor.bm) jSet('sr:bm:'+B.id,BM); else saveHL();
+  var pid=noteFor.p; $('#noteed').classList.remove('on'); noteFor=null;
+  hidePop(); repaint(pid);
+  if(sheetOpen&&curTab==='bahi') renderSheet('bahi');
+  toast('आपकी बात सहेज ली',2000);
+});
+
+/* ══════════ header — नीचे पढ़ते समय छिप जाए ══════════ */
+function measureTop(){
+  var h=$('#rhead').offsetHeight||56;
+  BODY.style.setProperty('--sr-top', h+'px');
+}
+addEventListener('resize', function(){ measureTop(); buildNotches(); updateRail(); });
+
+var lastY=0, tick=false;
+addEventListener('scroll', function(){
+  if(tick) return; tick=true;
+  requestAnimationFrame(function(){
+    tick=false;
+    var y=scrollY;
+    if(view==='read'){
+      var down=y>lastY+8, up=y<lastY-8;
+      if(down&&y>140){ $('#rhead').classList.add('up'); $('#fab').classList.add('hide'); }
+      else if(up){ $('#rhead').classList.remove('up'); $('#fab').classList.remove('hide'); }
+      if(down||up) lastY=y;
+      mountVisible(); updateRail(); trackTime();
+    }
+  });
+}, {passive:true});
+/* उँगली/पहिया — यही असली "मैंने ख़ुद scroll किया" है */
+['wheel','touchmove'].forEach(function(ev){
+  addEventListener(ev, function(){ if(view==='read') Audio_.userScrolled(); }, {passive:true});
+});
+
+/* ══════════ पीतल की पाठ-पट्टी ══════════ */
+function docSpan(){ return Math.max(1, document.documentElement.scrollHeight - innerHeight); }
+function buildNotches(){
+  var rail=$('#rail-trk');
+  $$('.nk',rail).forEach(function(n){ n.remove(); });
+  if(CH.length<2) return;
+  var span=docSpan();
+  CH.forEach(function(c,i){
+    if(!i) return;
+    var el=$('#rbody .chh[data-chi="'+i+'"]');
+    if(!el) return;
+    var top=el.getBoundingClientRect().top+scrollY-(parseFloat(getComputedStyle(BODY).getPropertyValue('--sr-top'))||56);
+    var n=document.createElement('i');
+    n.className='nk'; n.style.top=clamp(top/span*100,0,100)+'%';
+    rail.appendChild(n);
+  });
+}
+function railPct(){ return clamp(scrollY/docSpan()*100,0,100); }
+var railDrag=false;
+function updateRail(){
+  if(railDrag) return;
+  var p=railPct();
+  $('#rail-fil').style.height=p+'%';
+  positionKnob(p);
+  $('#rail').setAttribute('aria-valuenow', Math.round(p));
+  updateProgress();
+}
+function positionKnob(p){
+  var trk=$('#rail-trk'), r=trk.getBoundingClientRect();
+  var y=r.top + r.height*(p/100);
+  $('#rail-kb').style.top=y+'px'; $('#rail-kb').style.transform='translate(-50%,-50%)';
+  $('#rail-tip').style.top=y+'px';
+}
+(function(){
+  var rail=$('#rail'), trk=$('#rail-trk');
+  function toPct(cy){ var r=trk.getBoundingClientRect(); return clamp((cy-r.top)/r.height*100,0,100); }
+  function apply(p, live){
+    $('#rail-fil').style.height=p+'%'; positionKnob(p);
+    var f=blockAtPct(p);
+    $('#rail-tip').textContent = f ? ((CH[f.ch]?CH[f.ch].no+'. ':'')+(f.page?'पृष्ठ '+f.page+' · ':'')+Math.round(p)+'%') : Math.round(p)+'%';
+    if(live) window.scrollTo(0, docSpan()*p/100);
+  }
+  rail.addEventListener('pointerdown',function(e){
+    railDrag=true; rail.classList.add('drag'); rail.setPointerCapture(e.pointerId);
+    apply(toPct(e.clientY),true); e.preventDefault();
+  });
+  rail.addEventListener('pointermove',function(e){ if(!railDrag) return; apply(toPct(e.clientY),true); mountVisible(); });
+  function end(e){ if(!railDrag) return; railDrag=false; rail.classList.remove('drag');
+    try{ rail.releasePointerCapture(e.pointerId); }catch(err){} mountVisible(); updateRail(); }
+  rail.addEventListener('pointerup',end); rail.addEventListener('pointercancel',end);
+  rail.addEventListener('keydown',function(e){
+    var d = e.key==='ArrowDown'?5 : e.key==='ArrowUp'?-5 : e.key==='PageDown'?15 : e.key==='PageUp'?-15 : 0;
+    if(!d) return;
+    e.preventDefault();
+    window.scrollTo({ top: docSpan()*clamp(railPct()+d,0,100)/100, behavior: RM?'auto':'smooth' });
+  });
+  rail.addEventListener('pointerenter',function(){ rail.classList.add('live'); });
+  rail.addEventListener('pointerleave',function(){ rail.classList.remove('live'); });
+})();
+function blockAtPct(p){
+  var y = docSpan()*p/100 + innerHeight*0.35;
+  var els=$$('#rbody .bk'), lo=0, hi=els.length-1, best=null;
+  while(lo<=hi){ var mid=(lo+hi)>>1, el=els[mid], top=el.getBoundingClientRect().top+scrollY;
+    if(top<=y){ best=el; lo=mid+1; } else hi=mid-1; }
+  return best ? FLAT[+best.dataset.i] : FLAT[0];
+}
+
+/* ══════════ प्रगति, बचा हुआ समय, अध्याय ══════════ */
+var curIdx=0, saveT=null, IO=null;
+function setupObserver(){
+  if(IO) IO.disconnect();
+  IO = new IntersectionObserver(function(ents){
+    var best=null;
+    ents.forEach(function(en){ if(en.isIntersecting && (!best || en.target.offsetTop<best.offsetTop)) best=en.target; });
+    if(best) curIdx = +best.dataset.i;
+  }, { rootMargin:'-42% 0px -46% 0px' });
+  $$('#rbody .bk').forEach(function(el){ IO.observe(el); });
+}
+function wpm(){
+  var s=jGet('sr:wpm',null);
+  if(!s || !s.n || s.n<4) return 180;
+  return clamp(Math.round(s.sum/s.n), 80, 420);
+}
+function updateProgress(){
+  if(!B||!FLAT.length) return;
+  var f=FLAT[curIdx]||FLAT[0];
+  var pctW = clamp((f.cum/B.words)*100, 0, 100);
+  var atEnd = (scrollY+innerHeight) >= document.documentElement.scrollHeight-4;
+  if(atEnd) pctW = 100;
+  var c=CH[f.ch];
+  $('#r-sub').textContent = (c? c.no+'. '+c.title : '') + ' · ' + Math.round(pctW) + '%' + remainTxt(f,pctW);
+  clearTimeout(saveT);
+  saveT=setTimeout(function(){
+    lsSet('sr:pos:'+B.id, f.id);
+    lsSet('sr:pct:'+B.id, Math.round(pctW));
+    lsSet('sr:at:'+B.id, Date.now());
+    if(c) lsSet('sr:chn:'+B.id, c.no+'. '+c.title);
+  }, 900);
+}
+function remainTxt(f,pct){
+  var left = Math.max(0, B.words - f.cum);
+  if(left<40) return '';
+  var mins = Math.round(left/wpm());
+  if(mins<1 || mins>900) return '';
+  return ' · लगभग '+mins+' मिनट बाकी';
+}
+/* पढ़ने का समय — असली रफ़्तार सीखने के लिए भी */
+var tPrev=Date.now(), tIdx=-1;
+function trackTime(){
+  var now=Date.now(), dt=(now-tPrev)/1000; tPrev=now;
+  if(dt<=0||dt>90) { tIdx=curIdx; return; }
+  addStat(dt);
+  if(tIdx>=0 && curIdx>tIdx){
+    var words = (FLAT[curIdx]?FLAT[curIdx].cum:0) - (FLAT[tIdx]?FLAT[tIdx].cum:0);
+    if(words>20 && dt>2 && dt<600){
+      var s=jGet('sr:wpm',{sum:0,n:0});
+      var v = words/(dt/60);
+      if(v>40 && v<700){ s.sum+=v; s.n++; if(s.n>60){ s.sum=s.sum*60/s.n; s.n=60; } jSet('sr:wpm',s); }
+    }
+  }
+  tIdx=curIdx;
+}
+function addStat(sec){
+  if(sec<=0||sec>90) return;
+  var st=jGet('sr:stats',{days:{},books:{}});
+  var d=nowDay();
+  st.days[d]=(st.days[d]||0)+sec;
+  if(B){ st.books[B.id]=(st.books[B.id]||0)+sec; }
+  var keys=Object.keys(st.days).sort();
+  if(keys.length>120) keys.slice(0,keys.length-120).forEach(function(k){ delete st.days[k]; });
+  jSet('sr:stats',st);
+}
+setInterval(function(){ if(view==='read' && !document.hidden) trackTime(); }, 5000);
+
+function jumpTo(pid, quiet){
+  if(LAZY){ var ci=chapterOfPid(pid); if(ci>=0) ensureChapter(ci); }
+  var find=function(){
+    return $$('#rbody .bk').filter(function(e){ var f=FLAT[+e.dataset.i]; return f&&f.id===pid; })[0]
+        || $('#rbody [data-id="'+pid+'"]');
+  };
+  var el=find();
+  if(!el){ if(!quiet) toast('वह जगह नहीं मिली',2200); return; }
+  /* दूर की छलाँग — बीच के अध्याय खुलने से ऊँचाई बदलती है, इसलिए सीधे पहुँचकर दो बार सँभालें */
+  var far = LAZY && Math.abs(el.getBoundingClientRect().top) > innerHeight*1.8;
+  el.scrollIntoView({ behavior: (RM||far)?'auto':'smooth', block:'center' });
+  if(far){
+    var settle=function(){
+      mountVisible();
+      var e2=find();
+      if(e2) e2.scrollIntoView({ behavior:'auto', block:'center' });
+      buildNotches(); updateRail();
+    };
+    requestAnimationFrame(settle);
+    setTimeout(settle,140);
+    setTimeout(settle,340);
+  }
+  if(!quiet){ el.classList.add('flash'); setTimeout(function(){ el.classList.remove('flash'); },1600); }
+}
+function refreshFab(){
+  var n=HL.length+BM.length;
+  $('#fab-t').textContent = n? 'मेरी बही · '+n : 'मेरी बही';
+}
+
+/* ══════════ शीट ══════════ */
+var sheet=$('#sheet'), scrim=$('#scrim'), sBody=$('#sheet-body');
+var TABS = { toc:'अनुक्रम', bahi:'मेरी बही', find:'खोज', ctrl:'पढ़ना', audio:'आवाज़', ins:'मेरी पढ़ाई', set:'सेटिंग' };
+function openSheet(t){
+  curTab=t||'toc';
+  $('#sheet-tabs').innerHTML = Object.keys(TABS).map(function(k){
+    if((k==='toc'||k==='bahi'||k==='find'||k==='ctrl'||k==='audio') && !B) return '';
+    return '<button data-tab="'+k+'" aria-pressed="'+(k===curTab)+'">'+TABS[k]+'</button>';
+  }).join('');
+  renderSheet(curTab);
+  sheetOpen=true; sheet.classList.add('on'); scrim.classList.add('on'); $('#fab').classList.add('hide');
+}
+function closeSheet(){ sheetOpen=false; sheet.classList.remove('on'); scrim.classList.remove('on'); $('#fab').classList.remove('hide'); }
+scrim.addEventListener('click',closeSheet);
+$('#sheet-tabs').addEventListener('click',function(e){
+  var b=e.target.closest('[data-tab]'); if(!b) return;
+  curTab=b.dataset.tab;
+  $$('#sheet-tabs button').forEach(function(x){ x.setAttribute('aria-pressed', x.dataset.tab===curTab?'true':'false'); });
+  renderSheet(curTab);
+});
+var moreOpen=false;
+function renderSheet(tab){
+  var h='';
+  if(tab==='toc')  h=tocHTML();
+  if(tab==='bahi') h=bahiHTML();
+  if(tab==='find') h='<div class="srch"><input class="fld" id="fq" type="search" placeholder="किस शब्द या वाक्य को खोजें?" autocomplete="off">'+
+                     '<button class="btn pri" id="fgo">खोजें</button></div><div id="fres"></div>';
+  if(tab==='ctrl') h=ctrlHTML();
+  if(tab==='audio')h=Audio_.sheetHTML();
+  if(tab==='ins')  h=insHTML();
+  if(tab==='set')  h=setHTML();
+  sBody.innerHTML=h;
+  sBody.scrollTop=0;
+  if(tab==='find'){
+    $('#fq').addEventListener('keydown',function(e){ if(e.key==='Enter') doFind($('#fq').value); });
+    $('#fgo').addEventListener('click',function(){ doFind($('#fq').value); });
+    setTimeout(function(){ $('#fq').focus(); },220);
+  }
+  if(tab==='audio') Audio_.wire();
+}
+
+/* ---------- अनुक्रम ---------- */
+function tocHTML(){
+  var cur = FLAT[curIdx] ? FLAT[curIdx].ch : 0;
+  var h='';
+  CH.forEach(function(c,i){
+    var read = clamp(((FLAT[curIdx]?FLAT[curIdx].cum:0) - (FLAT[c.from]?FLAT[c.from].cum-FLAT[c.from].w:0)) / Math.max(1,c.words) * 100, 0, 100);
+    h += '<button class="cnav'+(i===cur?' cur':'')+'" data-go="'+esc(FLAT[c.from].id)+'">'+
+           '<small>अध्याय '+c.no+(c.pages?' · पृष्ठ '+esc(c.pages):'')+'</small><b>'+esc(c.title)+'</b>'+
+           '<span class="cb"><i style="width:'+Math.round(read)+'%"></i></span></button>';
+    FLAT.slice(c.from,c.to+1).forEach(function(f){
+      if(f.k==='h2'||f.k==='ah') h += '<button class="snav" data-go="'+esc(f.id)+'">'+esc(f.t)+'</button>';
+    });
+  });
+  h += '<div class="empty" style="padding:1rem .5rem 0">'+esc(B.title)+' — '+CH.length+' अध्याय · '+
+       (B.meta.blocks||FLAT.length)+' अनुच्छेद · '+HL.length+' निशान</div>';
+  return h;
+}
+
+/* ---------- मेरी बही ---------- */
+function chOf(pid){ var f=FLAT.filter(function(x){ return x.id===pid; })[0]; return f?CH[f.ch]:null; }
+function pageOf(pid){ var f=FLAT.filter(function(x){ return x.id===pid; })[0]; return f?f.page:null; }
+function ordOf(pid){ var i=FLAT.map(function(x){ return x.id; }).indexOf(pid); return i<0?1e9:i; }
+function bahiHTML(){
+  var all = HL.map(function(x){ return x; }).concat(BM.map(function(b){ b.bm=1; return b; }));
+  var h='<div class="filt"><button data-f="0" aria-pressed="'+(bahiFilt===0)+'">सब · '+all.length+'</button>';
+  COLS.forEach(function(c){
+    var n=HL.filter(function(x){ return x.c===c.c; }).length;
+    h += '<button data-f="'+c.c+'" aria-pressed="'+(bahiFilt===c.c)+'"><span class="d" style="background:'+c.hex+'"></span>'+esc(c.nm)+' '+n+'</button>';
+  });
+  h += '<button data-f="9" aria-pressed="'+(bahiFilt===9)+'">सिर्फ़ नोट · '+HL.filter(function(x){return x.c===0;}).length+'</button>';
+  h += '<button data-f="8" aria-pressed="'+(bahiFilt===8)+'">⚑ चिह्न · '+BM.length+'</button></div>';
+
+  var list=all.slice();
+  if(bahiFilt===9) list=list.filter(function(x){ return !x.bm && x.c===0; });
+  else if(bahiFilt===8) list=list.filter(function(x){ return x.bm; });
+  else if(bahiFilt) list=list.filter(function(x){ return !x.bm && x.c===bahiFilt; });
+  list.sort(function(a,b){ var d=ordOf(a.p)-ordOf(b.p); return d||((a.s||0)-(b.s||0)); });
+
+  if(!list.length) return h+'<div class="empty">अभी इस छाँट में कुछ नहीं।<br><br>'+
+    'पढ़ते समय कोई वाक्य उँगली से चुनिए — रंग चुनने का पट्टा अपने आप आ जाएगा।<br>'+
+    'जगह याद रखनी हो तो ऊपर ⋯ में <b>यहाँ चिह्न लगाएँ</b>।</div>';
+
+  var lastCh=null;
+  list.forEach(function(x){
+    var c=chOf(x.p), ct=c?c.no+'. '+c.title:'—';
+    if(ct!==lastCh){ h+='<div class="grp">'+esc(ct)+'</div>'; lastCh=ct; }
+    var pg=pageOf(x.p);
+    var when = x.at? new Date(x.at).toLocaleDateString('hi-IN',{day:'numeric',month:'short'})+' · '+
+               new Date(x.at).toLocaleTimeString('hi-IN',{hour:'2-digit',minute:'2-digit'}) : '';
+    h += '<div class="nrow'+(x.bm?' bm':' c'+x.c)+'">'+
+           '<div class="q">'+esc((x.t||'').slice(0,240))+((x.t||'').length>240?'…':'')+'</div>'+
+           (x.n?'<div class="nt">'+esc(x.n)+'</div>':'')+
+           '<div class="mt"><small>'+(pg?'पृष्ठ '+pg+' · ':'')+esc(when)+'</small>'+
+             '<button data-go="'+esc(x.p)+'">किताब में</button>'+
+             '<button data-note="'+esc(x.i)+'">'+(x.n?'नोट बदलें':'नोट')+'</button>'+
+             '<button class="del" data-rm="'+esc(x.i)+'">हटाएँ</button></div></div>';
+  });
+  h += '<div class="filt" style="margin-top:1rem"><button id="bahi-copy" style="flex:1">पूरी बही की प्रतिलिपि</button></div>';
+  return h;
+}
+function bahiText(){
+  var out=['# '+B.title+(B.author?' — '+B.author:''), ''];
+  var all=HL.concat(BM.map(function(b){ b.bm=1; return b; }));
+  all.sort(function(a,b){ return (ordOf(a.p)-ordOf(b.p))||((a.s||0)-(b.s||0)); });
+  var lastCh=null;
+  all.forEach(function(x){
+    var c=chOf(x.p), ct=c?c.no+'. '+c.title:'—';
+    if(ct!==lastCh){ out.push('','## '+ct,''); lastCh=ct; }
+    var nm = x.bm ? 'चिह्न' : ((COLS.filter(function(q){ return q.c===x.c; })[0]||{}).nm || 'नोट');
+    var pg = pageOf(x.p);
+    out.push('> '+x.t);
+    out.push('  ['+nm+(pg?' · पृष्ठ '+pg:'')+']');
+    if(x.n) out.push('  ✎ '+x.n);
+    out.push('');
+  });
+  return out.join('\n');
+}
+function copyText(txt,ok){
+  if(navigator.clipboard&&navigator.clipboard.writeText)
+    navigator.clipboard.writeText(txt).then(ok,function(){ fbCopy(txt,ok); });
+  else fbCopy(txt,ok);
+}
+function fbCopy(txt,ok){
+  var ta=document.createElement('textarea'); ta.value=txt;
+  ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); ok&&ok(); }catch(e){ toast('प्रतिलिपि नहीं हो पाई',2400); }
+  document.body.removeChild(ta);
+}
+
+/* ---------- खोज ---------- */
+function doFind(q){
+  q=(q||'').trim();
+  var box=$('#fres');
+  if(q.length<2){ box.innerHTML='<div class="empty">कम से कम दो अक्षर लिखिए</div>'; return; }
+  var nq=norm(q), loose=false;
+  if(!nq){ box.innerHTML='<div class="empty">कुछ और लिखिए</div>'; return; }
+  var hits = FLAT.filter(function(f){ return f.t && norm(f.t).indexOf(nq)>=0; });
+  if(!hits.length){ loose=true; nq=norm2(q); }
+  var out=[], n=0;
+  FLAT.forEach(function(f){
+    if(n>=80||!f.t) return;
+    var nt = loose? norm2(f.t) : norm(f.t);
+    var at=nt.indexOf(nq);
+    if(at<0) return;
+    n++;
+    /* सामान्य रूप की जगह असली पाठ में लगभग वही जगह */
+    var ratio = f.t.length/Math.max(1,nt.length);
+    var gi = clamp(Math.round(at*ratio)-12, 0, Math.max(0,f.t.length-1));
+    var from=Math.max(0,gi-40), to=Math.min(f.t.length, gi+q.length+90);
+    var snip=(from?'…':'')+esc(f.t.slice(from,to))+(to<f.t.length?'…':'');
+    try{
+      var re=new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi');
+      snip=snip.replace(re,function(m){ return '<b>'+m+'</b>'; });
+    }catch(e){}
+    var c=CH[f.ch];
+    out.push('<button class="sres" data-go="'+esc(f.id)+'"><small>'+esc(c?c.no+'. '+c.title:'')+
+             (f.page?' · पृष्ठ '+f.page:'')+'</small><span>'+snip+'</span></button>');
+  });
+  box.innerHTML = out.length
+    ? '<div class="grp">'+out.length+' जगह मिलीं'+(loose?' (मिलती-जुलती वर्तनी से)':'')+'</div>'+out.join('')
+    : '<div class="empty">कुछ नहीं मिला — दूसरा शब्द आज़माइए</div>';
+}
+
+/* ---------- पढ़ने के नियंत्रण ---------- */
+var THEMES=[['midnight','रात'],['paper','काग़ज़'],['sepia','सीपिया'],['focus','ध्यान'],['oled','OLED']];
+function ctrlHTML(){
+  var h='';
+  h += '<div class="row"><div class="lab">अक्षर का आकार</div><div class="chips">'+
+       '<button data-fs="-1" aria-label="छोटा">A−</button>'+
+       '<button data-fs="0">'+Math.round(SET.fs*100/1.06)+'%</button>'+
+       '<button data-fs="1" aria-label="बड़ा">A+</button></div></div>';
+  h += '<div class="row"><div class="lab">रंग-रूप</div><div class="chips">'+
+       THEMES.map(function(t){ return '<button data-th="'+t[0]+'" aria-pressed="'+(SET.theme===t[0])+'">'+t[1]+'</button>'; }).join('')+
+       '</div></div>';
+  h += '<div class="row"><div class="lab">आवाज़ में सुनिए<small>'+(Audio_.ready()?'तैयार है':'पहले कुंजी जोड़नी होगी')+'</small></div>'+
+       '<div class="chips"><button class="pri" id="ctrl-audio" style="background:var(--sr-accent);color:var(--sr-on-accent);border-color:transparent">▶ शुरू करें</button></div></div>';
+  h += '<div class="row"><div class="lab">यहाँ चिह्न लगाएँ<small>जहाँ तक पढ़ा, वह जगह बही में सहेज लीजिए</small></div>'+
+       '<div class="chips"><button id="ctrl-bm">⚑ चिह्न</button><button id="ctrl-bahi">मेरी बही</button></div></div>';
+  h += '<button class="more" id="more-t">'+(moreOpen?'कम विकल्प ▲':'अधिक विकल्प ▼')+'</button>';
+  if(moreOpen){
+    h += '<div class="row"><div class="lab">पंक्तियों की दूरी</div><div class="chips">'+
+         [['पास',1.7],['सामान्य',1.9],['खुली',2.2]].map(function(o){
+           return '<button data-lh="'+o[1]+'" aria-pressed="'+(Math.abs(SET.lh-o[1])<.01)+'">'+o[0]+'</button>'; }).join('')+'</div></div>';
+    h += '<div class="row"><div class="lab">पाठ की चौड़ाई</div><div class="chips">'+
+         [['सँकरी',52],['सामान्य',64],['चौड़ी',76]].map(function(o){
+           return '<button data-mw="'+o[1]+'" aria-pressed="'+(SET.measure===o[1])+'">'+o[0]+'</button>'; }).join('')+'</div></div>';
+    h += '<div class="row"><div class="lab">अक्षर</div><div class="chips">'+
+         Object.keys(FONTS).map(function(k){
+           return '<button data-fn="'+k+'" aria-pressed="'+(SET.font===k)+'">'+FONTS[k].nm+'</button>'; }).join('')+'</div></div>';
+    h += '<div class="row"><div class="lab">दोनों किनारे बराबर<small>justify</small></div>'+
+         '<button class="tgl" data-t="justify" aria-pressed="'+(SET.justify?'true':'false')+'"><i></i></button></div>';
+    h += '<div class="row"><div class="lab">किताब के पृष्ठ-अंक</div>'+
+         '<button class="tgl" data-t="pages" aria-pressed="'+(SET.pages?'true':'false')+'"><i></i></button></div>';
+    h += '<div class="row"><div class="lab">खुलते समय का दृश्य<small>animation</small></div>'+
+         '<button class="tgl" data-t="anim" aria-pressed="'+(SET.anim?'true':'false')+'"><i></i></button></div>';
+    h += '<div class="row"><div class="lab">ध्यान-मोड<small>सिर्फ़ पाठ, बाक़ी सब छिप जाए</small></div>'+
+         '<div class="chips"><button id="ctrl-focus">'+(focusOn?'बंद करें':'चालू करें')+'</button></div></div>';
+  }
+  return h;
+}
+
+/* ---------- मेरी पढ़ाई ---------- */
+function insHTML(){
+  var st=jGet('sr:stats',{days:{},books:{}});
+  var days=st.days||{}, keys=Object.keys(days).sort();
+  var total=0; keys.forEach(function(k){ total+=days[k]; });
+  var streak=0, d=new Date();
+  for(;;){ var k=d.toISOString().slice(0,10); if((days[k]||0)>=60){ streak++; d.setDate(d.getDate()-1); } else break; }
+  var doneN=0, pages=0;
+  REG.forEach(function(e){ var s=readState(e.id); if(s.pct>=99) doneN++; });
+  REG.forEach(function(e){ var s=readState(e.id); pages += Math.round((s.pct/100)*((CACHE[e.id]&&CACHE[e.id].meta&&CACHE[e.id].meta.pageTo)||0)); });
+  var h='<div class="stats">'+
+    '<div class="stat"><b>'+Math.round(total/60)+'</b><small>कुल मिनट पढ़े</small></div>'+
+    '<div class="stat"><b>'+streak+'</b><small>दिन लगातार</small></div>'+
+    '<div class="stat"><b>'+doneN+'</b><small>पूरी की गई किताबें</small></div>'+
+    '<div class="stat"><b>'+wpm()+'</b><small>आपकी रफ़्तार (शब्द/मिनट)</small></div>'+
+  '</div>';
+  var wk=[], names=['र','सो','मं','बु','गु','शु','श'];
+  var mx=1;
+  for(var i=6;i>=0;i--){ var dt=new Date(); dt.setDate(dt.getDate()-i);
+    var v=days[dt.toISOString().slice(0,10)]||0; wk.push({v:v,n:names[dt.getDay()]}); if(v>mx) mx=v; }
+  h += '<div class="grp">इस हफ़्ते</div><div class="week">'+
+       wk.map(function(x){ return '<div class="d"><i style="height:'+Math.max(3,Math.round(x.v/mx*62))+'px"></i><span>'+x.n+'</span></div>'; }).join('')+
+       '</div>';
+  h += '<div class="grp">किताब-वार</div>';
+  REG.forEach(function(e){
+    var s=readState(e.id), secs=(st.books&&st.books[e.id])||0;
+    h += '<div class="row"><div class="lab">'+esc(e.title)+'<small>'+Math.round(secs/60)+' मिनट · '+Math.round(s.pct)+'% पढ़ा</small></div>'+ring(s.pct,38)+'</div>';
+  });
+  h += '<div class="hint">यह गिनती सिर्फ़ अध्ययन-पुस्तकों की है। ग्रंथ (हरिरस, देवियांण) इसमें नहीं आते, और सब कुछ इसी फ़ोन में रहता है।</div>';
+  h += '<div class="filt" style="margin-top:.8rem"><button id="ins-clear">पढ़ाई का हिसाब मिटाएँ</button></div>';
+  return h;
+}
+
+/* ---------- सेटिंग ---------- */
+function setHTML(){
+  var h='';
+  h += '<div class="grp">आवाज़ (TTS)</div>' + Audio_.settingsHTML();
+  h += '<div class="grp">किताबें</div>';
+  h += '<div class="row"><div class="lab">पुस्तकालय में<small>'+REG.length+' अध्ययन-पुस्तक'+(REG.length>1?'ें':'')+'</small></div>'+
+       '<div class="chips"><button id="set-lib">देखें</button></div></div>';
+  h += '<div class="row"><div class="lab">॥ ग्रंथ ॥<small>हरिरस · देवियांण — अलग पन्ना, अलग हिसाब</small></div>'+
+       '<div class="chips"><button id="set-granth">खोलें</button></div></div>';
+  h += '<div class="hint">नई किताब जोड़ने का तरीक़ा <b>nayi-pustak/README.md</b> में लिखा है — एक JSON फ़ाइल डालिए, बस।</div>';
+  return h;
+}
+
+/* ---------- शीट के भीतर के दबाव ---------- */
+sBody.addEventListener('click',function(e){
+  var t=e.target.closest('button'); if(!t) return;
+  if(t.dataset.go){ closeSheet(); jumpTo(t.dataset.go); return; }
+  if(t.dataset.note){
+    var x=HL.concat(BM).filter(function(y){ return y.i===t.dataset.note; })[0];
+    if(x){ closeSheet(); openNote(x); } return; }
+  if(t.dataset.rm){
+    var y=HL.filter(function(z){ return z.i===t.dataset.rm; })[0];
+    if(y){ delHL(y); renderSheet('bahi'); return; }
+    BM=BM.filter(function(z){ return z.i!==t.dataset.rm; }); jSet('sr:bm:'+B.id,BM); refreshFab(); renderSheet('bahi'); return; }
+  if(t.dataset.f!=null){ bahiFilt=+t.dataset.f; renderSheet('bahi'); return; }
+  if(t.id==='bahi-copy'){
+    if(!HL.length&&!BM.length){ toast('अभी बही खाली है',2000); return; }
+    copyText(bahiText(),function(){ toast('पूरी बही प्रतिलिपि हो गई — जहाँ चाहें चिपका दीजिए',3200); }); return; }
+  if(t.dataset.fs!=null){
+    var d=+t.dataset.fs;
+    if(d) SET.fs=clamp(+(SET.fs+d*0.07).toFixed(3),0.85,2.12);
+    else SET.fs=DEF.fs;
+    saveSet(); renderSheet('ctrl'); remountAll(); buildNotches(); updateRail(); return; }
+  if(t.dataset.th){ SET.theme=t.dataset.th; saveSet(); renderSheet('ctrl'); return; }
+  if(t.dataset.lh){ SET.lh=+t.dataset.lh; saveSet(); renderSheet('ctrl'); buildNotches(); return; }
+  if(t.dataset.mw){ SET.measure=+t.dataset.mw; saveSet(); renderSheet('ctrl'); buildNotches(); return; }
+  if(t.dataset.fn){ SET.font=t.dataset.fn; saveSet(); renderSheet('ctrl'); buildNotches(); return; }
+  if(t.dataset.t){ SET[t.dataset.t]=SET[t.dataset.t]?0:1; saveSet(); renderSheet('ctrl'); return; }
+  if(t.id==='more-t'){ moreOpen=!moreOpen; renderSheet('ctrl'); return; }
+  if(t.id==='ctrl-focus'){ closeSheet(); setFocus(!focusOn); return; }
+  if(t.id==='ctrl-bm'){ addBookmark(); renderSheet('ctrl'); return; }
+  if(t.id==='ctrl-bahi'){ bahiFilt=0; curTab='bahi';
+    $$('#sheet-tabs button').forEach(function(x){ x.setAttribute('aria-pressed', x.dataset.tab==='bahi'?'true':'false'); });
+    renderSheet('bahi'); return; }
+  if(t.id==='ctrl-audio'){ closeSheet(); Audio_.start(); return; }
+  if(t.id==='set-lib'){ closeSheet(); toLib(); return; }
+  if(t.id==='set-granth'){ location.href='granth.html'; return; }
+  if(t.id==='ins-clear'){
+    if(!confirm('पढ़ाई का सारा हिसाब मिट जाएगा। मिटाएँ?')) return;
+    lsDel('sr:stats'); lsDel('sr:wpm'); renderSheet('ins'); toast('हिसाब मिटा दिया',2200); return; }
+  Audio_.sheetClick(t);
+});
+
+/* ══════════════════════════════════════════════════════════════
+   आवाज़ का इंजन
+   ग्रंथ के श्रवण से इसका कोई लेना-देना नहीं — अलग file, अलग कोड।
+   ══════════════════════════════════════════════════════════════ */
+var TTS_CONFIG = {
+  gemini: {
+    nm: 'Gemini (सिनेमैटिक)',
+    endpoint: 'https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent',
+    models: ['gemini-2.5-flash-preview-tts','gemini-3.1-flash-tts-preview','gemini-2.5-pro-preview-tts'],
+    voices: ['Charon','Kore','Puck','Zephyr','Fenrir','Leda','Orus','Aoede','Callirrhoe','Enceladus',
+             'Iapetus','Umbriel','Algieba','Despina','Erinome','Rasalgethi','Achernar','Schedar',
+             'Gacrux','Achird','Vindemiatrix','Sulafat'],
+    keyName: 'sr:key:gemini'
+  },
+  gcloud: {
+    nm: 'Google Cloud TTS',
+    endpoint: 'https://texttospeech.googleapis.com/v1/text:synthesize?key={KEY}',
+    models: ['hi-IN-Chirp3-HD-Achernar','hi-IN-Neural2-D','hi-IN-Wavenet-D','hi-IN-Standard-D'],
+    voices: [],
+    keyName: 'sr:key:gcloud'
+  },
+  web: { nm: 'फ़ोन की अपनी आवाज़ (बिना कुंजी)', models: [], voices: [], keyName: null }
+};
+var STYLES = {
+  cine:  { nm:'सिनेमैटिक कथावाचक', p:'Narrate in Hindi like a cinematic documentary voice-over: deep, composed, unhurried, with weighted pauses at every danda and a subtle sense of gravity. Do not sound excited or salesy.' },
+  thril: { nm:'थ्रिलर',            p:'Narrate in Hindi in a low, tense, hushed thriller-trailer voice. Slow pacing, long pauses before key phrases, controlled intensity — never shouting.' },
+  guru:  { nm:'आत्मीय शिक्षक',      p:'Read in Hindi in a warm, patient, teacherly voice, as if explaining to one person sitting across the table.' },
+  night: { nm:'शांत रात्रि पाठ',     p:'Read in Hindi in a soft, calm, low-volume bedtime-reading voice with gentle pacing.' },
+  custom:{ nm:'मेरा अपना अंदाज़',    p:'' }
+};
+var RATES=[0.75,1,1.25,1.5,1.75,2];
+
+/* ---------- IndexedDB — बनी हुई आवाज़ सँभालकर ---------- */
+var DB=null, DBfail=false;
+function db(){
+  return new Promise(function(res,rej){
+    if(DB) return res(DB);
+    if(DBfail || !window.indexedDB) return rej();
+    var rq=indexedDB.open('sr-audio',1);
+    rq.onupgradeneeded=function(){
+      var d=rq.result;
+      if(!d.objectStoreNames.contains('clips')){
+        var s=d.createObjectStore('clips',{keyPath:'k'});
+        s.createIndex('book','book',{unique:false});
+        s.createIndex('used','used',{unique:false});
+      }
+    };
+    rq.onsuccess=function(){ DB=rq.result; res(DB); };
+    rq.onerror=function(){ DBfail=true; rej(); };
+  });
+}
+function dbGet(k){
+  return db().then(function(d){ return new Promise(function(res){
+    var r=d.transaction('clips','readonly').objectStore('clips').get(k);
+    r.onsuccess=function(){ res(r.result||null); }; r.onerror=function(){ res(null); };
+  });}).catch(function(){ return null; });
+}
+function dbPut(rec){
+  return db().then(function(d){ return new Promise(function(res){
+    var t=d.transaction('clips','readwrite');
+    t.objectStore('clips').put(rec);
+    t.oncomplete=function(){ res(1); }; t.onerror=function(){ res(0); }; t.onabort=function(){ res(0); };
+  });}).catch(function(){ return 0; });
+}
+function dbAll(){
+  return db().then(function(d){ return new Promise(function(res){
+    var out=[], c=d.transaction('clips','readonly').objectStore('clips').openCursor();
+    c.onsuccess=function(){ var cur=c.result; if(!cur) return res(out);
+      out.push({k:cur.value.k,book:cur.value.book,size:cur.value.size||0,used:cur.value.used||0}); cur.continue(); };
+    c.onerror=function(){ res(out); };
+  });}).catch(function(){ return []; });
+}
+function dbDel(keys){
+  return db().then(function(d){ return new Promise(function(res){
+    var t=d.transaction('clips','readwrite'), s=t.objectStore('clips');
+    keys.forEach(function(k){ s.delete(k); });
+    t.oncomplete=function(){ res(1); }; t.onerror=function(){ res(0); };
+  });}).catch(function(){ return 0; });
+}
+var CACHE_MAX = 500*1024*1024;
+function evictIfNeeded(){
+  return dbAll().then(function(all){
+    var tot=0; all.forEach(function(x){ tot+=x.size; });
+    if(tot<=CACHE_MAX) return;
+    all.sort(function(a,b){ return (a.used||0)-(b.used||0); });
+    var kill=[], i=0;
+    while(tot>CACHE_MAX*0.85 && i<all.length){ kill.push(all[i].k); tot-=all[i].size; i++; }
+    return dbDel(kill);
+  });
+}
+
+/* ---------- कच्चे PCM को WAV बना देना ---------- */
+function pcmToWav(bytes, rate, ch, bits){
+  rate=rate||24000; ch=ch||1; bits=bits||16;
+  var blockAlign=ch*bits/8, byteRate=rate*blockAlign;
+  var buf=new ArrayBuffer(44+bytes.length), v=new DataView(buf);
+  function s(o,t){ for(var i=0;i<t.length;i++) v.setUint8(o+i,t.charCodeAt(i)); }
+  s(0,'RIFF'); v.setUint32(4,36+bytes.length,true); s(8,'WAVE');
+  s(12,'fmt '); v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,ch,true);
+  v.setUint32(24,rate,true); v.setUint32(28,byteRate,true);
+  v.setUint16(32,blockAlign,true); v.setUint16(34,bits,true);
+  s(36,'data'); v.setUint32(40,bytes.length,true);
+  new Uint8Array(buf,44).set(bytes);
+  return new Blob([buf],{type:'audio/wav'});
+}
+function b64bytes(b64){
+  var bin=atob(b64), n=bin.length, a=new Uint8Array(n);
+  for(var i=0;i<n;i++) a[i]=bin.charCodeAt(i);
+  return a;
+}
+function mimeRate(mime){
+  var m=/rate=(\d+)/.exec(mime||''); return m?+m[1]:24000;
+}
+
+/* ---------- provider ---------- */
+function keyOf(p){ var c=TTS_CONFIG[p]; return c&&c.keyName ? lsGet(c.keyName,'') : ''; }
+function styleText(){
+  if(SET.style==='custom') return (SET.custom||'').trim() || STYLES.cine.p;
+  return (STYLES[SET.style]||STYLES.cine).p;
+}
+function modelOf(){ var c=TTS_CONFIG[SET.provider]; return SET.model || (c&&c.models&&c.models[0]) || ''; }
+
+function synth(text){
+  var p=SET.provider;
+  if(p==='gemini') return synthGemini(text);
+  if(p==='gcloud') return synthGCloud(text);
+  return Promise.reject({code:'web'});
+}
+function synthGemini(text){
+  var key=keyOf('gemini');
+  if(!key) return Promise.reject({code:'nokey'});
+  var url=TTS_CONFIG.gemini.endpoint.replace('{MODEL}', modelOf());
+  var body={
+    contents:[{ parts:[{ text: styleText()+'\n\n'+text }] }],
+    generationConfig:{
+      responseModalities:['AUDIO'],
+      speechConfig:{ voiceConfig:{ prebuiltVoiceConfig:{ voiceName: SET.voice || 'Charon' } } }
+    }
+  };
+  return fetch(url,{ method:'POST', headers:{'Content-Type':'application/json','x-goog-api-key':key},
+                     body:JSON.stringify(body) })
+    .then(function(r){
+      if(r.status===429) throw {code:'quota'};
+      if(r.status===400||r.status===401||r.status===403) throw {code:'key', status:r.status};
+      if(!r.ok) throw {code:'http', status:r.status};
+      return r.json();
+    })
+    .then(function(j){
+      var part = j && j.candidates && j.candidates[0] && j.candidates[0].content &&
+                 (j.candidates[0].content.parts||[]).filter(function(x){ return x.inlineData; })[0];
+      if(!part) throw {code:'empty', detail:j};
+      var mime=part.inlineData.mimeType||'', data=part.inlineData.data;
+      var bytes=b64bytes(data);
+      /* PCM आए तो WAV बनाकर, MP3/OGG आए तो सीधा */
+      if(/pcm|L16|audio\/l16|raw/i.test(mime) || !/mpeg|mp3|ogg|wav|opus/i.test(mime))
+        return pcmToWav(bytes, mimeRate(mime), 1, 16);
+      return new Blob([bytes],{type: mime.split(';')[0]});
+    });
+}
+function synthGCloud(text){
+  var key=keyOf('gcloud');
+  if(!key) return Promise.reject({code:'nokey'});
+  var v=modelOf();
+  var body={ input:{text:text},
+             voice:{ languageCode:'hi-IN', name:v },
+             audioConfig:{ audioEncoding:'MP3', speakingRate:1.0 } };
+  return fetch(TTS_CONFIG.gcloud.endpoint.replace('{KEY}',encodeURIComponent(key)),
+    { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) })
+    .then(function(r){
+      if(r.status===429) throw {code:'quota'};
+      if(r.status===400||r.status===401||r.status===403) throw {code:'key', status:r.status};
+      if(!r.ok) throw {code:'http', status:r.status};
+      return r.json();
+    })
+    .then(function(j){
+      if(!j.audioContent) throw {code:'empty'};
+      return new Blob([b64bytes(j.audioContent)],{type:'audio/mpeg'});
+    });
+}
+function errText(e){
+  var c=(e&&e.code)||'';
+  if(c==='nokey') return 'आवाज़ के लिए पहले API कुंजी जोड़नी होगी — सेटिंग में डाल दीजिए।';
+  if(c==='key')   return 'आवाज़ सेवा से जुड़ नहीं पाए। सेटिंग में API कुंजी जाँच लीजिए।';
+  if(c==='quota') return 'अभी सीमा पूरी हो गई। कुछ देर बाद कोशिश कीजिए — पहले से तैयार हिस्से अब भी सुन सकते हैं।';
+  if(c==='empty') return 'आवाज़ नहीं बन पाई — दूसरी आवाज़ या दूसरा model चुनकर देखिए।';
+  if(!navigator.onLine) return 'इंटरनेट नहीं मिला। पहले से तैयार हिस्से अब भी चल सकते हैं।';
+  return 'आवाज़ बनाते समय कुछ गड़बड़ हुई। थोड़ी देर बाद फिर कोशिश कीजिए।';
+}
+
+/* ---------- Audio_ — सारा खेल यहीं ---------- */
+var Audio_ = (function(){
+  var A=null, chunks=[], ci=-1, playing=false, urls={}, wake=null, unlocked=false;
+  var pend={}, curSent=-1, userHold=0, prepAbort=false;
+
+  function el(){
+    if(A) return A;
+    A=new Audio(); A.preload='auto';
+    A.addEventListener('ended', function(){ next(true); });
+    A.addEventListener('timeupdate', onTime);
+    A.addEventListener('error', function(){ if(playing) toast('यह हिस्सा नहीं बजा — अगला चला रहे हैं',2600), next(true); });
+    return A;
+  }
+  function ready(){ return SET.provider==='web' || !!keyOf(SET.provider); }
+
+  /* --- पाठ को chunks में --- */
+  function build(fromIdx){
+    chunks=[];
+    var cur={ text:'', sents:[] };
+    var push=function(){ if(cur.text.trim()){ chunks.push(cur); } cur={ text:'', sents:[] }; };
+    for(var i=fromIdx;i<FLAT.length;i++){
+      var f=FLAT[i];
+      if(!f.t || f.k==='af') continue;
+      var st=sentsOf(i);
+      for(var j=0;j<st.length;j++){
+        var s=f.t.slice(st[j].s, st[j].e).trim();
+        if(!s) continue;
+        if(cur.text.length && cur.text.length+s.length>900) push();
+        cur.sents.push({ key:i+'.'+j, len:s.length, at:cur.text.length });
+        cur.text += (cur.text? ' ':'') + s;
+        if(cur.text.length>=600 && /[।॥!?]$/.test(s)) push();
+      }
+    }
+    push();
+    chunks.forEach(function(c,k){ c.i=k; c.hash=hash32(c.text); });
+    return chunks;
+  }
+  function ckey(c){
+    return ['sr',B.id,c.i,SET.provider,modelOf(),SET.voice,SET.style,
+            SET.style==='custom'?hash32(SET.custom||''):'',c.hash].join('|');
+  }
+
+  /* --- एक chunk की आवाज़ लाना (पहले cache) --- */
+  function fetchClip(c){
+    var k=ckey(c);
+    if(pend[k]) return pend[k];
+    pend[k]=dbGet(k).then(function(rec){
+      if(rec && rec.blob){ dbPut({k:k,book:B.id,blob:rec.blob,size:rec.size,used:Date.now()}); return rec.blob; }
+      return synth(c.text).then(function(blob){
+        dbPut({k:k,book:B.id,blob:blob,size:blob.size,used:Date.now()}).then(evictIfNeeded);
+        return blob;
+      });
+    }).then(function(b){ delete pend[k]; return b; }, function(e){ delete pend[k]; throw e; });
+    return pend[k];
+  }
+  function prefetch(from){
+    var n=clamp(SET.prefetch,0,4);
+    for(var i=from;i<Math.min(chunks.length,from+n);i++) (function(c){ fetchClip(c).catch(function(){}); })(chunks[i]);
+  }
+
+  /* --- Android का ताला खोलना --- */
+  function unlock(){
+    if(unlocked) return;
+    unlocked=true;
+    try{
+      var a=el();
+      a.src='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YQAAAAA=';
+      var p=a.play(); if(p&&p.catch) p.catch(function(){});
+      setTimeout(function(){ try{ a.pause(); }catch(e){} },40);
+    }catch(e){}
+  }
+  function keepAwake(on){
+    try{
+      if(on && navigator.wakeLock && !wake) navigator.wakeLock.request('screen').then(function(w){ wake=w; }).catch(function(){});
+      if(!on && wake){ wake.release().catch(function(){}); wake=null; }
+    }catch(e){}
+  }
+
+  /* --- चलाना --- */
+  function start(fromBlock){
+    if(!B) return;
+    if(!ready()){ openSheet('audio'); toast('पहले आवाज़ की कुंजी जोड़िए — या "फ़ोन की अपनी आवाज़" चुन लीजिए',4200); return; }
+    unlock();
+    var from = fromBlock!=null ? fromBlock : curIdx;
+    build(from); ci=-1;
+    if(!chunks.length){ toast('यहाँ पढ़ने को कुछ नहीं',2200); return; }
+    $('#player').classList.add('on'); $('#player').classList.remove('mini');
+    BODY.dataset.audio='1'; keepAwake(true);
+    setPl(true);
+    play(0);
+  }
+  function play(i){
+    if(i<0||i>=chunks.length){ stop(); toast('॥ अध्याय पूरा ॥',2600); return; }
+    ci=i;
+    var c=chunks[i];
+    setSub('तैयार हो रहा है…');
+    fetchClip(c).then(function(blob){
+      if(ci!==i) return;
+      if(urls[i]) URL.revokeObjectURL(urls[i]);
+      urls[i]=URL.createObjectURL(blob);
+      var a=el();
+      a.src=urls[i]; a.playbackRate=SET.rate;
+      var p=a.play();
+      if(p&&p.catch) p.catch(function(){ toast('आवाज़ शुरू नहीं हो पाई — बटन दोबारा दबाइए',3000); setPl(false); });
+      playing=true; setPl(true); setSub(subText());
+      media();
+      prefetch(i+1);
+    }, function(e){
+      if(ci!==i) return;
+      console.error('TTS', e);
+      toast(errText(e),4200);
+      setPl(false); playing=false;
+      if((e&&e.code)==='nokey') openSheet('audio');
+    });
+  }
+  function next(auto){ if(ci+1<chunks.length) play(ci+1); else { stop(); if(auto) toast('॥ पूरा हो गया ॥',2600); } }
+  function prev(){ play(Math.max(0,ci-1)); }
+  function toggle(){
+    var a=el();
+    if(!chunks.length){ start(); return; }
+    if(a.paused){ unlock(); a.play(); playing=true; keepAwake(true); }
+    else { a.pause(); playing=false; keepAwake(false); }
+    setPl(!a.paused);
+  }
+  function stop(){
+    var a=el(); try{ a.pause(); }catch(e){}
+    playing=false; ci=-1; curSent=-1;
+    clearNow();
+    $('#player').classList.remove('on');
+    BODY.dataset.audio='0'; keepAwake(false); setPl(false);
+    $('#backpill').classList.remove('on');
+  }
+  function reset(){ stop(); chunks=[]; Object.keys(urls).forEach(function(k){ URL.revokeObjectURL(urls[k]); }); urls={}; }
+
+  /* --- वाक्य का उजाला --- */
+  function clearNow(){ $$('#rbody .sp.now').forEach(function(s){ s.classList.remove('now'); }); }
+  function onTime(){
+    var a=el(), c=chunks[ci];
+    if(!c||!a.duration||!isFinite(a.duration)) return;
+    $('#pl-cur').textContent=mmss(a.currentTime);
+    $('#pl-tot').textContent=mmss(a.duration);
+    $('#pl-fill').style.width=(a.currentTime/a.duration*100)+'%';
+    var frac=a.currentTime/a.duration, at=frac*c.text.length, k=0;
+    for(var i=0;i<c.sents.length;i++) if(c.sents[i].at<=at) k=i; else break;
+    if(k===curSent) return;
+    curSent=k;
+    clearNow();
+    var key=c.sents[k] && c.sents[k].key;
+    if(!key) return;
+    var fidx=+String(key).split('.')[0];
+    if(FLAT[fidx]) ensureChapter(FLAT[fidx].ch);
+    var els=$$('#rbody .sp[data-s="'+key+'"]');
+    els.forEach(function(s){ s.classList.add('now'); });
+    if(els.length && Date.now()>userHold) scrollToSent(els[0]);
+    else if(els.length && Date.now()<=userHold) $('#backpill').classList.add('on');
+    var fi=+String(key).split('.')[0];
+    if(FLAT[fi]) setSub(subText());
+  }
+  var progUntil=0;
+  function scrollToSent(el){
+    var r=el.getBoundingClientRect();
+    var want=innerHeight*0.38;
+    if(Math.abs(r.top-want)<80) return;
+    progUntil = Date.now() + (RM?200:1100);       /* यह scroll ऐप ने किया है */
+    window.scrollTo({ top: scrollY + (r.top-want), behavior: RM?'auto':'smooth' });
+  }
+  function userScrolled(){
+    if(!playing) return;
+    userHold = Date.now()+5000;
+    $('#backpill').classList.add('on');
+  }
+  $('#backpill').addEventListener('click',function(){
+    userHold=0; $('#backpill').classList.remove('on');
+    var s=$('#rbody .sp.now'); if(s) scrollToSent(s);
+  });
+
+  /* --- player UI --- */
+  function subText(){
+    var c = FLAT[curIdx] ? CH[FLAT[curIdx].ch] : CH[0];
+    var vn = SET.provider==='web' ? 'फ़ोन की आवाज़' : SET.voice;
+    return vn+' · '+(STYLES[SET.style]||STYLES.cine).nm;
+  }
+  function setSub(t){ $('#pl-sub').textContent=t; }
+  function setPl(on){
+    $('#pl-play').innerHTML = on
+      ? '<svg class="ic f" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>'
+      : '<svg class="ic f" viewBox="0 0 24 24"><path d="M8 5l11 7-11 7z"/></svg>';
+    $('#pl-play').setAttribute('aria-label', on?'रोकें':'चलाएँ');
+    var c = FLAT[curIdx] ? CH[FLAT[curIdx].ch] : CH[0];
+    $('#pl-title').textContent = (c? 'अध्याय '+c.no+' — '+c.title : (B?B.title:''));
+    $('#pl-rate').textContent = SET.rate+'×';
+    BODY.dataset.audio = on?'1':'0';
+  }
+  function media(){
+    if(!('mediaSession' in navigator)) return;
+    var c = FLAT[curIdx] ? CH[FLAT[curIdx].ch] : CH[0];
+    try{
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: c? ('अध्याय '+c.no+' — '+c.title) : B.title,
+        artist: B.author || 'अध्ययन',
+        album: B.title
+      });
+      navigator.mediaSession.setActionHandler('play', function(){ toggle(); });
+      navigator.mediaSession.setActionHandler('pause', function(){ toggle(); });
+      navigator.mediaSession.setActionHandler('nexttrack', function(){ next(); });
+      navigator.mediaSession.setActionHandler('previoustrack', function(){ prev(); });
+      navigator.mediaSession.setActionHandler('seekforward', function(){ seek(30); });
+      navigator.mediaSession.setActionHandler('seekbackward', function(){ seek(-15); });
+    }catch(e){}
+  }
+  function seek(d){
+    var a=el(); if(!a.duration) return;
+    var t=a.currentTime+d;
+    if(t<0 && ci>0){ play(ci-1); return; }
+    if(t>a.duration && ci+1<chunks.length){ play(ci+1); return; }
+    a.currentTime=clamp(t,0,a.duration);
+  }
+  return { start:start, toggle:toggle, stop:stop, reset:reset, ready:ready, next:next, prev:prev,
+           seek:seek, userScrolled:userScrolled, isPlaying:function(){ return playing; },
+           build:build, ckey:ckey, fetchClip:fetchClip, chunks:function(){ return chunks; },
+           setPl:setPl, el:el, unlock:unlock,
+           sheetHTML:audioSheetHTML, settingsHTML:audioSettingsHTML, wire:audioWire, sheetClick:audioClick,
+           prepAbort:function(){ prepAbort=true; }, prepFlag:function(){ return prepAbort; },
+           prepReset:function(){ prepAbort=false; } };
+})();
+
+/* ---------- आवाज़ की शीट ---------- */
+function cacheInfo(cb){
+  dbAll().then(function(all){
+    var tot=0, books={};
+    all.forEach(function(x){ tot+=x.size; books[x.book]=(books[x.book]||0)+x.size; });
+    cb(tot, books, all.length);
+  });
+}
+var _cacheTxt='गिन रहे हैं…';
+function audioSheetHTML(){
+  var p=SET.provider, C=TTS_CONFIG[p], hasKey=!!keyOf(p);
+  var h='';
+  if(p!=='web' && !hasKey){
+    h += '<div class="warnbox">आवाज़ चलाने के लिए एक API कुंजी चाहिए। नीचे डाल दीजिए — वह सिर्फ़ <b>इसी फ़ोन</b> में रहेगी, कहीं भेजी नहीं जाती।</div>';
+  }
+  h += '<div class="row"><div class="lab">कहाँ से आवाज़</div><div class="chips">'+
+       Object.keys(TTS_CONFIG).map(function(k){
+         return '<button data-prov="'+k+'" aria-pressed="'+(p===k)+'">'+TTS_CONFIG[k].nm+'</button>'; }).join('')+
+       '</div></div>';
+  if(p!=='web'){
+    h += '<div class="row" style="display:block"><div class="lab" style="text-align:right;margin-bottom:.5rem">API कुंजी'+
+         '<small>Google AI Studio से मिलती है। कुंजी पर <b>HTTP referrer</b> और <b>API</b> की रोक ज़रूर लगाइए।</small></div>'+
+         '<div style="display:flex;gap:.4rem"><input class="fld" id="a-key" type="password" placeholder="'+(hasKey?'••••••••  (जुड़ी हुई है)':'यहाँ चिपकाइए')+'" autocomplete="off">'+
+         '<button class="btn pri" id="a-key-save">सहेजें</button></div>'+
+         (hasKey?'<div class="filt" style="margin-top:.5rem"><button id="a-key-del">कुंजी हटाएँ</button></div>':'')+
+         '</div>';
+    h += '<div class="row"><div class="lab">Model</div><div class="chips">'+
+         (C.models||[]).map(function(m){
+           return '<button data-model="'+esc(m)+'" aria-pressed="'+(modelOf()===m)+'">'+esc(m.replace(/^gemini-|^hi-IN-/,''))+'</button>'; }).join('')+
+         '</div></div>';
+  }
+  if(p==='gemini'){
+    h += '<div class="row" style="display:block"><div class="lab" style="text-align:right;margin-bottom:.5rem">आवाज़ चुनिए</div>'+
+         '<div class="chips" style="justify-content:flex-start">'+
+         C.voices.map(function(v){
+           return '<button data-voice="'+v+'" aria-pressed="'+(SET.voice===v)+'">'+v+'</button>'; }).join('')+
+         '</div><div class="filt" style="margin-top:.5rem"><button id="a-sample">▶ नमूना सुनें (5 सेकंड)</button></div></div>';
+  }
+  h += '<div class="row" style="display:block"><div class="lab" style="text-align:right;margin-bottom:.5rem">कैसा अंदाज़</div>'+
+       '<div class="chips" style="justify-content:flex-start">'+
+       Object.keys(STYLES).map(function(k){
+         return '<button data-style="'+k+'" aria-pressed="'+(SET.style===k)+'">'+STYLES[k].nm+'</button>'; }).join('')+
+       '</div>'+
+       (SET.style==='custom'
+         ? '<textarea class="fld" id="a-custom" style="margin-top:.6rem" placeholder="अंग्रेज़ी में लिखिए कि आवाज़ कैसी हो — जैसे: Narrate in Hindi in a low, unhurried, cinematic voice…">'+esc(SET.custom||'')+'</textarea>'+
+           '<div class="filt" style="margin-top:.4rem"><button id="a-custom-save">यह अंदाज़ सहेजें</button></div>'
+         : '<div class="hint">'+esc(STYLES[SET.style].p)+'</div>')+
+       '</div>';
+  h += '<div class="row"><div class="lab">रफ़्तार</div><div class="chips">'+
+       RATES.map(function(r){ return '<button data-rate="'+r+'" aria-pressed="'+(SET.rate===r)+'">'+r+'×</button>'; }).join('')+
+       '</div></div>';
+  h += '<div class="row"><div class="lab">आगे का कितना पहले से तैयार<small>जितना ज़्यादा, उतना बिना रुके</small></div><div class="chips">'+
+       [0,1,2,3].map(function(n){ return '<button data-pf="'+n+'" aria-pressed="'+(SET.prefetch===n)+'">'+n+'</button>'; }).join('')+
+       '</div></div>';
+  if(B){
+    h += '<div class="row"><div class="lab">पूरा अध्याय पहले से तैयार करें<small>फिर बिना इंटरनेट भी सुन सकेंगे</small></div>'+
+         '<div class="chips"><button id="a-prep">तैयार करें</button></div></div>';
+  }
+  h += '<div class="row"><div class="lab">तैयार आवाज़ का संग्रह<small id="a-cache">'+esc(_cacheTxt)+'</small></div>'+
+       '<div class="chips">'+(B?'<button id="a-clr-book">इस किताब की</button>':'')+'<button id="a-clr-all">सब साफ़</button></div></div>';
+  h += '<div class="hint">कुंजी इसी browser में रहती है — न कोड में, न इंटरनेट पर। '+
+       'आगे चलकर एक proxy लगाकर उसे पूरी तरह छिपाया जा सकता है।</div>';
+  return h;
+}
+function audioSettingsHTML(){
+  var p=SET.provider, hasKey=!!keyOf(p);
+  return '<div class="row"><div class="lab">आवाज़ की व्यवस्था'+
+         '<small>'+esc(TTS_CONFIG[p].nm)+' · '+(p==='web'?'कुंजी नहीं चाहिए':(hasKey?'कुंजी जुड़ी है':'कुंजी बाक़ी है'))+
+         (p==='gemini'?' · '+esc(SET.voice):'')+'</small></div>'+
+         '<div class="chips"><button id="set-audio">खोलें</button></div></div>';
+}
+function audioWire(){
+  cacheInfo(function(tot,books,n){
+    _cacheTxt = n ? (Math.round(tot/1048576*10)/10)+' MB · '+Object.keys(books).length+' पुस्तक · '+n+' टुकड़े' : 'अभी कुछ तैयार नहीं';
+    var e=$('#a-cache'); if(e) e.textContent=_cacheTxt;
+  });
+}
+function audioClick(t){
+  if(t.dataset.prov){ SET.provider=t.dataset.prov; SET.model=''; saveSet(); renderSheet('audio'); return; }
+  if(t.dataset.model){ SET.model=t.dataset.model; saveSet(); renderSheet('audio'); return; }
+  if(t.dataset.voice){ SET.voice=t.dataset.voice; saveSet(); renderSheet('audio'); return; }
+  if(t.dataset.style){ SET.style=t.dataset.style; saveSet(); renderSheet('audio'); return; }
+  if(t.dataset.rate){ SET.rate=+t.dataset.rate; saveSet(); var a=Audio_.el(); if(a) a.playbackRate=SET.rate; Audio_.setPl(Audio_.isPlaying()); renderSheet('audio'); return; }
+  if(t.dataset.pf!=null){ SET.prefetch=+t.dataset.pf; saveSet(); renderSheet('audio'); return; }
+  if(t.id==='set-audio'){ renderSheet('audio'); curTab='audio';
+    $$('#sheet-tabs button').forEach(function(x){ x.setAttribute('aria-pressed', x.dataset.tab==='audio'?'true':'false'); }); return; }
+  if(t.id==='a-key-save'){
+    var v=($('#a-key')||{}).value||'';
+    if(!v.trim()){ toast('कुंजी खाली है',2000); return; }
+    lsSet(TTS_CONFIG[SET.provider].keyName, v.trim());
+    toast('कुंजी सहेज ली — अब आवाज़ चल सकेगी',3000); renderSheet('audio'); return; }
+  if(t.id==='a-key-del'){ lsDel(TTS_CONFIG[SET.provider].keyName); toast('कुंजी हटा दी',2000); renderSheet('audio'); return; }
+  if(t.id==='a-custom-save'){ SET.custom=($('#a-custom')||{}).value||''; saveSet(); toast('आपका अंदाज़ सहेज लिया',2400); return; }
+  if(t.id==='a-sample'){ sample(t); return; }
+  if(t.id==='a-prep'){ prepChapter(t); return; }
+  if(t.id==='a-clr-book'){
+    dbAll().then(function(all){ return dbDel(all.filter(function(x){ return x.book===B.id; }).map(function(x){ return x.k; })); })
+      .then(function(){ toast('इस किताब की तैयार आवाज़ हटा दी',2400); renderSheet('audio'); audioWire(); });
+    return; }
+  if(t.id==='a-clr-all'){
+    if(!confirm('सारी तैयार आवाज़ मिट जाएगी। मिटाएँ?')) return;
+    dbAll().then(function(all){ return dbDel(all.map(function(x){ return x.k; })); })
+      .then(function(){ toast('संग्रह साफ़ कर दिया',2200); renderSheet('audio'); audioWire(); });
+    return; }
+}
+var sampleUrl=null;
+function sample(btn){
+  var txt='यही आवाज़ आपकी किताब पढ़कर सुनाएगी। ध्यान से सुनिए — यह अंदाज़ आपको कैसा लगा?';
+  var k='sample|'+SET.provider+'|'+modelOf()+'|'+SET.voice+'|'+SET.style+'|'+hash32(styleText());
+  btn.textContent='बन रही है…'; btn.disabled=true;
+  dbGet(k).then(function(rec){ return rec&&rec.blob ? rec.blob : synth(txt).then(function(b){ dbPut({k:k,book:'_sample',blob:b,size:b.size,used:Date.now()}); return b; }); })
+    .then(function(blob){
+      Audio_.unlock();
+      if(sampleUrl) URL.revokeObjectURL(sampleUrl);
+      sampleUrl=URL.createObjectURL(blob);
+      var a=new Audio(sampleUrl); a.playbackRate=SET.rate;
+      a.play().catch(function(){ toast('नमूना चल नहीं पाया — बटन दोबारा दबाइए',2800); });
+      btn.textContent='▶ नमूना सुनें (5 सेकंड)'; btn.disabled=false;
+    })
+    .catch(function(e){ console.error(e); toast(errText(e),4200); btn.textContent='▶ नमूना सुनें'; btn.disabled=false; });
+}
+function prepChapter(btn){
+  var ch = FLAT[curIdx] ? CH[FLAT[curIdx].ch] : CH[0];
+  if(!ch) return;
+  var list = Audio_.build(ch.from).filter(function(c,i){ return true; });
+  /* सिर्फ़ इसी अध्याय जितना */
+  var lastIdx = ch.to;
+  var cs = Audio_.chunks();
+  if(!cs.length){ toast('तैयार करने को कुछ नहीं',2200); return; }
+  Audio_.prepReset();
+  $('#prep').classList.add('on');
+  var i=0, okN=0;
+  function step(){
+    if(Audio_.prepFlag()){ $('#prep').classList.remove('on'); toast('रोक दिया — '+okN+' हिस्से तैयार हैं',2800); audioWire(); return; }
+    if(i>=cs.length){ $('#prep').classList.remove('on'); toast('अध्याय तैयार — अब बिना इंटरनेट भी सुन सकते हैं',3400); audioWire(); return; }
+    $('#prep-t').textContent = 'तैयार हो रहा है… '+(i+1)+'/'+cs.length;
+    $('#prep-i').style.width = Math.round(i/cs.length*100)+'%';
+    Audio_.fetchClip(cs[i]).then(function(){ okN++; i++; step(); },
+      function(e){ $('#prep').classList.remove('on'); toast(errText(e),4200); audioWire(); });
+  }
+  step();
+}
+$('#prep-x').addEventListener('click',function(){ Audio_.prepAbort(); });
+
+/* ══════════ player के बटन ══════════ */
+$('#pl-play').addEventListener('click',function(){ Audio_.toggle(); });
+$('#pl-b15').addEventListener('click',function(){ Audio_.seek(-15); });
+$('#pl-f30').addEventListener('click',function(){ Audio_.seek(30); });
+$('#pl-stop').addEventListener('click',function(){ Audio_.stop(); });
+$('#pl-rate').addEventListener('click',function(){
+  var i=RATES.indexOf(SET.rate); SET.rate=RATES[(i+1)%RATES.length]; saveSet();
+  var a=Audio_.el(); if(a) a.playbackRate=SET.rate;
+  this.textContent=SET.rate+'×';
+});
+$('#pl-min').addEventListener('click',function(){
+  var p=$('#player'); p.classList.toggle('mini');
+  this.setAttribute('aria-label', p.classList.contains('mini')?'बड़ा करें':'छोटा करें');
+});
+$('#player').addEventListener('click',function(e){
+  var p=$('#player');
+  if(p.classList.contains('mini') && !e.target.closest('#pl-play')) p.classList.remove('mini');
+});
+$('#pl-bar').addEventListener('click',function(e){
+  var a=Audio_.el(); if(!a||!a.duration) return;
+  var r=this.getBoundingClientRect();
+  a.currentTime = clamp((e.clientX-r.left)/r.width,0,1)*a.duration;
+});
+
+/* ══════════ ध्यान-मोड ══════════ */
+function setFocus(on){
+  focusOn=on; BODY.dataset.focus = on?'1':'0';
+  if(on){
+    lsSet('sr:themeBefore', SET.theme);
+    if(SET.theme!=='focus'){ SET.theme='focus'; saveSet(); }
+    toast('ध्यान-मोड — बाहर निकलने के लिए दो बार दबाइए',3200);
+    try{ if(navigator.wakeLock) navigator.wakeLock.request('screen').catch(function(){}); }catch(e){}
+  } else {
+    var t=lsGet('sr:themeBefore','midnight');
+    if(SET.theme==='focus'){ SET.theme = t==='focus'?'midnight':t; saveSet(); }
+    $('#rhead').classList.remove('up'); $('#fab').classList.remove('hide');   /* बाहर आते ही सब लौट आए */
+    lastY = scrollY;
+  }
+  measureTop();
+}
+
+/* ══════════ दो बार दबाना ══════════ */
+var lastTap=0;
+$('#rbody').addEventListener('click',function(e){
+  if(e.target.closest('mark.hl')||e.target.closest('.dbtn')) return;
+  var sel=window.getSelection();
+  if(sel && !sel.isCollapsed) return;
+  var t=Date.now();
+  if(t-lastTap<330){
+    lastTap=0;
+    if(focusOn) setFocus(false); else openSheet('ctrl');
+  } else lastTap=t;
+});
+
+/* ══════════ header और बाक़ी बटन ══════════ */
+$('#r-back').addEventListener('click',function(){ if(focusOn){ setFocus(false); return; } toLib(); });
+$('#r-find').addEventListener('click',function(){ openSheet('find'); });
+$('#r-audio').addEventListener('click',function(){ if(Audio_.isPlaying()) openSheet('audio'); else Audio_.start(); });
+$('#r-more').addEventListener('click',function(){ moreMenu(); });
+$('#fab').addEventListener('click',function(){ openSheet('bahi'); });
+function moreMenu(){ openSheet('ctrl'); }
+
+/* यहाँ चिह्न लगाएँ — बही में जगह सहेजना */
+function addBookmark(){
+  var f=FLAT[curIdx]; if(!f) return;
+  if(BM.some(function(b){ return b.p===f.id; })){ toast('यहाँ पहले से चिह्न लगा है',2200); return; }
+  BM.push({ i:uid(), p:f.id, t:(f.t||'').slice(0,120)+((f.t||'').length>120?'…':''), n:'', at:Date.now(), bm:1 });
+  jSet('sr:bm:'+B.id,BM); refreshFab();
+  toast('चिह्न लग गया — "मेरी बही" में मिलेगा',2600);
+}
+
+/* ══════════ पुस्तकालय के दबाव ══════════ */
+$('#lib-body').addEventListener('click',function(e){
+  var t=e.target.closest('button'); if(!t) return;
+  if(t.dataset.open){ location.hash='#'+t.dataset.open+(t.dataset.resume?'/~':''); return; }
+  if(t.id==='lib-ins'){ openSheet('ins'); return; }
+  if(t.id==='lib-set'){ openSheet('set'); return; }
+  if(t.id==='lib-granth'){ location.href='granth.html'; return; }
+});
+function toLib(){
+  Audio_.stop();
+  setView('lib'); renderLib();
+  if(location.hash) history.replaceState(null,'','#');
+  window.scrollTo(0,0);
+}
+
+/* ══════════ कुंजीपटल ══════════ */
+addEventListener('keydown',function(e){
+  if(/input|textarea/i.test((e.target.tagName||''))) return;
+  if(e.key===' '&&view==='read'){ e.preventDefault(); Audio_.toggle(); return; }
+  if(e.key==='ArrowRight'&&view==='read'&&Audio_.isPlaying()){ Audio_.seek(30); return; }
+  if(e.key==='ArrowLeft'&&view==='read'&&Audio_.isPlaying()){ Audio_.seek(-15); return; }
+  if((e.key==='f'||e.key==='F')&&view==='read'){ setFocus(!focusOn); return; }
+  if(e.key==='/'&&view==='read'){ e.preventDefault(); openSheet('find'); return; }
+  if(e.key==='Escape'){ if(sheetOpen) closeSheet(); else if($('#noteed').classList.contains('on')) $('#ne-x').click(); else if(focusOn) setFocus(false); }
+});
+
+/* ══════════ रास्ता (hash) ══════════ */
+function route(){
+  var h=(location.hash||'').replace(/^#/,'');
+  if(!h){ setView('lib'); renderLib(); return; }
+  var p=h.split('/'), id=p[0], where=p[1]||'';
+  if(!REG.some(function(x){ return x.id===id; })){ setView('lib'); renderLib(); return; }
+  if(B && B.id===id){
+    setView('read');
+    if(where && where!=='~') jumpTo(where);
+    return;
+  }
+  openBook(id, where==='~' || !where, false);
+  if(where && where!=='~') setTimeout(function(){ jumpTo(where); }, 500);
+}
+addEventListener('hashchange',route);
+document.addEventListener('visibilitychange',function(){ if(document.hidden) trackTime(); });
+
+/* ══════════ चालू ══════════ */
+loadRegistry(function(){
+  renderLib();
+  measureTop();
+  route();
+});
+})();
+</script>
+</body>
+</html>

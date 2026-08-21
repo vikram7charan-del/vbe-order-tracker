@@ -1,0 +1,2164 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0B1220">
+<title>॥ ग्रंथ पुस्तकालय ॥ — हरिरस · देवियांण</title>
+<style>
+/* ===================== tokens ===================== */
+:root{
+  color-scheme:light;
+  /* per-granth, set from data/registry — 240ms transition */
+  --accent:#B4862A;
+  --glow:rgba(212,160,23,.55);
+  --deep:#0B1220;
+
+  --bg:#F1E7D3;
+  --paper:#FCF6E7;
+  --paper-2:#F6EDD8;
+  --ink:#1B2740;
+  --ink-soft:#3B3627;
+  --muted:#6E6250;
+  --rule:rgba(0,0,0,.12);
+  --glass:rgba(252,246,231,.88);
+  --glass-brd:rgba(0,0,0,.10);
+  --shadow:0 14px 34px rgba(74,54,22,.10), 0 2px 8px rgba(74,54,22,.07);
+  --chip:rgba(0,0,0,.05);
+  --sheet:#FCF6E7;
+  --on-accent:#1A1206;
+  --fs:1;
+  --safe-b:env(safe-area-inset-bottom,0px);
+  --t:240ms;
+}
+html[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:var(--deep);
+  --paper:rgba(255,255,255,.045);
+  --paper-2:rgba(255,255,255,.02);
+  --ink:#EDE3CB;
+  --ink-soft:#CFC5AE;
+  --muted:#98A3B8;
+  --rule:rgba(255,255,255,.14);
+  --glass:rgba(10,14,26,.86);
+  --glass-brd:rgba(255,255,255,.13);
+  --shadow:0 16px 40px rgba(0,0,0,.55), 0 2px 8px rgba(0,0,0,.35);
+  --chip:rgba(255,255,255,.07);
+  --sheet:#101725;
+  --on-accent:#141A26;
+}
+@media (prefers-color-scheme: dark){
+  html:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:var(--deep);
+    --paper:rgba(255,255,255,.045);
+    --paper-2:rgba(255,255,255,.02);
+    --ink:#EDE3CB;
+    --ink-soft:#CFC5AE;
+    --muted:#98A3B8;
+    --rule:rgba(255,255,255,.14);
+    --glass:rgba(10,14,26,.86);
+    --glass-brd:rgba(255,255,255,.13);
+    --shadow:0 16px 40px rgba(0,0,0,.55), 0 2px 8px rgba(0,0,0,.35);
+    --chip:rgba(255,255,255,.07);
+    --sheet:#101725;
+    --on-accent:#141A26;
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Noto Sans Devanagari','Nirmala UI','Mangal',system-ui,-apple-system,'Segoe UI',sans-serif;
+  line-height:1.75;
+  padding:0 0 calc(7rem + var(--safe-b));
+  transition:background var(--t) ease, color var(--t) ease;
+}
+.pad{font-family:'Tiro Devanagari Hindi','Noto Serif Devanagari','Sanskrit Text','Nirmala UI',serif}
+.wrap{max-width:680px;margin:0 auto;padding:0 1.05rem}
+button{font-family:inherit;color:inherit;background:none;border:none;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:8px}
+
+/* ===================== ग्रंथ पट्टी ===================== */
+.topstack{position:sticky;top:0;z-index:70}
+.gbar{background:var(--glass);backdrop-filter:blur(14px) saturate(1.3);-webkit-backdrop-filter:blur(14px) saturate(1.3);border-bottom:1px solid var(--glass-brd)}
+.gscroll{display:flex;gap:.5rem;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
+  padding:.55rem 1.05rem;max-width:680px;margin:0 auto;scrollbar-width:none;
+  -webkit-mask:linear-gradient(90deg,transparent,#000 22px,#000 calc(100% - 22px),transparent);
+  mask:linear-gradient(90deg,transparent,#000 22px,#000 calc(100% - 22px),transparent)}
+.gscroll::-webkit-scrollbar{display:none}
+.gtab{scroll-snap-align:center;flex:none;display:flex;flex-direction:column;align-items:center;gap:.05rem;
+  padding:.42rem 1rem .38rem;border-radius:999px;border:1px solid var(--glass-brd);background:var(--chip);
+  position:relative;transition:.22s;min-height:44px}
+.gtab .nm{font-size:1rem;font-weight:600;line-height:1.2;white-space:nowrap}
+.gtab .sub{font-size:.64rem;letter-spacing:.06em;color:var(--muted);white-space:nowrap}
+.gtab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent);box-shadow:0 4px 16px var(--glow)}
+.gtab[aria-selected="true"] .sub{color:var(--on-accent);opacity:.75}
+.gtab[aria-selected="true"]::after{content:"";position:absolute;left:22%;right:22%;bottom:-6px;height:2px;border-radius:2px;background:var(--accent);box-shadow:0 0 8px var(--glow)}
+.gtab.soon{opacity:.45;border-style:dashed}
+.gtab:active{transform:scale(.95)}
+
+/* ===================== नियंत्रण पट्टी ===================== */
+.topbar{background:var(--glass);backdrop-filter:blur(14px) saturate(1.3);-webkit-backdrop-filter:blur(14px) saturate(1.3);border-bottom:1px solid var(--glass-brd)}
+.progress{height:3px;background:transparent}
+.progress i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent));box-shadow:0 0 10px var(--glow);transition:width .18s linear}
+.bar{max-width:680px;margin:0 auto;padding:.5rem 1.05rem .55rem;display:flex;align-items:center;gap:.5rem}
+.seg{display:flex;gap:2px;padding:3px;border:1px solid var(--glass-brd);border-radius:999px;background:var(--chip);flex:1}
+.seg button{flex:1;padding:.42rem .3rem;border-radius:999px;font-size:.84rem;font-weight:600;color:var(--muted);white-space:nowrap;transition:.22s}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);box-shadow:0 3px 10px var(--glow)}
+.tool{width:38px;height:38px;min-width:38px;border-radius:12px;border:1px solid var(--glass-brd);display:grid;place-items:center;font-size:1rem;background:var(--chip);transition:.2s;position:relative}
+[hidden]{display:none !important}   /* display: वाले नियम [hidden] को दबा न दें */
+.tool:active{transform:scale(.92)}
+.tool .badge{position:absolute;top:-5px;right:-5px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:var(--accent);color:var(--on-accent);font-size:.62rem;font-weight:700;display:grid;place-items:center;line-height:1}
+.pathbar{display:none;max-width:680px;margin:0 auto;padding:0 1.05rem .55rem;align-items:center;gap:.45rem}
+.pathbar.on{display:flex}
+#difftog{margin-left:auto}
+.plab{font-size:.72rem;letter-spacing:.16em;color:var(--muted);font-weight:700}
+.pseg{display:flex;gap:2px;padding:3px;border:1px solid var(--glass-brd);border-radius:999px;background:var(--chip)}
+.pseg button{min-width:40px;padding:.28rem .6rem;border-radius:999px;font-size:.86rem;font-weight:600;color:var(--muted);transition:.2s}
+.pseg button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);box-shadow:0 2px 8px var(--glow)}
+.difftog{padding:.32rem .7rem;border-radius:999px;border:1px solid var(--glass-brd);background:var(--chip);font-size:.76rem;font-weight:600;color:var(--muted);transition:.2s}
+.difftog[aria-pressed="true"]{color:var(--accent);border-color:var(--accent);background:var(--chip)}
+
+/* ===================== कवर ===================== */
+.cover{position:relative;overflow:hidden;text-align:center;padding:2.8rem 1.05rem 2.2rem;isolation:isolate}
+.yantra{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(120vw,540px);aspect-ratio:1;z-index:-1;opacity:.22;pointer-events:none}
+.yantra .spin{transform-origin:100px 100px;animation:spin 60s linear infinite}
+.yantra .breathe{transform-origin:100px 100px;animation:breathe 4s ease-in-out infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes breathe{0%,100%{opacity:.55;transform:scale(.97)}50%{opacity:1;transform:scale(1.03)}}
+.halo{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);width:min(86vw,380px);aspect-ratio:1;z-index:-2;
+  background:radial-gradient(circle,var(--glow),transparent 62%);opacity:.42}
+.cover .inv{font-size:1.6rem;color:var(--accent);letter-spacing:.04em}
+.cover h1{font-weight:600;font-size:clamp(2.4rem,11vw,3.4rem);line-height:1.1;margin:.4rem 0 .5rem;color:var(--ink)}
+.cover .sub{font-size:.82rem;letter-spacing:.32em;color:var(--accent);margin-bottom:.8rem}
+.cover .range{display:inline-block;font-size:.9rem;letter-spacing:.14em;color:var(--muted);border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:.26rem 1rem;margin-bottom:.85rem}
+.cover .by{color:var(--muted);font-size:.96rem}
+.cover .by strong{color:var(--ink);font-weight:600}
+.resume{margin:1.1rem auto 0;display:none;align-items:center;gap:.5rem;max-width:340px;padding:.6rem .75rem;border:1px solid var(--glass-brd);border-radius:14px;background:var(--paper);box-shadow:var(--shadow);font-size:.88rem}
+.resume.on{display:flex}
+.resume b{color:var(--accent);font-weight:700}
+.resume button{margin-left:auto;padding:.34rem .7rem;border-radius:999px;background:var(--accent);color:var(--on-accent);font-weight:700;font-size:.82rem}
+
+/* ===================== भाग शीर्षक ===================== */
+h2{font-weight:600;font-size:1.34rem;color:var(--ink);margin:2.8rem 0 1.5rem;padding:1rem 0 .9rem;text-align:center;position:relative;scroll-margin-top:calc(var(--stack, 104px) + 12px)}
+h2 span{display:block;font-size:.68rem;letter-spacing:.24em;color:var(--accent);margin-bottom:.4rem;font-weight:700}
+h2::before,h2::after{content:"◈";position:absolute;left:50%;transform:translateX(-50%);color:var(--accent);font-size:.7rem;opacity:.7}
+h2::before{top:-.1rem}
+h2::after{bottom:-.2rem}
+
+/* ===================== पद-कार्ड ===================== */
+.v{position:relative;margin:0 0 1.5rem;padding:1.7rem 1.15rem 1.05rem;border-radius:20px;
+  background:linear-gradient(170deg,var(--paper),var(--paper-2));border:1px solid var(--glass-brd);box-shadow:var(--shadow);
+  opacity:0;transform:translateY(16px);transition:opacity .2s ease,transform .2s ease}
+.v.seen{opacity:1;transform:none}
+.v::before{content:"";position:absolute;inset:7px;border-radius:14px;pointer-events:none;opacity:.42;
+  background:
+    linear-gradient(var(--accent),var(--accent)) top left/16px 1px no-repeat,
+    linear-gradient(var(--accent),var(--accent)) top left/1px 16px no-repeat,
+    linear-gradient(var(--accent),var(--accent)) top right/16px 1px no-repeat,
+    linear-gradient(var(--accent),var(--accent)) top right/1px 16px no-repeat,
+    linear-gradient(var(--accent),var(--accent)) bottom left/16px 1px no-repeat,
+    linear-gradient(var(--accent),var(--accent)) bottom left/1px 16px no-repeat,
+    linear-gradient(var(--accent),var(--accent)) bottom right/16px 1px no-repeat,
+    linear-gradient(var(--accent),var(--accent)) bottom right/1px 16px no-repeat}
+.v.reading{border-color:var(--accent);box-shadow:0 0 0 1px var(--glow),0 0 32px var(--glow),var(--shadow)}
+.v.flash{animation:flash 2.2s ease-out 1}
+@keyframes flash{0%{box-shadow:0 0 0 2px var(--accent),0 0 60px var(--glow),var(--shadow)}100%{box-shadow:var(--shadow)}}
+.vnum{position:absolute;top:-.85rem;left:50%;transform:translateX(-50%);min-width:2.2rem;height:2.2rem;padding:0 .4rem;
+  display:grid;place-items:center;background:linear-gradient(170deg,var(--paper),var(--paper-2));
+  border:1px solid var(--accent);color:var(--accent);font-size:.9rem;font-weight:600;line-height:1;
+  clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)}
+.vtext{font-size:calc(clamp(1.16rem,4.6vw,1.4rem) * var(--fs));line-height:1.9;text-align:center;padding:.3rem 0 .1rem;color:var(--ink)}
+.vtext span{display:block}
+.vtext span.on{color:var(--accent);text-shadow:0 0 18px var(--glow)}
+.v.six .vtext{font-size:calc(clamp(1rem,3.9vw,1.18rem) * var(--fs));line-height:1.85}
+.arth{margin-top:1rem;padding:.15rem 0 .15rem .85rem;border-left:2px solid var(--accent);
+  font-size:calc(.99rem * var(--fs));color:var(--ink-soft);line-height:1.85}
+.arth b{display:block;font-size:.66rem;letter-spacing:.22em;color:var(--accent);font-weight:700;margin-bottom:.35rem}
+.pending{display:inline-block;margin-top:.9rem;padding:.2rem .7rem;border-radius:999px;border:1px dashed var(--glass-brd);
+  font-size:.72rem;color:var(--muted)}
+.vacts{display:flex;align-items:center;gap:.5rem;margin-top:.95rem;padding-top:.7rem;border-top:1px solid var(--rule)}
+.vacts .sp{flex:1}
+.vbtn{position:relative;overflow:hidden;display:inline-flex;align-items:center;gap:.4rem;min-height:40px;padding:.42rem .85rem;
+  border-radius:999px;border:1px solid var(--glass-brd);background:var(--chip);font-size:.85rem;font-weight:600;color:var(--muted);transition:.2s}
+.vbtn:active{transform:scale(.94)}
+.vbtn.play{color:var(--accent)}
+.vbtn.play .ico{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--accent);color:var(--on-accent)}
+.vbtn.play .ico .icon{width:13px;height:13px}
+.v.reading .vbtn.play{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.v.reading .vbtn.play .ico{background:rgba(0,0,0,.2)}
+.vbtn.bm{width:40px;padding:0;justify-content:center}
+.vbtn.bm.on{color:var(--accent);border-color:var(--accent)}
+.sep{display:flex;align-items:center;justify-content:center;gap:.6rem;margin:0 0 1.5rem;color:var(--accent);opacity:.5;font-size:.7rem}
+.sep::before,.sep::after{content:"";height:1px;width:52px;background:linear-gradient(90deg,transparent,currentColor,transparent)}
+
+/* पाठ क/ख */
+.ribbon{display:none;align-items:center;gap:.45rem;margin:0 0 .55rem}
+.ribbon b{font-size:.62rem;letter-spacing:.18em;font-weight:700;color:var(--on-accent);background:var(--accent);padding:.16rem .58rem;border-radius:999px}
+.ribbon .meta{font-size:.7rem;color:var(--muted);font-style:italic}
+.pb{display:none;margin-top:1.1rem;padding-top:1rem;border-top:1px dashed var(--glass-brd)}
+body[data-path="b"] .v.has-b>.vtext,body[data-path="b"] .v.has-b>.arth{display:none}
+body[data-path="b"] .pb,body[data-path="both"] .pb{display:block}
+body[data-path="both"] .v.has-b .ribbon{display:flex}
+body[data-path="b"] .v:not(.has-b) .vtext::after{content:"पाठ ख अभी इस पद का नहीं जुड़ा — ऊपर पाठ क है";display:block;
+  font-family:inherit;font-size:.72rem;color:var(--muted);margin-top:1rem;padding-top:.7rem;border-top:1px dashed var(--glass-brd)}
+.dw{font-style:normal;background:linear-gradient(180deg,transparent 62%,var(--glow) 62%);border-radius:2px}
+body[data-mode="verse"] .arth,body[data-mode="shravan"] .arth{display:none}
+body[data-mode="shravan"] .vtext{font-size:calc(clamp(1.28rem,5.2vw,1.56rem) * var(--fs));line-height:2.1}
+
+
+/* ===================== दो पाठ — समानांतर ===================== */
+.cols{display:block}
+.v.two .col{position:relative}
+.rlab{display:none;align-items:center;gap:.4rem;margin:0 0 .6rem;font-size:.68rem;letter-spacing:.1em;font-weight:700}
+.rlab .dot{width:8px;height:8px;border-radius:50%;flex:none}
+.col-k .rlab{color:var(--accent)} .col-k .rlab .dot{background:var(--accent);box-shadow:0 0 8px var(--glow)}
+.col-kh .rlab{color:var(--muted)} .col-kh .rlab .dot{background:var(--muted)}
+.meta-chips{display:flex;flex-wrap:wrap;gap:.32rem;margin:0 0 .7rem;justify-content:center}
+.meta-chips span{font-size:.68rem;padding:.16rem .55rem;border-radius:999px;border:1px solid var(--glass-brd);background:var(--chip);color:var(--muted)}
+.meta-chips span.ch{color:var(--accent);border-color:var(--accent)}
+.sarth{margin-top:.8rem;padding:.15rem 0 .15rem .85rem;border-left:2px dotted var(--glass-brd);font-size:calc(.9rem * var(--fs));color:var(--muted)}
+.sarth b{display:block;font-size:.62rem;letter-spacing:.2em;color:var(--muted);margin-bottom:.3rem}
+.sarth i{font-style:normal;color:var(--ink-soft)}
+.tipp{margin-top:.8rem;font-size:calc(.88rem * var(--fs));color:var(--muted);font-style:italic;padding-left:.85rem;border-left:2px dotted var(--glass-brd)}
+.absent{margin:1.2rem 0 .4rem;text-align:center;font-size:.84rem;color:var(--muted);padding:1.1rem .6rem;
+  border:1px dashed var(--glass-brd);border-radius:14px;background:var(--chip)}
+.dcount{display:none;margin:0 0 .8rem;text-align:center;font-size:.72rem;letter-spacing:.06em;color:var(--accent)}
+body[data-path="both"][data-diff="1"] .v.two .dcount{display:block}
+
+/* किस मोड में कौन-सा स्तंभ */
+body[data-path="k"]  .v.two .col-kh,
+body[data-path="kh"] .v.two .col-k{display:none}
+body[data-path="both"] .v.two .rlab{display:flex}
+body[data-path="both"] .v.two .cols{display:grid;grid-template-columns:1fr;gap:1.4rem}
+@media (min-width:768px){
+  body[data-path="both"] .v.two .cols{grid-template-columns:1fr 1px 1fr;gap:1.1rem;align-items:start}
+  body[data-path="both"] .v.two .cols::before{content:"";grid-column:2;align-self:stretch;
+    background:linear-gradient(180deg,transparent,var(--glass-brd) 12%,var(--glass-brd) 88%,transparent)}
+  body[data-path="both"] .v.two .col-k{grid-column:1}
+  body[data-path="both"] .v.two .col-kh{grid-column:3}
+  body[data-path="both"][data-swap="1"] .v.two .col-k{grid-column:3}
+  body[data-path="both"][data-swap="1"] .v.two .col-kh{grid-column:1}
+}
+@media (max-width:767px){
+  body[data-path="both"][data-swap="1"] .v.two .col-k{order:2}
+  body[data-path="both"][data-swap="1"] .v.two .col-kh{order:1}
+  body[data-path="both"] .v.two .cols{display:flex;flex-direction:column}
+  /* मोबाइल पर एक बार में एक ही पाठ (सरकाकर बदलिए) */
+  body[data-path="both"] .v.two[data-solo="k"] .col-kh,
+  body[data-path="both"] .v.two[data-solo="kh"] .col-k{display:none}
+  .v.two[data-solo] .swipehint{display:flex}
+}
+.swipehint{display:none;align-items:center;justify-content:center;gap:.4rem;margin-top:.7rem;font-size:.68rem;color:var(--muted)}
+.swipehint b{display:inline-flex;gap:3px}
+.swipehint i{width:6px;height:6px;border-radius:50%;background:var(--glass-brd);display:block}
+.swipehint i.on{background:var(--accent)}
+.mini{display:flex;gap:2px;padding:2px;border:1px solid var(--glass-brd);border-radius:999px;background:var(--chip)}
+.mini button{padding:.1rem .5rem;border-radius:999px;font-size:.68rem;font-weight:700;color:var(--muted)}
+.mini button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.icon{width:18px;height:18px;display:block;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.icon.f{fill:currentColor;stroke:none}
+.jump{display:flex;gap:.4rem;align-items:center;margin-bottom:.7rem}
+.jump input{flex:1;min-width:0;padding:.6rem .8rem;border-radius:12px;border:1px solid var(--glass-brd);background:var(--chip);color:var(--ink);font:inherit;font-size:.92rem}
+.jump button{padding:.6rem 1rem;border-radius:12px;background:var(--accent);color:var(--on-accent);font-weight:700;font-size:.88rem}
+.sres{display:block;width:100%;text-align:right;padding:.65rem .7rem;border-radius:14px;border:1px solid var(--rule);margin-bottom:.4rem;background:var(--paper)}
+.sres small{display:block;font-size:.68rem;letter-spacing:.1em;color:var(--accent);margin-bottom:.2rem}
+.sres b{display:block;font-weight:400;font-size:.95rem;color:var(--ink)}
+.sres mark{background:var(--glow);color:inherit;border-radius:3px;padding:0 2px}
+
+
+/* ===================== गायन ===================== */
+.gaanbar{position:fixed;left:50%;transform:translate(-50%,150%);bottom:calc(.7rem + var(--safe-b));width:min(94vw,520px);z-index:74;
+  padding:.6rem .75rem .7rem;border-radius:18px;background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border:1px solid var(--glass-brd);box-shadow:var(--shadow);transition:transform .35s cubic-bezier(.2,.7,.3,1)}
+.gaanbar.on{transform:translate(-50%,0)}
+.gaanbar .row{display:flex;align-items:center;gap:.5rem}
+.gaanbar .ttl{flex:1;min-width:0;line-height:1.25}
+.gaanbar .ttl b{display:block;font-size:.86rem;font-weight:600;color:var(--accent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gaanbar .ttl small{display:block;font-size:.66rem;color:var(--muted)}
+.gaanbar .tm{font-size:.7rem;color:var(--muted);min-width:5.4rem;text-align:right;font-variant-numeric:tabular-nums}
+.seekwrap{margin-top:.5rem;position:relative;height:22px;display:flex;align-items:center}
+.seek{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:4px;background:var(--chip);outline:none}
+.seek::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--glow);cursor:pointer}
+.seek::-moz-range-thumb{width:15px;height:15px;border:0;border-radius:50%;background:var(--accent)}
+.marks{position:absolute;left:0;right:0;top:3px;height:9px;pointer-events:none}
+.marks i{position:absolute;top:0;width:2px;height:9px;border-radius:2px;background:var(--accent);opacity:.5}
+.v.singing{border-color:var(--accent);box-shadow:0 0 0 1px var(--glow),0 0 30px var(--glow),var(--shadow)}
+.vbtn.gaan{color:var(--accent)}
+.follow[aria-pressed="true"]{color:var(--accent);border-color:var(--accent)}
+
+
+.gaanbar .mk{position:relative}
+.gaanbar .mk[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+body[data-mark="1"] .v .vbtn.setmark{display:inline-flex}
+.vbtn.setmark{display:none;color:var(--accent);border-color:var(--accent)}
+.vbtn.setmark.done{background:var(--accent);color:var(--on-accent)}
+.marks i.um{background:var(--ink);opacity:.9;height:12px;top:-1px}
+.marks i.st{background:var(--muted);opacity:.35;height:5px;top:2px}
+.mkhint{display:none;margin-top:.45rem;font-size:.72rem;color:var(--muted);text-align:center}
+body[data-mark="1"] .mkhint{display:block}
+
+
+/* ===================== समय-पट (एक बार की व्यवस्था) ===================== */
+.studio{position:fixed;inset:0;z-index:95;background:var(--bg);display:none;flex-direction:column}
+.studio.on{display:flex}
+.st-head{display:flex;align-items:center;gap:.6rem;padding:.7rem 1rem;border-bottom:1px solid var(--rule);background:var(--glass)}
+.st-head b{flex:1;font-size:.98rem;color:var(--accent)}
+.st-head .prog{font-size:.74rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.st-body{flex:1;overflow-y:auto;overflow-x:hidden;padding:1rem;display:flex;flex-direction:column;gap:.9rem}
+.st-body>*{min-width:0;max-width:100%}
+.st-card{border:1px solid var(--glass-brd);border-radius:18px;background:linear-gradient(170deg,var(--paper),var(--paper-2));padding:1.1rem;box-shadow:var(--shadow)}
+.st-card .who{display:flex;align-items:center;gap:.5rem;margin-bottom:.7rem}
+.st-card .who i{font-style:normal;min-width:2.2rem;height:2.2rem;display:grid;place-items:center;border:1px solid var(--accent);color:var(--accent);border-radius:50%;font-weight:700}
+.st-card .who span{font-size:.76rem;color:var(--muted)}
+.st-lines{font-size:calc(1.06rem * var(--fs));line-height:1.95;text-align:center;color:var(--ink)}
+.st-lines span{display:block}
+.big{display:block;width:100%;padding:1rem;border-radius:16px;background:var(--accent);color:var(--on-accent);font-weight:700;font-size:1.02rem;box-shadow:0 6px 20px var(--glow)}
+.big.ghost{background:var(--chip);color:var(--ink);border:1px solid var(--glass-brd);box-shadow:none}
+.st-row{display:flex;gap:.5rem}
+.st-row .big{flex:1;padding:.85rem .5rem;font-size:.92rem}
+.st-transport{display:flex;align-items:center;gap:.5rem;justify-content:center;padding:.2rem 0}
+.st-time{text-align:center;font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.st-time b{color:var(--accent);font-size:1.05rem}
+.st-foot{display:flex;gap:.5rem;padding:.7rem 1rem calc(.7rem + var(--safe-b));border-top:1px solid var(--rule);background:var(--glass)}
+.st-foot button{flex:1;padding:.7rem .3rem;border-radius:12px;border:1px solid var(--glass-brd);background:var(--chip);font-size:.84rem;font-weight:600}
+.st-jump{display:flex;gap:.4rem;align-items:center;min-width:0}
+.st-jump select{flex:1;min-width:0;width:100%;padding:.6rem;border-radius:12px;border:1px solid var(--glass-brd);background:var(--chip);color:var(--ink);font:inherit;font-size:.88rem}
+.st-hint{font-size:.78rem;color:var(--muted);text-align:center;line-height:1.6}
+
+
+/* समय-पट — शुरू/अंत की काट-छाँट */
+.io{display:grid;grid-template-columns:auto 1fr;gap:.5rem .7rem;align-items:center;margin-top:.9rem}
+.io .lbl{font-size:.76rem;font-weight:700;color:var(--muted);letter-spacing:.06em}
+.io .set{display:flex;align-items:center;gap:.4rem}
+.io .tval{font-size:1.22rem;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;min-width:4.6rem}
+.io .tval.empty{color:var(--muted);font-weight:400;font-size:.92rem}
+.io .tval:not(.empty){cursor:pointer;border-bottom:1px dashed var(--gold-soft,rgba(180,134,42,.4))}
+.io .tval:not(.empty):active{opacity:.6}
+.io .grab{margin-left:auto;padding:.42rem .7rem;border-radius:10px;background:var(--accent);color:var(--on-accent);font-weight:700;font-size:.8rem;white-space:nowrap}
+.nudge{display:flex;gap:.25rem}
+.nudge button{min-width:44px;padding:.34rem .2rem;border-radius:9px;border:1px solid var(--glass-brd);background:var(--chip);
+  font-size:.76rem;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+.nudge button:active{transform:scale(.94)}
+.st-dur{margin-top:.7rem;text-align:center;font-size:.84rem;color:var(--muted)}
+.st-dur b{color:var(--ink);font-variant-numeric:tabular-nums}
+.st-warn{margin-top:.6rem;padding:.5rem .7rem;border-radius:10px;font-size:.78rem;display:none;
+  background:rgba(200,60,40,.12);border:1px solid rgba(200,60,40,.4);color:var(--ink)}
+.st-warn.on{display:block}
+.st-strip{margin-top:.8rem;height:30px;border-radius:9px;background:var(--chip);position:relative;overflow:hidden;
+  border:1px solid var(--glass-brd)}
+.st-strip .seg{position:absolute;top:7px;bottom:7px;border-radius:4px;background:var(--accent);opacity:.85}
+.st-strip .seg.other{background:var(--muted);opacity:.30;top:11px;bottom:11px}
+.st-strip .cur{position:absolute;top:0;bottom:0;width:2px;background:var(--ink);box-shadow:0 0 0 1px var(--paper)}
+.st-strip .lab{position:absolute;right:7px;top:50%;transform:translateY(-50%);font-size:.62rem;color:var(--muted);
+  font-variant-numeric:tabular-nums;background:var(--paper);padding:0 .25rem;border-radius:4px;opacity:.9}
+
+/* ===================== audio bar / fab / sheet / toast ===================== */
+.audiobar{position:fixed;left:50%;transform:translate(-50%,140%);bottom:calc(.7rem + var(--safe-b));width:min(94vw,460px);z-index:75;
+  display:flex;align-items:center;gap:.45rem;padding:.55rem .6rem;border-radius:18px;background:var(--glass);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--glass-brd);box-shadow:var(--shadow);
+  transition:transform .35s cubic-bezier(.2,.7,.3,1)}
+.audiobar.on{transform:translate(-50%,0)}
+.audiobar .now{font-size:.86rem;color:var(--accent);min-width:5.2rem;padding-left:.35rem;line-height:1.25;font-weight:600}
+.audiobar .now small{display:block;font-size:.62rem;letter-spacing:.12em;color:var(--muted);font-weight:400}
+.ctl{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--glass-brd);background:var(--chip);font-size:.95rem;transition:.2s}
+.ctl:active{transform:scale(.9)}
+.ctl.main{width:48px;height:48px;background:var(--accent);color:var(--on-accent);border-color:var(--accent);box-shadow:0 0 18px var(--glow);font-size:1.05rem}
+.ctl.rate{width:auto;padding:0 .6rem;font-size:.78rem;font-weight:700;color:var(--accent)}
+.fab{position:fixed;right:.9rem;bottom:calc(1rem + var(--safe-b));z-index:65;display:flex;align-items:center;gap:.45rem;
+  padding:.72rem 1rem;border-radius:999px;background:var(--accent);color:var(--on-accent);font-weight:700;font-size:.9rem;
+  box-shadow:0 10px 26px rgba(0,0,0,.28),0 0 24px var(--glow);overflow:hidden;transition:transform .25s,opacity .25s}
+.fab:active{transform:scale(.94)}
+.fab.hide{transform:translateY(130%);opacity:0;pointer-events:none}
+.ripple{position:absolute;border-radius:50%;background:var(--glow);transform:translate(-50%,-50%) scale(0);opacity:.7;pointer-events:none;animation:rip .6s ease-out forwards}
+@keyframes rip{to{transform:translate(-50%,-50%) scale(9);opacity:0}}
+.scrim{position:fixed;inset:0;z-index:80;background:rgba(6,6,10,.55);opacity:0;pointer-events:none;transition:opacity .3s}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:50%;bottom:0;transform:translate(-50%,102%);width:min(100vw,560px);max-height:82vh;z-index:85;
+  background:var(--sheet);border:1px solid var(--glass-brd);border-bottom:0;border-radius:24px 24px 0 0;box-shadow:0 -18px 50px rgba(0,0,0,.32);
+  display:flex;flex-direction:column;transition:transform .38s cubic-bezier(.2,.7,.3,1);padding-bottom:var(--safe-b)}
+.sheet.on{transform:translate(-50%,0)}
+.sheet .grab{width:44px;height:4px;border-radius:4px;background:var(--glass-brd);margin:.6rem auto .2rem}
+.sheet .tabs{display:flex;gap:2px;padding:.55rem .9rem;border-bottom:1px solid var(--rule)}
+.sheet .tabs button{flex:1;padding:.5rem;border-radius:12px;font-size:.88rem;font-weight:600;color:var(--muted)}
+.sheet .tabs button[aria-pressed="true"]{background:var(--chip);color:var(--accent)}
+.sheet .tabs .tab-x{flex:0 0 40px;border-radius:50%;color:var(--muted)}
+.sheet .body{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:.6rem .9rem 1.4rem}
+.snav{display:block;width:100%;text-align:right;padding:.75rem .8rem;border-radius:14px;margin-bottom:.3rem}
+.snav:active{background:var(--chip)}
+.snav b{display:block;font-size:1rem;font-weight:600;color:var(--ink)}
+.snav small{display:block;font-size:.7rem;letter-spacing:.14em;color:var(--accent);margin-bottom:.15rem}
+.bmrow{display:flex;align-items:center;gap:.6rem;padding:.65rem .7rem;border-radius:14px;border:1px solid var(--rule);margin-bottom:.45rem;background:var(--paper)}
+.bmrow .n{min-width:2.1rem;height:2.1rem;border-radius:50%;display:grid;place-items:center;border:1px solid var(--accent);color:var(--accent);font-size:.85rem}
+.bmrow .t{flex:1;font-size:.95rem;line-height:1.5;color:var(--ink);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bmrow .x{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:var(--muted)}
+.empty{text-align:center;color:var(--muted);padding:2rem 1rem;font-size:.92rem}
+.empty span{display:block;font-size:1.7rem;margin-bottom:.5rem;opacity:.6}
+.setrow{display:flex;align-items:center;justify-content:space-between;gap:.7rem;padding:.75rem .2rem;border-bottom:1px solid var(--rule)}
+.setrow:last-child{border-bottom:0}
+.setrow .lab{font-size:.94rem}
+.setrow .lab small{display:block;color:var(--muted);font-size:.76rem}
+.chips{display:flex;gap:.3rem;flex:none}
+.chips button{min-height:38px;padding:0 .7rem;border-radius:12px;border:1px solid var(--glass-brd);background:var(--chip);font-size:.82rem;font-weight:600;color:var(--muted);transition:.2s}
+.chips button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.sw{width:52px;height:30px;border-radius:999px;border:1px solid var(--glass-brd);background:var(--chip);position:relative;flex:none;transition:.25s}
+.sw i{position:absolute;top:2px;left:2px;width:24px;height:24px;border-radius:50%;background:var(--muted);transition:.25s}
+.sw[aria-pressed="true"]{background:var(--accent);border-color:var(--accent)}
+.sw[aria-pressed="true"] i{left:24px;background:var(--on-accent)}
+.toast{position:fixed;left:50%;bottom:calc(5.4rem + var(--safe-b));transform:translate(-50%,20px);z-index:90;
+  padding:.65rem 1.05rem;border-radius:999px;background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border:1px solid var(--glass-brd);box-shadow:var(--shadow);font-size:.88rem;color:var(--ink);
+  opacity:0;pointer-events:none;transition:.3s;max-width:88vw;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.skel{padding:2rem 1.05rem;max-width:680px;margin:0 auto}
+.skel i{display:block;height:14px;border-radius:8px;background:var(--chip);margin:0 auto .9rem;animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.5}50%{opacity:1}}
+.loaderr{text-align:center;padding:3rem 1.2rem;color:var(--muted)}
+.loaderr button{margin-top:1rem;padding:.55rem 1.1rem;border-radius:999px;background:var(--accent);color:var(--on-accent);font-weight:700}
+.closing{margin:3rem auto 0;max-width:680px;padding:1.6rem 1.05rem 0;border-top:1px solid var(--rule);text-align:center;color:var(--muted);font-size:.92rem}
+.closing .l1{display:block;color:var(--accent);font-size:1.25rem;margin-bottom:.45rem;font-weight:600}
+.closing .l2{display:block;color:var(--accent);opacity:.85;margin-bottom:.7rem}
+
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  .yantra .spin,.yantra .breathe,.skel i{animation:none!important}
+  .v{opacity:1!important;transform:none!important;transition:none}
+}
+</style>
+</head>
+<body data-mode="both" data-path="a">
+
+<div class="topstack">
+<div class="gbar"><div class="gscroll" id="gscroll" role="tablist" aria-label="ग्रंथ"></div></div>
+
+<div class="topbar">
+  <div class="progress"><i id="pbar"></i></div>
+  <div class="bar">
+    <div class="seg" role="group" aria-label="पढ़ने का तरीका">
+      <button data-mode="verse" aria-pressed="false">केवल पद्य</button>
+      <button data-mode="both" aria-pressed="true">पद्य + अर्थ</button>
+      <button data-mode="shravan" aria-pressed="false">श्रवण</button>
+    </div>
+    <button class="tool" id="tool-gaan" aria-label="गायन" hidden><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg></button>
+    <button class="tool" id="btn-index" aria-label="अनुक्रम, सहेजे और खोज"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10a1 1 0 0 1 1 1v15l-6-4-6 4V5a1 1 0 0 1 1-1z"/></svg><span class="badge" id="bm-badge" hidden></span></button>
+    <button class="tool" id="btn-set" aria-label="सेटिंग"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 3.6v2M12 18.4v2M3.6 12h2M18.4 12h2M6 6l1.4 1.4M16.6 16.6L18 18M18 6l-1.4 1.4M7.4 16.6L6 18"/></svg></button>
+  </div>
+  <div class="pathbar" id="pathbar">
+    <span class="plab">पाठ</span>
+    <div class="pseg" role="group" aria-label="कौन-सी प्रति">
+      <button data-path="a" aria-pressed="true">क</button>
+      <button data-path="b" aria-pressed="false">ख</button>
+      <button data-path="both" aria-pressed="false">दोनों</button>
+    </div>
+    <button class="difftog" id="swapbtn" aria-pressed="false" hidden>⇆ पक्ष बदलें</button>
+    <button class="difftog" id="difftog" aria-pressed="false">अंतर</button>
+  </div>
+</div>
+</div>
+
+<div id="stage"></div>
+
+<div class="audiobar" id="audiobar" role="region" aria-label="श्रवण नियंत्रण">
+  <div class="now"><span id="ab-unit">दोहा</span> <span id="ab-n">1</span><small>सुन रहे हैं</small></div>
+  <button class="ctl" id="ab-prev" aria-label="पिछला"><svg class="icon f" viewBox="0 0 24 24"><path d="M18 5.5v13L9 12zM6 5h1.6v14H6z"/></svg></button>
+  <button class="ctl main" id="ab-play" aria-label="रोकें या चलाएँ"><svg class="icon f" viewBox="0 0 24 24"><path d="M8.5 5h2.2v14H8.5zM13.3 5h2.2v14h-2.2z"/></svg></button>
+  <button class="ctl" id="ab-next" aria-label="अगला"><svg class="icon f" viewBox="0 0 24 24"><path d="M6 5.5v13L15 12zM16.4 5H18v14h-1.6z"/></svg></button>
+  <button class="ctl rate" id="ab-rate" aria-label="गति">1×</button>
+  <button class="ctl" id="ab-stop" aria-label="बंद करें"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+</div>
+
+
+<div class="gaanbar" id="gaanbar" role="region" aria-label="गायन">
+  <div class="row">
+    <button class="ctl main" id="gn-play" aria-label="गायन चलाएँ या रोकें"></button>
+    <div class="ttl"><b id="gn-title">गायन</b><small id="gn-sub"></small></div>
+    <button class="ctl" id="gn-follow" aria-label="गाया जा रहा छंद साथ-साथ दिखाएँ" aria-pressed="true"></button>
+    <button class="ctl mk" id="gn-mark" aria-label="निशान लगाने का तरीका" aria-pressed="false"></button>
+    <button class="ctl" id="gn-close" aria-label="गायन बंद करें"></button>
+  </div>
+  <div class="seekwrap">
+    <input class="seek" id="gn-seek" type="range" min="0" max="1000" value="0" aria-label="गायन में आगे-पीछे">
+    <div class="marks" id="gn-marks"></div>
+  </div>
+  <div class="mkhint">जिस छंद पर आवाज़ आए, उसके <b>निशान</b> बटन को उसी क्षण दबा दीजिए — वहीं उसका <b>शुरू</b> लग जाएगा। <b>अंत</b> समय-पट में लगेगा।</div>
+  <div class="row" style="margin-top:.15rem">
+    <span class="tm" id="gn-time" style="text-align:left">0:00</span>
+    <span class="sp" style="flex:1"></span>
+    <button class="ctl" id="gn-prev" aria-label="पिछला छंद"></button>
+    <button class="ctl" id="gn-next" aria-label="अगला छंद"></button>
+    <button class="ctl rate" id="gn-rate" aria-label="गति">1×</button>
+    <span class="tm" id="gn-dur">0:00</span>
+  </div>
+</div>
+
+<button class="fab" id="fab"><svg class="icon f" viewBox="0 0 24 24"><path d="M12 3.6l1.9 4.4 4.8.5-3.6 3.2 1 4.7L12 14l-4.1 2.4 1-4.7-3.6-3.2 4.8-.5z"/></svg><span id="fab-t">आज का दोहा</span></button>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="अनुक्रम, सहेजे और सेटिंग">
+  <div class="grab"></div>
+  <div class="tabs">
+    <button data-tab="toc" aria-pressed="true">अनुक्रम</button>
+    <button data-tab="bm" aria-pressed="false">सहेजे</button>
+    <button data-tab="find" aria-pressed="false">खोज</button>
+    <button data-tab="set" aria-pressed="false">सेटिंग</button>
+    <button class="tab-x" id="sheet-x" aria-label="बंद करें"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+  <div class="body" id="sheet-body"></div>
+</div>
+
+
+<div class="studio" id="studio" role="dialog" aria-modal="true" aria-label="गायन समय-पट">
+  <div class="st-head">
+    <b>समय-पट — गायन</b>
+    <span class="prog" id="st-prog">0 / 0</span>
+    <button class="ctl" id="st-close" aria-label="बंद करें"></button>
+  </div>
+  <div class="st-body">
+    <div class="st-time"><b id="st-now">0:00</b> <span id="st-dur">/ 0:00</span></div>
+    <div class="st-transport">
+      <button class="ctl" id="st-back" aria-label="2 सेकंड पीछे">−2s</button>
+      <button class="ctl" id="st-prevst" aria-label="पिछला ठहराव"></button>
+      <button class="ctl main" id="st-play" aria-label="चलाएँ या रोकें"></button>
+      <button class="ctl" id="st-nextst" aria-label="अगला ठहराव"></button>
+      <button class="ctl" id="st-fwd" aria-label="2 सेकंड आगे">+2s</button>
+    </div>
+    <div class="seekwrap"><input class="seek" id="st-seek" type="range" min="0" max="1000" value="0" aria-label="आगे-पीछे"><div class="marks" id="st-marks"></div></div>
+
+    <div class="st-card">
+      <div class="who"><i id="st-n">1</i><span id="st-sec">भाग</span></div>
+      <div class="st-lines pad" id="st-lines"></div>
+
+      <div class="io">
+        <span class="lbl">शुरू</span>
+        <div class="set"><span class="tval empty" id="st-in">—</span>
+          <div class="nudge">
+            <button data-nud="in" data-d="-0.5">−0.5</button>
+            <button data-nud="in" data-d="-0.1">−0.1</button>
+            <button data-nud="in" data-d="0.1">+0.1</button>
+            <button data-nud="in" data-d="0.5">+0.5</button>
+          </div>
+          <button class="grab" id="st-setin">यहीं</button>
+        </div>
+        <span class="lbl">अंत</span>
+        <div class="set"><span class="tval empty" id="st-out">—</span>
+          <div class="nudge">
+            <button data-nud="out" data-d="-0.5">−0.5</button>
+            <button data-nud="out" data-d="-0.1">−0.1</button>
+            <button data-nud="out" data-d="0.1">+0.1</button>
+            <button data-nud="out" data-d="0.5">+0.5</button>
+          </div>
+          <button class="grab" id="st-setout">यहीं</button>
+        </div>
+      </div>
+
+      <div class="st-dur" id="st-len">अवधि — <b>—</b></div>
+      <div class="st-warn" id="st-warn"></div>
+      <div class="st-strip" id="st-strip"><span class="lab">आस-पास</span></div>
+    </div>
+
+    <div class="st-row">
+      <button class="big" id="st-hear">▷ यही हिस्सा सुनें</button>
+      <button class="big ghost" id="st-loop" aria-pressed="false">दोहराव</button>
+    </div>
+    <div class="st-row">
+      <button class="big ghost" id="st-chain">अंत = अगले का शुरू</button>
+      <button class="big" id="st-next">अगला छंद ›</button>
+    </div>
+    <div class="st-jump">
+      <button class="ctl" id="st-prev" aria-label="पिछला छंद">‹</button>
+      <select id="st-sel" aria-label="किसी भी छंद पर जाएँ"></select>
+    </div>
+    <div class="st-hint" id="st-hint">गायन चलाइए। जैसे ही यह छंद शुरू हो, “शुरू — यहीं” दबाइए; ख़त्म हो तो “अंत — यहीं”।</div>
+  </div>
+  <div class="st-foot">
+    <button id="st-copy">सूची प्रतिलिपि</button>
+    <button id="st-chainall">सब जोड़ें</button>
+    <button id="st-clear">सब मिटाएँ</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="data/registry.js"></script>
+<script>
+(function(){
+"use strict";
+
+var $  = function(s,r){ return (r||document).querySelector(s); };
+var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]; }); }
+function lsGet(k,d){ try{ var v=localStorage.getItem(k); return v===null?d:v; }catch(e){ return d; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+function jGet(k,d){ try{ return JSON.parse(localStorage.getItem(k)) || d; }catch(e){ return d; } }
+function jSet(k,v){ lsSet(k, JSON.stringify(v)); }
+var REDUCED = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+var REG = (window.GRANTH_REGISTRY || []).slice().sort(function(a,b){ return (a.order||0)-(b.order||0); });
+
+/* ---------- साझा सेटिंग ---------- */
+var SET = jGet('granth:settings', {});
+if(SET.fontSize == null) SET.fontSize = 1;
+if(SET.mode == null) SET.mode = 'both';
+if(SET.ttsRate == null) SET.ttsRate = 1;
+if(SET.theme == null) SET.theme = 'auto';
+if(SET.bell == null) SET.bell = 1;
+if(SET.gaanFollow == null) SET.gaanFollow = 0;   /* समय ठीक होने तक बंद */
+function saveSet(){ jSet('granth:settings', SET); }
+
+/* ---------- पुराने hariras की याद बचाना (एक बार) ---------- */
+(function migrate(){
+  if(lsGet('granth:migrated','0') === '1') return;
+  try{
+    var old = JSON.parse(lsGet('hr_bm','[]')) || [];
+    if(old.length){
+      var cur = jGet('granth:hariras:bookmarks', []);
+      old.forEach(function(n){
+        if(!cur.some(function(b){ return b.n === n; })) cur.push({ sectionId: null, n: n, ts: Date.now() });
+      });
+      jSet('granth:hariras:bookmarks', cur);
+    }
+    var pos = parseInt(lsGet('hr_pos','0'), 10);
+    if(pos) jSet('granth:hariras:lastRead', { sectionId: null, n: pos });
+    var f = parseFloat(lsGet('hr_font','')); if(f) SET.fontSize = f;
+    var m = lsGet('hr_mode',''); if(m) SET.mode = m;
+    var r = parseFloat(lsGet('hr_rate','')); if(r) SET.ttsRate = r;
+    var t = lsGet('hr_theme',''); if(t) SET.theme = t;
+    var bl = lsGet('hr_bell',''); if(bl !== '') SET.bell = (bl === '1') ? 1 : 0;
+    saveSet();
+  }catch(e){}
+  lsSet('granth:migrated','1');
+})();
+
+/* ---------- toast / bell ---------- */
+var toastEl = $('#toast'), toastT;
+function toast(m, ms){ toastEl.textContent = m; toastEl.classList.add('on'); clearTimeout(toastT);
+  toastT = setTimeout(function(){ toastEl.classList.remove('on'); }, ms||2600); }
+var AC = null;
+function bell(){
+  if(!SET.bell) return;
+  try{
+    var C = window.AudioContext || window.webkitAudioContext; if(!C) return;
+    AC = AC || new C(); if(AC.state === 'suspended') AC.resume();
+    var t = AC.currentTime, g = AC.createGain();
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.09,t+0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+1.4); g.connect(AC.destination);
+    [880,2373,3520].forEach(function(f,i){
+      var o=AC.createOscillator(), og=AC.createGain();
+      o.type='sine'; o.frequency.value=f; og.gain.value=[1,.4,.16][i];
+      o.connect(og); og.connect(g); o.start(t); o.stop(t+1.5);
+    });
+  }catch(e){}
+}
+function haptic(){ try{ navigator.vibrate && navigator.vibrate(8); }catch(e){} }
+
+/* ---------- theme ---------- */
+function applyTheme(v){
+  if(v === 'dark' || v === 'light') document.documentElement.setAttribute('data-theme', v);
+  else document.documentElement.removeAttribute('data-theme');
+}
+function applyFont(v){
+  SET.fontSize = Math.min(1.7, Math.max(0.85, Math.round(v*100)/100));
+  document.documentElement.style.setProperty('--fs', SET.fontSize);
+  saveSet();
+  var l = $('#fs-val'); if(l) l.textContent = Math.round(SET.fontSize*100) + '%';
+}
+function isDark(){
+  var t = SET.theme;
+  return t === 'dark' || (t !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+}
+function applyGranthTheme(th){
+  var r = document.documentElement.style;
+  r.setProperty('--accent', th.accent);
+  r.setProperty('--glow', hexA(th.glow || th.accent, .5));
+  r.setProperty('--deep', th.bg);
+  var meta = document.querySelector('meta[name="theme-color"]');
+  if(meta) meta.setAttribute('content', isDark() ? th.bg : '#F1E7D3');
+}
+function hexA(hex, a){
+  var m = /^#?([0-9a-f]{6})$/i.exec(hex || '');
+  if(!m) return 'rgba(200,160,60,' + a + ')';
+  var n = parseInt(m[1], 16);
+  return 'rgba(' + ((n>>16)&255) + ',' + ((n>>8)&255) + ',' + (n&255) + ',' + a + ')';
+}
+applyTheme(SET.theme);
+applyFont(SET.fontSize);
+function measureStack(){
+  var el = $('.topstack');
+  if(el) document.documentElement.style.setProperty('--stack', Math.round(el.getBoundingClientRect().height) + 'px');
+}
+addEventListener('resize', measureStack);
+
+/* ---------- yantra (inline SVG, per granth) ---------- */
+function yantra(id){
+  if(id === 'deviyaan'){
+    var pet = '';
+    for(var i = 0; i < 16; i++){
+      pet += '<ellipse cx="100" cy="30" rx="9" ry="20" transform="rotate(' + (i*22.5) + ' 100 100)"/>';
+    }
+    return '<svg class="yantra" viewBox="0 0 200 200" aria-hidden="true" fill="none" stroke="var(--accent)" stroke-width="0.7">' +
+      '<g class="breathe">' +
+      '<circle cx="100" cy="100" r="74"/><circle cx="100" cy="100" r="60"/>' +
+      '<g opacity=".75">' + pet + '</g>' +
+      '<path d="M100 34 L156 132 L44 132 Z"/><path d="M100 166 L44 68 L156 68 Z"/>' +
+      '<path d="M100 52 L142 124 L58 124 Z"/><path d="M100 148 L58 76 L142 76 Z"/>' +
+      '<path d="M100 70 L128 118 L72 118 Z"/><path d="M100 130 L72 82 L128 82 Z"/>' +
+      '<circle cx="100" cy="100" r="5" fill="var(--accent)" stroke="none"/>' +
+      '<rect x="14" y="14" width="172" height="172" opacity=".5"/>' +
+      '</g></svg>';
+  }
+  var rays = '', dots = '';
+  for(var k = 0; k < 48; k++){
+    var a = k * 7.5 * Math.PI / 180;
+    rays += '<line x1="' + (100+26*Math.cos(a)).toFixed(1) + '" y1="' + (100+26*Math.sin(a)).toFixed(1) +
+            '" x2="' + (100+86*Math.cos(a)).toFixed(1) + '" y2="' + (100+86*Math.sin(a)).toFixed(1) + '"/>';
+    if(k % 6 === 0) dots += '<circle cx="' + (100+70*Math.cos(a)).toFixed(1) + '" cy="' + (100+70*Math.sin(a)).toFixed(1) + '" r="1.6" fill="var(--accent)" stroke="none"/>';
+  }
+  return '<svg class="yantra" viewBox="0 0 200 200" aria-hidden="true" fill="none" stroke="var(--accent)" stroke-width="0.5">' +
+    '<g class="spin"><g opacity=".8">' + rays + '</g>' + dots + '</g>' +
+    '<g class="breathe"><circle cx="100" cy="100" r="26"/><circle cx="100" cy="100" r="52" opacity=".7"/><circle cx="100" cy="100" r="88" opacity=".5"/></g>' +
+    '</svg>';
+}
+
+/* =========================================================
+   ग्रंथ लोड और रेंडर
+   ========================================================= */
+var G = null;              /* चालू ग्रंथ का data */
+var META = null;           /* registry entry */
+var CARDS = [];            /* सभी पद-कार्ड, क्रम में */
+var CUR = null;            /* {sectionId,n} जहाँ पाठक है */
+var BM = [];               /* चालू ग्रंथ के बुकमार्क */
+var PATH = 'a', DIFF = false;
+
+function keyOf(v, sec){ return (sec.id || '') + ':' + v.n; }
+function unit(){ return (G && G.unitLabel) || 'पद'; }
+function bmKey(){ return 'granth:' + G.id + ':bookmarks'; }
+function lrKey(){ return 'granth:' + G.id + ':lastRead'; }
+
+function loadGranth(id, deep){
+  var meta = REG.filter(function(r){ return r.id === id; })[0];
+  if(!meta){ id = REG[0].id; meta = REG[0]; }
+  META = meta;
+  lsSet('granth:last', id);
+  paintTabs(id);
+  applyGranthTheme(meta.theme || {});
+  if(window.GRANTH_DATA && window.GRANTH_DATA[id] && !meta.pending){ mount(window.GRANTH_DATA[id], deep); return; }
+
+  $('#stage').innerHTML = '<div class="skel">' +
+    '<i style="width:52%"></i><i style="width:78%"></i><i style="width:66%"></i><i style="width:84%"></i><i style="width:44%"></i></div>';
+  var files = meta.files || [meta.file], i = 0;
+  (function next(){
+    if(i >= files.length){
+      meta.pending = false;
+      if(window.GRANTH_DATA && window.GRANTH_DATA[id]) mount(window.GRANTH_DATA[id], deep);
+      else failed(id);
+      return;
+    }
+    var sc = document.createElement('script');
+    sc.src = files[i++];
+    sc.onload = next;
+    sc.onerror = function(){ failed(id); };
+    document.head.appendChild(sc);
+  })();
+}
+function failed(id){
+  $('#stage').innerHTML = '<div class="loaderr">यह ग्रंथ लोड नहीं हो सका — दोबारा कोशिश करें।' +
+    '<br><button id="retry">फिर से</button></div>';
+  $('#retry').addEventListener('click', function(){
+    var m = REG.filter(function(r){ return r.id === id; })[0];
+    if(m && window.GRANTH_DATA) delete window.GRANTH_DATA[id];
+    loadGranth(id);
+  });
+}
+
+function paintTabs(active){
+  var box = $('#gscroll');
+  if(!box.dataset.built){
+    var h = '';
+    REG.forEach(function(r){
+      h += '<button class="gtab" role="tab" data-id="' + r.id + '" aria-selected="false">' +
+             '<span class="nm">' + esc(r.title) + '</span>' +
+             '<span class="sub">' + r.count + ' ' + esc(r.unitLabel) + '</span></button>';
+    });
+    h += '<button class="gtab soon" id="tab-soon"><span class="nm">+ आगे</span><span class="sub">जुड़ते रहेंगे</span></button>';
+    box.innerHTML = h;
+    box.dataset.built = '1';
+    $$('.gtab[data-id]', box).forEach(function(b){
+      b.addEventListener('click', function(){
+        if(b.dataset.id === (META && META.id)) return;
+        haptic(); bell();
+        Sp.stop();
+        location.hash = b.dataset.id;
+        loadGranth(b.dataset.id);
+      });
+    });
+    $('#tab-soon').addEventListener('click', function(){ toast('नया ग्रंथ जोड़ना हो तो nayi-pustak/pustak.md में लिख दीजिए — अपने आप यहाँ आ जाएगा।', 4200); });
+  }
+  $$('.gtab[data-id]', box).forEach(function(b){
+    var on = b.dataset.id === active;
+    b.setAttribute('aria-selected', on ? 'true' : 'false');
+    if(on && b.scrollIntoView) b.scrollIntoView({ inline:'center', block:'nearest', behavior: REDUCED ? 'auto' : 'smooth' });
+  });
+}
+
+function mount(data, deep){
+  G = data;
+  document.title = '॥ ' + G.title + ' ॥ — ' + (G.author || '');
+  if(G.theme) applyGranthTheme(G.theme);
+  BM = jGet(bmKey(), []);
+
+  RECS = G.recensions || null;
+  var h = '';
+  h += '<header class="cover">' +
+         '<div class="halo"></div>' + yantra(G.id) +
+         (G.invocation ? '<div class="inv pad">' + esc(G.invocation) + '</div>' : '') +
+         '<h1 class="pad">' + esc(G.title) + '</h1>' +
+         (G.subtitle ? '<div class="sub">' + esc(G.subtitle) + '</div>' : '') +
+         (G.rangeLabel ? '<div class="range">' + esc(G.rangeLabel) + '</div>' : '') +
+         '<p class="by">' + (G.author ? 'रचयिता — <strong>' + esc(G.author) + '</strong>' : '') +
+           (G.note ? '<br>' + esc(G.note) : '') + '</p>' +
+         '<div class="resume" id="resume"><div>जहाँ छोड़ा था — ' + esc(unit()) +
+           ' <b id="resume-n">1</b></div><button id="resume-go">वहीं से पढ़ें</button></div>' +
+       '</header><main class="wrap" id="body">';
+
+  if(RECS){ h += buildRecensionCards(); }
+  else G.sections.forEach(function(sec){
+    h += '<h2><span>' + esc(sec.title) + '</span>' + esc(sec.subtitle || '') + '</h2>';
+    sec.verses.forEach(function(v, i){
+      var six = (v.lines.length >= 6) ? ' six' : '';
+      var hasB = !!(v.paathB && v.paathB.lines && v.paathB.lines.length);
+      var vid = (v.n != null) ? v.n : (v.key || 'x');
+      h += '<article class="v' + six + (hasB ? ' has-b' : '') + '" data-sec="' + esc(sec.id) + '" data-n="' + esc(String(vid)) + '">' +
+             '<div class="vnum pad">' + esc(String(v.badge != null ? v.badge : v.n)) + '</div>' +
+             (hasB ? '<div class="ribbon"><b>' + esc((G.paathLabels && G.paathLabels.a) || 'पाठ क') + '</b></div>' : '') +
+             '<div class="vtext pad">' + v.lines.map(function(l){ return '<span>' + esc(l) + '</span>'; }).join('') + '</div>';
+      if(v.artha) h += '<div class="arth"><b>' + esc(v.arthaLabel || 'अर्थ') + '</b>' + esc(v.artha) + '</div>';
+      else if(!sec.noArtha && !v.noArtha) h += '<div class="pending">अर्थ शेष</div>';
+      h += shabdBlock(v);
+      if(hasB){
+        var b = v.paathB, meta = [b.meter, b.title].filter(Boolean).map(esc).join(' · ');
+        h += '<div class="pb">' +
+               '<div class="ribbon"><b>' + esc((G.paathLabels && G.paathLabels.b) || 'पाठ ख') + '</b>' +
+                 (meta ? '<span class="meta">' + meta + '</span>' : '') + '</div>' +
+               '<div class="vtext vb pad">' + b.lines.map(function(l){ return '<span>' + esc(l) + '</span>'; }).join('') + '</div>' +
+               (b.artha ? '<div class="arth"><b>अर्थ</b>' + esc(b.artha) + '</div>' : '') +
+             '</div>';
+      }
+      h += '<div class="vacts">' +
+             '<button class="vbtn play" type="button" aria-label="' + esc(unit()) + ' ' + esc(String(vid)) + ' सुनें">' +
+               '<span class="ico">' + svg(IC.play, 'f') + '</span><span class="txt">पद्य सुनें</span></button>' +
+             '<span class="sp"></span>' +
+             '<button class="vbtn bm" type="button" aria-label="सहेजें" aria-pressed="false">' + svg(IC.book) + '</button>' +
+           '</div></article>';
+      if(i < sec.verses.length - 1) h += '<div class="sep">&#9672;</div>';
+    });
+  });
+  h += '</main>';
+  if(G.closing) h += '<div class="closing"><span class="l1 pad">' + esc(G.closing.line1) + '</span>' +
+                     (G.closing.line2 ? '<span class="l2 pad">' + esc(G.closing.line2) + '</span>' : '') +
+                     esc(G.rangeLabel || '') + ' — ' + esc(G.author || '') + '</div>';
+  $('#stage').innerHTML = h;
+
+  CARDS = $$('#body .v');
+  CARDS.forEach(function(c){
+    c.style.scrollMarginTop = 'calc(var(--stack, 104px) + 12px)';
+    if(RECS){
+      var ka = $$('.r-' + RECS[0].key + ' span', c), kb = $$('.r-' + RECS[1].key + ' span', c);
+      c.spansA = ka; c.linesA = ka.map(function(x){ return x.textContent; });
+      if(kb.length){ c.spansB = kb; c.linesB = kb.map(function(x){ return x.textContent; }); }
+      if(!ka.length && kb.length){ c.spansA = kb; c.linesA = c.linesB; }
+    } else {
+      c.linesA = $$('.vtext:not(.vb) span', c).map(function(x){ return x.textContent; });
+      c.spansA = $$('.vtext:not(.vb) span', c);
+      var vb = $$('.vb span', c);
+      if(vb.length){ c.linesB = vb.map(function(x){ return x.textContent; }); c.spansB = vb; }
+    }
+  });
+
+  /* पाठ पट्टी सिर्फ़ तभी जब सचमुच दो पाठ हों */
+  var hasTwo = !!(RECS || G.hasPaathVariants);
+  $('#pathbar').classList.toggle('on', hasTwo);
+  if(RECS){
+    var pb = $$('.pseg button');
+    pb[0].dataset.path = RECS[0].key; pb[0].textContent = RECS[0].label.replace('पाठ ', '');
+    pb[1].dataset.path = RECS[1].key; pb[1].textContent = RECS[1].label.replace('पाठ ', '');
+    $('#swapbtn').hidden = false;
+    setSwap(lsGet('granth:' + G.id + ':swap', '0') === '1');
+    setPath(lsGet('granth:' + G.id + ':path', RECS[0].key), false);
+  } else {
+    $('#swapbtn').hidden = true;
+    if(!hasTwo){ PATH = 'a'; document.body.dataset.path = 'a'; }
+    else setPath(lsGet('granth:' + G.id + ':path', 'a'), false);
+  }
+
+  $('#ab-unit').textContent = unit();
+  $('#fab-t').textContent = 'आज का ' + unit();
+  paintBM();
+  setupGaan();
+  measureStack();
+  observe();
+  restoreResume(deep);
+  if(sheetOpen) renderSheet(curTab);
+}
+
+
+/* =========================================================
+   दो पाठ वाला ग्रंथ — एक ही क्रमांक, दो recensions
+   ========================================================= */
+var RECS = null, SWAP = false;
+function recText(key){ return (window.GRANTH_TEXT && window.GRANTH_TEXT[G.id] && window.GRANTH_TEXT[G.id][key]) || {}; }
+function svg(d, cls){ return '<svg class="icon ' + (cls||'') + '" viewBox="0 0 24 24" aria-hidden="true">' + d + '</svg>'; }
+var IC = {
+  play: '<path d="M8 5.5v13l11-6.5z"/>',
+  pause:'<path d="M9 5v14M15 5v14"/>',
+  prev: '<path d="M18 5.5v13L9 12zM6 5v14"/>',
+  next: '<path d="M6 5.5v13L15 12zM18 5v14"/>',
+  stop: '<path d="M6 6l12 12M18 6L6 18"/>',
+  book: '<path d="M12 7.5S10 5.5 6.5 5.5H4v12h2.5c3.5 0 5.5 2 5.5 2s2-2 5.5-2H20v-12h-2.5C14 5.5 12 7.5 12 7.5zM12 7.5v13.5"/>',
+  gear: '<circle cx="12" cy="12" r="3.2"/><path d="M12 3.5v2M12 18.5v2M3.5 12h2M18.5 12h2M5.9 5.9l1.5 1.5M16.6 16.6l1.5 1.5M18.1 5.9l-1.5 1.5M7.4 16.6l-1.5 1.5"/>',
+  star: '<path d="M12 4.5l1.9 4.3 4.6.5-3.4 3.1 1 4.6L12 14.7 7.9 17l1-4.6-3.4-3.1 4.6-.5z"/>',
+  swap: '<path d="M7 8h11l-3-3M17 16H6l3 3"/>',
+  copy: '<rect x="9" y="9" width="10" height="11" rx="2"/><path d="M15 9V6a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/>',
+  search:'<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.3-4.3"/>',
+  close:'<path d="M6 6l12 12M18 6L6 18"/>'
+};
+
+/* शब्दार्थ / टिप्पणी — सूची भी चलती है, सीधा वाक्य भी */
+function shabdBlock(v){
+  var h = '';
+  if(v.shabdarth){
+    if(typeof v.shabdarth === 'string') h += '<div class="sarth"><b>शब्दार्थ</b>' + esc(v.shabdarth) + '</div>';
+    else if(v.shabdarth.length)
+      h += '<div class="sarth"><b>शब्दार्थ</b>' + v.shabdarth.map(function(x){
+             return '<i>' + esc(x.shabd) + '</i> — ' + esc(x.arth); }).join(' · ') + '</div>';
+  }
+  if(v.tippani) h += '<div class="tipp">' + esc(v.tippani) + '</div>';
+  if(v.sampadak_note) h += '<div class="tipp">संपादक — ' + esc(v.sampadak_note) + '</div>';
+  return h;
+}
+function recBlock(key, rec, v, id){
+  var lab = '<div class="rlab"><span class="dot"></span>' + esc(rec.full || rec.label) + '</div>';
+  if(!v) return '<div class="col col-' + key + '">' + lab +
+      '<div class="absent">इस पाठ में उपलब्ध नहीं</div></div>';
+  var chips = [];
+  if(v.chhand)  chips.push('<span class="ch">' + esc(v.chhand) + (v.upa ? ' ' + v.upa : '') + '</span>');
+  if(v.shirshak) chips.push('<span>' + esc(v.shirshak) + '</span>');
+  if(v.prasang)  chips.push('<span>' + esc(v.prasang) + '</span>');
+  var h = '<div class="col col-' + key + '" data-rec="' + key + '">' + lab;
+  if(chips.length) h += '<div class="meta-chips">' + chips.join('') + '</div>';
+  h += '<div class="vtext pad r-' + key + '">' + v.mool.map(function(l){ return '<span>' + esc(l) + '</span>'; }).join('') + '</div>';
+  if(v.arth) h += '<div class="arth"><b>' + esc(v.arth_label || 'अर्थ') + '</b>' + esc(v.arth) + '</div>';
+  h += shabdBlock(v);
+  h += '<div class="vacts"><button class="vbtn play" type="button" data-rec="' + key + '" aria-label="' +
+         esc(rec.label) + ' का ' + esc(unit()) + ' ' + id + ' सुनें"><span class="ico">' + svg(IC.play, 'f') +
+         '</span><span class="txt">पद्य सुनें</span></button><span class="sp"></span>' +
+       '<button class="vbtn copy" type="button" data-rec="' + key + '" aria-label="प्रतिलिपि">' + svg(IC.copy) + '</button></div>';
+  return h + '</div>';
+}
+
+function buildRecensionCards(){
+  var K = recText(RECS[0].key), KH = recText(RECS[1].key);
+  var h = '', bhaag = G.bhaag || [];
+  bhaag.forEach(function(b){
+    h += '<h2 id="sec-' + esc(b.id) + '"><span>' + esc(b.title) + '</span>' + esc(b.subtitle || '') + '</h2>';
+    for(var n = b.from; n <= b.to; n++){
+      var a = K[n], c = KH[n];
+      h += '<article class="v two" data-sec="' + esc(b.id) + '" data-n="' + n + '">' +
+             '<div class="vnum pad">' + n + '</div>' +
+             '<div class="dcount" data-for="' + n + '"></div>' +
+             '<div class="cols">' + recBlock(RECS[0].key, RECS[0], a, n) + recBlock(RECS[1].key, RECS[1], c, n) + '</div>' +
+             '<div class="swipehint">सरकाकर दूसरा पाठ देखिए <b><i class="on"></i><i></i></b></div>' +
+             '<div class="vacts"><span class="sp"></span>' +
+               '<button class="vbtn bm" type="button" aria-label="सहेजें" aria-pressed="false">' + svg(IC.book) + '</button></div>' +
+           '</article>';
+      if(n < b.to) h += '<div class="sep">&#9672;</div>';
+    }
+  });
+  return h;
+}
+
+/* क↔ख की जगह बदलना, और मोबाइल पर सरकाकर बदलना */
+function setSwap(v){
+  SWAP = !!v;
+  document.body.dataset.swap = SWAP ? '1' : '0';
+  lsSet('granth:' + G.id + ':swap', SWAP ? '1' : '0');
+  var b = $('#swapbtn'); if(b) b.setAttribute('aria-pressed', SWAP ? 'true' : 'false');
+}
+function bindSwipe(){
+  var x0 = null, y0 = null;
+  $('#stage').addEventListener('touchstart', function(e){
+    var t = e.touches[0]; x0 = t.clientX; y0 = t.clientY;
+  }, { passive:true });
+  $('#stage').addEventListener('touchend', function(e){
+    if(x0 == null) return;
+    var t = e.changedTouches[0], dx = t.clientX - x0, dy = t.clientY - y0;
+    x0 = null;
+    if(Math.abs(dx) < 45 || Math.abs(dx) < Math.abs(dy) * 1.6) return;
+    if(document.body.dataset.path !== 'both' || innerWidth >= 768) return;
+    var card = t.target.closest && t.target.closest('.v.two');
+    if(!card) return;
+    var cur = card.dataset.solo || RECS[0].key;
+    var nxt = (cur === RECS[0].key) ? RECS[1].key : RECS[0].key;
+    card.dataset.solo = nxt;
+    var dots = $$('.swipehint i', card);
+    dots.forEach(function(d, i){ d.classList.toggle('on', i === (nxt === RECS[0].key ? 0 : 1)); });
+  }, { passive:true });
+}
+
+/* ---------- reveal / position / progress ---------- */
+var revIO = null, posIO = null;
+function observe(){
+  if(revIO) revIO.disconnect();
+  if(posIO) posIO.disconnect();
+  if(!('IntersectionObserver' in window)){ CARDS.forEach(function(c){ c.classList.add('seen'); }); return; }
+  revIO = new IntersectionObserver(function(es){
+    es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('seen'); revIO.unobserve(e.target); } });
+  }, { rootMargin:'0px 0px 40px 0px', threshold:0 });
+  var posT;
+  posIO = new IntersectionObserver(function(es){
+    es.forEach(function(e){ if(e.isIntersecting) CUR = { sectionId: e.target.dataset.sec, n: +e.target.dataset.n }; });
+    clearTimeout(posT);
+    posT = setTimeout(function(){ if(CUR && G) jSet(lrKey(), CUR); }, 600);
+  }, { rootMargin:'-45% 0px -45% 0px', threshold:0 });
+  CARDS.forEach(function(c){ revIO.observe(c); posIO.observe(c); });
+}
+var pbar = $('#pbar'), fab = $('#fab'), ticking = false;
+window.addEventListener('scroll', function(){
+  if(ticking) return; ticking = true;
+  requestAnimationFrame(function(){
+    var h = document.documentElement.scrollHeight - window.innerHeight;
+    pbar.style.width = Math.max(0, Math.min(100, h > 0 ? (scrollY / h) * 100 : 0)) + '%';
+    ticking = false;
+  });
+}, { passive:true });
+
+function cardOf(sectionId, n){
+  return CARDS.filter(function(c){
+    return String(c.dataset.n) === String(n) && (!sectionId || c.dataset.sec === sectionId);
+  })[0];
+}
+function goTo(sectionId, n, flash){
+  var c = cardOf(sectionId, n);
+  if(!c) return;
+  c.classList.add('seen');
+  c.scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block:'center' });
+  if(flash){ c.classList.remove('flash'); void c.offsetWidth; c.classList.add('flash');
+             setTimeout(function(){ c.classList.remove('flash'); }, 2400); }
+}
+function restoreResume(deep){
+  var r = $('#resume');
+  if(deep && deep.n){ setTimeout(function(){ goTo(deep.sectionId, deep.n, true); }, 250); return; }
+  var last = jGet(lrKey(), null);
+  if(!last || !last.n || !(+last.n >= 3)){ r.classList.remove('on'); return; }
+  $('#resume-n').textContent = last.n;
+  r.classList.add('on');
+  $('#resume-go').addEventListener('click', function(){ goTo(last.sectionId, last.n, true); r.classList.remove('on'); });
+}
+
+/* ---------- बुकमार्क ---------- */
+function isBM(sec, n){ return BM.some(function(b){ return String(b.n) === String(n) && (b.sectionId == null || b.sectionId === sec); }); }
+function paintBM(){
+  CARDS.forEach(function(c){
+    var on = isBM(c.dataset.sec, c.dataset.n), b = $('.vbtn.bm', c);
+    b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  var bd = $('#bm-badge');
+  if(BM.length){ bd.textContent = BM.length; bd.hidden = false; } else { bd.hidden = true; }
+}
+function toggleBM(sec, n){
+  if(isBM(sec, n)){
+    BM = BM.filter(function(b){ return !(String(b.n) === String(n) && (b.sectionId == null || b.sectionId === sec)); });
+    toast(unit() + ' ' + n + ' हटाया');
+  } else {
+    BM.push({ sectionId: sec, n: n, ts: Date.now() });
+    bell(); toast(unit() + ' ' + n + ' सहेजा');
+  }
+  jSet(bmKey(), BM);
+  paintBM();
+  if(sheetOpen && curTab === 'bm') renderSheet('bm');
+}
+
+/* ---------- पाठ क/ख + अंतर ---------- */
+function normTok(t){ return t.replace(/[।॥!?,;:'"‘’“”()\-–—\s]/g, ''); }
+function lcsSame(A, B){
+  var n = A.length, m = B.length, i, j, dp = [];
+  for(i = 0; i <= n; i++) dp.push(new Uint16Array(m + 1));
+  for(i = n - 1; i >= 0; i--) for(j = m - 1; j >= 0; j--)
+    dp[i][j] = (normTok(A[i]) === normTok(B[j])) ? dp[i+1][j+1] + 1 : Math.max(dp[i+1][j], dp[i][j+1]);
+  var fa = [], fb = [];
+  for(i = 0; i < n; i++) fa.push(false);
+  for(j = 0; j < m; j++) fb.push(false);
+  i = 0; j = 0;
+  while(i < n && j < m){
+    if(normTok(A[i]) === normTok(B[j])){ fa[i] = fb[j] = true; i++; j++; }
+    else if(dp[i+1][j] >= dp[i][j+1]) i++; else j++;
+  }
+  return [fa, fb];
+}
+function flat(lines){
+  var t = [], mp = [];
+  lines.forEach(function(l, li){ l.split(/\s+/).filter(Boolean).forEach(function(w){ t.push(w); mp.push(li); }); });
+  return { t:t, mp:mp };
+}
+function applyDiff(){
+  document.body.dataset.diff = DIFF ? '1' : '0';
+  CARDS.forEach(function(c){
+    var dc = $('.dcount', c);
+    if(DIFF && PATH === 'both' && c.linesB){
+      var A = flat(c.linesA), B = flat(c.linesB), f = lcsSame(A.t, B.t);
+      var put = function(spans, fl, flags){
+        var by = {};
+        fl.t.forEach(function(w, k){ (by[fl.mp[k]] = by[fl.mp[k]] || []).push(flags[k] ? esc(w) : '<i class="dw">' + esc(w) + '</i>'); });
+        spans.forEach(function(sp, li){ if(by[li]) sp.innerHTML = by[li].join(' '); });
+      };
+      put(c.spansA, A, f[0]); put(c.spansB, B, f[1]);
+      c.dataset.painted = '1';
+      if(dc){
+        var n = f[0].filter(function(x){ return !x; }).length + f[1].filter(function(x){ return !x; }).length;
+        dc.textContent = n ? ('इस ' + unit() + ' में ' + n + ' शब्द-भेद') : ('इस ' + unit() + ' में कोई शब्द-भेद नहीं');
+      }
+    } else if(c.dataset.painted){
+      c.spansA.forEach(function(sp, i){ sp.textContent = c.linesA[i]; });
+      if(c.spansB) c.spansB.forEach(function(sp, i){ sp.textContent = c.linesB[i]; });
+      delete c.dataset.painted;
+    }
+  });
+}
+function setPath(v, byUser){
+  PATH = v;
+  document.body.dataset.path = v;
+  if(G) lsSet('granth:' + G.id + ':path', v);
+  $$('.pseg button').forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.path === v ? 'true' : 'false'); });
+  var both = (v === 'both');
+  $('#difftog').style.display = both ? '' : 'none';
+  var sb = $('#swapbtn'); if(sb && RECS) sb.style.display = both ? '' : 'none';
+  applyDiff();
+  if(byUser){
+    bell();
+    var name = both ? 'दोनों पाठ साथ-साथ' :
+      (RECS ? (RECS.filter(function(r){ return r.key === v; })[0] || {}).full : (v === 'b' ? 'पाठ ख' : 'पाठ क'));
+    toast(name, 2600);
+  }
+}
+$$('.pseg button').forEach(function(b){ b.addEventListener('click', function(){ setPath(b.dataset.path, true); }); });
+$('#swapbtn').addEventListener('click', function(){ setSwap(!SWAP); bell(); toast(SWAP ? 'पाठ ख पहले' : 'पाठ क पहले', 2000); });
+$('#difftog').addEventListener('click', function(){
+  DIFF = !DIFF;
+  this.setAttribute('aria-pressed', DIFF ? 'true' : 'false');
+  applyDiff();
+  toast(DIFF ? 'जो शब्द दोनों प्रतियों में अलग हैं, वे रेखांकित हैं' : 'अंतर बंद', 2600);
+});
+
+/* =========================================================
+   श्रवण — केवल मूल पद, अर्थ कभी नहीं
+   ========================================================= */
+var RATES = [0.8, 1, 1.2];
+var rateIx = Math.max(0, RATES.indexOf(SET.ttsRate)); if(rateIx < 0) rateIx = 1;
+function wantsB(){
+  if(RECS) return (Sp.rec === RECS[1].key) || (PATH === RECS[1].key);
+  return PATH === 'b';
+}
+function activeLines(c){ return (wantsB() && c.linesB) ? c.linesB : c.linesA; }
+function activeSpans(c){ return (wantsB() && c.spansB) ? c.spansB : c.spansA; }
+
+var Sp = {
+  ok: ('speechSynthesis' in window) && ('SpeechSynthesisUtterance' in window), rec: null,
+  voice: null, warned: false, idx: -1, line: 0, gen: 0, playing: false, paused: false, cont: false,
+  pickVoice: function(){
+    if(!this.ok) return;
+    var v = speechSynthesis.getVoices() || []; if(!v.length) return;
+    this.voice = v.filter(function(x){ return /^hi\b|^hi[-_]/i.test(x.lang); })[0] ||
+                 v.filter(function(x){ return /^(mr|ne|sa|bn|gu)[-_]/i.test(x.lang); })[0] ||
+                 v.filter(function(x){ return /^en[-_]IN/i.test(x.lang); })[0] || null;
+  },
+  start: function(i, cont){
+    if(typeof pauseGaan === 'function') pauseGaan();
+    if(!this.ok){ toast('इस ब्राउज़र में आवाज़ की सुविधा नहीं है', 3200); return false; }
+    this.stop(true); this.gen++;
+    this.idx = i; this.line = 0; this.cont = !!cont; this.playing = true; this.paused = false;
+    if(!this.voice) this.pickVoice();
+    if(!this.voice && !this.warned){ this.warned = true; toast('हिंदी आवाज़ नहीं मिली — फ़ोन की सेटिंग में हिंदी वाणी जोड़ें', 4200); }
+    showBar(true); this.openCard(); this.say(); return true;
+  },
+  openCard: function(){
+    var c = CARDS[this.idx]; if(!c) return;
+    CARDS.forEach(function(x){ x.classList.remove('reading'); });
+    c.classList.add('seen'); c.classList.add('reading');
+    var nb = $('.vnum', c);
+    $('#ab-n').textContent = nb ? nb.textContent : c.dataset.n;
+    var ic = $('.vbtn.play .ico', c); if(ic) ic.innerHTML = svg(IC.pause);
+    var r = c.getBoundingClientRect();
+    if(r.top < 90 || r.bottom > innerHeight - 80 || this.cont)
+      c.scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block:'center' });
+  },
+  say: function(){
+    var self = this, g = this.gen, c = CARDS[this.idx];
+    if(!c || !this.playing) return;
+    var LN = activeLines(c), SPN = activeSpans(c);
+    if(this.line >= LN.length){ this.cardDone(); return; }
+    var u = new SpeechSynthesisUtterance(LN[this.line]);
+    if(this.voice) u.voice = this.voice;
+    u.lang = this.voice ? this.voice.lang : 'hi-IN';
+    u.rate = RATES[rateIx]; u.pitch = 1; u.volume = 1;
+    var span = SPN[this.line];
+    u.onstart = function(){ if(g === self.gen && span) span.classList.add('on'); };
+    u.onend = function(){
+      if(span) span.classList.remove('on');
+      if(g !== self.gen || !self.playing) return;
+      self.line++;
+      setTimeout(function(){ if(g === self.gen && self.playing) self.say(); }, 240);
+    };
+    u.onerror = function(e){
+      if(span) span.classList.remove('on');
+      if(g !== self.gen) return;
+      if(e && (e.error === 'interrupted' || e.error === 'canceled')) return;
+      self.stop(); toast('आवाज़ शुरू नहीं हो पाई — फिर से बटन दबाएँ', 3000);
+    };
+    try{ speechSynthesis.speak(u); }catch(err){ this.stop(); toast('आवाज़ शुरू नहीं हो पाई', 2600); }
+  },
+  cardDone: function(){
+    if(this.cont && this.idx + 1 < CARDS.length){
+      this.gen++; this.idx++; this.line = 0; this.openCard();
+      var self = this, g = this.gen;
+      setTimeout(function(){ if(g === self.gen && self.playing) self.say(); }, 420);
+    } else { var was = this.cont; this.stop(); if(was) toast('॥ पाठ पूर्ण हुआ ॥', 3000); }
+  },
+  pause: function(){ if(!this.playing) return; try{ speechSynthesis.pause(); }catch(e){} this.paused = true; $('#ab-play').innerHTML = svg(IC.play, 'f'); },
+  resume: function(){ if(!this.playing) return; try{ speechSynthesis.resume(); }catch(e){} this.paused = false; $('#ab-play').innerHTML = svg(IC.pause); },
+  jump: function(d){ var i = this.idx + d; if(i < 0 || i >= CARDS.length) return; this.start(i, this.cont); },
+  restartLine: function(){
+    if(!this.playing) return;
+    this.gen++; var g = this.gen, self = this;
+    try{ speechSynthesis.cancel(); }catch(e){}
+    setTimeout(function(){ if(g === self.gen && self.playing) self.say(); }, 140);
+  },
+  stop: function(quiet){
+    this.gen++; this.playing = false; this.paused = false;
+    try{ speechSynthesis.cancel(); }catch(e){}
+    CARDS.forEach(function(c){
+      c.classList.remove('reading');
+      var ic = $('.vbtn.play .ico', c); if(ic) ic.innerHTML = svg(IC.play, 'f');
+      $$('.vtext span.on', c).forEach(function(s){ s.classList.remove('on'); });
+    });
+    $('#ab-play').innerHTML = svg(IC.pause);
+    if(!quiet) showBar(false);
+  }
+};
+if(Sp.ok){
+  Sp.pickVoice();
+  speechSynthesis.onvoiceschanged = function(){ Sp.pickVoice(); };
+  if(!/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){
+    setInterval(function(){
+      if(Sp.playing && !Sp.paused && speechSynthesis.speaking){
+        try{ speechSynthesis.pause(); speechSynthesis.resume(); }catch(e){}
+      }
+    }, 9000);
+  }
+  addEventListener('beforeunload', function(){ try{ speechSynthesis.cancel(); }catch(e){} });
+  document.addEventListener('visibilitychange', function(){ if(document.hidden && Sp.playing && !Sp.paused) Sp.pause(); });
+}
+var abar = $('#audiobar');
+function showBar(on){ abar.classList.toggle('on', !!on); fab.classList.toggle('hide', !!on); }
+$('#ab-play').addEventListener('click', function(){
+  bell();
+  if(!Sp.playing){ Sp.start(Math.max(0, CARDS.indexOf(cardOf(CUR && CUR.sectionId, CUR ? CUR.n : 1)) ), document.body.dataset.mode === 'shravan'); return; }
+  if(Sp.paused) Sp.resume(); else Sp.pause();
+});
+$('#ab-prev').addEventListener('click', function(){ Sp.jump(-1); });
+$('#ab-next').addEventListener('click', function(){ Sp.jump(1); });
+$('#ab-stop').addEventListener('click', function(){ Sp.stop(); });
+$('#ab-rate').addEventListener('click', function(){
+  rateIx = (rateIx + 1) % RATES.length;
+  SET.ttsRate = RATES[rateIx]; saveSet();
+  this.textContent = RATES[rateIx] + '×';
+  var s = $('#set-rate'); if(s) renderSheet('set');
+  Sp.restartLine();
+});
+$('#ab-rate').textContent = RATES[rateIx] + '×';
+
+/* ---------- कार्ड बटन ---------- */
+function ripple(btn, e){
+  if(REDUCED) return;
+  var r = btn.getBoundingClientRect(), s = document.createElement('span');
+  s.className = 'ripple';
+  s.style.left = ((e && e.clientX ? e.clientX : r.left + r.width/2) - r.left) + 'px';
+  s.style.top  = ((e && e.clientY ? e.clientY : r.top + r.height/2) - r.top) + 'px';
+  s.style.width = s.style.height = '14px';
+  btn.appendChild(s); setTimeout(function(){ s.remove(); }, 620);
+}
+$('#stage').addEventListener('click', function(e){
+  var t = e.target;
+  var play = t.closest ? t.closest('.vbtn.play') : null;
+  var bm = t.closest ? t.closest('.vbtn.bm') : null;
+  if(play){
+    var c = play.closest('.v'), i = CARDS.indexOf(c);
+    ripple(play, e);
+    if(play.dataset.rec) Sp.rec = play.dataset.rec;
+    if(Sp.playing && Sp.idx === i){ if(Sp.paused) Sp.resume(); else Sp.pause(); }
+    else { bell(); Sp.start(i, document.body.dataset.mode === 'shravan'); }
+    return;
+  }
+  var cp = t.closest ? t.closest('.vbtn.copy') : null;
+  if(cp){ ripple(cp, e); copyVerse(cp.closest('.v'), cp.dataset.rec); return; }
+  if(bm){ ripple(bm, e); var c2 = bm.closest('.v'); toggleBM(c2.dataset.sec, c2.dataset.n); }
+});
+
+
+function verseTextOf(card, key){
+  var id = card.dataset.n;
+  if(!RECS){ return unit() + ' ' + id + '\n' + card.linesA.join('\n'); }
+  var out = [];
+  RECS.forEach(function(r){
+    if(key && r.key !== key) return;
+    var v = recText(r.key)[id];
+    if(!v) return;
+    out.push(r.full + (r.desc ? ' — ' + r.desc : '') + '\n' + v.mool.join('\n') + (v.arth ? '\n\nअर्थ — ' + v.arth : ''));
+  });
+  return '॥ ' + G.title + ' ॥ ' + unit() + ' ' + id + '\n\n' + out.join('\n\n— — —\n\n');
+}
+function copyVerse(card, key){
+  var txt = verseTextOf(card, key);
+  var done = function(){ bell(); toast('प्रतिलिपि हो गई', 2000); };
+  if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, function(){ fallbackCopy(txt, done); });
+  else fallbackCopy(txt, done);
+}
+function fallbackCopy(txt, done){
+  var ta = document.createElement('textarea');
+  ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); done(); }catch(e){ toast('प्रतिलिपि नहीं हो पाई', 2200); }
+  ta.remove();
+}
+
+/* ---------- मोड ---------- */
+var segBtns = $$('.seg button');
+function setMode(m, byUser){
+  document.body.dataset.mode = m;
+  SET.mode = m; saveSet();
+  segBtns.forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.mode === m ? 'true' : 'false'); });
+  if(m === 'shravan'){
+    if(byUser){
+      bell();
+      if(Sp.ok){ Sp.start(Math.max(0, CARDS.indexOf(cardOf(CUR && CUR.sectionId, CUR ? CUR.n : 1))), true); toast('श्रवण — ' + unit() + ' क्रम से सुनाए जाएँगे', 2600); }
+      else toast('इस ब्राउज़र में आवाज़ की सुविधा नहीं है', 3200);
+    }
+  } else if(Sp.playing && Sp.cont) Sp.stop();
+}
+segBtns.forEach(function(b){ b.addEventListener('click', function(){ setMode(b.dataset.mode, true); }); });
+
+/* ---------- आज का पद ---------- */
+fab.addEventListener('click', function(e){
+  if(!CARDS.length) return;
+  var d = new Date(), seed = d.getFullYear()*10000 + (d.getMonth()+1)*100 + d.getDate();
+  var i = (seed * 2654435761) % CARDS.length;
+  var c = CARDS[i];
+  ripple(fab, e); bell();
+  goTo(c.dataset.sec, c.dataset.n, true);
+  toast('आज का ' + unit() + ' — ' + c.dataset.n, 2800);
+  setTimeout(function(){ if(Sp.ok) Sp.start(i, false); }, 700);
+});
+
+
+/* =========================================================
+   गायन — रिकॉर्ड किया हुआ पाठ, छंद के साथ चलता हुआ
+   ========================================================= */
+var GA = null, AU = null, gaRates = [0.85, 1, 1.15], gaRi = 1, lastMark = -1;
+function fmt(t){
+  t = Math.max(0, Math.floor(t || 0));
+  return Math.floor(t/60) + ':' + String(t%60).padStart(2,'0');
+}
+function fmtx(t){                      /* दशमलव-सहित — समय-पट के लिए */
+  t = Math.max(0, Math.round((t || 0) * 10) / 10);
+  var m = Math.floor(t / 60), s = t - m * 60;
+  return m + ':' + (s < 10 ? '0' : '') + s.toFixed(1);
+}
+function markKey(m){ return (m.sec || '') + ':' + m.n; }
+function setupGaan(){
+  GA = (window.GRANTH_AUDIO && window.GRANTH_AUDIO[G.id]) || null;
+  stopGaan(true);
+  $('#gn-play').innerHTML = svg(IC.play, 'f');
+  $('#gn-follow').innerHTML = svg(IC.star, 'f');
+  $('#gn-follow').setAttribute('aria-pressed', SET.gaanFollow ? 'true' : 'false');
+  $('#gn-close').innerHTML = svg(IC.stop);
+  $('#gn-mark').innerHTML = svg(IC.star, 'f');
+  $('#gn-prev').innerHTML = svg(IC.prev, 'f');
+  $('#gn-next').innerHTML = svg(IC.next, 'f');
+  var t = $('#tool-gaan');
+  if(t) t.hidden = !GA;
+  if(!GA) return;
+  $('#gn-title').textContent = GA.title || 'गायन';
+
+  $('#gn-dur').textContent = fmt(GA.duration);
+  loadUM();
+  refreshMarkers();
+  /* जिन छंदों का समय मालूम है, उन पर गायन का बटन */
+  var byKey = {};
+  (GA.markers || []).forEach(function(m){ if(byKey[markKey(m)] == null) byKey[markKey(m)] = m.t; });
+  loadUM();
+  CARDS.forEach(function(c){
+    var acts = $$('.vacts', c).pop();
+    if(acts){
+      var sm = document.createElement('button');
+      sm.className = 'vbtn setmark';
+      sm.type = 'button';
+      sm.innerHTML = svg(IC.star, 'f') + '<span class="txt">निशान</span>';
+      sm.addEventListener('click', function(e){ ripple(sm, e); setMark(c); });
+      acts.insertBefore(sm, acts.firstChild);
+    }
+    var t2 = byKey[c.dataset.sec + ':' + c.dataset.n];
+    if(t2 == null) return;
+    c.gaanAt = t2;
+    if(!acts) return;
+    var b = document.createElement('button');
+    b.className = 'vbtn gaan';
+    b.type = 'button';
+    b.setAttribute('aria-label', 'यहाँ से गायन सुनें');
+    b.innerHTML = svg(IC.play, 'f') + '<span class="txt">गायन</span>';
+    b.addEventListener('click', function(e){ ripple(b, e); playGaan(t2); });
+    acts.insertBefore(b, acts.firstChild);
+  });
+}
+function ensureAudio(){
+  if(AU) return AU;
+  AU = new Audio();
+  AU.preload = 'none';
+  AU.src = GA.src;
+  AU.addEventListener('timeupdate', onGaanTime);
+  AU.addEventListener('ended', function(){ stopGaan(); toast('॥ गायन पूर्ण ॥', 2600); });
+  AU.addEventListener('error', function(){ stopGaan(); toast('गायन नहीं चल पाया — इंटरनेट जाँच लीजिए', 3400); });
+  AU.addEventListener('loadedmetadata', function(){ if(AU.duration) $('#gn-dur').textContent = fmt(AU.duration); });
+  return AU;
+}
+function playGaan(at){
+  if(!GA) return;
+  Sp.stop();                       /* श्रवण और गायन एक साथ नहीं */
+  var a = ensureAudio();
+  $('#gaanbar').classList.add('on');
+  document.body.dataset.mark = '1';
+  fab.classList.add('hide');
+  if(at != null) a.currentTime = at;
+  a.playbackRate = gaRates[gaRi];
+  var pr = a.play();
+  if(pr && pr.catch) pr.catch(function(){ toast('गायन शुरू नहीं हो पाया — फिर से दबाइए', 3000); });
+  $('#gn-play').innerHTML = svg(IC.pause);
+}
+function pauseGaan(){ if(AU){ AU.pause(); $('#gn-play').innerHTML = svg(IC.play, 'f'); } }
+function stopGaan(quiet){
+  if(AU){ AU.pause(); }
+  CARDS.forEach(function(c){ c.classList.remove('singing'); });
+  lastMark = -1;
+  $('#gn-play').innerHTML = svg(IC.play, 'f');
+  if(!quiet){ $('#gaanbar').classList.remove('on'); delete document.body.dataset.mark; fab.classList.remove('hide'); }
+}
+function onGaanTime(){
+  if(!AU || !GA) return;
+  var t = AU.currentTime, d = AU.duration || GA.duration || 1;
+  $('#gn-time').textContent = fmt(t);
+  var sk = $('#gn-seek');
+  if(!sk.dataset.drag) sk.value = Math.round(t / d * 1000);
+  /* चुने हुए हिस्से का बजना — अंत आते ही रुक जाए या फिर से शुरू */
+  if(SEGPLAY){
+    if(t >= SEGPLAY.out - 0.03){
+      if(SEGPLAY.loop) AU.currentTime = SEGPLAY.from;
+      else { AU.pause(); SEGPLAY = null; stEl('play').innerHTML = svg(IC.play, 'f'); stHint('यह हिस्सा पूरा सुन लिया — ठीक न लगे तो सेकंड आगे-पीछे कर लीजिए।'); }
+    }
+  }
+  if(STOPEN){
+    $('#st-now').textContent = fmtx(t);
+    var sk2 = $('#st-seek');
+    if(!sk2.dataset.drag) sk2.value = Math.round(t / d * 1000);
+    stripCursor(t);
+    return;                      /* समय-पट खुला हो तो पन्ना हिले नहीं */
+  }
+  if(!SET.gaanFollow) return;    /* समय सही होने तक कूदना बंद */
+  var ms = GA.live || GA.markers || [], i = -1, k;
+  if(GA.hasSegs){
+    /* नापे हुए खंड ही सच हैं — "इस सेकंड से इस सेकंड तक" के भीतर ही उजाला */
+    for(k = 0; k < ms.length; k++){
+      var m0 = ms[k];
+      if(m0.out == null) continue;
+      if(t >= m0.t - 0.15 && t <= m0.out + 0.15){ i = k; break; }
+      if(m0.t > t + 0.15) break;
+    }
+  } else {
+    for(k = 0; k < ms.length; k++){ if(ms[k].t <= t + 0.35) i = k; else break; }
+  }
+  if(i === lastMark) return;
+  lastMark = i;
+  CARDS.forEach(function(c){ c.classList.remove('singing'); });
+  if(i < 0) return;
+  var m = ms[i], card = cardOf(m.sec, m.n);
+  if(!card) return;
+  card.classList.add('seen');
+  card.classList.add('singing');
+  $('#gn-sub').textContent = unit() + ' ' + m.n + ' — ' + (G.sections ?
+      (G.sections.filter(function(x){ return x.id === m.sec; })[0] || {}).title || '' : '');
+  if(SET.gaanFollow){
+    var r = card.getBoundingClientRect();
+    if(r.top < 80 || r.bottom > innerHeight - 150)
+      card.scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block: 'center' });
+  }
+}
+$('#gn-play').addEventListener('click', function(){
+  if(!GA) return;
+  if(AU && !AU.paused) pauseGaan(); else playGaan(null);
+});
+$('#gn-close').addEventListener('click', function(){ stopGaan(); });
+$('#gn-follow').addEventListener('click', function(){
+  SET.gaanFollow = SET.gaanFollow ? 0 : 1;
+  saveSet();
+  this.setAttribute('aria-pressed', SET.gaanFollow ? 'true' : 'false');
+  if(!SET.gaanFollow){ CARDS.forEach(function(c){ c.classList.remove('singing'); }); lastMark = -1; }
+  toast(SET.gaanFollow ? 'गाया जा रहा छंद साथ-साथ दिखेगा' : 'कूदना बंद — समय सही होने तक यही ठीक है', 3000);
+});
+$('#gn-rate').addEventListener('click', function(){
+  gaRi = (gaRi + 1) % gaRates.length;
+  this.textContent = gaRates[gaRi] + '×';
+  if(AU) AU.playbackRate = gaRates[gaRi];
+});
+(function(){
+  var sk = $('#gn-seek');
+  sk.addEventListener('input', function(){ sk.dataset.drag = '1'; });
+  sk.addEventListener('change', function(){
+    delete sk.dataset.drag;
+    if(!AU) return;
+    var d = AU.duration || GA.duration || 1;
+    AU.currentTime = (+sk.value / 1000) * d;
+  });
+})();
+
+
+
+/* छंद-दर-छंद आगे-पीछे — ऑडियो में नापे गए ठहरावों से */
+function stanzaList(){ return (GA && GA.stanzas) || []; }
+function jumpStanza(dir){
+  if(!GA) return;
+  var L = stanzaList();
+  if(!L.length){ toast('इस गायन में छंद-सीमाएँ नहीं नापी गईं', 2600); return; }
+  var a = ensureAudio(), t = a.currentTime, to = null;
+  if(dir > 0){ for(var i = 0; i < L.length; i++) if(L[i] > t + 0.6){ to = L[i]; break; } }
+  else { for(var j = L.length - 1; j >= 0; j--) if(L[j] < t - 1.2){ to = L[j]; break; } if(to == null) to = 0; }
+  if(to == null){ toast('यह आख़िरी छंद है', 2000); return; }
+  playGaan(to);
+}
+$('#gn-prev').addEventListener('click', function(){ jumpStanza(-1); });
+$('#gn-next').addEventListener('click', function(){ jumpStanza(1); });
+
+/* ---------- अपने हाथ से निशान लगाना ---------- */
+var UM = {}, MARKMODE = false;
+function umKey(){ return 'granth:' + G.id + ':usermarks'; }
+function loadUM(){
+  var raw = jGet(umKey(), {}), o = {}, changed = false;
+  Object.keys(raw).forEach(function(k){
+    var v = raw[k];
+    if(typeof v === 'number'){ o[k] = { in: v, out: null }; changed = true; }        /* पुराना ढंग — सिर्फ़ शुरू */
+    else if(v && typeof v === 'object') o[k] = { in: (v.in != null ? +v.in : null), out: (v.out != null ? +v.out : null) };
+  });
+  UM = o;
+  if(changed) jSet(umKey(), UM);
+}
+function segKeyOf(sec, n){ return sec + ':' + n; }
+function segOf(sec, n){ return UM[segKeyOf(sec, n)] || null; }
+function segSet(sec, n, io, t){
+  var k = segKeyOf(sec, n), s = UM[k] || (UM[k] = { in: null, out: null });
+  s[io] = (t == null) ? null : Math.max(0, Math.round(t * 10) / 10);
+  if(s.in == null && s.out == null) delete UM[k];
+  jSet(umKey(), UM);
+  return UM[k] || null;
+}
+function allMarkers(){
+  var by = {};
+  /* डेटा-फ़ाइल के तैयार खंड (शुरू + अंत) — इन्हें पहली वरीयता */
+  (GA && GA.segments || []).forEach(function(m){
+    by[markKey(m)] = { t: +m.in, out: (m.out != null ? +m.out : null), sec: m.sec, n: m.n };
+  });
+  (GA && GA.markers || []).forEach(function(m){
+    if(by[markKey(m)] == null) by[markKey(m)] = { t: m.t, out: null, sec: m.sec, n: m.n };
+  });
+  /* आपके अपने लगाए — सबसे ऊपर */
+  Object.keys(UM).forEach(function(k){
+    var p = k.split(':'), s = UM[k];
+    if(s.in == null){ if(by[k]) by[k].out = s.out; return; }   /* सिर्फ़ अंत लगा हो */
+    by[k] = { t: s.in, out: s.out, sec: p[0], n: isNaN(+p[1]) ? p[1] : +p[1], own: true };
+  });
+  return Object.keys(by).map(function(k){ return by[k]; }).sort(function(a,b){ return a.t - b.t; });
+}
+function segCount(){
+  var full = 0, part = 0;
+  Object.keys(UM).forEach(function(k){ if(UM[k].in != null && UM[k].out != null) full++; else part++; });
+  return { full: full, part: part, all: full + part };
+}
+function refreshMarkers(){
+  if(!GA) return;
+  GA.live = allMarkers();
+  GA.hasSegs = GA.live.some(function(m){ return m.out != null; });
+  var d = (AU && AU.duration) || GA.duration || 1, mk = '';
+  stanzaList().forEach(function(t){ mk += '<i class="st" style="left:' + (t / d * 100).toFixed(2) + '%"></i>'; });
+  GA.live.forEach(function(m){
+    mk += '<i class="' + (m.own ? 'um' : '') + '" style="left:' + (m.t / d * 100).toFixed(2) + '%"></i>';
+  });
+  $('#gn-marks').innerHTML = mk;
+  var own = Object.keys(UM).length;
+  $('#gn-sub').textContent = (GA.singer ? 'स्वर — ' + GA.singer : '') +
+    ' · ' + GA.live.length + ' निशान' + (own ? ' (' + own + ' आपके)' : '');
+  lastMark = -1;
+  CARDS.forEach(function(c){
+    var b = $('.vbtn.setmark', c);
+    if(b) b.classList.toggle('done', UM[c.dataset.sec + ':' + c.dataset.n] != null);
+  });
+}
+function setMark(card){
+  if(!AU){ toast('पहले गायन चलाइए', 2400); return; }
+  var t = AU.currentTime;
+  segSet(card.dataset.sec, card.dataset.n, 'in', t);
+  refreshMarkers();
+  bell();
+  toast(unit() + ' ' + card.dataset.n + ' का शुरू → ' + fmtx(t) + ' पर लगा दिया', 2400);
+}
+/* डेटा-फ़ाइल में चिपकाने लायक़ सूची — हर छंद का शुरू और अंत */
+function marksText(){
+  return allMarkers().map(function(m){
+    return '    { sec: "' + m.sec + '", n: ' + m.n +
+           ', in: ' + (+m.t).toFixed(1) +
+           ', out: ' + (m.out != null ? (+m.out).toFixed(1) : 'null') + ' },' +
+           (m.own ? '   /* आपका लगाया */' : '');
+  }).join('\n');
+}
+$('#gn-mark').addEventListener('click', function(){ bell(); studioOpen(); });
+
+
+/* =========================================================
+   समय-पट (v2) — हर छंद का "इस सेकंड से इस सेकंड तक"
+   शुरू और अंत, दोनों अपने हाथ में; ±0.1 / ±0.5 से आगे-पीछे;
+   वहीं का वहीं सुनकर जाँच, दोहराव, और अगले से जोड़ना।
+   ========================================================= */
+var SI = 0, STOPEN = false, SEGPLAY = null, ST_LOOP = false, ST_PAD = 0.6;
+function stEl(id){ return $('#st-' + id); }
+function stHint(msg){ var h = stEl('hint'); if(h) h.textContent = msg; }
+function curCard(){ return CARDS[SI] || null; }
+function curSeg(){ var c = curCard(); return c ? segOf(c.dataset.sec, c.dataset.n) : null; }
+function segAt(i){ var c = CARDS[i]; return c ? segOf(c.dataset.sec, c.dataset.n) : null; }
+function audioLen(){ return (AU && AU.duration) || (GA && GA.duration) || 1; }
+
+function studioOpen(){
+  if(!GA){ toast('इस ग्रंथ का गायन नहीं है', 2400); return; }
+  STOPEN = true; SEGPLAY = null;
+  $('#studio').classList.add('on');
+  $('#gaanbar').classList.remove('on');
+  fab.classList.add('hide');
+  ensureAudio();
+  if(AU) AU.pause();               /* समय-पट हमेशा रुकी हुई हालत से शुरू हो */
+  stEl('close').innerHTML = svg(IC.close);
+  stEl('play').innerHTML = svg(IC.play, 'f');
+  stEl('prevst').innerHTML = svg(IC.prev, 'f');
+  stEl('nextst').innerHTML = svg(IC.next, 'f');
+  stEl('dur').textContent = '/ ' + fmt(audioLen());
+  stEl('sel').innerHTML = CARDS.map(function(c, i){
+    return '<option value="' + i + '">' + unit() + ' ' + c.dataset.n + ' — ' + secTitle(c.dataset.sec) + optTag(i) + '</option>';
+  }).join('');
+  var d = audioLen(), mk = '';
+  (GA.stanzas || []).forEach(function(x){ mk += '<i class="st" style="left:' + (x / d * 100).toFixed(2) + '%"></i>'; });
+  stEl('marks').innerHTML = mk;
+  var saved = parseInt(lsGet('granth:' + G.id + ':stpos', '0'), 10);
+  SI = (saved >= 0 && saved < CARDS.length) ? saved : 0;
+  studioPaint();
+}
+function studioClose(){
+  STOPEN = false; SEGPLAY = null;
+  $('#studio').classList.remove('on');
+  if(AU) AU.pause();
+  refreshMarkers();
+  /* जिस गायन-पट्टी से आए थे, वहीं लौटा दें */
+  if(GA){ $('#gaanbar').classList.add('on'); document.body.dataset.mark = '1'; fab.classList.add('hide'); $('#gn-play').innerHTML = svg(IC.play, 'f'); }
+  else fab.classList.remove('hide');
+}
+function secTitle(id){
+  if(G.sections){
+    var s2 = G.sections.filter(function(x){ return x.id === id; })[0];
+    if(s2) return s2.title;
+  }
+  if(G.bhaag){
+    var b = G.bhaag.filter(function(x){ return x.id === id; })[0];
+    if(b) return b.title;
+  }
+  return id;
+}
+function optTag(i){
+  var s = segAt(i);
+  if(!s) return '';
+  if(s.in != null && s.out != null) return '  ✓';
+  return '  ·';
+}
+function retagOpt(i){
+  var o = stEl('sel').options[i];
+  if(o) o.textContent = o.textContent.replace(/\s+[✓·]$/, '') + optTag(i);
+}
+
+/* ---------- मुख्य चित्रण ---------- */
+function studioPaint(){
+  var c = curCard();
+  if(!c) return;
+  lsSet('granth:' + G.id + ':stpos', SI);
+  stEl('n').textContent = c.dataset.n;
+  stEl('sec').textContent = secTitle(c.dataset.sec);
+  stEl('lines').innerHTML = activeLines(c).map(function(l){ return '<span>' + esc(l) + '</span>'; }).join('');
+  stEl('sel').value = SI;
+  var cnt = segCount();
+  stEl('prog').textContent = cnt.full + ' / ' + CARDS.length + ' पूरे' + (cnt.part ? ' (' + cnt.part + ' अधूरे)' : '');
+  paintIO();
+  stripPaint();
+}
+function paintIO(){
+  var s = curSeg(), c = curCard();
+  var iEl = stEl('in'), oEl = stEl('out');
+  if(s && s.in != null){ iEl.textContent = fmtx(s.in); iEl.classList.remove('empty'); }
+  else { iEl.textContent = '—'; iEl.classList.add('empty'); }
+  if(s && s.out != null){ oEl.textContent = fmtx(s.out); oEl.classList.remove('empty'); }
+  else { oEl.textContent = '—'; oEl.classList.add('empty'); }
+
+  var len = stEl('len');
+  if(s && s.in != null && s.out != null){
+    var d = s.out - s.in;
+    len.innerHTML = 'अवधि — <b>' + d.toFixed(1) + ' सेकंड</b>';
+  } else if(s && s.in != null){
+    /* अनुमान — अगले का शुरू */
+    var nx = nextIn(SI);
+    len.innerHTML = nx != null
+      ? 'अवधि — <b>—</b> <span style="opacity:.7">(अगले का शुरू ' + fmtx(nx) + ' पर है)</span>'
+      : 'अवधि — <b>—</b> <span style="opacity:.7">अंत अभी नहीं लगा</span>';
+  } else {
+    len.innerHTML = 'अवधि — <b>—</b> <span style="opacity:.7">गायन चलाकर “यहीं” दबाइए</span>';
+  }
+  paintWarn(s);
+  var old = !s || s.in == null ? oldGuess(c) : null;
+  if(old != null) stHint('मशीन का पुराना अनुमान ' + fmtx(old) + ' — सुनकर सही कर दीजिए।');
+}
+function oldGuess(c){
+  var m = ((GA.segments || []).concat(GA.markers || [])).filter(function(x){
+    return x.sec === c.dataset.sec && String(x.n) === String(c.dataset.n);
+  })[0];
+  if(!m) return null;
+  return m.in != null ? +m.in : (m.t != null ? +m.t : null);
+}
+function nextIn(i){
+  for(var k = i + 1; k < CARDS.length; k++){ var s = segAt(k); if(s && s.in != null) return s.in; }
+  return null;
+}
+function prevOut(i){
+  for(var k = i - 1; k >= 0; k--){ var s = segAt(k); if(s && (s.out != null || s.in != null)) return s.out != null ? s.out : s.in; }
+  return null;
+}
+function paintWarn(s){
+  var w = stEl('warn'), msg = [];
+  if(s && s.in != null && s.out != null){
+    if(s.out <= s.in) msg.push('अंत, शुरू से पहले या बराबर है — ठीक कीजिए।');
+    else if(s.out - s.in < 1.2) msg.push('यह हिस्सा बहुत छोटा है (' + (s.out - s.in).toFixed(1) + ' सेकंड)।');
+    else if(s.out - s.in > 90) msg.push('यह हिस्सा बहुत लंबा है (' + Math.round(s.out - s.in) + ' सेकंड) — शायद अंत आगे रह गया।');
+  }
+  var po = prevOut(SI);
+  if(s && s.in != null && po != null && s.in < po - 0.05) msg.push('पिछले छंद का अंत (' + fmtx(po) + ') इससे आगे है — आपस में टकरा रहे हैं।');
+  var ni = nextIn(SI);
+  if(s && s.out != null && ni != null && s.out > ni + 0.05) msg.push('अगले छंद का शुरू (' + fmtx(ni) + ') इससे पीछे है — आपस में टकरा रहे हैं।');
+  var d = audioLen();
+  if(s && s.out != null && s.out > d + 0.5) msg.push('अंत, गायन की कुल लंबाई से बाहर है।');
+  w.innerHTML = msg.join('<br>');
+  w.classList.toggle('on', !!msg.length);
+}
+
+/* ---------- आस-पास की पट्टी ---------- */
+function stripPaint(){
+  var st = stEl('strip');
+  var s = curSeg(), lo, hi;
+  var a = (s && s.in != null) ? s.in : null, b = (s && s.out != null) ? s.out : null;
+  var ni = nextIn(SI), po = prevOut(SI);
+  var pts = [a, b, ni, po].filter(function(x){ return x != null; });
+  if(!pts.length){ st.innerHTML = '<span class="lab">आस-पास — अभी कुछ नहीं लगा</span>'; st.dataset.lo = ''; return; }
+  lo = Math.max(0, Math.min.apply(null, pts) - 6);
+  hi = Math.min(audioLen(), Math.max.apply(null, pts) + 6);
+  if(hi - lo < 8) hi = lo + 8;
+  st.dataset.lo = lo; st.dataset.hi = hi;
+  var W = hi - lo, h = '';
+  function bar(from, to, cls){
+    if(from == null || to == null || to <= from) return;
+    var l = (from - lo) / W * 100, w = (to - from) / W * 100;
+    h += '<span class="seg ' + cls + '" style="left:' + l.toFixed(2) + '%;width:' + Math.max(0.6, w).toFixed(2) + '%"></span>';
+  }
+  for(var k = SI - 2; k <= SI + 2; k++){
+    if(k < 0 || k >= CARDS.length) continue;
+    var g = segAt(k);
+    if(!g || g.in == null) continue;
+    var to = g.out != null ? g.out : Math.min(g.in + 1.2, hi);
+    bar(g.in, to, k === SI ? '' : 'other');
+  }
+  h += '<span class="cur" id="st-cur" style="left:0%"></span>';
+  h += '<span class="lab">' + fmt(lo) + ' — ' + fmt(hi) + '</span>';
+  st.innerHTML = h;
+  if(AU) stripCursor(AU.currentTime);
+}
+function stripCursor(t){
+  var st = stEl('strip'), cur = $('#st-cur');
+  if(!st || !cur || !st.dataset.lo) return;
+  var lo = +st.dataset.lo, hi = +st.dataset.hi;
+  var p = (t - lo) / (hi - lo) * 100;
+  cur.style.display = (p < 0 || p > 100) ? 'none' : 'block';
+  cur.style.left = Math.max(0, Math.min(100, p)).toFixed(2) + '%';
+}
+
+/* ---------- लगाना और खिसकाना ---------- */
+function stamp(io){
+  if(!AU){ toast('पहले गायन चलाइए', 2200); return; }
+  var c = curCard();
+  segSet(c.dataset.sec, c.dataset.n, io, AU.currentTime);
+  bell(); paintIO(); stripPaint(); retagOpt(SI);
+  stEl('prog').textContent = segCount().full + ' / ' + CARDS.length + ' पूरे';
+  stHint(io === 'in' ? 'शुरू लग गया — अब जहाँ यह छंद ख़त्म हो, वहाँ “अंत — यहीं” दबाइए।'
+                     : 'अंत लग गया — “यही हिस्सा सुनें” दबाकर जाँच लीजिए।');
+}
+function nudge(io, d){
+  var c = curCard(), s = curSeg();
+  var base = (s && s[io] != null) ? s[io] : (AU ? AU.currentTime : null);
+  if(base == null){ toast('पहले “यहीं” दबाकर समय लगा दीजिए', 2400); return; }
+  segSet(c.dataset.sec, c.dataset.n, io, Math.max(0, base + d));
+  paintIO(); stripPaint(); retagOpt(SI);
+  var nv = curSeg();
+  if(AU && nv && nv[io] != null){ AU.currentTime = Math.max(0, nv[io] - (io === 'out' ? 1.2 : 0)); stripCursor(AU.currentTime); }
+}
+
+/* ---------- सुनना ---------- */
+function playGaanRaw(at){
+  var a = ensureAudio();
+  if(at != null) a.currentTime = Math.max(0, at);
+  a.playbackRate = gaRates[gaRi];
+  var pr = a.play();
+  if(pr && pr.catch) pr.catch(function(){ toast('गायन शुरू नहीं हो पाया — फिर दबाइए', 2800); });
+  stEl('play').innerHTML = svg(IC.pause);
+}
+function hearSeg(){
+  var s = curSeg();
+  if(!s || s.in == null){ toast('पहले शुरू लगाइए', 2200); return; }
+  var from = Math.max(0, s.in - (ST_LOOP ? 0 : 0));
+  var to = (s.out != null) ? s.out : Math.min(s.in + 12, audioLen());
+  if(to <= from + 0.1){ toast('अंत, शुरू से आगे होना चाहिए', 2600); return; }
+  SEGPLAY = { from: from, out: to, loop: ST_LOOP };
+  playGaanRaw(from);
+  stHint(ST_LOOP ? 'दोहराव चालू — यही हिस्सा बार-बार बजेगा। रोकने के लिए ⏸ दबाइए।'
+                 : 'सुनिए — क्या पूरा छंद इसी बीच में आ रहा है?');
+}
+function hearEdge(io){
+  var s = curSeg();
+  if(!s || s[io] == null) return;
+  SEGPLAY = { from: Math.max(0, s[io] - ST_PAD), out: s[io] + ST_PAD * 2, loop: false };
+  playGaanRaw(SEGPLAY.from);
+}
+
+/* ---------- जोड़ना और आगे बढ़ना ---------- */
+function chainOne(){
+  var c = curCard(), s = curSeg();
+  if(SI + 1 >= CARDS.length){ toast('यह आख़िरी छंद है', 2200); return; }
+  var nc = CARDS[SI + 1], ns = segOf(nc.dataset.sec, nc.dataset.n);
+  if(s && s.out != null && (!ns || ns.in == null)){
+    segSet(nc.dataset.sec, nc.dataset.n, 'in', s.out);
+    retagOpt(SI + 1);
+    toast('अगले छंद का शुरू ' + fmtx(s.out) + ' पर लगा दिया', 2600);
+  } else if(ns && ns.in != null){
+    segSet(c.dataset.sec, c.dataset.n, 'out', ns.in);
+    toast('इस छंद का अंत ' + fmtx(ns.in) + ' कर दिया', 2600);
+  } else { toast('पहले इसका अंत या अगले का शुरू लगाइए', 2800); return; }
+  bell(); paintIO(); stripPaint(); retagOpt(SI);
+}
+function chainAll(){
+  var n = 0;
+  for(var i = 0; i < CARDS.length - 1; i++){
+    var c = CARDS[i], s = segOf(c.dataset.sec, c.dataset.n);
+    if(!s || s.in == null || s.out != null) continue;
+    var ni = nextIn(i);
+    if(ni == null || ni <= s.in) continue;
+    segSet(c.dataset.sec, c.dataset.n, 'out', ni);
+    n++;
+  }
+  if(!n){ toast('जोड़ने लायक़ कुछ नहीं मिला', 2600); return; }
+  bell();
+  CARDS.forEach(function(_, i){ retagOpt(i); });
+  studioPaint();
+  toast(n + ' छंदों का अंत, अगले के शुरू से जोड़ दिया', 3200);
+}
+function studioGo(d){
+  var i = SI + d;
+  if(i < 0 || i >= CARDS.length){ toast(d > 0 ? 'यह आख़िरी छंद है' : 'यह पहला छंद है', 2000); return; }
+  SI = i; SEGPLAY = null;
+  studioPaint();
+  var s = curSeg();
+  stHint(s && s.in != null ? 'इस छंद का समय लगा हुआ है — सुनकर जाँच लीजिए।'
+                           : 'गायन चलाइए। जैसे ही यह छंद शुरू हो, “शुरू — यहीं” दबा दीजिए।');
+}
+
+/* ---------- बटन ---------- */
+stEl('close').addEventListener('click', studioClose);
+stEl('setin').addEventListener('click', function(){ stamp('in'); });
+stEl('setout').addEventListener('click', function(){ stamp('out'); });
+$$('#studio .nudge button').forEach(function(b){
+  b.addEventListener('click', function(){ nudge(b.dataset.nud, +b.dataset.d); });
+});
+stEl('in').addEventListener('click', function(){ hearEdge('in'); });
+stEl('out').addEventListener('click', function(){ hearEdge('out'); });
+stEl('hear').addEventListener('click', hearSeg);
+stEl('loop').addEventListener('click', function(){
+  ST_LOOP = !ST_LOOP;
+  this.setAttribute('aria-pressed', ST_LOOP ? 'true' : 'false');
+  this.classList.toggle('ghost', !ST_LOOP);
+  if(SEGPLAY) SEGPLAY.loop = ST_LOOP;
+  toast(ST_LOOP ? 'दोहराव चालू' : 'दोहराव बंद', 1800);
+});
+stEl('chain').addEventListener('click', chainOne);
+stEl('next').addEventListener('click', function(){ studioGo(1); });
+stEl('prev').addEventListener('click', function(){ studioGo(-1); });
+stEl('sel').addEventListener('change', function(){ SI = +this.value; SEGPLAY = null; studioPaint(); });
+stEl('play').addEventListener('click', function(){
+  if(AU && !AU.paused){ AU.pause(); SEGPLAY = null; this.innerHTML = svg(IC.play, 'f'); }
+  else playGaanRaw(null);
+});
+stEl('back').addEventListener('click', function(){ SEGPLAY = null; if(AU) AU.currentTime = Math.max(0, AU.currentTime - 2); });
+stEl('fwd').addEventListener('click', function(){ SEGPLAY = null; if(AU) AU.currentTime = AU.currentTime + 2; });
+stEl('prevst').addEventListener('click', function(){ studioStanza(-1); });
+stEl('nextst').addEventListener('click', function(){ studioStanza(1); });
+function studioStanza(dir){
+  var L = stanzaList();
+  if(!L.length || !AU) return;
+  var t = AU.currentTime, to = null;
+  if(dir > 0){ for(var i = 0; i < L.length; i++) if(L[i] > t + 0.6){ to = L[i]; break; } }
+  else { for(var j = L.length - 1; j >= 0; j--) if(L[j] < t - 1.2){ to = L[j]; break; } if(to == null) to = 0; }
+  if(to == null) return;
+  SEGPLAY = null;
+  playGaanRaw(to);
+}
+(function(){
+  var sk = stEl('seek');
+  sk.addEventListener('input', function(){ sk.dataset.drag = '1'; });
+  sk.addEventListener('change', function(){
+    delete sk.dataset.drag;
+    SEGPLAY = null;
+    if(!AU) return;
+    AU.currentTime = (+sk.value / 1000) * audioLen();
+  });
+})();
+stEl('copy').addEventListener('click', function(){
+  var txt = 'segments: [\n' + marksText() + '\n]';
+  if(navigator.clipboard && navigator.clipboard.writeText)
+    navigator.clipboard.writeText(txt).then(function(){ toast('सूची प्रतिलिपि हो गई — मुझे भेज दीजिए', 3200); },
+                                           function(){ fallbackCopy(txt, function(){ toast('सूची प्रतिलिपि हो गई', 2800); }); });
+  else fallbackCopy(txt, function(){ toast('सूची प्रतिलिपि हो गई', 2800); });
+});
+stEl('chainall').addEventListener('click', chainAll);
+stEl('clear').addEventListener('click', function(){
+  if(!Object.keys(UM).length){ toast('अभी आपका कोई निशान नहीं है', 2200); return; }
+  if(!confirm('आपके लगाए सारे समय मिट जाएँगे। मिटाएँ?')) return;
+  UM = {}; jSet(umKey(), UM);
+  studioPaint();
+  CARDS.forEach(function(_, i){ retagOpt(i); });
+  toast('आपके सारे निशान मिटा दिए', 2600);
+});
+
+/* ---------- शीट: अनुक्रम / सहेजे / सेटिंग ---------- */
+var sheetOpen = false, curTab = 'toc';
+var sheet = $('#sheet'), scrim = $('#scrim'), sBody = $('#sheet-body');
+function renderSheet(tab){
+  curTab = tab;
+  $$('.sheet .tabs button[data-tab]').forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.tab === tab ? 'true' : 'false'); });
+  var h = '';
+  if(!G){ sBody.innerHTML = '<div class="empty">ग्रंथ लोड हो रहा है…</div>'; return; }
+  if(tab === 'toc'){
+    if(G.bhaag){
+      G.bhaag.forEach(function(b){
+        h += '<button class="snav" data-sec="' + esc(b.id) + '" data-n="' + b.from + '">' +
+               '<small>' + esc(b.title) + ' · ' + b.from + '–' + b.to + '</small>' +
+               '<b>' + esc(b.subtitle || b.title) + '</b></button>';
+      });
+    } else G.sections.forEach(function(sec, i){
+      var f = sec.verses[0], l = sec.verses.filter(function(x){ return x.n != null; }).pop() || f;
+      h += '<button class="snav" data-sec="' + esc(sec.id) + '" data-n="' + esc(String(f.n != null ? f.n : (f.key || 'x'))) + '">' +
+             '<small>' + esc(sec.title) + (f.n != null && l.n != null ? ' · ' + f.n + '–' + l.n : '') + '</small>' +
+             '<b>' + esc(sec.subtitle || sec.title) + '</b></button>';
+    });
+  } else if(tab === 'bm'){
+    if(!BM.length) h = '<div class="empty">अभी कुछ सहेजा नहीं है।<br>किसी पद के नीचे सहेजने का चिह्न दबाएँ।</div>';
+    else BM.slice().sort(function(x,y){ return CARDS.indexOf(cardOf(x.sectionId,x.n)) - CARDS.indexOf(cardOf(y.sectionId,y.n)); }).forEach(function(b){
+      var c = cardOf(b.sectionId, b.n);
+      h += '<div class="bmrow" data-sec="' + esc(b.sectionId || '') + '" data-n="' + b.n + '">' +
+             '<div class="n">' + esc(String((c && c.querySelector('.vnum').textContent) || b.n)) + '</div><div class="t pad">' + esc(c ? c.linesA[0] : '') + '</div>' +
+             '<button class="x" data-del="' + esc(String(b.n)) + '" data-dsec="' + esc(b.sectionId || '') + '" aria-label="हटाएँ">&#10005;</button></div>';
+    });
+  } else if(tab === 'find'){
+    h += '<div class="jump"><input id="jump-n" type="number" min="1" inputmode="numeric" placeholder="' + esc(unit()) + ' क्रमांक — जैसे 61"><button id="jump-go">जाएँ</button></div>';
+    h += '<div class="jump"><input id="find-q" type="search" placeholder="शब्द खोजिए — दोनों पाठ में"><button id="find-go">खोजें</button></div>';
+    h += '<div id="find-out"></div>';
+  } else {
+    h += '<div class="setrow"><div class="lab">रूप-रंग<small>दिन या रात का पाठ</small></div><div class="chips">' +
+         ['auto','light','dark'].map(function(v,i){ return '<button data-th="' + v + '" aria-pressed="' + (SET.theme === v) + '">' + ['सिस्टम','उजाला','अँधेरा'][i] + '</button>'; }).join('') + '</div></div>';
+    h += '<div class="setrow"><div class="lab">अक्षर का आकार<small>बड़े अक्षर = आसान पाठ</small></div><div class="chips">' +
+         [0.95,1.1,1.3,1.5].map(function(v,i){ return '<button data-fs="' + v + '" aria-pressed="' + (Math.abs(SET.fontSize-v)<0.03) + '">' + ['छोटा','सामान्य','बड़ा','सबसे बड़ा'][i] + '</button>'; }).join('') + '</div></div>';
+    h += '<div class="setrow"><div class="lab">वाचन की गति<small>श्रवण की रफ़्तार</small></div><div class="chips" id="set-rate">' +
+         RATES.map(function(r,i){ return '<button data-rt="' + i + '" aria-pressed="' + (i === rateIx) + '">' + r + '×</button>'; }).join('') + '</div></div>';
+    h += '<div class="setrow"><div class="lab">घंटी की ध्वनि<small>बटन दबाने पर मंद घंटी</small></div>' +
+         '<button class="sw" id="bell-sw" aria-pressed="' + (SET.bell ? 'true' : 'false') + '"><i></i></button></div>';
+    if(GA){
+      h += '<div class="setrow"><div class="lab">गायन के साथ पन्ना चले<small>समय सही होने तक बंद रखिए</small></div>' +
+           '<button class="sw" id="follow-sw" aria-pressed="' + (SET.gaanFollow ? 'true' : 'false') + '"><i></i></button></div>';
+      h += '<div class="setrow"><div class="lab">समय-पट खोलें<small>हर छंद — इस सेकंड से इस सेकंड तक</small></div>' +
+           '<div class="chips"><button id="open-studio">खोलें</button></div></div>';
+      var sc = segCount();
+      h += '<div class="setrow"><div class="lab">गायन के समय<small>' +
+             (sc.all ? sc.full + ' पूरे (शुरू+अंत)' + (sc.part ? ', ' + sc.part + ' अधूरे' : '') : 'अभी आपने कोई समय नहीं लगाया') + '</small></div>' +
+           '<div class="chips"><button id="mk-copy">प्रतिलिपि</button>' +
+             (sc.all ? '<button id="mk-clear">मिटाएँ</button>' : '') + '</div></div>';
+    }
+    var tot = G.count || (G.sections ? G.sections.reduce(function(a,s){ return a + s.verses.length; }, 0) : CARDS.length);
+    h += '<div class="empty" style="padding:1.2rem 1rem .2rem">' + esc(G.title) + ' — कुल ' + tot + ' ' + esc(unit()) + ' · सहेजे ' + BM.length + '</div>';
+  }
+  sBody.innerHTML = h;
+  if(tab === 'find') renderFind('');
+}
+function openSheet(t){ renderSheet(t || 'toc'); sheetOpen = true; sheet.classList.add('on'); scrim.classList.add('on'); }
+function closeSheet(){ sheetOpen = false; sheet.classList.remove('on'); scrim.classList.remove('on'); }
+$('#tool-gaan').addEventListener('click', function(){
+  if(!GA) return;
+  var bar = $('#gaanbar');
+  if(bar.classList.contains('on')) stopGaan();
+  else { bar.classList.add('on'); document.body.dataset.mark = '1'; fab.classList.add('hide'); bell(); toast('गायन — ▶ दबाइए', 2400); }
+});
+$('#btn-index').addEventListener('click', function(){ openSheet(BM.length ? 'bm' : 'toc'); });
+$('#btn-set').addEventListener('click', function(){ openSheet('set'); });
+$('#sheet-x').addEventListener('click', closeSheet);
+scrim.addEventListener('click', closeSheet);
+document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && sheetOpen) closeSheet(); });
+$$('.sheet .tabs button[data-tab]').forEach(function(b){ b.addEventListener('click', function(){ renderSheet(b.dataset.tab); }); });
+sBody.addEventListener('keydown', function(e){
+  if(e.key !== 'Enter') return;
+  if(e.target.id === 'find-q'){ renderFind(e.target.value); e.preventDefault(); }
+  if(e.target.id === 'jump-n'){ var n = parseInt(e.target.value, 10); if(n){ closeSheet(); goTo(null, n, true); } e.preventDefault(); }
+});
+sBody.addEventListener('click', function(e){
+  var t = e.target;
+  var nav = t.closest ? t.closest('.snav') : null;
+  if(nav){ closeSheet(); goTo(nav.dataset.sec, nav.dataset.n, true); return; }
+  var del = t.closest ? t.closest('[data-del]') : null;
+  if(del){ toggleBM(del.dataset.dsec || null, del.dataset.del); return; }
+  var row = t.closest ? t.closest('.bmrow') : null;
+  if(row){ closeSheet(); goTo(row.dataset.sec || null, row.dataset.n, true); return; }
+  var th = t.closest ? t.closest('[data-th]') : null;
+  if(th){ SET.theme = th.dataset.th; saveSet(); applyTheme(SET.theme); if(G && G.theme) applyGranthTheme(G.theme); renderSheet('set'); bell(); return; }
+  var fs = t.closest ? t.closest('[data-fs]') : null;
+  if(fs){ applyFont(parseFloat(fs.dataset.fs)); renderSheet('set'); return; }
+  var rt = t.closest ? t.closest('[data-rt]') : null;
+  if(rt){ rateIx = +rt.dataset.rt; SET.ttsRate = RATES[rateIx]; saveSet(); $('#ab-rate').textContent = RATES[rateIx] + '×'; renderSheet('set'); Sp.restartLine(); return; }
+  if(t.id === 'jump-go' || (t.id === 'jump-n' && e.type === 'change')){
+    var n = parseInt(($('#jump-n') || {}).value, 10);
+    if(n) { closeSheet(); goTo(null, n, true); }
+    return;
+  }
+  if(t.id === 'find-go'){ renderFind(($('#find-q') || {}).value); return; }
+  var go = t.closest ? t.closest('[data-go]') : null;
+  if(go){ closeSheet(); goTo(go.dataset.gsec || null, go.dataset.go, true); return; }
+  if(t.id === 'mk-copy'){
+    var txt = 'segments: [\n' + marksText() + '\n]';
+    if(navigator.clipboard && navigator.clipboard.writeText)
+      navigator.clipboard.writeText(txt).then(function(){ toast('निशान की सूची प्रतिलिपि हो गई — मुझे भेज दीजिए', 3200); },
+                                             function(){ fallbackCopy(txt, function(){ toast('निशान की सूची प्रतिलिपि हो गई', 2800); }); });
+    else fallbackCopy(txt, function(){ toast('निशान की सूची प्रतिलिपि हो गई', 2800); });
+    return;
+  }
+  if(t.id === 'mk-clear'){
+    UM = {}; jSet(umKey(), UM); refreshMarkers(); renderSheet('set');
+    toast('आपके लगाए निशान मिटा दिए — फाइल वाले वैसे ही हैं', 3000);
+    return;
+  }
+  if(t.id === 'open-studio'){ closeSheet(); studioOpen(); return; }
+  var fsw = t.closest ? t.closest('#follow-sw') : null;
+  if(fsw){
+    SET.gaanFollow = SET.gaanFollow ? 0 : 1; saveSet();
+    fsw.setAttribute('aria-pressed', SET.gaanFollow ? 'true' : 'false');
+    if(!SET.gaanFollow) CARDS.forEach(function(c){ c.classList.remove('singing'); });
+    return;
+  }
+  var sw = t.closest ? t.closest('#bell-sw') : null;
+  if(sw){ SET.bell = SET.bell ? 0 : 1; saveSet(); sw.setAttribute('aria-pressed', SET.bell ? 'true' : 'false'); if(SET.bell) bell(); }
+});
+
+
+/* ---------- खोज ---------- */
+function searchAll(q){
+  q = (q || '').trim();
+  if(q.length < 2) return [];
+  var res = [], seen = {};
+  function scan(list, label){
+    list.forEach(function(it){
+      if(res.length > 60) return;
+      var hay = it.text;
+      var i = hay.indexOf(q);
+      if(i < 0) return;
+      var k = label + ':' + it.id;
+      if(seen[k]) return; seen[k] = 1;
+      res.push({ id: it.id, sec: it.sec, label: label,
+                 snip: esc(hay.slice(Math.max(0, i - 28), i)) + '<mark>' + esc(hay.substr(i, q.length)) + '</mark>' + esc(hay.substr(i + q.length, 34)) });
+    });
+  }
+  if(RECS){
+    RECS.forEach(function(r){
+      var T = recText(r.key), list = [];
+      Object.keys(T).forEach(function(id){
+        var v = T[id];
+        list.push({ id: id, sec: null, text: v.mool.join(' ') + ' ' + (v.arth || '') });
+      });
+      scan(list, r.label);
+    });
+  } else {
+    var list = [];
+    G.sections.forEach(function(sec){
+      sec.verses.forEach(function(v){
+        list.push({ id: (v.n != null ? v.n : v.key), sec: sec.id, text: v.lines.join(' ') + ' ' + (v.artha || '') });
+      });
+    });
+    scan(list, G.title);
+  }
+  return res;
+}
+function renderFind(q){
+  var out = $('#find-out'); if(!out) return;
+  var r = searchAll(q);
+  if(!q || q.trim().length < 2){ out.innerHTML = '<div class="empty">कम से कम दो अक्षर लिखिए</div>'; return; }
+  if(!r.length){ out.innerHTML = '<div class="empty">कुछ नहीं मिला</div>'; return; }
+  out.innerHTML = '<div class="empty" style="padding:.4rem 0 .8rem">' + r.length + ' परिणाम</div>' +
+    r.map(function(x){
+      return '<button class="sres" data-go="' + esc(String(x.id)) + '" data-gsec="' + esc(x.sec || '') + '">' +
+             '<small>' + esc(x.label) + ' · ' + esc(unit()) + ' ' + esc(String(x.id)) + '</small><b>…' + x.snip + '…</b></button>';
+    }).join('');
+}
+
+/* ---------- शुरुआत + deep link ---------- */
+function parseHash(){
+  var h = (location.hash || '').replace(/^#/, '');
+  if(!h) return null;
+  var p = h.split('/');
+  var id = p[0];
+  if(!REG.some(function(r){ return r.id === id; })) return null;
+  var deep = null;
+  if(p[1]){
+    var q = p[1].split(':');
+    deep = q.length > 1 ? { sectionId: q[0], n: +q[1] } : { sectionId: null, n: +q[0] };
+    if(!deep.n) deep = null;
+  }
+  return { id: id, deep: deep };
+}
+var startAt = parseHash();
+setMode(SET.mode, false);
+loadGranth(startAt ? startAt.id : lsGet('granth:last', REG[0] && REG[0].id), startAt && startAt.deep);
+addEventListener('hashchange', function(){
+  var h = parseHash();
+  if(!h) return;
+  if(!META || h.id !== META.id) loadGranth(h.id, h.deep);
+  else if(h.deep) goTo(h.deep.sectionId, h.deep.n, true);
+});
+})();
+</script>
+</body>
+</html>

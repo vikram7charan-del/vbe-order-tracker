@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>॥ हरिरस ॥ — ग्रंथ पुस्तकालय</title>
+<style>
+  body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0B1220;color:#EDE3CB;
+       font-family:'Noto Sans Devanagari','Nirmala UI',system-ui,sans-serif;text-align:center;padding:1.5rem}
+  a{color:#E8B349}
+</style>
+<script>
+/* हरिरस अब ग्रंथ पुस्तकालय के भीतर है। पुराने लिंक और होम-स्क्रीन शॉर्टकट
+   चलते रहें, इसलिए यह पन्ना वहीं भेज देता है — दोहे का नंबर भी साथ ले जाता है।
+   #doha-21  →  granth.html#hariras/21 */
+(function(){
+  var h = (location.hash || '').replace(/^#/, '');
+  var m = /^doha-(\d+)$/.exec(h);
+  var to = 'granth.html#hariras' + (m ? '/' + m[1] : (h ? '/' + h : ''));
+  location.replace(to);
+})();
+</script>
+</head>
+<body>
+  <div>
+    <p>॥ हरिरस ॥ अब <strong>ग्रंथ पुस्तकालय</strong> में है।</p>
+    <p><a href="granth.html#hariras">यहाँ जाइए →</a></p>
+  </div>
+</body>
+</html>

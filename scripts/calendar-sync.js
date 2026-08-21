@@ -92,10 +92,170 @@ async function main() {
 
   const now = Date.now();
   let made = 0, upd = 0, del = 0, err = 0;
+  let autoIns = 0; // इस run में auto-task events की गिनती (rate-limit cap)
+  const AUTO_CAP = 40;
+
+  // ── 📅 Auto-Calendar config (app की ⚙️ से बदलने लायक — _settings.cal) ──
+  const C = settings.cal || {};
+  const CFG = {
+    enabled: C.enabled !== false,                 // default चालू
+    lead: Number(C.lead) > 0 ? Number(C.lead) : 15,        // add के कितने मिनट बाद event
+    followup: Number(C.followup) > 0 ? Number(C.followup) : 60,
+    dur: Number(C.dur) > 0 ? Number(C.dur) : 30,
+    esc: C.esc !== false,                          // escalation चालू?
+    escInts: Array.isArray(C.escInts) && C.escInts.length ? C.escInts : [60, 120, 240],
+    maxEsc: Number(C.maxEsc) > 0 ? Number(C.maxEsc) : 3,
+    quiet: C.quiet || { start: '22:00', end: '07:00' },
+  };
+  // पहली बार चालू होने पर cutoff सेट करो — इससे पुराने (backfill) काम events नहीं बनाएँगे
+  let AUTO_START = Number(settings.calAutoStart) || 0;
+  if (!AUTO_START) {
+    AUTO_START = now;
+    try { await db.collection('vbe_call_tracker').doc('_settings').set({ calAutoStart: AUTO_START }, { merge: true }); } catch (e) {}
+    console.log('calAutoStart सेट — पुराने काम skip, अब से नए काम auto-calendar में');
+  }
+
+  // ── 📩 owner को Telegram nudge (escalation) — बॉट वाला ही token/chat ──
+  async function tgNudge(text) {
+    const tok = settings.tgBotToken, chat = settings.tgChatId;
+    if (!tok || !chat) return;
+    try {
+      await fetch(`https://api.telegram.org/bot${tok}/sendMessage`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: String(chat), text, disable_web_page_preview: true }),
+      });
+    } catch (e) { /* net fail — अगली बार */ }
+  }
+  // IST घंटा + quiet-hours shift (शांति में पड़े event को अगली सुबह खिसकाओ)
+  function istHour(ms) { return Number(new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Kolkata', hour: 'numeric', hour12: false }).format(new Date(ms))); }
+  function quietShift(ms) {
+    const qs = Number((CFG.quiet.start || '22:00').split(':')[0]);
+    const qe = Number((CFG.quiet.end || '07:00').split(':')[0]);
+    const h = istHour(ms);
+    const inQuiet = qs > qe ? (h >= qs || h < qe) : (h >= qs && h < qe);
+    if (!inQuiet) return ms;
+    const ymd = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(ms));
+    const [Y, M, D] = ymd.split('-').map(Number);
+    let target = Date.UTC(Y, M - 1, D, qe, 0, 0) - (5.5 * 3600 * 1000); // qe:00 IST → UTC
+    if (target <= ms) target += 24 * 3600 * 1000;
+    return target;
+  }
 
   // sync की हालत doc में वापस लिखो — app इसी से "📅 Calendar में" badge दिखाता है
   async function markSync(id, patch) {
     try { await db.collection('vbe_call_tracker').doc(id).set(patch, { merge: true }); } catch (e) { /* non-fatal */ }
+  }
+
+  /* ══ हर नया काम → auto main-event (add+lead) + follow-up (+followup) + escalation ══
+     - key: topic.tid या 'a'+Date.parse(addedAt) (स्थायी); event id उसी से।
+     - state doc-level map d.calAuto[key] में; app pill/ring इसी से दिखाता है।
+     - done/हटा → दोनों events delete; escalation पर owner Telegram nudge (max 3)। */
+  async function autoTaskEvents(c, d) {
+    if (!CFG.enabled) return;
+    const topics = normTopics(d);
+    const map = (d.calAuto && typeof d.calAuto === 'object') ? { ...d.calAuto } : {};
+    let touched = false;
+    const seen = new Set();
+    const durMs = CFG.dur * 60000;
+
+    for (const x of topics) {
+      if (!x) continue;
+      const addMs = x.addedAt ? Date.parse(x.addedAt) : 0;
+      if (!addMs || isNaN(addMs)) continue;               // बिना तारीख़ = skip
+      if (x.at) continue;                                 // explicit ⏰ = syncTopicEvents संभालता है
+      const key = x.tid || ('a' + addMs);
+      seen.add(key);
+      const ent = map[key] || {};
+      if (ent.st === 'manual') continue;                  // app से हाथ से डाला — worker छोड़े
+      if (addMs < AUTO_START) { if (!ent.st) { map[key] = { st: 'skip' }; touched = true; } continue; }
+
+      const evId = eventId(c.id + '_at_' + key);
+      const fuId = eventId(c.id + '_fu_' + key);
+      const gone = d.active === false || x.done;
+
+      if (gone) {
+        if (ent.ev || ent.fev || (ent.st && ent.st !== 'done' && ent.st !== 'skip')) {
+          try { await cal.events.delete({ calendarId, eventId: evId }); del++; } catch (e) {}
+          try { await cal.events.delete({ calendarId, eventId: fuId }); del++; } catch (e) {}
+          map[key] = { st: 'done' }; touched = true;
+          await sleep(THROTTLE_MS);
+        }
+        continue;
+      }
+
+      // समय — add + lead (quiet-hours shift, urgent=pri high तुरंत)
+      let schedMs = addMs + CFG.lead * 60000;
+      if (x.pri !== 'high') schedMs = quietShift(schedMs);
+      const fuMs = schedMs + CFG.followup * 60000;
+
+      // main event — पहली बार दिखते ही बना दो (start भविष्य में हो तब भी reminder पक्का)
+      if (!ent.ev) {
+        if (autoIns >= AUTO_CAP) continue;                // इस run की सीमा — बाक़ी अगली बार
+        const body = {
+          id: evId,
+          summary: '🎯 ' + String(x.t).slice(0, 90) + (x.assignTo ? ' — ' + x.assignTo : (d.name ? ' — ' + d.name : '')),
+          description: `जोड़ा: ${d.name || '?'} · ${x.addedAt}\n${x.assignTo ? 'सौंपा: ' + x.assignTo + '\n' : ''}${x.t}` + contactLinks(c.id, d),
+          start: { dateTime: new Date(schedMs).toISOString(), timeZone: 'Asia/Kolkata' },
+          end: { dateTime: new Date(schedMs + durMs).toISOString(), timeZone: 'Asia/Kolkata' },
+          reminders: { useDefault: false, overrides: [{ method: 'popup', minutes: 0 }] },
+          colorId: x.pri === 'high' ? '11' : '9', // 11=लाल(urgent), 9=नीला(normal)
+        };
+        try {
+          await withRetry(() => cal.events.insert({ calendarId, requestBody: body }));
+          ent.ev = evId; ent.at = new Date(schedMs).toISOString(); ent.st = 'synced'; ent.esc = 0;
+          made++; autoIns++; touched = true;
+        } catch (e) {
+          if (e.code === 409) { ent.ev = evId; ent.st = 'synced'; touched = true; }
+          else { ent.st = 'failed'; ent.err = e.message; touched = true; err++; }
+        }
+        await sleep(THROTTLE_MS);
+      }
+
+      // follow-up event — तभी बनाओ जब follow-up समय पास आ गया और काम अब भी बाकी
+      if (ent.ev && !ent.fev && now >= fuMs - 5 * 60000 && autoIns < AUTO_CAP) {
+        const fb = {
+          id: fuId,
+          summary: '🔁 फॉलो-अप: ' + String(x.t).slice(0, 80),
+          description: 'यह काम अभी तक पूरा नहीं हुआ। पोर्टल में जाकर ✅ लगाएँ।\n\n' + (x.t || '') + contactLinks(c.id, d),
+          start: { dateTime: new Date(fuMs).toISOString(), timeZone: 'Asia/Kolkata' },
+          end: { dateTime: new Date(fuMs + 15 * 60000).toISOString(), timeZone: 'Asia/Kolkata' },
+          reminders: { useDefault: false, overrides: [{ method: 'popup', minutes: 0 }] },
+          colorId: '5', // पीला
+        };
+        try {
+          await withRetry(() => cal.events.insert({ calendarId, requestBody: fb }));
+          ent.fev = fuId; made++; autoIns++; touched = true;
+        } catch (e) { if (e.code === 409) { ent.fev = fuId; touched = true; } }
+        await sleep(THROTTLE_MS);
+      }
+
+      // escalation — follow-up बीतने पर, हर interval पर owner nudge (max), फिर 'stuck'
+      if (CFG.esc && ent.ev && now >= fuMs) {
+        const since = now - fuMs;
+        let want = 0, acc = 0;
+        for (const iv of CFG.escInts) { acc += iv * 60000; if (since >= acc) want++; }
+        want = Math.min(want, CFG.maxEsc);
+        if (want > (ent.esc || 0)) {
+          ent.esc = want; ent.st = want >= CFG.maxEsc ? 'stuck' : 'esc';
+          ent.lastEsc = new Date(now).toISOString(); touched = true;
+          if (istHour(now) >= 7 && istHour(now) < 22) {  // शांति में nudge नहीं
+            await tgNudge(`⚠️ अटका काम (${want}/${CFG.maxEsc}): "${String(x.t).slice(0, 90)}"\n👤 ${x.assignTo || d.name || '—'}\nजोड़ा: ${x.addedAt}\n✅ पोर्टल में पूरा लगाएँ: ${APP_URL}?open=${c.id}`);
+          }
+        }
+      }
+      map[key] = ent;
+    }
+
+    // topics से हटे keys के events भी साफ़ करो
+    for (const k of Object.keys(map)) {
+      if (seen.has(k)) continue;
+      const e1 = eventId(c.id + '_at_' + k), e2 = eventId(c.id + '_fu_' + k);
+      try { await cal.events.delete({ calendarId, eventId: e1 }); del++; } catch (e) {}
+      try { await cal.events.delete({ calendarId, eventId: e2 }); del++; } catch (e) {}
+      delete map[k]; touched = true;
+      await sleep(THROTTLE_MS);
+    }
+    if (touched) { try { await db.collection('vbe_call_tracker').doc(c.id).set({ calAuto: map }, { merge: true }); } catch (e) {} }
   }
 
   for (const c of all) {
@@ -116,6 +276,7 @@ async function main() {
       }
       // main event नहीं, पर नीचे per-task events फिर भी sync होंगे
       await syncTopicEvents(c, d);
+      await autoTaskEvents(c, d);
       continue;
     }
 
@@ -158,6 +319,7 @@ async function main() {
     await sleep(THROTTLE_MS); // अगली call से पहले रुको (rate limit से बचाव)
 
     await syncTopicEvents(c, d);
+    await autoTaskEvents(c, d);
   }
 
   /* ── हर काम का अपना समय (topic.at + tid) → अलग calendar event ──
@@ -226,7 +388,10 @@ async function main() {
     }
   }
 
-  console.log(`Calendar: ${made} बने, ${upd} अपडेट, ${del} हटाए, ${err} error (calendar=${calendarId})`);
+  // app को "आख़िरी sync" + share करने वाला बॉट-ईमेल दिखाने के लिए
+  try { await db.collection('vbe_call_tracker').doc('_settings').set({ calLastRun: new Date().toISOString(), calBotEmail: sa.client_email }, { merge: true }); } catch (e) {}
+
+  console.log(`Calendar: ${made} बने, ${upd} अपडेट, ${del} हटाए, ${err} error, auto+${autoIns} (calendar=${calendarId})`);
 }
 
 main().then(() => process.exit(0)).catch((e) => { console.error('ERROR:', e.message); process.exit(1); });

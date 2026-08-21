@@ -347,7 +347,7 @@ body.anim-off .card{background:#07111e;backdrop-filter:none;-webkit-backdrop-fil
 #m-daily *{font-family:'Mukta','Noto Sans Devanagari',sans-serif}
 /* A) डेट रेल — scroll-container का सीधा बच्चा sticky → पूरी scroll में ऊपर टिका रहे */
 #m-daily #daily-head{position:sticky;top:0;z-index:5}
-.d-rail{background:linear-gradient(140deg,#182a5f,#3a1f6e);
+.d-rail{position:relative;background:linear-gradient(140deg,#182a5f,#3a1f6e);
   padding:12px 10px 0;box-shadow:0 6px 18px -10px rgba(0,0,0,.8)}
 .d-rail-row{display:flex;align-items:stretch;gap:8px}
 .d-arrow{flex-shrink:0;width:52px;min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
@@ -396,6 +396,26 @@ body.anim-off .card{background:#07111e;backdrop-filter:none;-webkit-backdrop-fil
   #daily-track{transition:none!important;animation:none!important}
   .d-prog>i{transition:none}
 }
+/* ═══ 📅 Auto-Calendar — status pill + countdown ring + banner ═══ */
+.cal-pill{display:inline-flex;align-items:center;gap:4px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;
+  padding:2px 8px;border-radius:9px;border:1px solid;white-space:nowrap;line-height:1.5}
+.cal-pill.pend{border-color:rgba(34,211,238,.5);color:#67e8f9;background:rgba(34,211,238,.08);animation:calPulse 2s ease-in-out infinite}
+.cal-pill.sync{border-color:rgba(59,130,246,.5);color:#93c5fd;background:rgba(59,130,246,.08)}
+.cal-pill.esc{border-color:rgba(245,158,11,.6);color:#fcd34d;background:rgba(245,158,11,.1)}
+.cal-pill.stuck{border-color:#ef4444;color:#fca5a5;background:rgba(239,68,68,.12);animation:calPulse 1.4s ease-in-out infinite}
+.cal-pill.fail{border-color:rgba(148,163,184,.5);color:#cbd5e1;cursor:pointer}
+@keyframes calPulse{0%,100%{opacity:1}50%{opacity:.55}}
+.cd-ring{position:relative;width:22px;height:22px;border-radius:50%;flex-shrink:0;
+  background:conic-gradient(#22d3ee calc(var(--p,0)*1%),rgba(255,255,255,.1) 0)}
+.cd-ring::after{content:"";position:absolute;inset:3px;border-radius:50%;background:#0e1524}
+.d-card.stuck-glow{border-color:#ef4444;box-shadow:0 0 0 1px rgba(239,68,68,.4),0 0 16px -6px rgba(239,68,68,.6)}
+.cal-banner{display:flex;align-items:center;gap:8px;margin:0 0 12px;padding:9px 12px;border-radius:12px;
+  background:linear-gradient(135deg,rgba(34,211,238,.14),rgba(59,130,246,.1));border:1px solid rgba(34,211,238,.35);
+  color:#a5f3fc;font-size:12px;font-weight:600;font-family:'Mukta',sans-serif;cursor:pointer}
+.d-gear{position:absolute;top:9px;right:44px;font-size:15px;color:rgba(255,255,255,.8);cursor:pointer;padding:4px;line-height:1;touch-action:manipulation}
+@media (prefers-reduced-motion:reduce){.cal-pill{animation:none!important}}
+.cs-l{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12.5px;font-weight:600;color:#c7d4ef;font-family:'Mukta',sans-serif;margin-bottom:11px;flex-wrap:wrap}
+.cs-i{width:auto;flex:0 0 auto;min-width:70px;max-width:120px;padding:8px 10px;font-size:14px}
 .c-topics{margin-top:2px;display:flex;flex-direction:column}
 /* हर काम एक साफ़ पंक्ति — बड़ा tap-zone वाला ✅ + अलग text-zone; बीच में divider
    ताकि पास-पास होने पर भी गलत काम पूरा न हो (सही जगह ही tap लगे) */
@@ -1422,6 +1442,14 @@ body.hdr-folded .hdr-row2{display:none}
       <div id="daily-head"></div>
       <div id="daily-track" style="padding:12px 12px 20px"></div>
     </div>
+  </div>
+</div>
+
+<!-- ⚙️ Calendar Settings -->
+<div class="modal-bg" id="m-calset" style="z-index:210" onclick="if(event.target===this)closeModal('m-calset')">
+  <div class="modal-box" style="max-width:420px">
+    <div class="modal-title">📅 कैलेंडर सेटिंग <span class="modal-x" onclick="closeModal('m-calset')">✕</span></div>
+    <div id="calset-body"></div>
   </div>
 </div>
 
@@ -6137,6 +6165,7 @@ function renderDaily(dir){
   document.getElementById('daily-head').innerHTML=`
     <div class="d-rail">
       <span class="d-close" onclick="closeModal('m-daily')">✕</span>
+      <span class="d-gear" onclick="openCalSet()" title="📅 कैलेंडर सेटिंग">⚙️</span>
       <div class="d-rail-row">
         <button class="d-arrow ${canOld?'':'off'}" onclick="dailyNav(1)" aria-label="पिछला दिन">
           <span class="ar">‹</span><span class="al">${canOld?escH(_dailyMini(_dailyOff+1)):'शुरू'}</span></button>
@@ -6155,7 +6184,12 @@ function renderDaily(dir){
       <div style="font-size:40px">🗓️</div>
       <div style="font-size:14px;margin-top:12px;font-family:'Mukta',sans-serif;color:#8b93ad">${escH(lbl)} कोई काम नहीं जोड़ा गया।<br>
       <span style="font-size:12px;color:#556">‹ › या उँगली से swipe करके दूसरा दिन देखें</span></div></div>`; }
-  else tr.innerHTML=out.map(dailyTaskHTML).join('');
+  else {
+    // 🔄 top sync banner — कितने काम कैलेंडर में जुड़ने वाले हैं (pending)
+    let pend=0; out.forEach(x=>{ const c=contacts.find(z=>z.id===x.cid); const s=calStateOf(c,x); if(s&&s.k==='pend') pend++; });
+    const banner=pend?`<div class="cal-banner" onclick="openCalSet()">🔄 ${pend} काम कैलेंडर में जुड़ने वाले हैं · ⚙️ सेटिंग</div>`:'';
+    tr.innerHTML=banner+out.map(dailyTaskHTML).join('');
+  }
   /* B) दिन बदलने का slide (260ms) — reduced-motion हो तो सीधा */
   tr.style.opacity='1';
   if(dir!==undefined && !_rm()){
@@ -6188,6 +6222,7 @@ function dailyTaskHTML(x){
       </div></div>`;
   }
   // मेटा — जिसका काम है (किस कार्ड में जुड़ा) + assignee/सौंपा + देखरेख + समय
+  const c=contacts.find(z=>z.id===x.cid); const cs=calStateOf(c,x);
   let who='👤 '+escH(x.cname);
   if(x.assignTo) who+=' → '+escH(staffName(x.assignTo));
   else if(x.dg&&x.dg.to) who+=' → '+escH(x.dg.to);
@@ -6196,13 +6231,15 @@ function dailyTaskHTML(x){
   if(x.at) meta+=`· ⏰ ${escH(schedLabel(x.at))}`;
   if(x.dg) meta+=`· 🔗 सौंपा`;
   if(x.overseer&&x.overseer.name) meta+=`· 👁️ ${escH((x.overseer.name||'').split(/\s+/)[0])}`;
-  return `<div class="d-card" data-ti="${x.i}">
+  return `<div class="d-card${cs&&cs.k==='stuck'?' stuck-glow':''}" data-ti="${x.i}"
+      ontouchstart="_calHoldStart('${x.cid}',${x.i})" ontouchend="_calHoldEnd()" ontouchmove="_calHoldEnd()">
     <div class="d-top">
+      ${calRingHTML(c,x)}
       <span class="d-chk" onclick="doneTopic('${x.cid}',${x.i})" title="PIN से पूरा"></span>
       <div class="d-body">
         <div class="d-txt">${mark}${escH(x.t)}</div>
         <button class="d-more" onclick="dailyExpand(this)">पूरा देखें ▾</button>
-        <div class="d-meta">${meta}</div>
+        <div class="d-meta">${meta}${calPillHTML(c,x)}</div>
       </div>
     </div>
     <div class="d-tools">
@@ -6239,6 +6276,85 @@ window.dailyTE=function(e){ const tr=_track(); if(!tr) return; const wasH=_dHori
     tr.style.transition=_rm()?'none':'transform .2s ease,opacity .2s ease'; tr.style.transform='none'; tr.style.opacity='1';
   }
 };
+/* ══ 📅 Auto-Calendar — app-side status (worker वाला calAuto map पढ़कर) ══ */
+function _calCfg(){ const c=(window._settings&&window._settings.cal)||{};
+  return { enabled:c.enabled!==false, lead:+c.lead>0?+c.lead:15, followup:+c.followup>0?+c.followup:60,
+    esc:c.esc!==false, maxEsc:+c.maxEsc>0?+c.maxEsc:3, calendarId:c.calendarId||'' }; }
+function calKeyOf(x){ if(!x) return ''; if(x.tid) return x.tid; const a=x.addedAt?Date.parse(x.addedAt):0; return a?'a'+a:''; }
+/* लौटाए {k:'pend'|'sync'|'esc'|'stuck'|'fail', label, pct?} या null */
+function calStateOf(c,x){
+  if(!x||x.done||x.at) return null;               // done / explicit-समय (उसका अलग रास्ता) = pill नहीं
+  const cfg=_calCfg(); if(!cfg.enabled) return null;
+  const addMs=x.addedAt?Date.parse(x.addedAt):0; if(!addMs||isNaN(addMs)) return null;
+  const start=(window._settings&&+window._settings.calAutoStart)||0;
+  const ent=(c&&c.calAuto&&c.calAuto[calKeyOf(x)])||null;
+  if(ent){
+    if(ent.st==='manual') return {k:'sync',label:'📅 हाथ से डाला'};
+    if(ent.st==='stuck')  return {k:'stuck',label:'⚠️ अटका हुआ'};
+    if(ent.st==='esc')    return {k:'esc',label:`🔁 फॉलो-अप ${ent.esc||1}/${cfg.maxEsc}`};
+    if(ent.st==='failed') return {k:'fail',label:'↻ दोबारा भेजें'};
+    if(ent.st==='synced'){ const t=ent.at?new Date(ent.at):null; return {k:'sync',label:'📅 कैलेंडर में'+(t?' · '+t.toLocaleTimeString('hi-IN',{hour:'numeric',minute:'2-digit'}):'')}; }
+    return null; // skip/done
+  }
+  if(start && addMs<start) return null;           // feature से पहले जुड़ा = कभी नहीं
+  const schedMs=addMs+cfg.lead*60000; const leftMin=Math.round((schedMs-Date.now())/60000);
+  const pct=Math.max(0,Math.min(100,Math.round((Date.now()-addMs)/(cfg.lead*60000)*100)));
+  return { k:'pend', label:leftMin>0?`⏳ ${leftMin} मिनट में कैलेंडर में`:'⏳ जुड़ने वाला है', pct };
+}
+function calPillHTML(c,x){ const s=calStateOf(c,x); if(!s) return '';
+  const tap=s.k==='fail'?` onclick="event.stopPropagation();calRetry('${c.id}','${calKeyOf(x)}')"`:'';
+  return ` <span class="cal-pill ${s.k}"${tap}>${escH(s.label)}</span>`; }
+function calRingHTML(c,x){ const s=calStateOf(c,x); if(!s||s.k!=='pend') return '';
+  return `<span class="cd-ring" style="--p:${s.pct||0}" title="कैलेंडर में जुड़ने का काउंटडाउन"></span>`; }
+window.calRetry=function(cid,key){ const c=contacts.find(z=>z.id===cid); if(!c||!c.calAuto) return;
+  const m=Object.assign({},c.calAuto); delete m[key]; c.calAuto=m; fbSave(c);
+  toast('↻ अगली sync (~15 मिनट) में दोबारा भेजेंगे'); renderDailyIfOpen(); };
+/* हाथ से अभी: instant Google/​.ics + worker को इस काम पर skip (dupe न बने) */
+function taskGCalUrl(x,whenMs,c){ const s=new Date(whenMs),e=new Date(whenMs+30*60000);
+  const fmt=d=>d.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');
+  const title=encodeURIComponent('🎯 '+String(x.t).slice(0,90));
+  const det=encodeURIComponent('📌 '+((c&&c.name)||'')+(x.assignTo?'\n👤 '+x.assignTo:''));
+  return `https://calendar.google.com/calendar/r/eventedit?text=${title}&details=${det}&dates=${fmt(s)}/${fmt(e)}`; }
+function openTaskCal(x,whenMs,c){ const isMob=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  if(isMob){ try{ const s=new Date(whenMs),e=new Date(whenMs+30*60000),fmt=d=>d.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');
+    const ics=['BEGIN:VCALENDAR','VERSION:2.0','BEGIN:VEVENT','SUMMARY:🎯 '+String(x.t).slice(0,90),'DESCRIPTION:'+((c&&c.name)||''),
+      'DTSTART:'+fmt(s),'DTEND:'+fmt(e),'BEGIN:VALARM','TRIGGER:PT0M','ACTION:DISPLAY','DESCRIPTION:Reminder','END:VALARM','END:VEVENT','END:VCALENDAR'].join('\r\n');
+    const blob=new Blob([ics],{type:'text/calendar;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+    a.href=url; a.download='kaam.ics'; document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(()=>URL.revokeObjectURL(url),5000);
+  }catch(e){ window.open(taskGCalUrl(x,whenMs,c),'_blank'); } }
+  else window.open(taskGCalUrl(x,whenMs,c),'_blank'); }
+window.calTaskNow=function(cid,i){ const c=contacts.find(z=>z.id===cid); if(!c) return; const x=normTopics(c)[i]; if(!x||x.done) return;
+  const key=calKeyOf(x)||genTid();
+  openTaskCal(x,Date.now()+2*60000,c);
+  c.calAuto=Object.assign({},c.calAuto,{[key]:{st:'manual',at:new Date().toISOString()}}); fbSave(c);
+  toast('📅 कैलेंडर खोला — अब worker इसे दोबारा नहीं डालेगा'); renderDailyIfOpen(); };
+/* long-press (600ms) किसी काम पर → "अभी कैलेंडर में डालो" */
+window._calHoldStart=function(cid,i){ clearTimeout(window._calHoldT); window._calHoldT=setTimeout(()=>{ try{ if(navigator.vibrate) navigator.vibrate(28); }catch(e){} calTaskNow(cid,i); },600); };
+window._calHoldEnd=function(){ clearTimeout(window._calHoldT); };
+/* ⚙️ Calendar Settings — _settings.cal में save */
+window.openCalSet=function(){ const cfg=_calCfg(); const s=window._settings||{};
+  const last=s.calLastRun?new Date(s.calLastRun).toLocaleString('hi-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'}):'अभी तक नहीं';
+  const q=(s.cal&&s.cal.quiet)||{start:'22:00',end:'07:00'};
+  const box=document.getElementById('calset-body'); if(!box) return;
+  box.innerHTML=`
+    <div style="font-size:11px;color:#8b93ad;margin-bottom:12px;font-family:'Mukta'">आख़िरी sync: <b style="color:#93c5fd">${escH(last)}</b> · हर ~15 मिनट अपने-आप</div>
+    <label class="cs-l">काम जुड़ने के कितने मिनट बाद कैलेंडर में <input id="cs-lead" class="inp cs-i" type="number" min="0" value="${cfg.lead}"></label>
+    <label class="cs-l">फॉलो-अप कितने मिनट बाद <input id="cs-fu" class="inp cs-i" type="number" min="0" value="${cfg.followup}"></label>
+    <label class="cs-l">रात शांति — से <input id="cs-qs" class="inp cs-i" value="${escH(q.start)}" placeholder="22:00"> तक <input id="cs-qe" class="inp cs-i" value="${escH(q.end)}" placeholder="07:00"></label>
+    <label class="cs-l" style="cursor:pointer">अटके काम पर याद दिलाओ (escalation) <input id="cs-esc" type="checkbox" ${cfg.esc?'checked':''} style="width:20px;height:20px"></label>
+    <label class="cs-l" style="cursor:pointer">Auto-Calendar चालू <input id="cs-en" type="checkbox" ${cfg.enabled?'checked':''} style="width:20px;height:20px"></label>
+    <label class="cs-l">कौन-सा Google Calendar (आपका gmail/Calendar ID) <input id="cs-cid" class="inp cs-i" value="${escH(cfg.calendarId)}" placeholder="you@gmail.com"></label>
+    ${s.calBotEmail?`<div style="font-size:11px;color:#a5f3fc;margin-top:8px;padding:8px 10px;background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.3);border-radius:10px;font-family:'Mukta'">👉 अपने Google Calendar को <b>इस बॉट-ईमेल</b> से "बदलाव कर सके" पर share करें:<br><span onclick="navigator.clipboard&&navigator.clipboard.writeText('${escH(s.calBotEmail)}');toast('📋 कॉपी हुआ')" style="cursor:pointer;color:#67e8f9;font-family:'IBM Plex Mono',monospace;font-size:10.5px;word-break:break-all;text-decoration:underline dotted">${escH(s.calBotEmail)}</span> <span style="opacity:.7">(टैप = कॉपी)</span></div>`:`<div style="font-size:10.5px;color:#64748b;margin-top:6px;font-family:'Mukta'">बॉट-ईमेल पहली sync के बाद यहाँ दिखेगा — फिर उसी से calendar share करें। गाइड: SETUP-HINDI.md</div>`}
+    <button class="btn-save" style="margin-top:14px" onclick="saveCalSet()">💾 सेव करें</button>`;
+  openModal('m-calset'); };
+window.saveCalSet=function(){ const g=id=>document.getElementById(id);
+  const cal={ enabled:g('cs-en').checked, lead:+g('cs-lead').value||15, followup:+g('cs-fu').value||60,
+    esc:g('cs-esc').checked, maxEsc:_calCfg().maxEsc, calendarId:(g('cs-cid').value||'').trim(),
+    quiet:{start:(g('cs-qs').value||'22:00').trim(),end:(g('cs-qe').value||'07:00').trim()} };
+  window._settings=window._settings||{}; window._settings.cal=cal;
+  const cid=cal.calendarId; const patch={id:'_settings',cal:cal}; if(cid) patch.calendarId=cid;
+  setDoc(doc(db,'vbe_call_tracker','_settings'),patch,{merge:true}).then(()=>{ toast('✅ सेटिंग सेव — अगली sync से लागू'); closeModal('m-calset'); renderDailyIfOpen(); })
+    .catch(()=>toast('सेव नहीं हुआ — net देखें','err')); };
 function renderSmartPop(){
   const c=contacts.find(x=>x.id===_spId);
   if(!c){ closeSmartPop(); return; }

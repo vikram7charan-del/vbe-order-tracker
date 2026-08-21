@@ -103,6 +103,7 @@ async function main() {
     followup: Number(C.followup) > 0 ? Number(C.followup) : 60,
     dur: Number(C.dur) > 0 ? Number(C.dur) : 30,
     esc: C.esc !== false,                          // escalation चालू?
+    tgRemind: C.tgRemind !== false,                // owner को Telegram पर भी reminder?
     escInts: Array.isArray(C.escInts) && C.escInts.length ? C.escInts : [60, 120, 240],
     maxEsc: Number(C.maxEsc) > 0 ? Number(C.maxEsc) : 3,
     quiet: C.quiet || { start: '22:00', end: '07:00' },
@@ -227,6 +228,20 @@ async function main() {
           ent.fev = fuId; made++; autoIns++; touched = true;
         } catch (e) { if (e.code === 409) { ent.fev = fuId; touched = true; } }
         await sleep(THROTTLE_MS);
+      }
+
+      // 🔔 owner को Telegram पर भी reminder — काम का समय (schedMs) + follow-up (fuMs)।
+      // सभी नए काम की याद owner (विक्रम जी) को Telegram पर आए (calendar के साथ-साथ)।
+      if (CFG.tgRemind && ent.ev) {
+        const day = istHour(now) >= 7 && istHour(now) < 22;   // रात में नहीं
+        if (day && !ent.mSent && now >= schedMs) {
+          await tgNudge(`🔔 काम का समय आ गया\n"${String(x.t).slice(0, 130)}"\n👤 ${x.assignTo || d.name || '—'}\n✅ हो जाए तो पोर्टल में लगाएँ: ${APP_URL}?open=${c.id}`);
+          ent.mSent = true; touched = true;
+        }
+        if (day && !ent.fSent && now >= fuMs) {
+          await tgNudge(`🔁 फॉलो-अप — यह काम अब तक बाकी है\n"${String(x.t).slice(0, 130)}"\n👤 ${x.assignTo || d.name || '—'}\n✅ पोर्टल में लगाएँ: ${APP_URL}?open=${c.id}`);
+          ent.fSent = true; touched = true;
+        }
       }
 
       // escalation — follow-up बीतने पर, हर interval पर owner nudge (max), फिर 'stuck'

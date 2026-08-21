@@ -6279,7 +6279,7 @@ window.dailyTE=function(e){ const tr=_track(); if(!tr) return; const wasH=_dHori
 /* ══ 📅 Auto-Calendar — app-side status (worker वाला calAuto map पढ़कर) ══ */
 function _calCfg(){ const c=(window._settings&&window._settings.cal)||{};
   return { enabled:c.enabled!==false, lead:+c.lead>0?+c.lead:15, followup:+c.followup>0?+c.followup:60,
-    esc:c.esc!==false, maxEsc:+c.maxEsc>0?+c.maxEsc:3, calendarId:c.calendarId||'' }; }
+    esc:c.esc!==false, tgRemind:c.tgRemind!==false, maxEsc:+c.maxEsc>0?+c.maxEsc:3, calendarId:c.calendarId||'' }; }
 function calKeyOf(x){ if(!x) return ''; if(x.tid) return x.tid; const a=x.addedAt?Date.parse(x.addedAt):0; return a?'a'+a:''; }
 /* लौटाए {k:'pend'|'sync'|'esc'|'stuck'|'fail', label, pct?} या null */
 function calStateOf(c,x){
@@ -6341,6 +6341,7 @@ window.openCalSet=function(){ const cfg=_calCfg(); const s=window._settings||{};
     <label class="cs-l">काम जुड़ने के कितने मिनट बाद कैलेंडर में <input id="cs-lead" class="inp cs-i" type="number" min="0" value="${cfg.lead}"></label>
     <label class="cs-l">फॉलो-अप कितने मिनट बाद <input id="cs-fu" class="inp cs-i" type="number" min="0" value="${cfg.followup}"></label>
     <label class="cs-l">रात शांति — से <input id="cs-qs" class="inp cs-i" value="${escH(q.start)}" placeholder="22:00"> तक <input id="cs-qe" class="inp cs-i" value="${escH(q.end)}" placeholder="07:00"></label>
+    <label class="cs-l" style="cursor:pointer">🔔 Telegram पर भी reminder (आपको) <input id="cs-tgr" type="checkbox" ${cfg.tgRemind?'checked':''} style="width:20px;height:20px"></label>
     <label class="cs-l" style="cursor:pointer">अटके काम पर याद दिलाओ (escalation) <input id="cs-esc" type="checkbox" ${cfg.esc?'checked':''} style="width:20px;height:20px"></label>
     <label class="cs-l" style="cursor:pointer">Auto-Calendar चालू <input id="cs-en" type="checkbox" ${cfg.enabled?'checked':''} style="width:20px;height:20px"></label>
     <label class="cs-l">कौन-सा Google Calendar (आपका gmail/Calendar ID) <input id="cs-cid" class="inp cs-i" value="${escH(cfg.calendarId)}" placeholder="you@gmail.com"></label>
@@ -6349,7 +6350,7 @@ window.openCalSet=function(){ const cfg=_calCfg(); const s=window._settings||{};
   openModal('m-calset'); };
 window.saveCalSet=function(){ const g=id=>document.getElementById(id);
   const cal={ enabled:g('cs-en').checked, lead:+g('cs-lead').value||15, followup:+g('cs-fu').value||60,
-    esc:g('cs-esc').checked, maxEsc:_calCfg().maxEsc, calendarId:(g('cs-cid').value||'').trim(),
+    esc:g('cs-esc').checked, tgRemind:g('cs-tgr').checked, maxEsc:_calCfg().maxEsc, calendarId:(g('cs-cid').value||'').trim(),
     quiet:{start:(g('cs-qs').value||'22:00').trim(),end:(g('cs-qe').value||'07:00').trim()} };
   window._settings=window._settings||{}; window._settings.cal=cal;
   const cid=cal.calendarId; const patch={id:'_settings',cal:cal}; if(cid) patch.calendarId=cid;

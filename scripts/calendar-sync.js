@@ -68,9 +68,10 @@ function contactLinks(id, d) {
 
 async function main() {
   const saJson = process.env.FIREBASE_SA;
-  if (!saJson) { console.error('FIREBASE_SA missing'); process.exit(1); }
+  if (!saJson) { console.error('FIREBASE_SA missing'); return; }
   const sa = JSON.parse(saJson);
-  admin.initializeApp({ credential: admin.credential.cert(sa) });
+  // admin पहले से init हो (bot में से call होने पर) तो दोबारा न करो
+  if (!admin.apps.length) admin.initializeApp({ credential: admin.credential.cert(sa) });
   const db = admin.firestore();
 
   const auth = new google.auth.JWT({
@@ -414,4 +415,9 @@ async function main() {
   console.log(`Calendar: ${made} बने, ${upd} अपडेट, ${del} हटाए, ${err} error, auto+${autoIns} (calendar=${calendarId})`);
 }
 
-main().then(() => process.exit(0)).catch((e) => { console.error('ERROR:', e.message); process.exit(1); });
+// standalone (GitHub scheduled workflow) → चलाओ और निकल जाओ।
+// bot में से require किया जाए तो सिर्फ़ runSync export हो (बॉट हर 15 मिनट call करेगा)।
+if (require.main === module) {
+  main().then(() => process.exit(0)).catch((e) => { console.error('ERROR:', e.message); process.exit(1); });
+}
+module.exports = { runSync: main };

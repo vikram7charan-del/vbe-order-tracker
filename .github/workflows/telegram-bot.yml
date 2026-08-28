@@ -37,8 +37,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Install firebase-admin
-        run: npm install firebase-admin --no-save --no-audit --no-fund
+      - name: Install deps (firebase-admin + googleapis for calendar sync)
+        run: npm install firebase-admin googleapis --no-save --no-audit --no-fund
       - name: Run Telegram bot (long-poll ~5.8h)
         env:
           FIREBASE_SA: ${{ secrets.FIREBASE_SA }}

@@ -83,6 +83,10 @@ async function main() {
         // ⏰ सौंपे कामों की random (15-26 min) याद-दहानी — rotation, 21:00-08:00 शांति
         const rm = await tg.autoPushStaffReminder(col, s);
         for (const c of rm) await tgApi(tok, c.method, c.body);
+        // 📅 Google Calendar auto-sync — यहीं से (हमेशा-चलने वाला bot = भरोसेमंद ~15-min
+        // cadence)। GitHub का अलग calendar-sync workflow घंटों देरी करता है; यह पक्का चलाए।
+        // idempotent event-id → दोनों साथ चलें तब भी duplicate नहीं।
+        try { await require('./calendar-sync').runSync(); } catch (e) { console.log('calSync err:', e.message); }
         // 💰 यही एक read सबकुछ करे: data भी ताज़ा (settings/ownerChat बचाकर) —
         // ताकि हर write पर अलग से पूरी collection दोबारा न पढ़नी पड़े।
         s.settings = Object.assign({}, s.settings, { tgChatId: data.settings.tgChatId });

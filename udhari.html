@@ -315,6 +315,7 @@ hr{border:none;border-top:1px solid var(--bd);margin:10px 0;}
   <div class="empty" id="uEmpty" style="display:none"><div class="big">📭</div><p>No bills found</p><p style="font-size:11px;margin-top:5px">Tap + to add a new bill</p></div>
   <button class="fab" onclick="openAdd()">＋</button>
 <button onclick="openCSV()" style="position:fixed;bottom:82px;right:16px;z-index:200;background:#1e293b;border:1px solid #f97316;color:#f97316;border-radius:12px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">📥 CSV</button>
+<button onclick="settleAllPending()" style="position:fixed;bottom:126px;right:16px;z-index:200;background:#1e293b;border:1px solid #64748b;color:#94a3b8;border-radius:12px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">🧹 Reset</button>
 </div>
 
 <!-- ══════════════ CASH PAGE ══════════════ -->
@@ -1697,6 +1698,30 @@ window.delB = async function() {
     if (!isConfigured) { bills = bills.filter(b => b.id !== curDId); renderU(); }
     cm('detM'); toast('🗑️ Deleted');
   } catch(e) {}
+};
+
+// ─── RESET: पुराने सारे बकाया बिल एक साथ Settle करो, ताकि नया डाटा ताज़ा (0 pending) से शुरू हो ───
+// कोई बिल Delete नहीं होता — सब History/CSV में रहेंगे, बस status 'paid' हो जाएगा paymode 'Opening Reset' के साथ।
+window.settleAllPending = async function() {
+  const pending = bills.filter(b => b.status === 'pending');
+  if (!pending.length) { toast('✅ कोई बकाया बिल नहीं है'); return; }
+  const total = pending.reduce((s, b) => s + (b.total || 0), 0);
+  const ok = confirm(
+    `⚠️ RESET — पुराना बकाया साफ करो\n\n${pending.length} बकाया बिल · कुल ₹${total.toLocaleString('hi')}\n\nये सारे बिल "Settled" मार्क हो जाएंगे (paymode: Opening Reset)। कोई बिल Delete नहीं होगा — पुराना डाटा History/CSV में सुरक्षित रहेगा। इसके बाद नया डाटा बिल्कुल ताज़े (0 Pending) से डालना शुरू कर सकते हो।\n\nजारी रखें?`
+  );
+  if (!ok) return;
+  const dt = today(), tm = nowTime();
+  let done = 0;
+  for (const b of pending) {
+    b.status = 'paid';
+    b.paymode = 'Opening Reset';
+    b.payDate = dt;
+    b.reminderLog = b.reminderLog || [];
+    b.reminderLog.push({ time: tm + ' · ' + fmtDateShort(dt), type: '🔄 Bulk Settled (App Reset)', done: true });
+    try { await saveDoc('mrk_bills', b.id, b); done++; } catch (e) {}
+  }
+  if (!isConfigured) renderU();
+  toast(`✅ ${done} बिल Settle हो गए — नया डाटा डालना शुरू करो`);
 };
 
 // ─── MESSAGES ───

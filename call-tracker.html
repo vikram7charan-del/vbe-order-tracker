@@ -6242,20 +6242,15 @@ function renderDaily(dir){
         </div>
         <div class="d-prog"><i style="width:${pct}%"></i></div>
       </div>${chipBar}`;
-    // ⭐ आज वाले view में सबसे ऊपर स्पेशल काम (सभी तारीखों के, सबसे पुराना पहले)
-    let spHTML='';
-    if(_dailyOff===0){ const sp=dailySpecialList();
-      if(sp.length) spHTML=`<div class="d-sec-h sp">⭐ स्पेशल काम (${sp.length}) — सबसे पुराना ऊपर</div>`+sp.map(x=>dailyTaskHTML(x,{origin:true})).join(''); }
-    const norm=(_dailyOff===0)?out.filter(x=>!x.isSpecial):out;
-    if(!out.length && !spHTML){
+    // "इस दिन के" — सिर्फ़ उसी दिन के काम (स्पेशल काम ऊपर नहीं घुसते; वे ⭐ filter में)
+    if(!out.length){
       bodyHTML=`<div style="text-align:center;padding:52px 14px;color:#64748b"><div style="font-size:40px">🗓️</div>
         <div style="font-size:14px;margin-top:12px;font-family:'Mukta',sans-serif;color:#8b93ad">${escH(lbl)} कोई काम नहीं जोड़ा गया।<br>
         <span style="font-size:12px;color:#556">‹ › या उँगली से swipe करके दूसरा दिन देखें</span></div></div>`;
     } else {
-      let pend=0; norm.forEach(x=>{ const c=contacts.find(z=>z.id===x.cid); const s=calStateOf(c,x); if(s&&s.k==='pend') pend++; });
+      let pend=0; out.forEach(x=>{ const c=contacts.find(z=>z.id===x.cid); const s=calStateOf(c,x); if(s&&s.k==='pend') pend++; });
       const banner=pend?`<div class="cal-banner" onclick="openCalSet()">🔄 ${pend} काम कैलेंडर में जुड़ने वाले हैं · ⚙️ सेटिंग</div>`:'';
-      const normHead=(spHTML&&norm.length)?`<div class="d-sec-h mt">📆 ${escH(lbl)} जोड़े गए</div>`:'';
-      bodyHTML=spHTML+banner+normHead+norm.map(x=>dailyTaskHTML(x)).join('');
+      bodyHTML=banner+out.map(x=>dailyTaskHTML(x)).join('');
     }
   } else {
     // ⭐/⚠️/✅ — सभी तारीखों के, date-nav बंद

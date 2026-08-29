@@ -404,21 +404,21 @@ body.anim-off .card{background:#07111e;backdrop-filter:none;-webkit-backdrop-fil
   transition:background .18s,border-color .18s,color .18s,box-shadow .18s;min-height:32px;display:inline-flex;align-items:center}
 .df-chip:active{transform:scale(.96)}
 .df-chip.on{background:linear-gradient(135deg,#1d4ed8,#7c3aed);border-color:transparent;color:#fff;box-shadow:0 3px 12px -4px rgba(124,58,237,.7)}
-.df-chip.gold.on{background:linear-gradient(135deg,#FFA500,#FF6B35);box-shadow:0 3px 12px -4px rgba(255,140,40,.7)}
+.df-chip.gold.on{background:linear-gradient(135deg,#c9973f,#b0713a);box-shadow:0 3px 12px -6px rgba(180,120,50,.6)}
 .d-sec-h{font-family:'Mukta',sans-serif;font-size:11px;font-weight:800;color:#8b93ad;text-transform:uppercase;letter-spacing:.06em;margin:0 2px 9px}
 .d-sec-h.sp{color:#ffd27a}
 .d-sec-h.mt{margin-top:4px;border-top:1px dashed #232A44;padding-top:12px}
-.d-card.special{border:1px solid transparent;
-  background:linear-gradient(rgba(26,21,9,.82),rgba(20,16,8,.82)) padding-box,linear-gradient(135deg,#FFD700,#FFA500,#FF6B35) border-box;
-  box-shadow:0 0 0 1px rgba(255,180,60,.22),0 8px 24px -8px rgba(255,140,40,.5)}
-.d-card.special::before{content:"";position:absolute;left:0;top:9px;bottom:9px;width:4px;border-radius:3px;
-  background:linear-gradient(#FFD700,#FF6B35);box-shadow:0 0 8px rgba(255,180,60,.7);animation:goldStrip 2.4s ease-in-out infinite}
-.d-star{position:absolute;top:-8px;right:-6px;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  font-size:14px;background:radial-gradient(circle at 40% 35%,#FFE58a,#FFA500);box-shadow:0 2px 8px rgba(255,150,30,.6);z-index:3;animation:starShine 2.6s ease-in-out infinite}
+.d-card.special{border:1px solid rgba(196,150,80,.45);
+  background:rgba(26,23,16,.86);            /* शांत गहरा warm — तेज़ चमक नहीं */
+  box-shadow:0 4px 16px -10px rgba(150,110,50,.3)}
+.d-card.special::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:3px;
+  background:linear-gradient(#caa76a,#b07f3e);opacity:.8}
+.d-star{position:absolute;top:-7px;right:-5px;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:12px;background:radial-gradient(circle at 40% 35%,#dcc082,#b58a45);box-shadow:0 1px 5px rgba(140,100,40,.45);z-index:3}
 .d-origin{display:inline-flex;align-items:center;gap:4px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;
-  padding:2px 8px;border-radius:9px;border:1px solid rgba(255,180,60,.5);color:#ffd27a;background:rgba(255,170,40,.1)}
-.d-origin.old{border-color:rgba(255,90,50,.75);color:#ffb199;background:rgba(255,80,40,.13)}
-.d-tb.star.on{border-color:#FFA500;color:#FFCf5a;background:rgba(255,170,40,.15)}
+  padding:2px 8px;border-radius:9px;border:1px solid rgba(196,150,80,.45);color:#d8b981;background:rgba(150,110,50,.1)}
+.d-origin.old{border-color:rgba(220,120,80,.55);color:#e0a892;background:rgba(200,90,50,.1)}
+.d-tb.star.on{border-color:rgba(196,150,80,.7);color:#d8b981;background:rgba(150,110,50,.14)}
 .d-card.gold-pop{animation:goldPop .45s ease}
 @keyframes goldPop{0%{transform:scale(1)}32%{transform:scale(1.03)}100%{transform:scale(1)}}
 @keyframes starShine{0%,100%{transform:scale(1);filter:drop-shadow(0 0 1px #ffcf5a)}50%{transform:scale(1.13);filter:drop-shadow(0 0 5px #ffcf5a)}}

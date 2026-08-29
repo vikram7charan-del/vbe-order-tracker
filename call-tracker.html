@@ -367,7 +367,7 @@ body.anim-off .card{background:#07111e;backdrop-filter:none;-webkit-backdrop-fil
 /* B) swipe track */
 #daily-track{will-change:transform}
 /* C) शांत task card */
-.d-card{background:rgba(17,22,40,.72);border:1px solid #232A44;border-radius:14px;padding:12px 13px;margin-bottom:12px;transition:border-color .2s}
+.d-card{position:relative;background:rgba(17,22,40,.72);border:1px solid #232A44;border-radius:14px;padding:12px 13px;margin-bottom:12px;transition:border-color .2s}
 .d-card.done{opacity:.62}
 .d-top{display:flex;align-items:flex-start;gap:10px}
 .d-chk{flex-shrink:0;width:24px;height:24px;border-radius:8px;border:2px solid #3a4468;margin-top:1px;cursor:pointer;position:relative;touch-action:manipulation;transition:border-color .15s,background .15s}
@@ -396,6 +396,35 @@ body.anim-off .card{background:#07111e;backdrop-filter:none;-webkit-backdrop-fil
   #daily-track{transition:none!important;animation:none!important}
   .d-prog>i{transition:none}
 }
+/* ═══ ⭐ स्पेशल काम — golden card + star + filter chips (NEW: स्पेशल फीचर) ═══ */
+.df-bar{display:flex;gap:7px;overflow-x:auto;padding:9px 10px 10px;scrollbar-width:none;background:rgba(10,14,26,.55)}
+.df-bar::-webkit-scrollbar{display:none}
+.df-chip{flex:0 0 auto;font-family:'Mukta',sans-serif;font-size:12px;font-weight:700;padding:6px 13px;border-radius:999px;
+  border:1px solid #2a3350;color:#aab4d0;background:rgba(255,255,255,.03);cursor:pointer;white-space:nowrap;touch-action:manipulation;
+  transition:background .18s,border-color .18s,color .18s,box-shadow .18s;min-height:32px;display:inline-flex;align-items:center}
+.df-chip:active{transform:scale(.96)}
+.df-chip.on{background:linear-gradient(135deg,#1d4ed8,#7c3aed);border-color:transparent;color:#fff;box-shadow:0 3px 12px -4px rgba(124,58,237,.7)}
+.df-chip.gold.on{background:linear-gradient(135deg,#FFA500,#FF6B35);box-shadow:0 3px 12px -4px rgba(255,140,40,.7)}
+.d-sec-h{font-family:'Mukta',sans-serif;font-size:11px;font-weight:800;color:#8b93ad;text-transform:uppercase;letter-spacing:.06em;margin:0 2px 9px}
+.d-sec-h.sp{color:#ffd27a}
+.d-sec-h.mt{margin-top:4px;border-top:1px dashed #232A44;padding-top:12px}
+.d-card.special{border:1px solid transparent;
+  background:linear-gradient(rgba(26,21,9,.82),rgba(20,16,8,.82)) padding-box,linear-gradient(135deg,#FFD700,#FFA500,#FF6B35) border-box;
+  box-shadow:0 0 0 1px rgba(255,180,60,.22),0 8px 24px -8px rgba(255,140,40,.5)}
+.d-card.special::before{content:"";position:absolute;left:0;top:9px;bottom:9px;width:4px;border-radius:3px;
+  background:linear-gradient(#FFD700,#FF6B35);box-shadow:0 0 8px rgba(255,180,60,.7);animation:goldStrip 2.4s ease-in-out infinite}
+.d-star{position:absolute;top:-8px;right:-6px;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:14px;background:radial-gradient(circle at 40% 35%,#FFE58a,#FFA500);box-shadow:0 2px 8px rgba(255,150,30,.6);z-index:3;animation:starShine 2.6s ease-in-out infinite}
+.d-origin{display:inline-flex;align-items:center;gap:4px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;
+  padding:2px 8px;border-radius:9px;border:1px solid rgba(255,180,60,.5);color:#ffd27a;background:rgba(255,170,40,.1)}
+.d-origin.old{border-color:rgba(255,90,50,.75);color:#ffb199;background:rgba(255,80,40,.13)}
+.d-tb.star.on{border-color:#FFA500;color:#FFCf5a;background:rgba(255,170,40,.15)}
+.d-card.gold-pop{animation:goldPop .45s ease}
+@keyframes goldPop{0%{transform:scale(1)}32%{transform:scale(1.03)}100%{transform:scale(1)}}
+@keyframes starShine{0%,100%{transform:scale(1);filter:drop-shadow(0 0 1px #ffcf5a)}50%{transform:scale(1.13);filter:drop-shadow(0 0 5px #ffcf5a)}}
+@keyframes goldStrip{0%,100%{opacity:.72}50%{opacity:1}}
+@keyframes dCardIn{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.d-star,.d-card.special::before,.d-card.gold-pop{animation:none!important}}
 /* ═══ 📅 Auto-Calendar — status pill + countdown ring + banner ═══ */
 .cal-pill{display:inline-flex;align-items:center;gap:4px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;
   padding:2px 8px;border-radius:9px;border:1px solid;white-space:nowrap;line-height:1.5}
@@ -6144,6 +6173,36 @@ function _dailyMini(off){ if(off<0) return ''; return _dayStart(off).toLocaleDat
 function _dailyMaxOff(){ let max=0; const today=_dayStart(0).getTime();
   contacts.forEach(c=>normTopics(c).forEach(x=>{ if(!x.addedAt) return; const d=new Date(x.addedAt); if(isNaN(d)) return; d.setHours(0,0,0,0);
     const off=Math.round((today-d.getTime())/86400000); if(off>max&&off<=400) max=off; })); return max; }
+/* <!-- NEW: स्पेशल फीचर --> ⭐ filter state + cross-date lists */
+let _dailyFilter=(function(){ try{ return localStorage.getItem('vbe_daily_filter')||'day'; }catch(e){ return 'day'; } })();
+let _dailyPop=null; // टॉगल के बाद जिस card पर golden-pop animation दिखाना है
+function _allTopicsFlat(){ const out=[]; contacts.forEach(c=>{ if(c.active===false) return; normTopics(c).forEach((x,i)=>out.push({...x,i,cid:c.id,cname:c.name||'?'})); }); return out; }
+function _daysOld(iso){ if(!iso) return 0; const d=new Date(iso); if(isNaN(d)) return 0; d.setHours(0,0,0,0); return Math.max(0,Math.round((_dayStart(0).getTime()-d.getTime())/86400000)); }
+function dailySpecialList(){ return _allTopicsFlat().filter(x=>x.isSpecial===true&&!x.done).sort((a,b)=> new Date(a.addedAt||0)-new Date(b.addedAt||0)); } // सबसे पुराना पहले
+function dailyStuckList(){ return _allTopicsFlat().filter(x=>{ if(x.done) return false; const c=contacts.find(z=>z.id===x.cid); const s=calStateOf(c,x); return s&&s.k==='stuck'; }).sort((a,b)=> new Date(a.addedAt||0)-new Date(b.addedAt||0)); }
+function dailyDoneList(){ return _allTopicsFlat().filter(x=>x.done).sort((a,b)=> new Date(b.doneAt||b.addedAt||0)-new Date(a.doneAt||a.addedAt||0)); }
+function dailyChipBar(){
+  const sp=dailySpecialList().length, st=dailyStuckList().length, dn=dailyDoneList().length, F=_dailyFilter;
+  const chip=(k,label,n,cls)=>`<span class="df-chip${F===k?' on':''}${cls?' '+cls:''}" onclick="dailySetFilter('${k}')">${label}${n?` · ${n}`:''}</span>`;
+  return `<div class="df-bar">
+    ${chip('day','📋 इस दिन के','')}
+    ${chip('special','⭐ स्पेशल',sp,'gold')}
+    ${chip('stuck','⚠️ अटके',st)}
+    ${chip('done','✅ पूरे',dn)}
+  </div>`;
+}
+window.dailySetFilter=function(f){ _dailyFilter=f; try{ localStorage.setItem('vbe_daily_filter',f); }catch(e){} renderDaily('filter'); };
+/* ⭐ toggle — optimistic: पहले local बदलो+render, फिर Firebase; fail हो तो पलटो */
+window.dailyToggleSpecial=function(cid,i,ev){ if(ev){ ev.stopPropagation(); }
+  const c=contacts.find(z=>z.id===cid); if(!c) return; const tps=normTopics(c); const x=tps[i]; if(!x||x.done) return;
+  const now=!x.isSpecial; const prev={...x};
+  tps[i]=Object.assign({},x,{isSpecial:now, specialAt:now?new Date().toISOString():null, specialBy:now?'विक्रम जी':(x.specialBy||null)});
+  c.topics=tps;
+  _dailyPop=now?calKeyOf(tps[i]):null;
+  renderDailyIfOpen();
+  toast(now?'⭐ स्पेशल बनाया':'☆ स्पेशल हटाया');
+  Promise.resolve(fbSave(c)).catch(()=>{ const t2=normTopics(c); t2[i]=prev; c.topics=t2; toast('⚠️ सेव नहीं हुआ, दोबारा कोशिश करें','err'); renderDailyIfOpen(); });
+};
 window.openDaily=function(){ _dailyOff=0; renderDaily(); openModal('m-daily');
   if(!window._dailyKeyBound){ window._dailyKeyBound=true;
     document.addEventListener('keydown',e=>{ const m=document.getElementById('m-daily'); if(!m||!m.classList.contains('open')) return;
@@ -6155,65 +6214,114 @@ window.dailyNav=function(delta){ const n=_dailyOff+delta;
   _dailyOff=n; renderDaily(delta); };
 function renderDailyIfOpen(){ const m=document.getElementById('m-daily'); if(m&&m.classList.contains('open')) renderDaily(); }
 function renderDaily(dir){
-  const {d,out}=dailyList(_dailyOff);
-  const dstr=d.toLocaleDateString('hi-IN',{weekday:'short',day:'numeric',month:'long'});
-  const lbl=_dailyLabel(_dailyOff);
-  const doneN=out.filter(x=>x.done).length, actN=out.length-doneN;
-  const maxOff=_dailyMaxOff(); const canOld=_dailyOff<maxOff, canNew=_dailyOff>0;
-  const pct=out.length?Math.round(doneN/out.length*100):0;
-  /* A) डेट रेल — sticky, हमेशा ऊपर एक ही जगह */
-  document.getElementById('daily-head').innerHTML=`
-    <div class="d-rail">
-      <span class="d-close" onclick="closeModal('m-daily')">✕</span>
-      <span class="d-gear" onclick="openCalSet()" title="📅 कैलेंडर सेटिंग">⚙️</span>
-      <div class="d-rail-row">
-        <button class="d-arrow ${canOld?'':'off'}" onclick="dailyNav(1)" aria-label="पिछला दिन">
-          <span class="ar">‹</span><span class="al">${canOld?escH(_dailyMini(_dailyOff+1)):'शुरू'}</span></button>
-        <div class="d-center">
-          <span class="d-kicker">📆 इस दिन जोड़े गए काम</span>
-          <span class="d-date">${escH(lbl)} · ${escH(dstr)}</span>
-          <span class="d-count">${out.length?`${out.length} जोड़े · ${actN} बाकी · ${doneN} पूरे`:'कोई काम नहीं'}</span>
-        </div>
-        <button class="d-arrow ${canNew?'':'off'}" onclick="dailyNav(-1)" aria-label="अगला दिन">
-          <span class="ar">›</span><span class="al">${canNew?escH(_dailyMini(_dailyOff-1)):'आज'}</span></button>
-      </div>
-      <div class="d-prog"><i style="width:${pct}%"></i></div>
-    </div>`;
+  const F=_dailyFilter, day=(F==='day');
+  const chipBar=dailyChipBar();
   const tr=_track();
-  if(!out.length){ tr.innerHTML=`<div style="text-align:center;padding:52px 14px;color:#64748b">
-      <div style="font-size:40px">🗓️</div>
-      <div style="font-size:14px;margin-top:12px;font-family:'Mukta',sans-serif;color:#8b93ad">${escH(lbl)} कोई काम नहीं जोड़ा गया।<br>
-      <span style="font-size:12px;color:#556">‹ › या उँगली से swipe करके दूसरा दिन देखें</span></div></div>`; }
-  else {
-    // 🔄 top sync banner — कितने काम कैलेंडर में जुड़ने वाले हैं (pending)
-    let pend=0; out.forEach(x=>{ const c=contacts.find(z=>z.id===x.cid); const s=calStateOf(c,x); if(s&&s.k==='pend') pend++; });
-    const banner=pend?`<div class="cal-banner" onclick="openCalSet()">🔄 ${pend} काम कैलेंडर में जुड़ने वाले हैं · ⚙️ सेटिंग</div>`:'';
-    tr.innerHTML=banner+out.map(dailyTaskHTML).join('');
+  let bodyHTML='';
+  if(day){
+    const {d,out}=dailyList(_dailyOff);
+    const dstr=d.toLocaleDateString('hi-IN',{weekday:'short',day:'numeric',month:'long'});
+    const lbl=_dailyLabel(_dailyOff);
+    const doneN=out.filter(x=>x.done).length, actN=out.length-doneN;
+    const maxOff=_dailyMaxOff(); const canOld=_dailyOff<maxOff, canNew=_dailyOff>0;
+    const pct=out.length?Math.round(doneN/out.length*100):0;
+    document.getElementById('daily-head').innerHTML=`
+      <div class="d-rail">
+        <span class="d-close" onclick="closeModal('m-daily')">✕</span>
+        <span class="d-gear" onclick="openCalSet()" title="📅 कैलेंडर सेटिंग">⚙️</span>
+        <div class="d-rail-row">
+          <button class="d-arrow ${canOld?'':'off'}" onclick="dailyNav(1)" aria-label="पिछला दिन">
+            <span class="ar">‹</span><span class="al">${canOld?escH(_dailyMini(_dailyOff+1)):'शुरू'}</span></button>
+          <div class="d-center">
+            <span class="d-kicker">📆 इस दिन जोड़े गए काम</span>
+            <span class="d-date">${escH(lbl)} · ${escH(dstr)}</span>
+            <span class="d-count">${out.length?`${out.length} जोड़े · ${actN} बाकी · ${doneN} पूरे`:'कोई काम नहीं'}</span>
+          </div>
+          <button class="d-arrow ${canNew?'':'off'}" onclick="dailyNav(-1)" aria-label="अगला दिन">
+            <span class="ar">›</span><span class="al">${canNew?escH(_dailyMini(_dailyOff-1)):'आज'}</span></button>
+        </div>
+        <div class="d-prog"><i style="width:${pct}%"></i></div>
+      </div>${chipBar}`;
+    // ⭐ आज वाले view में सबसे ऊपर स्पेशल काम (सभी तारीखों के, सबसे पुराना पहले)
+    let spHTML='';
+    if(_dailyOff===0){ const sp=dailySpecialList();
+      if(sp.length) spHTML=`<div class="d-sec-h sp">⭐ स्पेशल काम (${sp.length}) — सबसे पुराना ऊपर</div>`+sp.map(x=>dailyTaskHTML(x,{origin:true})).join(''); }
+    const norm=(_dailyOff===0)?out.filter(x=>!x.isSpecial):out;
+    if(!out.length && !spHTML){
+      bodyHTML=`<div style="text-align:center;padding:52px 14px;color:#64748b"><div style="font-size:40px">🗓️</div>
+        <div style="font-size:14px;margin-top:12px;font-family:'Mukta',sans-serif;color:#8b93ad">${escH(lbl)} कोई काम नहीं जोड़ा गया।<br>
+        <span style="font-size:12px;color:#556">‹ › या उँगली से swipe करके दूसरा दिन देखें</span></div></div>`;
+    } else {
+      let pend=0; norm.forEach(x=>{ const c=contacts.find(z=>z.id===x.cid); const s=calStateOf(c,x); if(s&&s.k==='pend') pend++; });
+      const banner=pend?`<div class="cal-banner" onclick="openCalSet()">🔄 ${pend} काम कैलेंडर में जुड़ने वाले हैं · ⚙️ सेटिंग</div>`:'';
+      const normHead=(spHTML&&norm.length)?`<div class="d-sec-h mt">📆 ${escH(lbl)} जोड़े गए</div>`:'';
+      bodyHTML=spHTML+banner+normHead+norm.map(x=>dailyTaskHTML(x)).join('');
+    }
+  } else {
+    // ⭐/⚠️/✅ — सभी तारीखों के, date-nav बंद
+    const list=F==='special'?dailySpecialList():F==='stuck'?dailyStuckList():dailyDoneList();
+    const sub=F==='special'?'सभी तारीखों के स्पेशल काम':F==='stuck'?'सभी अटके हुए काम':'पूरे हो चुके काम';
+    const kick=F==='special'?'⭐ स्पेशल':F==='stuck'?'⚠️ अटके हुए':'✅ पूरे';
+    document.getElementById('daily-head').innerHTML=`
+      <div class="d-rail">
+        <span class="d-close" onclick="closeModal('m-daily')">✕</span>
+        <span class="d-gear" onclick="openCalSet()" title="📅 कैलेंडर सेटिंग">⚙️</span>
+        <div class="d-rail-row">
+          <button class="d-arrow off" disabled><span class="ar">‹</span><span class="al">—</span></button>
+          <div class="d-center">
+            <span class="d-kicker">${kick}</span>
+            <span class="d-date">${escH(sub)}</span>
+            <span class="d-count">${list.length?`${list.length} काम`:'कोई नहीं'}</span>
+          </div>
+          <button class="d-arrow off" disabled><span class="ar">›</span><span class="al">—</span></button>
+        </div>
+      </div>${chipBar}`;
+    if(!list.length){
+      const msg=F==='special'?'अभी कोई स्पेशल काम नहीं। किसी काम पर ⭐ दबाकर उसे स्पेशल बनाइए।':F==='stuck'?'कोई अटका हुआ काम नहीं 👍':'अभी कोई पूरा काम नहीं।';
+      bodyHTML=`<div style="text-align:center;padding:52px 14px;color:#64748b"><div style="font-size:40px">${F==='special'?'⭐':F==='stuck'?'⚠️':'✅'}</div>
+        <div style="font-size:14px;margin-top:12px;font-family:'Mukta',sans-serif;color:#8b93ad">${escH(msg)}</div></div>`;
+    } else {
+      bodyHTML=list.map(x=>dailyTaskHTML(x,{origin:F!=='done'})).join('');
+    }
   }
-  /* B) दिन बदलने का slide (260ms) — reduced-motion हो तो सीधा */
+  tr.innerHTML=bodyHTML;
+  /* slide (day-nav) या staggered fade (filter बदलने पर) */
   tr.style.opacity='1';
-  if(dir!==undefined && !_rm()){
+  if(dir!==undefined && dir!=='filter' && !_rm()){
     const W=tr.offsetWidth||320; tr.style.transition='none'; tr.style.transform='translateX('+(dir>0?-W:W)+'px)';
     requestAnimationFrame(()=>{ tr.style.transition='transform .26s cubic-bezier(.22,.61,.36,1),opacity .26s ease'; tr.style.transform='none'; });
   } else { tr.style.transition='none'; tr.style.transform='none'; }
-  /* C) लंबे टेक्स्ट पर ही "पूरा देखें" दिखाओ (3-line clamp से बड़ा हो तो) */
-  requestAnimationFrame(()=>{ tr.querySelectorAll('.d-card:not(.done)').forEach(card=>{
-    const t=card.querySelector('.d-txt'), more=card.querySelector('.d-more');
-    if(t&&more&&t.scrollHeight-t.clientHeight>3) more.style.display='block'; }); });
+  requestAnimationFrame(()=>{
+    const cards=[...tr.querySelectorAll('.d-card')];
+    if(dir==='filter' && !_rm()) cards.forEach((cd,n)=>{ cd.style.animation='dCardIn .3s ease both'; cd.style.animationDelay=Math.min(n,14)*40+'ms'; });
+    // ⭐ टॉगल pop
+    if(_dailyPop){ const cd=tr.querySelector('.d-card[data-key="'+_dailyPop+'"]'); if(cd&&!_rm()){ cd.classList.add('gold-pop'); setTimeout(()=>cd.classList.remove('gold-pop'),460); } _dailyPop=null; }
+    // लंबे टेक्स्ट पर "पूरा देखें"
+    tr.querySelectorAll('.d-card:not(.done)').forEach(card=>{ const t=card.querySelector('.d-txt'), more=card.querySelector('.d-more');
+      if(t&&more&&t.scrollHeight-t.clientHeight>3) more.style.display='block'; });
+  });
 }
 window.dailyExpand=function(btn){ const card=btn.closest('.d-card'); if(card) card.classList.add('exp'); };
-function dailyTaskHTML(x){
+function dailyTaskHTML(x,opts){
+  opts=opts||{};
   const ci=catInfo(x.cat); const inF=taskInFocus(x.cid,x.i);
   const tm=x.addedAt?new Date(x.addedAt).toLocaleTimeString('hi-IN',{hour:'numeric',minute:'2-digit'}):'';
+  const sp=x.isSpecial===true;
+  const key=calKeyOf(x);
   // मार्कर (emoji अपने-आप रंगीन); text शांत #E4E7F2
   const mark=(inF?'🎯 ':'')+(x.pri==='high'?'🔴 ':'')+(ci?ci.logo+' ':'');
+  // ⭐ origin chip (स्पेशल काम जब उसकी तारीख के बाहर दिखे) — 3+ दिन पुराना = लाल
+  let originChip='';
+  if(opts.origin && sp){ const od=_daysOld(x.addedAt); const dstr=x.addedAt?new Date(x.addedAt).toLocaleDateString('hi-IN',{day:'numeric',month:'short'}):'';
+    originChip=` <span class="d-origin${od>=3?' old':''}">⭐ ${escH(dstr)} से · ${od===0?'आज जोड़ा':od+' दिन पुराना'}</span>`; }
+  const star=sp?'<span class="d-star">⭐</span>':'';
   if(x.done){
-    return `<div class="d-card done">
+    return `<div class="d-card done${sp?' special':''}" data-key="${key}">${star}
       <div class="d-top">
         <span class="d-chk" onclick="undoneTopic('${x.cid}',${x.i})" title="वापस active करो"></span>
         <div class="d-body">
           <div class="d-txt">${mark}${escH(x.t)}</div>
-          <div class="d-meta"><span class="d-who">👤 ${escH(x.cname)}</span>${tm?'· '+escH(tm):''} · ✅ पूरा</div>
+          <div class="d-meta"><span class="d-who">👤 ${escH(x.cname)}</span>${tm?'· '+escH(tm):''} · ✅ पूरा${originChip}</div>
         </div>
       </div>
       <div class="d-tools">
@@ -6231,18 +6339,19 @@ function dailyTaskHTML(x){
   if(x.at) meta+=`· ⏰ ${escH(schedLabel(x.at))}`;
   if(x.dg) meta+=`· 🔗 सौंपा`;
   if(x.overseer&&x.overseer.name) meta+=`· 👁️ ${escH((x.overseer.name||'').split(/\s+/)[0])}`;
-  return `<div class="d-card${cs&&cs.k==='stuck'?' stuck-glow':''}" data-ti="${x.i}"
-      ontouchstart="_calHoldStart('${x.cid}',${x.i})" ontouchend="_calHoldEnd()" ontouchmove="_calHoldEnd()">
+  return `<div class="d-card${sp?' special':''}${!sp&&cs&&cs.k==='stuck'?' stuck-glow':''}" data-ti="${x.i}" data-key="${key}"
+      ontouchstart="_calHoldStart('${x.cid}',${x.i})" ontouchend="_calHoldEnd()" ontouchmove="_calHoldEnd()">${star}
     <div class="d-top">
       ${calRingHTML(c,x)}
       <span class="d-chk" onclick="doneTopic('${x.cid}',${x.i})" title="PIN से पूरा"></span>
       <div class="d-body">
         <div class="d-txt">${mark}${escH(x.t)}</div>
         <button class="d-more" onclick="dailyExpand(this)">पूरा देखें ▾</button>
-        <div class="d-meta">${meta}${calPillHTML(c,x)}</div>
+        <div class="d-meta">${meta}${calPillHTML(c,x)}${originChip}</div>
       </div>
     </div>
     <div class="d-tools">
+      <span class="d-tb star${sp?' on':''}" onclick="dailyToggleSpecial('${x.cid}',${x.i},event)" title="⭐ स्पेशल — आज ऊपर दिखे">${sp?'⭐':'☆'}</span>
       <span class="d-tb" onclick="spEditTask('${x.cid}',${x.i})" title="सुधारो">✏️</span>
       <span class="d-tb" onclick="spLinkTask('${x.cid}',${x.i})" title="जोड़ो/सौंपो/देखरेख">🔗</span>
       <span class="d-tb" onclick="spPickAssign('${x.cid}',${x.i})" title="Staff को सौंपो">👤</span>

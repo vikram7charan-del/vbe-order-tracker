@@ -2846,6 +2846,30 @@ window.spTaskWA=function(cid,i){
   const dig=_tgPhDig(c.waPhone||c.phone); if(!dig){ toast('⚠️ नंबर नहीं','err'); return; }
   location.href='whatsapp://send?phone='+dig+'&text='+encodeURIComponent(statusMsg(c.name,x.t));
 };
+/* ══ 📋 कॉपी + 💚 WhatsApp (किसी को भी — व्यक्ति या ग्रुप, चुनकर भेजो) ══
+   spTaskWA फिक्स नंबर पर जाता है (party से status पूछना)। यह नया बटन ख़ाली
+   whatsapp://send?text= खोलता है — कोई फ़िक्स नंबर नहीं, इसलिए WhatsApp खुद
+   contact/group picker दिखाता है, वहाँ से किसी को भी (व्यक्ति या ग्रुप) भेजो। */
+const WA_SVG='<svg viewBox="0 0 32 32" width="15" height="15" style="vertical-align:-3px"><path fill="#25D366" d="M16 3C9 3 3 9 3 16c0 2.4.7 4.7 1.9 6.7L3 29l6.5-1.8A13 13 0 0 0 16 29c7 0 13-6 13-13S23 3 16 3z"/><path fill="#fff" d="M22.4 19.3c-.3-.2-1.9-1-2.2-1.1-.3-.1-.5-.2-.7.1-.2.3-.8 1-1 1.2-.2.2-.4.2-.7.1-.3-.2-1.4-.5-2.7-1.7-1-.9-1.7-2-1.9-2.3-.2-.3 0-.5.1-.6.1-.1.3-.4.5-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5 0-.2-.7-1.8-1-2.4-.3-.6-.5-.5-.7-.6h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.2 3.4 5.3 4.7.7.3 1.3.5 1.8.7.7.2 1.4.2 1.9.1.6-.1 1.9-.8 2.1-1.5.3-.7.3-1.4.2-1.5-.1-.1-.3-.2-.6-.3z"/></svg>';
+function taskShareMsg(x,cname){
+  let m='🎯 '+(x&&x.t||'');
+  if(cname) m+='\n👤 '+cname;
+  if(x&&x.assignTo) m+=' → '+staffName(x.assignTo);
+  if(x&&x.at) m+='\n⏰ '+schedLabel(x.at);
+  return m+'\n— VBE Kaam Tracker';
+}
+window.taskCopy=async function(cid,i){
+  const c=contacts.find(x=>x.id===cid); const x=c&&normTopics(c)[i]; if(!x) return;
+  const ok=await copyToClip(taskShareMsg(x,c&&c.name));
+  toast(ok?'📋 काम copy हो गया — कहीं भी paste करें':'⚠️ copy नहीं हुआ',ok?undefined:'err');
+};
+window.taskWAAny=function(cid,i){
+  const c=contacts.find(x=>x.id===cid); const x=c&&normTopics(c)[i]; if(!x) return;
+  const msg=taskShareMsg(x,c&&c.name);
+  copyToClip(msg); // deep-link में text prefill न हो तो भी paste कर सकें
+  toast('💚 WhatsApp खुल रहा — जिसे भेजना है वो चुनें (व्यक्ति या ग्रुप)');
+  location.href='whatsapp://send?text='+encodeURIComponent(msg.length<=1000?msg:msg.slice(0,970)+'…');
+};
 window.lkWA=function(cid){
   const c=contacts.find(x=>x.id===cid); if(!c) return;
   const x=_lkTopic&&_lkTopic();
@@ -6407,7 +6431,9 @@ function dailyTaskHTML(x,opts){
       <span class="d-tb ${inF?'on':''}" onclick="openFocusPick('${x.cid}',${x.i})" title="🎯 Focus">🎯</span>
       <span class="d-tb" onclick="spSchedTask('${x.cid}',${x.i})" title="Reschedule/समय">${x.at?'📅':'⏰'}</span>
       <span class="d-tb" onclick="spPickCat('${x.cid}',${x.i})" title="श्रेणी">${ci?ci.logo:'🏷️'}</span>
-      <span class="d-tb" onclick="spTaskWA('${x.cid}',${x.i})" title="💬 message">💬</span>
+      <span class="d-tb" onclick="spTaskWA('${x.cid}',${x.i})" title="💬 party से status पूछो">💬</span>
+      <span class="d-tb" onclick="taskCopy('${x.cid}',${x.i})" title="📋 काम copy करो">📋</span>
+      <span class="d-tb" onclick="taskWAAny('${x.cid}',${x.i})" title="💚 WhatsApp — किसी को भी (व्यक्ति/ग्रुप) भेजो">${WA_SVG}</span>
     </div>
   </div>`;
 }
@@ -6581,6 +6607,8 @@ function renderSmartPop(){
           <span class="tb" onclick="spSchedTask('${c.id}',${x.i})" style="border-color:${x.at?'rgba(59,130,246,.65)':'rgba(100,116,139,.4)'}" title="Calendar/अलार्म">${x.at?'📅':'⏰'}</span>
           <span class="tb" onclick="spPickCat('${c.id}',${x.i})" title="श्रेणी चुनें">${ci?ci.logo:'⬜'}</span>
           <span class="tb" onclick="spTaskWA('${c.id}',${x.i})" style="border-color:rgba(37,211,102,.55);color:#4ade80" title="💬 party से status पूछो">💬</span>
+          <span class="tb" onclick="taskCopy('${c.id}',${x.i})" title="📋 काम copy करो">📋</span>
+          <span class="tb" onclick="taskWAAny('${c.id}',${x.i})" title="💚 WhatsApp — किसी को भी (व्यक्ति/ग्रुप) भेजो">${WA_SVG}</span>
         </div>
       </div>`;
       }).join('')}

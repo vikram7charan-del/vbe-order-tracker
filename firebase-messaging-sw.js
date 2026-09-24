@@ -51,3 +51,64 @@ self.addEventListener('notificationclick', function(event){
     })
   );
 });
+
+/* ══════════════════════════════════════════════════════════
+   📶 Offline app-shell cache — नेट कमज़ोर/बंद हो तब भी app खुले
+   ──────────────────────────────────────────────────────────
+   पूरे repo की हर page यही एक SW (root scope) register करती है, इसलिए यहाँ
+   सिर्फ़ रन-टाइम caching (जो असल में खुला उसे save करो) — कोई fixed file-list
+   precache नहीं, ताकि हर page (call-tracker/kharcha/index...) अपने-आप cover हो।
+   Firestore/Auth को कभी नहीं छूते — सिर्फ़ अपने origin + fonts/gstatic जैसे
+   जाने-पहचाने static hosts। version बदलते ही पुराना cache अपने-आप साफ़।
+   ══════════════════════════════════════════════════════════ */
+const SHELL_CACHE = 'vbe-shell-v1';
+const RUNTIME_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com', 'www.gstatic.com'];
+
+self.addEventListener('install', (e) => { self.skipWaiting(); });
+self.addEventListener('activate', (e) => {
+  e.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.filter((k) => k !== SHELL_CACHE).map((k) => caches.delete(k)));
+    await self.clients.claim();
+  })());
+});
+
+self.addEventListener('fetch', (event) => {
+  const req = event.request;
+  if (req.method !== 'GET') return; // writes/Firestore streaming को कभी मत छुओ
+  let url;
+  try { url = new URL(req.url); } catch (e) { return; }
+  const sameOrigin = url.origin === self.location.origin;
+  const isRuntimeHost = RUNTIME_HOSTS.includes(url.hostname);
+  if (!sameOrigin && !isRuntimeHost) return; // बाक़ी सब browser पर छोड़ो
+
+  // पेज (HTML navigation) — network-first ताकि deploy के बाद हमेशा latest मिले;
+  // नेट न हो तभी आख़िरी बार का cached page दिखे (कुछ न मिले तो साफ़ हिंदी संदेश)
+  if (req.mode === 'navigate' || (sameOrigin && url.pathname.endsWith('.html'))) {
+    event.respondWith((async () => {
+      try {
+        const fresh = await fetch(req);
+        const c = await caches.open(SHELL_CACHE);
+        c.put(req, fresh.clone());
+        return fresh;
+      } catch (e) {
+        const cached = await caches.match(req);
+        return cached || new Response(
+          '<meta charset="utf-8"><body style="background:#050a14;color:#e2e8f0;font-family:sans-serif;text-align:center;padding:60px 20px">📶 ऑफ़लाइन — नेट कमज़ोर है।<br>नेट वापस आते ही अपने-आप खुल जाएगा।</body>',
+          { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+        );
+      }
+    })());
+    return;
+  }
+
+  // बाक़ी static (CSS/JS/font/icon/manifest/SDK) — पहले cache से तुरंत दो, पीछे से ताज़ा भी कर लो
+  event.respondWith((async () => {
+    const cached = await caches.match(req);
+    const network = fetch(req).then((res) => {
+      if (res && res.ok) caches.open(SHELL_CACHE).then((c) => c.put(req, res.clone()));
+      return res;
+    }).catch(() => null);
+    return cached || (await network) || new Response('', { status: 504 });
+  })());
+});

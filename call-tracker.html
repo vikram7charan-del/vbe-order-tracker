@@ -1207,6 +1207,7 @@ body.hdr-folded .hdr-row2{display:none}
     <!-- F — एक compact row: ☰ (late badge) · search · ← App -->
     <div class="hdr-top">
       <button class="btn-icon hdr-menu-btn" id="hdr-fold" onclick="foldHdr()" title="मेन्यू खोलो/बंद करो" style="cursor:pointer;font-family:inherit">☰</button>
+      <span id="hdr-off-badge" class="hdr-late" style="display:none;background:linear-gradient(120deg,#475569,#64748b);animation:none">📶 ऑफ़लाइन</span>
       <span id="hdr-late-badge" onclick="setFilter('_late')" class="hdr-late" style="display:none"></span>
       <span id="hdr-search" style="flex:1;min-width:0;position:relative;display:flex">
         <input class="inp" id="search-inp" style="padding:8px 30px 8px 12px;font-size:13px;border-radius:10px;width:100%"
@@ -1858,13 +1859,31 @@ function startFirestoreSync(){
       if(!localStorage.getItem('vbe_ct_anim') && settings.animLevel){ _anim=settings.animLevel; localStorage.setItem('vbe_ct_anim',_anim); applyAnim(); }
       if(typeof applyScene==='function') applyScene();
     }
+    _scheduleRender();
+  }, ()=>toast('⚠️ Sync error — net check करें','err'));
+}
+/* ⚡ परफ़ॉर्मेंस: बॉट हर ~15 मिनट कई docs लगातार लिखता है (calendar/escalation/digest) —
+   हर एक अलग-अलग onSnapshot fire करता था तो app खुली हो तो पूरी लिस्ट बार-बार दोबारा
+   बनती (जैसे-जैसे contacts/tasks बढ़े हैं यह भारी पड़ने लगा)। अब: अकेला/पहला बदलाव
+   तुरंत दिखे, पास-पास आए कई बदलाव एक ही render में मिल जाएँ। */
+let _rdTimer=null, _rdLast=0;
+function _scheduleRender(){
+  const run=()=>{ _rdLast=Date.now(); _rdTimer=null;
     renderFilterBar(); renderTagBtns(); render();
     if(window._pendingOpen){
       const oid=window._pendingOpen; window._pendingOpen=null;
       if(contacts.find(x=>x.id===oid)) setTimeout(()=>window.openSmartPop(oid),300);
     }
-  }, ()=>toast('⚠️ Sync error — net check करें','err'));
+  };
+  if(Date.now()-_rdLast>250){ run(); return; }
+  clearTimeout(_rdTimer); _rdTimer=setTimeout(run,180);
 }
+/* 📶 ऑफ़लाइन/ऑनलाइन — साफ़ बता दो, झूठा भरोसा नहीं (Firestore cache से पुराना डेटा
+   तो दिखता रहेगा, पर owner को पता होना चाहिए कि अभी net नहीं है) */
+function _updateOffBadge(){ const b=document.getElementById('hdr-off-badge'); if(b) b.style.display=navigator.onLine?'none':'inline-flex'; }
+window.addEventListener('online',()=>{ _updateOffBadge(); toast('📶 नेट वापस आया — sync हो रहा है'); });
+window.addEventListener('offline',()=>{ _updateOffBadge(); toast('📶 ऑफ़लाइन — पुराना (आख़िरी सेव) डेटा दिख रहा है','warn'); });
+_updateOffBadge();
 async function fbSave(c){
   try{ await setDoc(doc(db,'vbe_call_tracker',c.id), c); }
   catch(e){ toast('⚠️ Save error','err'); }
@@ -6203,7 +6222,15 @@ function _dailyMaxOff(){ let max=0; const today=_dayStart(0).getTime();
 /* <!-- NEW: स्पेशल फीचर --> ⭐ filter state + cross-date lists */
 let _dailyFilter=(function(){ try{ return localStorage.getItem('vbe_daily_filter')||'day'; }catch(e){ return 'day'; } })();
 let _dailyPop=null; // टॉगल के बाद जिस card पर golden-pop animation दिखाना है
-function _allTopicsFlat(){ const out=[]; contacts.forEach(c=>{ if(c.active===false) return; normTopics(c).forEach((x,i)=>out.push({...x,i,cid:c.id,cname:c.name||'?'})); }); return out; }
+/* ⚡ परफ़ॉर्मेंस: ⭐/⚠️/✅ chip counts + list तीनों अलग-अलग यही पूरा scan दोबारा करते
+   थे (हर contact × हर काम) — डेटा बढ़ने पर बेकार दोहराव। जब तक contacts वही array
+   (नई snapshot न आई हो) तब तक cache से दो। */
+let _flatCache={ref:null,data:null};
+function _allTopicsFlat(){
+  if(_flatCache.ref===contacts) return _flatCache.data;
+  const out=[]; contacts.forEach(c=>{ if(c.active===false) return; normTopics(c).forEach((x,i)=>out.push({...x,i,cid:c.id,cname:c.name||'?'})); });
+  _flatCache={ref:contacts,data:out}; return out;
+}
 function _daysOld(iso){ if(!iso) return 0; const d=new Date(iso); if(isNaN(d)) return 0; d.setHours(0,0,0,0); return Math.max(0,Math.round((_dayStart(0).getTime()-d.getTime())/86400000)); }
 function dailySpecialList(){ return _allTopicsFlat().filter(x=>x.isSpecial===true&&!x.done).sort((a,b)=> new Date(a.addedAt||0)-new Date(b.addedAt||0)); } // सबसे पुराना पहले
 function dailyStuckList(){ return _allTopicsFlat().filter(x=>{ if(x.done) return false; const c=contacts.find(z=>z.id===x.cid); const s=calStateOf(c,x); return s&&s.k==='stuck'; }).sort((a,b)=> new Date(a.addedAt||0)-new Date(b.addedAt||0)); }

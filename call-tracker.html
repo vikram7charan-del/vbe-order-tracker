@@ -40,9 +40,10 @@ html{height:100%;overflow-x:clip;overscroll-behavior-x:none}
 /* 🔍 review-pending badge */
 .rv-badge{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-weight:900;color:#fcd34d;background:rgba(245,158,11,.12);border:1px dashed rgba(245,158,11,.55);border-radius:9px;padding:2px 8px}
 /* 🧰 single-line compact toolbar — 32px targets, scroll + edge-fade, कभी wrap नहीं */
-.sp-tools{display:flex;gap:6px;overflow-x:auto;white-space:nowrap;margin:7px 0 0 34px;padding-bottom:2px;scrollbar-width:none;
-  -webkit-mask-image:linear-gradient(90deg,#000 0,#000 92%,transparent);mask-image:linear-gradient(90deg,#000 0,#000 92%,transparent)}
-.sp-tools::-webkit-scrollbar{display:none}
+/* 🐛 fix: पहले horizontal-scroll था — प्रतिदिन view में पूरे शरीर पर दिन-बदलने
+   वाला swipe लगा है, वो इसी उँगली के इशारे को छीन लेता था (बटन "बाय-बाय" यानी
+   scroll ही नहीं होते)। अब wrap — सारे बटन बिना scroll किए एक साथ दिखें। */
+.sp-tools{display:flex;flex-wrap:wrap;gap:6px;margin:7px 0 0 34px}
 .sp-tools .tb{flex:0 0 auto;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;font-size:13px;border:1px dashed rgba(100,116,139,.4);border-radius:9px;cursor:pointer;touch-action:manipulation;transition:transform .12s}
 .sp-tools .tb:active{transform:scale(var(--press-scale))}
 /* 📤 delegated task = pink theme (हर view में same — Global Rule 3) */
@@ -385,8 +386,11 @@ body.anim-off .card{background:#07111e;backdrop-filter:none;-webkit-backdrop-fil
 .d-card.exp .d-more{display:none!important}
 .d-meta{font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:500;color:#8b93ad;margin-top:5px;display:flex;flex-wrap:wrap;gap:2px 8px}
 .d-who{color:#8fb4ff}
-/* शांत मोनोक्रोम chip line (डैश बॉर्डर हटा) */
-.d-tools{display:flex;gap:7px;overflow-x:auto;white-space:nowrap;margin-top:9px;padding-bottom:2px;scrollbar-width:none}
+/* शांत मोनोक्रोम chip line (डैश बॉर्डर हटा)
+   🐛 fix: horizontal-scroll था — प्रतिदिन view में पूरे शरीर पर दिन-बदलने वाला
+   swipe लगा है, वो इसी इशारे को छीन लेता था (बटन scroll ही नहीं होते दिखते थे)।
+   अब wrap — सारे बटन बिना scroll किए एक साथ दिखें, ज़रूरत हो तो अगली लाइन पर। */
+.d-tools{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
 .d-tools::-webkit-scrollbar{display:none}
 .d-tb{flex:0 0 auto;width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;font-size:14px;
   background:rgba(255,255,255,.04);border:1px solid #2a3350;border-radius:9px;color:#aab4d0;cursor:pointer;touch-action:manipulation;transition:transform .12s,background .15s}

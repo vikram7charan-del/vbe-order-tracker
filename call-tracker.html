@@ -1902,6 +1902,17 @@ function fmtCompact(ms){
   if(h>0) return h+'h'+('0'+m%60).slice(-2);
   return m+'m';
 }
+/* 🐛 fix: Focus ring में बहुत पुराने (कभी पूरे न हुए) काम पर raw मिनट:सेकंड
+   दिखता था — सालों पुराना काम "50407:34" जैसा भोंडा दिखता। अब क्लॉक-फॉर्मेट सिर्फ़
+   1 घंटे तक; उसके बाद Xd Yh / Xh Ym — हमेशा पढ़ने लायक। */
+function fcTimeStr(ms,over){
+  const s=Math.floor(ms/1000), mm=Math.floor(ms/60000), ss=s%60;
+  if(!over || mm<60) return mm+':'+String(ss).padStart(2,'0');
+  const h=Math.floor(mm/60);
+  if(h<24) return h+'h '+(mm%60)+'m';
+  const d=Math.floor(h/24);
+  return d+'d '+(h%24)+'h';
+}
 function fmtFull(ms){
   if(ms<0) return '—';
   const m=Math.floor(ms/60000),h=Math.floor(m/60);
@@ -3480,6 +3491,15 @@ function saveFocus(){
   try{ setDoc(doc(db,'vbe_call_tracker','_focus'),{id:'_focus',items:_focus}); }catch(e){}
 }
 function focusHas(id){ return _focus.some(f=>f.id===id); }
+/* 🧹 3+ दिन से लेट पड़े Focus items एक साथ हटाओ — काम delete नहीं होता, सिर्फ़ Focus tracking से हटता है */
+window.fcCleanStale=function(){
+  const n=_focus.filter(f=>(Date.now()-f.until)>=3*86400000).length;
+  if(!n){ toast('कोई पुराना नहीं मिला'); return; }
+  _focus=_focus.filter(f=>(Date.now()-f.until)<3*86400000);
+  saveFocus(); renderFocusBar();
+  toast(`🧹 ${n} पुराने Focus से हटाए — काम वहीं मौजूद हैं`);
+  openFocusDash();
+};
 let _fcPick=null, _fcOwn='v';
 window.fcOwner=function(o){
   _fcOwn=o;
@@ -3552,12 +3572,12 @@ function fcItemHTML(f){
   const left=f.until-Date.now();
   const over=left<=0;
   const p=Math.min(100,Math.max(0,((Date.now()-f.start)/(f.until-f.start))*100));
-  const mm=Math.floor(Math.abs(left)/60000), ss=Math.floor((Math.abs(left)%60000)/1000);
+  const tmStr=fcTimeStr(Math.abs(left),over);
   const ow=(f.own||'v'); const d=ow==='d';
-  const lateTxt=Math.abs(left)>=3600000?fmtCompact(Math.abs(left))+' लेट':mm+'m '+String(ss).padStart(2,'0')+'s लेट'; // सेकंड-सेकंड टिकती घड़ी
+  const lateTxt=Math.abs(left)>=3600000?fmtCompact(Math.abs(left))+' लेट':tmStr.split(':')[0]+'m '+tmStr.split(':')[1]+'s लेट'; // सेकंड-सेकंड टिकती घड़ी
   let _ti=f.i; if(_ti==null){ const _c=contacts.find(x=>x.id===f.id); _ti=_c?firstPendIdx(_c):0; } // पुराने focus items में i नहीं
   return `<div class="fc-item ${d?'d':''} ${over?'over':''}" data-key="${f.key}" onclick="deepLinkToTask('${f.id}',${_ti})">
-    <div class="fc-ring" style="--p:${p.toFixed(1)};--fc:${over?'#ef4444':(ow==='k'?'#22c55e':d?'#22d3ee':'#a855f7')}"><svg viewBox="0 0 44 44"><circle class="trk" cx="22" cy="22" r="19"/><circle class="prg" cx="22" cy="22" r="19"/></svg><span class="tm">${mm}:${String(ss).padStart(2,'0')}</span></div>
+    <div class="fc-ring" style="--p:${p.toFixed(1)};--fc:${over?'#ef4444':(ow==='k'?'#22c55e':d?'#22d3ee':'#a855f7')}"><svg viewBox="0 0 44 44"><circle class="trk" cx="22" cy="22" r="19"/><circle class="prg" cx="22" cy="22" r="19"/></svg><span class="tm">${tmStr}</span></div>
     <div class="fc-task"><span style="font-weight:900;color:${ow==='k'?'#4ade80':d?'#67e8f9':'#c4b5fd'}">🎯 ${ow==='k'?'कैलाश':d?'दिनेश':'विक्रम'}</span> · ${escH(f.t)}<div class="fc-sub" style="color:#9fb0d4;font-weight:800;margin-top:2px">${f.mins}m<span class="fc-st ${over?'late':'run'}">${over?'LATE':'चालू'}</span></div></div>
     <span class="fc-x" onclick="event.stopPropagation();stopFocus('${f.key}')">✕</span>
   </div>`;
@@ -3607,11 +3627,11 @@ function _fcBar(el,label,items,own){
     const own=el.querySelector('.fc-owner'); if(own&&own.textContent!==label) own.textContent=label;
     items.forEach(f=>{
       const left=f.until-Date.now(), over=left<=0;
-      const mm=Math.floor(Math.abs(left)/60000), ss=Math.floor((Math.abs(left)%60000)/1000);
+      const tmStr=fcTimeStr(Math.abs(left),over);
       const p=Math.min(100,Math.max(0,((Date.now()-f.start)/(f.until-f.start))*100));
       el.querySelectorAll('.fc-item[data-key="'+f.key+'"]').forEach(node=>{
         node.classList.toggle('over',over);
-        const tm=node.querySelector('.tm'); if(tm) tm.textContent=mm+':'+String(ss).padStart(2,'0');
+        const tm=node.querySelector('.tm'); if(tm) tm.textContent=tmStr;
         const ring=node.querySelector('.fc-ring'); if(ring){ ring.style.setProperty('--p',p.toFixed(1)); if(over) ring.style.setProperty('--fc','#ef4444'); }
         const st=node.querySelector('.fc-st'); if(st){ st.textContent=over?'LATE':'चालू'; st.className='fc-st '+(over?'late':'run'); }
       });
@@ -3662,8 +3682,15 @@ window.openFocusDash=function(){
   };
   let doneToday=0; const tk0=(d=>{d.setHours(0,0,0,0);return d.getTime()})(new Date());
   contacts.forEach(c=>normTopics(c).forEach(x=>{ if(x.done&&x.doneAt&&new Date(x.doneAt).getTime()>=tk0) doneToday++; }));
+  // 🧹 3+ दिन से लेट पड़े Focus items — साफ़-सफ़ाई का मौका (काम delete नहीं होता, सिर्फ़ Focus से हटता है)
+  const staleN=_focus.filter(f=>(Date.now()-f.until)>=3*86400000).length;
+  const staleBanner=staleN?`<div class="press" onclick="fcCleanStale()" style="cursor:pointer;display:flex;align-items:center;gap:8px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.4);border-radius:11px;padding:9px 12px;margin-bottom:10px">
+    <span style="flex:1;font-size:11.5px;font-weight:800;color:#fca5a5">🧹 ${staleN} काम बहुत पुराने से Focus में अटके हैं (3+ दिन लेट) — काम नहीं मिटेगा, सिर्फ़ Focus से हटेगा</span>
+    <span style="font-size:10px;font-weight:900;color:#fff;background:#dc2626;border-radius:8px;padding:5px 10px;flex-shrink:0">हटाओ</span>
+  </div>`:'';
   document.getElementById('fdash-body').innerHTML=
     `<div style="font-size:11px;color:#94a3b8;margin-bottom:10px">आज ✅ ${doneToday} काम पूरे</div>`
+    +staleBanner
     +`<div id="fdash-feed"></div>`
     +overseerDashHTML()
     +sec('v','🟣 विक्रम भाई','#a855f7')+sec('d','🔷 दिनेश जी रतकोड़िया','#22d3ee')+sec('k','🟢 कैलाश भाई','#22c55e');

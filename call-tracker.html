@@ -445,6 +445,13 @@ body.anim-off .card{background:#07111e;backdrop-filter:none;-webkit-backdrop-fil
 .cal-banner{display:flex;align-items:center;gap:8px;margin:0 0 12px;padding:9px 12px;border-radius:12px;
   background:linear-gradient(135deg,rgba(34,211,238,.14),rgba(59,130,246,.1));border:1px solid rgba(34,211,238,.35);
   color:#a5f3fc;font-size:12px;font-weight:600;font-family:'Mukta',sans-serif;cursor:pointer}
+.d-dl{position:absolute;top:7px;right:76px;font-size:16px;cursor:pointer;padding:4px 6px;line-height:1;touch-action:manipulation;background:rgba(255,255,255,.12);border-radius:8px}
+#dx-sheet{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99999;display:flex;align-items:flex-end;justify-content:center}
+#dx-sheet .dx-box{background:#121a33;border:1px solid #2b3a66;border-radius:18px 18px 0 0;width:100%;max-width:480px;padding:16px 14px 22px;font-family:'Mukta','Noto Sans Devanagari',sans-serif}
+#dx-sheet h3{margin:0 0 4px;color:#fff;font-size:17px}#dx-sheet p{margin:0 0 12px;color:#8b93ad;font-size:12.5px}
+#dx-sheet button{display:flex;align-items:center;gap:10px;width:100%;margin:7px 0;padding:13px 14px;border-radius:12px;border:1px solid #2b3a66;background:#1a2547;color:#e4e7f2;font-size:15px;font-weight:700;text-align:left;font-family:inherit}
+#dx-sheet button small{display:block;font-weight:400;color:#8b93ad;font-size:11.5px}
+#dx-sheet .dx-x{justify-content:center;background:transparent;color:#8b93ad}
 .d-gear{position:absolute;top:9px;right:44px;font-size:15px;color:rgba(255,255,255,.8);cursor:pointer;padding:4px;line-height:1;touch-action:manipulation}
 @media (prefers-reduced-motion:reduce){.cal-pill{animation:none!important}}
 .cs-l{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12.5px;font-weight:600;color:#c7d4ef;font-family:'Mukta',sans-serif;margin-bottom:11px;flex-wrap:wrap}
@@ -6294,6 +6301,74 @@ window.dailyNav=function(delta){ const n=_dailyOff+delta;
   if(n<0){ toast('आज से आगे नहीं 🙂','warn'); const tr=_track(); if(tr){ tr.style.transition='transform .2s'; tr.style.transform='none'; tr.style.opacity='1'; } return; }
   if(n>_dailyMaxOff()){ const tr=_track(); if(tr){ tr.style.transition='transform .2s'; tr.style.transform='none'; tr.style.opacity='1'; } return; }
   _dailyOff=n; renderDaily(delta); };
+/* ══ 📥 डाउनलोड — दिन के काम Excel (CSV) / Word में, और सारा डेटा (Claude आर्टिफैक्ट के लिए) ══ */
+function _dxRows(list){
+  return list.map((x,n)=>{
+    const c=contacts.find(z=>z.id===x.cid)||{};
+    const st=x.done?'✅ पूरा':((calStateOf(c,x)||{}).k==='stuck'?'⚠️ अटका':'⏳ बाकी');
+    const ci=catInfo(x.cat);
+    let to=''; if(x.assignTo) to=staffName(x.assignTo); else if(x.dg&&x.dg.to) to=x.dg.to;
+    const ad=x.addedAt?new Date(x.addedAt):null;
+    return { 'क्रम':n+1,
+      'तारीख':ad?ad.toLocaleDateString('en-GB'):'',
+      'समय':ad?ad.toLocaleTimeString('hi-IN',{hour:'numeric',minute:'2-digit'}):'',
+      'काम':x.t||'', 'किसका / व्यक्ति':x.cname||'', 'फोन':c.phone||'',
+      'किसे सौंपा':to, 'देखरेख':(x.overseer&&x.overseer.name)||'',
+      'समय-सीमा':x.at?schedLabel(x.at):'', 'स्थिति':st,
+      'स्पेशल':x.isSpecial===true?'⭐':'', 'ज़रूरी':x.pri==='high'?'🔴 हाँ':'',
+      'श्रेणी':ci?(ci.label||ci.k||''):(x.cat||''),
+      'पूरा हुआ':x.doneAt?new Date(x.doneAt).toLocaleString('hi-IN'):'' };
+  });
+}
+function _dxCurrent(){
+  const F=_dailyFilter;
+  if(F==='day'){ const {d,out}=dailyList(_dailyOff); return {list:out,name:d.toLocaleDateString('en-GB').replace(/\//g,'-'),title:'काम — '+d.toLocaleDateString('hi-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}; }
+  const list=F==='special'?dailySpecialList():F==='stuck'?dailyStuckList():dailyDoneList();
+  const t=F==='special'?'स्पेशल':F==='stuck'?'अटके':'पूरे';
+  return {list,name:t+'-'+new Date().toLocaleDateString('en-GB').replace(/\//g,'-'),title:'सभी '+t+' काम ('+new Date().toLocaleDateString('hi-IN')+' तक)'};
+}
+function _dxSave(blob,fname){
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=fname;
+  document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);
+}
+window.openDailyExport=function(){
+  const cur=_dxCurrent(); const old=document.getElementById('dx-sheet'); if(old) old.remove();
+  const el=document.createElement('div'); el.id='dx-sheet';
+  el.onclick=e=>{ if(e.target===el) el.remove(); };
+  el.innerHTML=`<div class="dx-box"><h3>📥 डाउनलोड</h3><p>${escH(cur.title)} · ${cur.list.length} काम</p>
+    <button onclick="dailyExport('xls')">📊 <span>Excel फाइल<small>अभी जो सूची दिख रही है</small></span></button>
+    <button onclick="dailyExport('doc')">📄 <span>Word फाइल<small>प्रिंट के लिए बड़े अक्षर</small></span></button>
+    <button onclick="dailyExport('all')">💾 <span>सारा डेटा (Claude के लिए)<small>सभी दिन, सभी व्यक्ति — यही फाइल Claude को भेजें</small></span></button>
+    <button class="dx-x" onclick="document.getElementById('dx-sheet').remove()">बंद करें</button></div>`;
+  document.body.appendChild(el);
+};
+window.dailyExport=function(kind){
+  try{
+    if(kind==='all'){
+      const data={app:'VBE Call Tracker',exportedAt:new Date().toISOString(),
+        contacts:contacts.map(c=>{ const o={}; Object.keys(c).forEach(k=>{ if(k!=='calAuto') o[k]=c[k]; }); o.topics=normTopics(c); return o; })};
+      _dxSave(new Blob([JSON.stringify(data,null,1)],{type:'application/json'}),'VBE-सारे-काम-'+new Date().toLocaleDateString('en-GB').replace(/\//g,'-')+'.json');
+      toast('💾 सारा डेटा डाउनलोड हुआ — यह फाइल Claude को भेज दीजिए'); return;
+    }
+    const cur=_dxCurrent(); const rows=_dxRows(cur.list);
+    if(!rows.length){ toast('इस सूची में कोई काम नहीं'); return; }
+    const heads=Object.keys(rows[0]);
+    if(kind==='xls'){
+      const esc=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+      const csv='﻿'+[heads.map(esc).join(',')].concat(rows.map(r=>heads.map(h=>esc(r[h])).join(','))).join('\r\n');
+      _dxSave(new Blob([csv],{type:'text/csv;charset=utf-8'}),'काम-'+cur.name+'.csv');
+    } else {
+      const th=heads.filter(h=>!['ज़रूरी','पूरा हुआ','देखरेख'].includes(h));
+      const html=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8">
+        <style>@page{size:A4 landscape;margin:1.2cm}body{font-family:'Nirmala UI','Mangal',sans-serif;font-size:14pt}
+        h2{font-size:20pt;margin:0 0 6pt}table{border-collapse:collapse;width:100%}td,th{border:1px solid #444;padding:5pt;font-size:13pt;vertical-align:top}th{background:#dde3f5}</style></head>
+        <body><h2>${escH(cur.title)}</h2><p>कुल ${rows.length} काम</p><table><tr>${th.map(h=>`<th>${escH(h)}</th>`).join('')}</tr>
+        ${rows.map(r=>`<tr>${th.map(h=>`<td>${escH(String(r[h]))}</td>`).join('')}</tr>`).join('')}</table></body></html>`;
+      _dxSave(new Blob(['﻿'+html],{type:'application/msword'}),'काम-'+cur.name+'.doc');
+    }
+    toast('📥 फाइल डाउनलोड हो गई');
+  }catch(e){ console.error(e); toast('डाउनलोड में दिक्कत: '+e.message); }
+};
 function renderDailyIfOpen(){ const m=document.getElementById('m-daily'); if(m&&m.classList.contains('open')) renderDaily(); }
 function renderDaily(dir){
   const F=_dailyFilter, day=(F==='day');
@@ -6311,6 +6386,7 @@ function renderDaily(dir){
       <div class="d-rail">
         <span class="d-close" onclick="closeModal('m-daily')">✕</span>
         <span class="d-gear" onclick="openCalSet()" title="📅 कैलेंडर सेटिंग">⚙️</span>
+        <span class="d-dl" onclick="openDailyExport()" title="📥 Excel / Word में डाउनलोड">📥</span>
         <div class="d-rail-row">
           <button class="d-arrow ${canOld?'':'off'}" onclick="dailyNav(1)" aria-label="पिछला दिन">
             <span class="ar">‹</span><span class="al">${canOld?escH(_dailyMini(_dailyOff+1)):'शुरू'}</span></button>
@@ -6343,6 +6419,7 @@ function renderDaily(dir){
       <div class="d-rail">
         <span class="d-close" onclick="closeModal('m-daily')">✕</span>
         <span class="d-gear" onclick="openCalSet()" title="📅 कैलेंडर सेटिंग">⚙️</span>
+        <span class="d-dl" onclick="openDailyExport()" title="📥 Excel / Word में डाउनलोड">📥</span>
         <div class="d-rail-row">
           <button class="d-arrow off" disabled><span class="ar">‹</span><span class="al">—</span></button>
           <div class="d-center">

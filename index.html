@@ -180,6 +180,11 @@ const APPROVED_UID = "tjkS5tg2vMflpndGHSQRjFYgRv03";
 // Supplier login function — login screen से call होगा
 window._fbSignIn = async function(mobile, pin){
   const email = mobile + "@vbe-tracker.local";
+  pin = String(pin||'').trim();
+  if(pin === '4445') pin = '88990011';   // छोटा login PIN → असली password (call-tracker जैसा)
+  // Firebase password कम से कम 6 अक्षर — छोटा PIN कभी सही हो ही नहीं सकता। उसे Firebase
+  // को भेजना सिर्फ़ "गलत कोशिश" गिनवाता है और पूरा account रुक जाता है — इसलिए यहीं रोको।
+  if(pin.length < 6) return { ok: false, code: 'auth/wrong-password', message: 'गलत PIN' };
   try {
     // पहले अगर anonymous logged-in है तो sign out करो
     if(auth.currentUser && auth.currentUser.isAnonymous){
@@ -204,24 +209,53 @@ window._fbAnonSignIn = async function(){
   }
 };
 
-let _autoLoginAttempt = 0;
+/* 🔐 Auto-login — Firebase rate-limit (auth/too-many-requests) से बचाव।
+   पहले: हर बार खोलने पर 4-4 सेकंड में 5 कोशिश, और wrong-user पर signOut().then()
+   + onAuthStateChanged(null) दोनों से दो-दो कोशिश एक साथ। Firebase रोक लगाए तो हर
+   नई कोशिश रोक को और लंबा करती थी → ऐप खुलता ही नहीं था।
+   अब: एक समय में एक कोशिश, बढ़ता इंतज़ार, रोक लगे तो 10 मिनट पूरी चुप्पी (reload पर
+   भी — localStorage में याद), countdown के बाद अपने-आप जुड़े। */
+let _autoLoginAttempt = 0, _alBusy = false, _alTimer = null, _alTick = null;
+const _AL_KEY = 'vbe_auth_cooldown_until';
+function _alTxt(s){ const t = document.getElementById('load-auth-txt'); if(t) t.textContent = s; }
+function _alCooldownUI(until){
+  window._alCooldown = true;
+  clearInterval(_alTick);
+  const draw = () => {
+    const left = until - Date.now();
+    if(left <= 0){ clearInterval(_alTick); window._alCooldown = false; localStorage.removeItem(_AL_KEY); _autoLoginAttempt = 0; _tryAutoLogin(); return; }
+    const m = Math.floor(left/60000), s = Math.floor((left%60000)/1000);
+    _alTxt('⏸️ बहुत बार login हुआ — Firebase ने थोड़ी देर रोका है। ' + m + ':' + String(s).padStart(2,'0') + ' बाद अपने-आप जुड़ेगा (बार-बार खोलें नहीं)');
+  };
+  draw(); _alTick = setInterval(draw, 1000);
+}
 function _tryAutoLogin(){
-  _autoLoginAttempt++;
-  const txt = document.getElementById('load-auth-txt');
-  if(txt && _autoLoginAttempt > 1) txt.textContent = '🔄 Connecting... (attempt ' + _autoLoginAttempt + ')';
+  if(_alBusy) return;                               // एक समय में एक ही कोशिश
+  clearTimeout(_alTimer);
+  const until = +localStorage.getItem(_AL_KEY) || 0;
+  if(Date.now() < until){ _alCooldownUI(until); return; }
+  _alBusy = true; _autoLoginAttempt++;
+  if(_autoLoginAttempt > 1) _alTxt('🔄 Connecting... (attempt ' + _autoLoginAttempt + ')');
   signInWithEmailAndPassword(auth,'9887401741@vbe-tracker.local','88990011')
-    .catch(e=>{
+    .then(() => { _alBusy = false; localStorage.removeItem(_AL_KEY); })
+    .catch(e => {
+      _alBusy = false;
       console.error('auto-login attempt', _autoLoginAttempt, ':', e.code, e.message);
-      if(txt) txt.textContent = '⚠️ ' + (e.code||e.message) + ' — Retrying...';
-      if(_autoLoginAttempt < 5) setTimeout(_tryAutoLogin, 4000);
+      if(e.code === 'auth/too-many-requests'){
+        const u = Date.now() + 10*60*1000; localStorage.setItem(_AL_KEY, String(u)); _alCooldownUI(u); return;
+      }
+      if(e.code === 'auth/network-request-failed'){ _alTxt('📶 नेट नहीं — नेट आते ही अपने-आप जुड़ेगा'); _alTimer = setTimeout(_tryAutoLogin, 8000); return; }
+      _alTxt('⚠️ ' + (e.code||e.message) + ' — थोड़ी देर में फिर कोशिश');
+      if(_autoLoginAttempt < 4) _alTimer = setTimeout(_tryAutoLogin, 4000 * Math.pow(3, _autoLoginAttempt-1)); // 4s, 12s, 36s
     });
 }
+window.addEventListener('online', () => { if(!window._fbReady && !window._alCooldown){ _autoLoginAttempt = 0; _tryAutoLogin(); } });
 onAuthStateChanged(auth, user => {
   // अगर user है लेकिन admin नहीं (anonymous या wrong user) तो sign out करो
   if(!user || user.uid !== APPROVED_UID){
     if(user){
-      // Wrong/anonymous user cached — sign out and re-login as admin
-      signOut(auth).then(_tryAutoLogin);
+      // Wrong/anonymous user cached — sign out; उसके बाद आने वाला null-callback खुद login करेगा
+      signOut(auth);
     } else {
       _tryAutoLogin();
     }
@@ -2247,6 +2281,8 @@ function staffColor(name){
 // Firebase timeout — 30 सेकंड में नहीं आया तो error दिखाओ
 const _fbTimeout = setTimeout(()=>{
   const loadEl = document.getElementById('loading');
+  // Firebase रोक (cooldown) चल रही हो तो "Reload करो" मत दिखाओ — reload रोक को और लंबा करता है
+  if(window._alCooldown) return;
   if(loadEl && loadEl.style.display !== 'none'){
     const errCode = (document.getElementById('load-auth-txt')||{}).textContent || '';
     loadEl.innerHTML = `<div style="text-align:center;padding:20px">
@@ -2387,6 +2423,8 @@ async function doLogin(){
     document.getElementById('login-pass').value='';
     if(result.code === 'auth/network-request-failed'){
       showErr('🔴 Internet नहीं है — connect करके फिर try करें');
+    } else if(result.code === 'auth/too-many-requests'){
+      showErr('⏸️ बहुत बार कोशिश हुई — Firebase ने 15-30 मिनट रोका है। तब तक दोबारा न दबाएँ');
     } else {
       showErr('❌ गलत Mobile या PIN — फिर try करें');
     }

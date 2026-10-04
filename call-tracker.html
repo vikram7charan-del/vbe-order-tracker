@@ -1804,11 +1804,14 @@ window.doLogin = async function(){
   if(!mob||!pin){ err.textContent='Mobile और PIN दोनों जरूरी'; return; }
   // छोटा PIN — Firebase के असली password पर map होता है (Firebase में min 6 chars चाहिए)
   if(pin==='4445') pin='88990011';
+  // 6 से छोटा PIN Firebase में कभी सही हो ही नहीं सकता — भेजने से सिर्फ़ गलत-कोशिश गिनी
+  // जाती है और पूरा account (सारे ऐप) रुक जाता है। यहीं मना कर दो।
+  if(pin.length<6){ err.textContent='❌ गलत PIN'; return; }
   err.textContent='⏳ Login...';
   try{
     await signInWithEmailAndPassword(auth, mob+'@vbe-tracker.local', pin);
     err.textContent='';
-  } catch(e){ err.textContent='❌ गलत Mobile/PIN'; }
+  } catch(e){ err.textContent=e.code==='auth/too-many-requests'?'⏸️ बहुत बार कोशिश हुई — 15-30 मिनट बाद आज़माएँ':'❌ गलत Mobile/PIN'; }
 };
 
 function showLogin(){

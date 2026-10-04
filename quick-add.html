@@ -187,15 +187,18 @@ function setDefaultDeadline(){
 
 window.doLogin = async function(){
   const mob = (document.getElementById('l-mob').value||'').trim();
-  const pin = (document.getElementById('l-pin').value||'').trim();
+  let pin = (document.getElementById('l-pin').value||'').trim();
   const err = document.getElementById('l-err');
   if(!mob||!pin){ err.textContent='Mobile और PIN दोनों जरूरी'; return; }
+  if(pin==='4445' && mob==='9887401741') pin='88990011'; // owner का छोटा PIN
+  // 6 से छोटा PIN Firebase में कभी सही नहीं — भेजने से account पर रोक लगती है
+  if(pin.length<6){ err.textContent='❌ गलत PIN'; return; }
   err.textContent='⏳ Login हो रहे हैं...';
   try{
     await signInWithEmailAndPassword(auth, mob+'@vbe-tracker.local', pin);
     err.textContent='';
   } catch(e){
-    err.textContent='❌ गलत Mobile/PIN — दोबारा try करें';
+    err.textContent = e.code==='auth/too-many-requests' ? '⏸️ बहुत बार कोशिश हुई — 15-30 मिनट बाद आज़माएँ' : '❌ गलत Mobile/PIN — दोबारा try करें';
   }
 };
 
